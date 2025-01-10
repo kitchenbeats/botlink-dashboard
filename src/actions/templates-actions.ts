@@ -20,7 +20,7 @@ export const getTeamTemplatesAction = guardAction(
   GetTeamTemplatesParamsSchema,
   async ({ apiUrl, teamId }) => {
     // TODO: Remove this after staging
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production") {
       await new Promise((resolve) => setTimeout(resolve, 500));
       return MOCK_TEMPLATES_DATA;
     }
