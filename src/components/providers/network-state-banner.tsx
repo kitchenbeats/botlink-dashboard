@@ -15,7 +15,7 @@ export default function NetworkStateBanner() {
           animate={{ height: "auto" }}
           exit={{ height: 0 }}
           transition={{ duration: 0.2, ease: exponentialSmoothing(5) }}
-          className="w-full border-b border-red-500/20 bg-red-500/10"
+          className="w-full overflow-hidden border-b border-red-500/20 bg-red-500/10"
           suppressHydrationWarning
         >
           <div className="container mx-auto px-4 py-2">
