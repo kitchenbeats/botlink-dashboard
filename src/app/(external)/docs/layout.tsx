@@ -1,6 +1,5 @@
 import { DocsLayout, type DocsLayoutProps } from "fumadocs-ui/layouts/docs";
 import type { ReactNode } from "react";
-import { Slot } from "@radix-ui/react-slot";
 import { baseOptions } from "@/app/layout.config";
 /* import "fumadocs-twoslash/twoslash.css"; */
 import { source } from "@/app/source";

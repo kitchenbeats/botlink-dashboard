@@ -1,23 +1,18 @@
 import { Button, ButtonProps } from "@/components/ui/button";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { CheckIcon, CopyIcon } from "lucide-react";
-import { FC, useState } from "react";
+import { FC } from "react";
 
 interface CopyButtonProps extends ButtonProps {
   value: string;
 }
 
 const CopyButton: FC<CopyButtonProps> = ({ value, ...props }) => {
-  const [hasCopied, setHasCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(value);
-    setHasCopied(true);
-    setTimeout(() => setHasCopied(false), 3000);
-  };
+  const [wasCopied, copy] = useClipboard();
 
   return (
-    <Button size="icon" onClick={handleCopy} {...props}>
-      {hasCopied ? (
+    <Button size="icon" onClick={() => copy(value)} {...props}>
+      {wasCopied ? (
         <CheckIcon className="h-4 w-4" />
       ) : (
         <CopyIcon className="h-4 w-4" />

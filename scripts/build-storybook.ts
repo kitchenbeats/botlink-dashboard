@@ -10,7 +10,7 @@ const shouldBuildStorybook =
 if (!shouldBuildStorybook) {
   console.log(
     "Skipping Storybook build - NEXT_PUBLIC_EXPOSE_STORYBOOK =",
-    shouldBuildStorybook,
+    process.env.NEXT_PUBLIC_EXPOSE_STORYBOOK,
   );
   process.exit(0);
 }
