@@ -64,7 +64,7 @@
     --fd-foreground: var(--fg);
 
     --fd-muted: var(--bg-100);
-    --fd-muted-foreground: var(--fg-100);
+    --fd-muted-foreground: var(--fg-500);
 
     --fd-accent: var(--bg-100);
     --fd-accent-foreground: var(--fg);
@@ -157,9 +157,9 @@
     @apply font-mono font-light uppercase;
   }
 
-  a {
+  /*  a {
     @apply text-accent underline-offset-4 hover:underline;
-  }
+  } */
 
   ul li {
     padding-left: 0.5rem;

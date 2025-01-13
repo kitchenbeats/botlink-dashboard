@@ -11,6 +11,7 @@ const alertVariants = cva(
         default: "bg-bg border-border text-fg",
         contrast1: "border-contrast-1 [&>svg]:text-contrast-1 text-fg",
         contrast2: "border-contrast-2 [&>svg]:text-contrast-2 text-fg",
+        warn: "text-fg border-orange-500 [&>svg]:text-orange-500",
         error: "text-fg border-error [&>svg]:text-error",
       },
     },

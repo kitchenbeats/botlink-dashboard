@@ -24,6 +24,8 @@ import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 import { source } from "@/app/source";
 /* import { AutoTypeTable } from "@/components/type-table"; */
 import { createMetadata, metadataImage } from "@/lib/metadata";
+import { METADATA } from "@/configs/metadata";
+import components from "@/components/docs/docs-components";
 
 /* function PreviewRenderer({ preview }: { preview: string }): ReactNode {
   if (preview && preview in Preview) {
@@ -68,28 +70,9 @@ export default async function Page(props: {
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody className="text-fg/80">
+      <DocsBody className="">
         {/*         {preview ? <PreviewRenderer preview={preview} /> : null} */}
-        <Mdx
-          components={{
-            ...defaultComponents,
-            /*             Popup,
-            PopupContent,
-            PopupTrigger, */
-            Tabs,
-            Tab,
-            TypeTable,
-            /*             AutoTypeTable, */
-            Accordion,
-            Accordions,
-            /*             Wrapper, */
-            blockquote: Callout as unknown as FC<ComponentProps<"blockquote">>,
-            /*             APIPage: openapi.APIPage, */
-            HeadlessOnly:
-              params.slug[0] === "headless" ? Fragment : () => undefined,
-            UIOnly: params.slug[0] === "ui" ? Fragment : () => undefined,
-          }}
-        />
+        <Mdx components={components({ slug: params.slug })} />
         {page.data.index ? <DocsCategory page={page} from={source} /> : null}
       </DocsBody>
     </DocsPage>
@@ -104,8 +87,7 @@ export async function generateMetadata(props: {
 
   if (!page) notFound();
 
-  const description =
-    page.data.description ?? "The library for building documentation sites";
+  const description = page.data.description ?? METADATA.description;
 
   return createMetadata(
     metadataImage.withImage(page.slugs, {
@@ -114,7 +96,7 @@ export async function generateMetadata(props: {
       openGraph: {
         url: `/docs/${page.slugs.join("/")}`,
       },
-    })
+    }),
   );
 }
 

@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
-import { type ReactNode, useId } from "react";
+import { type ReactNode } from "react";
 
 export function Body({
   children,
@@ -15,7 +15,7 @@ export function Body({
     <body
       className={cn(
         mode,
-        "scrollbar-track-transparent scrollbar-thumb-bg-300 relative flex min-h-screen flex-col",
+        "relative flex min-h-screen flex-col scrollbar-track-transparent scrollbar-thumb-bg-300",
       )}
     >
       {children}
