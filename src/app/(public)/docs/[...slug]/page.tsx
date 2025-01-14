@@ -7,22 +7,10 @@ import {
   DocsCategory,
 } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
-import {
-  type ComponentProps,
-  type FC,
-  Fragment,
-  type ReactElement,
-  type ReactNode,
-} from "react";
-import defaultComponents from "fumadocs-ui/mdx";
+import { type ReactElement } from "react";
 /* import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui"; */
-import { Tab, Tabs } from "fumadocs-ui/components/tabs";
-import { Callout } from "fumadocs-ui/components/callout";
-import { TypeTable } from "fumadocs-ui/components/type-table";
-import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 /* import * as Preview from "@/components/preview"; */
 import { source } from "@/app/source";
-/* import { AutoTypeTable } from "@/components/type-table"; */
 import { createMetadata, metadataImage } from "@/lib/metadata";
 import { METADATA } from "@/configs/metadata";
 import components from "@/components/docs/docs-components";
