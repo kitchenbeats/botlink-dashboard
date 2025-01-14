@@ -64,6 +64,7 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.54.2",
+    "react-svg": "^16.2.0",
     "recharts": "^2.15.0",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",

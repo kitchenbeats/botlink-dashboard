@@ -24,7 +24,6 @@ import {
 } from "next/navigation";
 import { useMemo } from "react";
 
-// Move variants outside component to prevent recreation
 const terminalFrameVariants = {
   initial: (direction: "deeper" | "back") => ({
     x: direction === "deeper" ? 30 : -30,
@@ -48,7 +47,7 @@ const itemVariants = {
     opacity: 1,
     x: 0,
     transition: {
-      delay: index * 0.03, // Reduced delay
+      delay: index * 0.03,
       duration: 0.15,
     },
   }),
@@ -165,7 +164,7 @@ export default function DasboardNav() {
                     className="w-full"
                   >
                     <Link
-                      prefetch
+                      shallow
                       href={item.href({ teamId: selectedTeamId })}
                       suppressHydrationWarning
                       className={cn(

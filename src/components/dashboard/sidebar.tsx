@@ -1,13 +1,11 @@
-"use client";
-
 import { HeartPulse } from "lucide-react";
 import UserMenu from "../auth/user-menu";
 import { ThemeSwitcher } from "../globals/theme-switcher";
 import { Button } from "../ui/button";
 import DashboardNav from "./dashboard-nav";
 import TeamSelector from "./team-selector";
-import LogoWithoutText from "../globals/logo-without-text";
 import { cn } from "@/lib/utils";
+import LogoWithoutText from "../globals/logo-without-text";
 
 export default function Sidebar() {
   return (

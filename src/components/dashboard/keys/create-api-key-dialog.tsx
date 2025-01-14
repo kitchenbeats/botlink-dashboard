@@ -84,7 +84,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
               createApiKey(keyName);
             }}
           >
-            <div className="flex flex-col gap-3 px-2 py-6 duration-200 animate-in fade-in slide-in-from-left-5">
+            <div className="flex flex-col gap-3 px-2 py-6">
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
