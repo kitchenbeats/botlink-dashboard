@@ -1,3 +1,9 @@
+/* Remove border from sidebar */
 #nd-sidebar > div {
   border-right: none;
+}
+
+/* Remove margin from alert description */
+[role="alert"] p {
+  margin: 0;
 }

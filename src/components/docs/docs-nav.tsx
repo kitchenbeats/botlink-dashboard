@@ -1,7 +1,6 @@
-import { GithubIcon } from "lucide-react";
-import { Button } from "../ui/button";
 import Link from "next/link";
 import LogoWithoutText from "../globals/logo-without-text";
+import DocsNavLinks from "./docs-nav-links";
 
 export function Nav() {
   return (
@@ -10,14 +9,7 @@ export function Nav() {
         <Link href={"/"}>
           <LogoWithoutText className="h-12 w-12" />
         </Link>
-        <div className="flex items-center gap-2">
-          <Button variant="muted" size="iconSm">
-            <GithubIcon className="h-4 w-4" />
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
-        </div>
+        <DocsNavLinks />
       </div>
     </nav>
   );
