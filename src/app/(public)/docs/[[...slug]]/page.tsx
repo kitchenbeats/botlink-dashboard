@@ -14,6 +14,8 @@ import { source } from "@/app/source";
 import { createMetadata, metadataImage } from "@/lib/metadata";
 import { METADATA } from "@/configs/metadata";
 import components from "@/components/docs/docs-components";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /* function PreviewRenderer({ preview }: { preview: string }): ReactNode {
   if (preview && preview in Preview) {
@@ -25,7 +27,7 @@ import components from "@/components/docs/docs-components";
 } */
 
 export default async function Page(props: {
-  params: Promise<{ slug: string[] }>;
+  params: Promise<{ slug?: string[] }>;
 }): Promise<ReactElement> {
   const params = await props.params;
 
@@ -51,16 +53,21 @@ export default async function Page(props: {
         owner: "e2b-dev",
         sha: "main",
         path,
+        className: cn(
+          buttonVariants({ variant: "muted" }),
+          "rounded-none text-xs",
+        ),
       }}
       article={{
         className: "max-sm:pb-16",
       }}
+      footer={{}}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody className="">
+      <DocsBody>
         {/*         {preview ? <PreviewRenderer preview={preview} /> : null} */}
-        <Mdx components={components({ slug: params.slug })} />
+        <Mdx components={components({ slug: params.slug || [] })} />
         {page.data.index ? <DocsCategory page={page} from={source} /> : null}
       </DocsBody>
     </DocsPage>
@@ -68,7 +75,7 @@ export default async function Page(props: {
 }
 
 export async function generateMetadata(props: {
-  params: Promise<{ slug: string[] }>;
+  params: Promise<{ slug?: string[] }>;
 }): Promise<Metadata> {
   const params = await props.params;
   const page = source.getPage(params.slug);

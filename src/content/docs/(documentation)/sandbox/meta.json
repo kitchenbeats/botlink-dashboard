@@ -1,0 +1,12 @@
+{
+  "title": "Sandbox",
+  "description": "E2B Sandbox Documentation",
+  "pages": [
+    "architecture",
+    "configuration",
+    "security",
+    "templates",
+    "filesystem",
+    "troubleshooting"
+  ]
+}

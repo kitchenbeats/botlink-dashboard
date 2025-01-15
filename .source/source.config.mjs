@@ -35,10 +35,6 @@ var source_config_default = defineConfig({
   mdxOptions: {
     rehypeCodeOptions: {
       inline: "tailing-curly-colon",
-      themes: {
-        light: "catppuccin-latte",
-        dark: "catppuccin-mocha"
-      },
       transformers: [
         ...rehypeCodeDefaultOptions.transformers ?? [],
         /*         transformerTwoslash(), */

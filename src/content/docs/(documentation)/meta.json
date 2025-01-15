@@ -1,0 +1,25 @@
+{
+  "title": "Documentation",
+  "description": "The E2B documentation",
+  "root": true,
+  "pages": [
+    "---[ Intro ]---",
+    "./getting-started/index",
+    "...getting-started",
+    "--- ---",
+
+    "---[ Sandbox ]---",
+    "./sandbox/index",
+    "...sandbox",
+    "--- ---",
+
+    "---[ Code Interpreting ]---",
+    "./code-interpreting/index",
+    "...code-interpreting",
+    "--- ---",
+
+    "---[ CLI ]---",
+    "./cli/index",
+    "...cli"
+  ]
+}

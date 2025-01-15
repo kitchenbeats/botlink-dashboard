@@ -5,4 +5,5 @@ export const baseOptions: BaseLayoutProps = {
     transparentMode: "top",
     component: true,
   },
+  disableThemeSwitch: true,
 };

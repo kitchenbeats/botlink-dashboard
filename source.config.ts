@@ -36,10 +36,6 @@ export default defineConfig({
   mdxOptions: {
     rehypeCodeOptions: {
       inline: "tailing-curly-colon",
-      themes: {
-        light: "catppuccin-latte",
-        dark: "catppuccin-mocha",
-      },
       transformers: [
         ...(rehypeCodeDefaultOptions.transformers ?? []),
         /*         transformerTwoslash(), */
@@ -50,7 +46,7 @@ export default defineConfig({
               if (line.type !== "element") continue;
 
               const lastSpan = line.children.findLast(
-                (v) => v.type === "element"
+                (v) => v.type === "element",
               );
 
               const head = lastSpan?.children[0];
