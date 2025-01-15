@@ -1,5 +1,5 @@
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
-import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { Tab, Tabs as FumaTabs, TabsProps } from "fumadocs-ui/components/tabs";
 import { TypeTable } from "fumadocs-ui/components/type-table";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { MDXComponents } from "mdx/types";
@@ -58,6 +58,14 @@ const CodeBlock = forwardRef<HTMLPreElement, CodeBlockProps>(
 );
 
 CodeBlock.displayName = "CodeBlock";
+
+const Tabs = forwardRef<HTMLDivElement, TabsProps>(
+  ({ children, ...props }, ref) => {
+    return <FumaTabs {...props}>{children}</FumaTabs>;
+  },
+);
+
+Tabs.displayName = "Tabs";
 
 interface Props {
   slug: string[];

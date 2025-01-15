@@ -4,9 +4,9 @@ import "@/styles/docs.css";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="container mx-auto w-full">
+    <>
       <Nav />
-      {children}
-    </div>
+      <div className="container mx-auto w-full max-w-[1200px]">{children}</div>
+    </>
   );
 }

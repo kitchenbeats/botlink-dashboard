@@ -3,6 +3,8 @@ import { Button } from "../ui/button";
 import { DocumentIcon, LinkIcon } from "@heroicons/react/24/outline";
 import { CookingPotIcon } from "lucide-react";
 import { GradientBorder } from "../ui/gradient-border";
+import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 const tabs = [
   {
@@ -26,8 +28,10 @@ const tabs = [
 ];
 
 export default function DocsNavHeader() {
+  const pathname = usePathname();
+
   return (
-    <div className="space-y-1 py-2">
+    <div className="mb-4 mt-12 space-y-1">
       {tabs.map((tab) => (
         <Link
           key={tab.url}
@@ -36,7 +40,9 @@ export default function DocsNavHeader() {
         >
           <GradientBorder
             direction="bg-gradient-to-bl"
-            className="p-2 group-hover:bg-fg group-hover:text-bg"
+            className={cn("p-2 group-hover:bg-fg group-hover:text-bg", {
+              "bg-fg text-bg": pathname.includes(tab.url),
+            })}
           >
             <tab.icon className="size-3.5" />
           </GradientBorder>

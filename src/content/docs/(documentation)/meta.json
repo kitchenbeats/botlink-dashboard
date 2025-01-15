@@ -2,6 +2,7 @@
   "title": "Documentation",
   "description": "The E2B documentation",
   "root": true,
+  "defaultOpen": true,
   "pages": [
     "---[ Intro ]---",
     "./getting-started/index",

@@ -54,14 +54,13 @@ export default async function Page(props: {
         sha: "main",
         path,
         className: cn(
-          buttonVariants({ variant: "muted" }),
+          buttonVariants({ variant: "outline" }),
           "rounded-none text-xs",
         ),
       }}
       article={{
-        className: "max-sm:pb-16",
+        className: "max-sm:pb-16 mt-2 xl:pt-10",
       }}
-      footer={{}}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>

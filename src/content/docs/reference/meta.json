@@ -1,5 +1,6 @@
 {
   "title": "Reference",
   "description": "SDK & API Reference",
-  "root": true
+  "root": true,
+  "defaultOpen": true
 }
