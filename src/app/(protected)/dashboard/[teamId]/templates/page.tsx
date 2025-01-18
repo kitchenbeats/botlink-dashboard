@@ -1,5 +1,3 @@
-"use client";
-
 import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
 import TemplatesTable from "@/components/dashboard/templates/templates-table";
 
