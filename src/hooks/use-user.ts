@@ -9,6 +9,9 @@ export const useUser = () => {
     async () => {
       return (await supabase.auth.getUser()).data.user;
     },
+    {
+      dedupingInterval: 60000,
+    },
   );
 
   return {
