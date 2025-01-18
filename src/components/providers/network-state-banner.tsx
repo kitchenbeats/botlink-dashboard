@@ -1,15 +1,31 @@
 "use client";
 
 import { exponentialSmoothing } from "@/lib/utils";
-import { useNetworkState } from "@uidotdev/usehooks";
 import { AnimatePresence, motion } from "motion/react";
+import { useEffect } from "react";
+import { useState } from "react";
 
 export default function NetworkStateBanner() {
-  const { online } = useNetworkState();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  if (isOnline === undefined) return null;
 
   return (
     <AnimatePresence initial={false}>
-      {!online && (
+      {!isOnline && (
         <motion.div
           initial={{ height: 0 }}
           animate={{ height: "auto" }}

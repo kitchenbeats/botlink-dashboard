@@ -6,6 +6,7 @@ import DashboardNav from "./dashboard-nav";
 import TeamSelector from "./team-selector";
 import { cn } from "@/lib/utils";
 import LogoWithoutText from "../globals/logo-without-text";
+import { Suspense } from "react";
 
 export default function Sidebar() {
   return (
@@ -26,9 +27,13 @@ export default function Sidebar() {
       </span>
       <DashboardNav />
 
-      <TeamSelector />
+      <Suspense fallback={<></>}>
+        <TeamSelector />
+      </Suspense>
       <div className="flex items-center justify-between gap-2 pr-2">
-        <UserMenu />
+        <Suspense fallback={<></>}>
+          <UserMenu />
+        </Suspense>
         <div className="flex items-center gap-2">
           <ThemeSwitcher />
           <Button variant="ghost" size="icon" className="size-8">

@@ -1,22 +1,25 @@
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import useSWR from "swr";
 
 export const useUser = () => {
-  const queryClient = useQueryClient();
-  const query = useQuery({
-    queryKey: QUERY_KEYS.USER(),
-    queryFn: async () => {
+  const { data, error, isLoading, mutate } = useSWR(
+    QUERY_KEYS.USER(),
+    async () => {
       return (await supabase.auth.getUser()).data.user;
     },
-  });
+  );
 
   return {
-    ...query,
-    user: query.data,
+    user: data,
+    error,
+    isLoading,
     setUser: (updater: (old: User | null) => User | null) => {
-      queryClient.setQueryData(QUERY_KEYS.USER(), updater);
+      mutate((old: User | null | undefined) => updater(old ?? null));
+    },
+    refetch: () => {
+      return mutate();
     },
   };
 };

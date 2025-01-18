@@ -1,15 +1,6 @@
-"use client";
-
 import Sidebar from "@/components/dashboard/sidebar";
 import ClientProviders from "@/components/globals/client-providers";
-import nextDynamic from "next/dynamic";
-
-const NetworkStateBanner = nextDynamic(
-  () => import("@/components/providers/network-state-banner"),
-  { ssr: false },
-);
-
-export const dynamic = "force-static";
+import NetworkStateBanner from "@/components/providers/network-state-banner";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

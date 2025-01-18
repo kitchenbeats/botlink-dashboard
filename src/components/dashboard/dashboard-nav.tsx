@@ -25,33 +25,32 @@ import {
 import { useMemo } from "react";
 
 const terminalFrameVariants = {
-  initial: (direction: "deeper" | "back") => ({
-    x: direction === "deeper" ? 30 : -30,
-    opacity: 0,
+  initial: () => ({
+    x: 0,
+    opacity: 1,
   }),
   animate: {
     x: 0,
     opacity: 1,
-    transition: { duration: 0.15 },
+    transition: { duration: 0 },
   },
-  exit: (direction: "deeper" | "back") => ({
-    x: direction === "deeper" ? -30 : 30,
-    opacity: 0,
-    transition: { duration: 0.1 },
+  exit: () => ({
+    x: 0,
+    opacity: 1,
+    transition: { duration: 0 },
   }),
 };
 
 const itemVariants = {
-  initial: { opacity: 0, x: -10 },
-  animate: (index: number) => ({
+  initial: { opacity: 1, x: 0 },
+  animate: () => ({
     opacity: 1,
     x: 0,
     transition: {
-      delay: index * 0.03,
-      duration: 0.15,
+      duration: 0,
     },
   }),
-  exit: { opacity: 0, x: 10 },
+  exit: { opacity: 1, x: 0 },
 };
 
 type GroupedLinks = {
@@ -114,10 +113,10 @@ export default function DasboardNav() {
         >
           {level !== "main" && (
             <motion.div
-              initial={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 1, x: 0 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0 }}
               className="mb-4"
             >
               <Button

@@ -1,13 +1,13 @@
 import { getUserTeamsAction } from "@/actions/team-actions";
 import { useMetadata } from "@/components/providers/metadata-provider";
 import { QUERY_KEYS } from "@/configs/query-keys";
-import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import useSWR from "swr";
 
 export const useTeams = () => {
-  const query = useQuery({
-    queryKey: QUERY_KEYS.TEAMS(),
-    queryFn: async () => {
+  const { data, error, isLoading, mutate } = useSWR(
+    QUERY_KEYS.TEAMS(),
+    async () => {
       const response = await getUserTeamsAction();
 
       if (response.type === "error") {
@@ -16,11 +16,20 @@ export const useTeams = () => {
 
       return response.data;
     },
-  });
+    {
+      dedupingInterval: 60000,
+    },
+  );
 
   return {
-    ...query,
-    teams: query.data ?? [],
+    data: data ?? [],
+    error,
+    isLoading,
+    mutate,
+    teams: data ?? [],
+    refetch: () => {
+      return mutate();
+    },
   };
 };
 

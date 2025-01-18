@@ -28,7 +28,7 @@ import { useUser } from "@/hooks/use-user";
 
 export default function MemberTable() {
   const { refetch: refetchTeams } = useTeams();
-  const { data: user } = useUser();
+  const { user } = useUser();
   const { toast } = useToast();
   const router = useRouter();
   const { teamId } = useParams();

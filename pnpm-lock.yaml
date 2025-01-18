@@ -71,9 +71,6 @@ importers:
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
-      '@uidotdev/usehooks':
-        specifier: ^2.4.1
-        version: 2.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       autoprefixer:
         specifier: 10.4.20
         version: 10.4.20(postcss@8.4.49)
@@ -161,6 +158,9 @@ importers:
       remark-mermaid:
         specifier: ^0.2.0
         version: 0.2.0(mermaid.cli@0.3.6)
+      swr:
+        specifier: ^2.3.0
+        version: 2.3.0(react@19.0.0)
       usehooks-ts:
         specifier: ^3.1.0
         version: 3.1.0(react@19.0.0)
@@ -169,10 +169,10 @@ importers:
         version: 3.24.1
       zustand:
         specifier: ^5.0.2
-        version: 5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)
+        version: 5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0))
       zustand-computed:
         specifier: ^2.0.2
-        version: 2.0.2(react@19.0.0)(zustand@5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0))
+        version: 2.0.2(react@19.0.0)(zustand@5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0)))
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^3.2.3
@@ -2770,13 +2770,6 @@ packages:
 
   '@types/ws@8.5.13':
     resolution: {integrity: sha512-osM/gWBTPKgHV8XkTunnegTRIsvF6owmf5w+JtAfOw472dptdm0dlGv4xCt6GwQRcC2XVOvvRE/0bAoQcL2QkA==}
-
-  '@uidotdev/usehooks@2.4.1':
-    resolution: {integrity: sha512-1I+RwWyS+kdv3Mv0Vmc+p0dPYH0DTRAo04HLyXReYBL9AeseDWUJyi4THuksBJcu9F0Pih69Ak150VDnqbVnXg==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      react: '>=18.0.0'
-      react-dom: '>=18.0.0'
 
   '@ungap/structured-clone@1.2.1':
     resolution: {integrity: sha512-fEzPV3hSkSMltkw152tJKNARhOupqbH96MZWyRjNaYZOMIzbrTeQDG+MTc6Mr2pgzFQzFxAfmhGDNP5QK++2ZA==}
@@ -6096,6 +6089,11 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  swr@2.3.0:
+    resolution: {integrity: sha512-NyZ76wA4yElZWBHzSgEJc28a0u6QZvhb6w0azeL2k7+Q1gAzVK+IqQYXhVOC/mzi+HZIozrZvBVeSeOZNR2bqA==}
+    peerDependencies:
+      react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   tailwind-merge@2.6.0:
     resolution: {integrity: sha512-P+Vu1qXfzediirmHOC3xKGAYeZtPcV9g76X+xg2FD4tYgR71ewMA35Y3sCz3zhiN/dwefRpJX0yBcgwi1fXNQA==}
 
@@ -6344,6 +6342,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  use-sync-external-store@1.4.0:
+    resolution: {integrity: sha512-9WXSPC5fMv61vaupRkCKCxsPxBocVnwakBEkMIHHpkTTg6icbJtg6jzgtLDm4bl3cSHAca52rYWih0k4K3PfHw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   usehooks-ts@3.1.0:
     resolution: {integrity: sha512-bBIa7yUyPhE1BCc0GmR96VU/15l/9gP1Ch5mYdLcFBaFGQsdmXkvjV0TtOqW1yUd6VjIwDunm+flSciCQXujiw==}
@@ -9220,11 +9223,6 @@ snapshots:
   '@types/ws@8.5.13':
     dependencies:
       '@types/node': 22.10.2
-
-  '@uidotdev/usehooks@2.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
-    dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
 
   '@ungap/structured-clone@1.2.1': {}
 
@@ -13191,6 +13189,12 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
+  swr@2.3.0(react@19.0.0):
+    dependencies:
+      dequal: 2.0.3
+      react: 19.0.0
+      use-sync-external-store: 1.4.0(react@19.0.0)
+
   tailwind-merge@2.6.0: {}
 
   tailwind-scrollbar@3.1.0(tailwindcss@3.4.17):
@@ -13445,6 +13449,10 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.0.3
 
+  use-sync-external-store@1.4.0(react@19.0.0):
+    dependencies:
+      react: 19.0.0
+
   usehooks-ts@3.1.0(react@19.0.0):
     dependencies:
       lodash.debounce: 4.0.8
@@ -13637,15 +13645,16 @@ snapshots:
 
   zod@3.24.1: {}
 
-  zustand-computed@2.0.2(react@19.0.0)(zustand@5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)):
+  zustand-computed@2.0.2(react@19.0.0)(zustand@5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0))):
     dependencies:
       react: 19.0.0
-      zustand: 5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)
+      zustand: 5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0))
 
-  zustand@5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0):
+  zustand@5.0.3(@types/react@19.0.3)(immer@10.1.1)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0)):
     optionalDependencies:
       '@types/react': 19.0.3
       immer: 10.1.1
       react: 19.0.0
+      use-sync-external-store: 1.4.0(react@19.0.0)
 
   zwitch@2.0.4: {}

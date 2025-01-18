@@ -18,7 +18,7 @@ import DeveloperSettingsDialog from "../dashboard/developer-settings-dialog";
 import { useState } from "react";
 
 export default function UserMenu() {
-  const { data: user } = useUser();
+  const { user } = useUser();
 
   const [developerSettingsOpen, setDeveloperSettingsOpen] = useState(false);
 
