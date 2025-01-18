@@ -11,10 +11,10 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 import { QUERY_KEYS } from "@/configs/query-keys";
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getTeamInvoicesAction } from "@/actions/billing-actions";
+import useSWR from "swr";
 
 export default function BillingInvoicesTable() {
   const { teamId } = useParams();
@@ -23,17 +23,16 @@ export default function BillingInvoicesTable() {
     data: invoices,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: QUERY_KEYS.TEAM_INVOICES(teamId as string),
-    queryFn: async () => {
+  } = useSWR(
+    teamId ? QUERY_KEYS.TEAM_INVOICES(teamId as string) : null,
+    async () => {
       const res = await getTeamInvoicesAction({ teamId: teamId as string });
       if (res.type === "error") {
         throw new Error(res.message);
       }
       return res.data;
     },
-    enabled: !!teamId,
-  });
+  );
 
   return (
     <Table className="w-full animate-in fade-in">

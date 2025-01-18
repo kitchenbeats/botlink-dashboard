@@ -21,7 +21,6 @@ import { formatDistanceToNow } from "date-fns";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Template } from "@/types/api";
 import { QUERY_KEYS } from "@/configs/query-keys";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import {
   DataTableHead,
@@ -61,6 +60,7 @@ import {
   updateTemplateAction,
 } from "@/actions/templates-actions";
 import { useToast } from "@/hooks/use-toast";
+import useSWR, { mutate } from "swr";
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -98,9 +98,11 @@ export default function TemplatesTable() {
     data: templates,
     isLoading: templatesLoading,
     error: templatesError,
-  } = useQuery({
-    queryKey: QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl),
-    queryFn: async () => {
+  } = useSWR(
+    teamId && apiUrl
+      ? QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl)
+      : null,
+    async () => {
       const res = await getTeamTemplatesAction({
         apiUrl,
         teamId: teamId as string,
@@ -112,8 +114,7 @@ export default function TemplatesTable() {
 
       return res.data;
     },
-    enabled: Boolean(teamId && apiUrl),
-  });
+  );
 
   const table = useReactTable({
     data: templates ?? fallbackData,
@@ -373,13 +374,12 @@ const COLUMNS: ColumnDef<Template>[] = [
     enableGlobalFilter: false,
     cell: ({ row }) => {
       const template = row.original;
-      const queryClient = useQueryClient();
       const apiUrl = useApiUrl();
       const { teamId } = useParams();
       const { toast } = useToast();
 
-      const { mutate: togglePublish } = useMutation({
-        mutationFn: async () => {
+      const togglePublish = async () => {
+        try {
           const response = await updateTemplateAction({
             apiUrl,
             templateId: template.templateID,
@@ -392,28 +392,22 @@ const COLUMNS: ColumnDef<Template>[] = [
             throw new Error(response.message);
           }
 
-          return response;
-        },
-        onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl),
-          });
+          await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl));
           toast({
             title: "Success",
             description: `Template ${template.public ? "unpublished" : "published"} successfully`,
           });
-        },
-        onError: (error) => {
+        } catch (error: any) {
           toast({
             title: "Failed to update template visibility",
             description: error.message,
             variant: "error",
           });
-        },
-      });
+        }
+      };
 
-      const { mutate: deleteTemplate } = useMutation({
-        mutationFn: async () => {
+      const deleteTemplate = async () => {
+        try {
           const response = await deleteTemplateAction({
             apiUrl,
             templateId: template.templateID,
@@ -423,25 +417,19 @@ const COLUMNS: ColumnDef<Template>[] = [
             throw new Error(response.message);
           }
 
-          return response;
-        },
-        onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl),
-          });
+          await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl));
           toast({
             title: "Success",
             description: "Template deleted successfully",
           });
-        },
-        onError: (error) => {
+        } catch (error: any) {
           toast({
             title: "Failed to delete template",
             description: error.message,
             variant: "error",
           });
-        },
-      });
+        }
+      };
 
       return (
         <DropdownMenu>
@@ -451,7 +439,7 @@ const COLUMNS: ColumnDef<Template>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => togglePublish()}>
+            <DropdownMenuItem onClick={togglePublish}>
               {template.public ? (
                 <>
                   <Lock className="mr-2 size-4" />
@@ -465,7 +453,7 @@ const COLUMNS: ColumnDef<Template>[] = [
               )}
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => deleteTemplate()}
+              onClick={deleteTemplate}
               className="text-destructive focus:text-destructive"
             >
               <Trash className="mr-2 size-4" />

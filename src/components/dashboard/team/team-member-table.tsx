@@ -18,13 +18,13 @@ import {
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { PROTECTED_URLS } from "@/configs/urls";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader } from "@/components/ui/loader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTeams } from "@/hooks/use-teams";
 import { useUser } from "@/hooks/use-user";
+import useSWR, { mutate } from "swr";
 
 export default function MemberTable() {
   const { refetch: refetchTeams } = useTeams();
@@ -33,17 +33,16 @@ export default function MemberTable() {
   const router = useRouter();
   const { teamId } = useParams();
 
-  // states
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const {
     data: members,
     isLoading,
     error,
-    refetch,
-  } = useQuery({
-    queryKey: QUERY_KEYS.TEAM_MEMBERS(teamId as string),
-    queryFn: async () => {
+  } = useSWR(
+    teamId ? QUERY_KEYS.TEAM_MEMBERS(teamId as string) : null,
+    async () => {
       const res = await getTeamMembersAction({ teamId: teamId as string });
 
       if (res.type === "error") {
@@ -52,53 +51,44 @@ export default function MemberTable() {
 
       return res.data;
     },
-    enabled: !!teamId,
-  });
+  );
 
-  const { mutate: mutateRemoveMember, isPending: isMutatingRemoveMember } =
-    useMutation({
-      mutationFn: async (userId: string) => {
-        const res = await removeTeamMemberAction({
-          teamId: teamId as string,
-          userId,
+  const handleRemoveMember = async (userId: string) => {
+    setIsRemoving(true);
+    try {
+      const res = await removeTeamMemberAction({
+        teamId: teamId as string,
+        userId,
+      });
+
+      if (res.type === "error") {
+        throw new Error(res.message);
+      }
+
+      if (userId === user?.id) {
+        refetchTeams();
+        router.push(PROTECTED_URLS.DASHBOARD);
+        toast({
+          title: "You have left the team",
         });
-
-        if (res.type === "error") {
-          throw new Error(res.message);
-        }
-
-        return userId;
-      },
-      onSuccess: (removedUserId) => {
-        if (removedUserId === user?.id) {
-          refetchTeams();
-
-          router.push(PROTECTED_URLS.DASHBOARD);
-
-          return toast({
-            title: "You have left the team",
-          });
-        }
-
-        refetch();
+      } else {
+        await mutate(QUERY_KEYS.TEAM_MEMBERS(teamId as string));
         toast({
           title: "Member removed",
           description: "The member has been removed from the team",
         });
-      },
-      onError: (error) => {
-        toast({
-          title: "Could not remove member",
-          description: error.message,
-          variant: "error",
-        });
-      },
-      onSettled: () => {
-        setRemoveDialogOpen(false);
-      },
-    });
-
-  // TODO: test alert variants in ui
+      }
+    } catch (error: any) {
+      toast({
+        title: "Could not remove member",
+        description: error.message,
+        variant: "error",
+      });
+    } finally {
+      setIsRemoving(false);
+      setRemoveDialogOpen(false);
+    }
+  };
 
   return (
     <Table className="w-full animate-in fade-in">
@@ -175,9 +165,9 @@ export default function MemberTable() {
                     title="Remove Member"
                     description="Are you sure you want to remove this member from the team?"
                     confirm="Remove"
-                    onConfirm={() => mutateRemoveMember(member.info.id)}
+                    onConfirm={() => handleRemoveMember(member.info.id)}
                     confirmProps={{
-                      loading: isMutatingRemoveMember,
+                      loading: isRemoving,
                     }}
                     trigger={
                       <Button variant="muted" size="iconSm">

@@ -8,7 +8,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import { Loader } from "@/components/ui/loader";
 import { use } from "react";
 import {
@@ -20,6 +19,7 @@ import { Area, AreaChart, XAxis, YAxis } from "recharts";
 import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { useSelectedTeam } from "@/hooks/use-teams";
+import useSWR from "swr";
 
 const chartConfig = {
   cost: {
@@ -74,9 +74,9 @@ export default function UsagePageClient() {
   const teamId = selectedTeam?.id;
   const queryEnabled = !!teamId;
 
-  const { data: usageData, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.TEAM_USAGE(teamId!),
-    queryFn: async () => {
+  const { data: usageData, isLoading } = useSWR(
+    queryEnabled ? QUERY_KEYS.TEAM_USAGE(teamId!) : null,
+    async () => {
       const res = await getUsageAction({ teamId: teamId! });
 
       if (res.type === "error") {
@@ -85,8 +85,7 @@ export default function UsagePageClient() {
 
       return res.data;
     },
-    enabled: queryEnabled,
-  });
+  );
 
   const showChartLoader = isLoading || !queryEnabled;
 

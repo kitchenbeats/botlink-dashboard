@@ -1,5 +1,6 @@
 import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
 import TemplatesTable from "@/components/dashboard/templates/templates-table";
+import { Suspense } from "react";
 
 export default function Page() {
   return (
@@ -7,7 +8,9 @@ export default function Page() {
       title="Templates"
       description="View and manage your templates."
     >
-      <TemplatesTable />
+      <Suspense>
+        <TemplatesTable />
+      </Suspense>
     </DashboardPageLayout>
   );
 }

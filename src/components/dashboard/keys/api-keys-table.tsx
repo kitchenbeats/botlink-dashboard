@@ -22,12 +22,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { QUERY_KEYS } from "@/configs/query-keys";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { MoreHorizontal } from "lucide-react";
 import { FC } from "react";
 import { useTimeoutMessage } from "@/hooks/use-timeout-message";
 import { AnimatePresence } from "motion/react";
 import { AuthFormMessage } from "@/components/auth/auth-form-message";
+import useSWR, { mutate } from "swr";
+import { MoreHorizontal } from "lucide-react";
 
 interface ApiKeysTableProps {
   teamId: string;
@@ -36,41 +36,33 @@ interface ApiKeysTableProps {
 const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId }) => {
   const [deleteMessage, setDeleteMessage] = useTimeoutMessage();
 
-  // queries
   const {
     data: keysData,
-    refetch: refetchKeys,
     isLoading: isLoadingKeys,
-  } = useQuery({
-    queryKey: QUERY_KEYS.TEAM_API_KEYS(teamId),
-    queryFn: async () => {
-      const res = await getTeamApiKeysAction({ teamId });
+    error,
+  } = useSWR(QUERY_KEYS.TEAM_API_KEYS(teamId), async () => {
+    const res = await getTeamApiKeysAction({ teamId });
 
-      if (res.type === "error") {
-        throw new Error(res.message);
-      }
+    if (res.type === "error") {
+      throw new Error(res.message);
+    }
 
-      return res.data;
-    },
+    return res.data;
   });
 
-  // mutations
-  const { mutate: deleteKey, isPending: isDeletingKey } = useMutation({
-    mutationFn: async (apiKeyId: string) => {
+  const deleteKey = async (apiKeyId: string) => {
+    try {
       await deleteApiKeyAction({ teamId, apiKeyId });
-      await refetchKeys();
-    },
-    onSuccess: () => {
+      await mutate(QUERY_KEYS.TEAM_API_KEYS(teamId));
       setDeleteMessage({
         success: "API key deleted successfully",
       });
-    },
-    onError: (error) => {
+    } catch (error) {
       setDeleteMessage({
         error: "Failed to delete API key",
       });
-    },
-  });
+    }
+  };
 
   return (
     <>
@@ -89,7 +81,7 @@ const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {(isLoadingKeys || isDeletingKey) && (
+          {isLoadingKeys && (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-left">
                 <Alert className="w-full text-left" variant="contrast2">
@@ -117,7 +109,6 @@ const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId }) => {
           )}
 
           {!isLoadingKeys &&
-            !isDeletingKey &&
             keysData &&
             keysData.apiKeys.map((key, index) => (
               <TableRow key={`${key.name}-${index}`}>
@@ -136,12 +127,7 @@ const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId }) => {
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="muted"
-                        size="sm"
-                        loading={isDeletingKey}
-                        className="text-xs"
-                      >
+                      <Button variant="muted" size="sm" className="text-xs">
                         <MoreHorizontal className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>

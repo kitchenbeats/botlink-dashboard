@@ -21,9 +21,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Sandbox } from "@/types/api";
-import { QUERY_KEYS } from "@/configs/query-keys";
 import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import {
   DataTableHead,
@@ -49,6 +47,8 @@ import { useClipboard } from "@/hooks/use-clipboard";
 import { Share, Check } from "lucide-react";
 import { GradientBorder } from "@/components/ui/gradient-border";
 import { Button } from "@/components/ui/button";
+import useSWR from "swr";
+import { QUERY_KEYS } from "@/configs/query-keys";
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -111,9 +111,11 @@ export default function SandboxesTable() {
     data: sandboxes,
     isLoading: sandboxesLoading,
     error: sandboxesError,
-  } = useQuery({
-    queryKey: QUERY_KEYS.TEAM_SANDBOXES(teamId as string, apiUrl),
-    queryFn: async () => {
+  } = useSWR(
+    teamId && apiUrl
+      ? QUERY_KEYS.TEAM_SANDBOXES(teamId as string, apiUrl)
+      : null,
+    async () => {
       const res = await getTeamSandboxesAction({
         apiUrl,
         teamId: teamId as string,
@@ -125,8 +127,7 @@ export default function SandboxesTable() {
 
       return res.data;
     },
-    enabled: Boolean(teamId && apiUrl),
-  });
+  );
 
   const table = useReactTable({
     data: sandboxes ?? fallbackData,

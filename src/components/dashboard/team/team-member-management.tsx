@@ -12,10 +12,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { useTimeoutMessage } from "@/hooks/use-timeout-message";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -29,6 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { mutate } from "swr";
 
 const addMemberSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -38,7 +38,6 @@ type AddMemberForm = z.infer<typeof addMemberSchema>;
 
 export function MemberManagement() {
   const { teamId } = useParams();
-  const queryClient = useQueryClient();
   const [message, setMessage] = useTimeoutMessage();
 
   const form = useForm<AddMemberForm>({
@@ -57,9 +56,7 @@ export function MemberManagement() {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.TEAM_MEMBERS(teamId as string),
-      });
+      mutate(QUERY_KEYS.TEAM_MEMBERS(teamId as string));
       setMessage({ success: "Member added to team" });
       form.reset();
     },

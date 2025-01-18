@@ -14,10 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QUERY_KEYS } from "@/configs/query-keys";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { FC, ReactNode, useState } from "react";
 
 import CopyButton from "@/components/globals/copy-button";
+import { mutate } from "swr";
 
 interface CreateApiKeyDialogProps {
   teamId: string;
@@ -28,8 +29,6 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
   teamId,
   children,
 }) => {
-  const queryClient = useQueryClient();
-
   const [keyName, setKeyName] = useState("");
 
   // mutations
@@ -49,9 +48,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
       return response.data.createdApiKey;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.TEAM_API_KEYS(teamId),
-      });
+      mutate(QUERY_KEYS.TEAM_API_KEYS(teamId));
     },
     onError: (error) => {
       console.error("createApiKeyAction error:", error.message);
