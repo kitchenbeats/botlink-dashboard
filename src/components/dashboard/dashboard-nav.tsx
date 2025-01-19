@@ -57,7 +57,6 @@ type GroupedLinks = {
   [key: string]: DashboardNavLink[];
 };
 
-// Memoize grouped links creation
 const createGroupedLinks = (links: DashboardNavLink[]): GroupedLinks => {
   return links.reduce((acc, link) => {
     const group = link.group || "ungrouped";
@@ -69,7 +68,11 @@ const createGroupedLinks = (links: DashboardNavLink[]): GroupedLinks => {
   }, {} as GroupedLinks);
 };
 
-export default function DasboardNav() {
+interface DashboardNavProps {
+  className?: string;
+}
+
+export default function DasboardNav({ className }: DashboardNavProps) {
   const segments = useSelectedLayoutSegments();
   const pathname = usePathname();
   const params = useParams();
@@ -102,14 +105,14 @@ export default function DasboardNav() {
   return (
     <LazyMotion features={domAnimation}>
       <AnimatePresence mode="wait" custom={direction} initial={false}>
-        <motion.div
+        <motion.nav
           key={level}
           custom={direction}
           variants={terminalFrameVariants}
           initial="initial"
           animate="animate"
           exit="exit"
-          className="relative h-full w-48"
+          className={cn("relative h-full", className)}
         >
           {level !== "main" && (
             <motion.div
@@ -122,7 +125,7 @@ export default function DasboardNav() {
               <Button
                 variant="link"
                 size="slate"
-                className="gap-1 font-mono"
+                className="mt-2 gap-1 font-mono"
                 asChild
               >
                 <Link
@@ -148,8 +151,8 @@ export default function DasboardNav() {
                 className="mt-6 flex w-full flex-col gap-1 first:mt-0"
               >
                 {group !== "ungrouped" && (
-                  <div className="mb-2 font-mono text-xs uppercase text-fg-500">
-                    == {group}
+                  <div className="mb-2 ml-1 font-mono text-xs uppercase text-accent">
+                    - <span className="text-fg-300">{group}</span>
                   </div>
                 )}
                 {links.map((item, index) => (
@@ -164,6 +167,7 @@ export default function DasboardNav() {
                   >
                     <Link
                       shallow
+                      prefetch
                       href={item.href({ teamId: selectedTeamId })}
                       suppressHydrationWarning
                       className={cn(
@@ -196,7 +200,7 @@ export default function DasboardNav() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </motion.nav>
       </AnimatePresence>
     </LazyMotion>
   );

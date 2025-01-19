@@ -9,11 +9,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, hideUnderline = false, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(
-        "relative bg-bg text-fg",
-        "border border-border",
-        className,
-      )}
+      className={cn("relative bg-bg text-fg", className)}
       {...props}
     />
   ),

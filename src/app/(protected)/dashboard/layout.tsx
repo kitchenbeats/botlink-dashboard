@@ -11,9 +11,9 @@ export default async function Layout({
 }) {
   return (
     <ClientProviders>
-      <div className="mx-auto flex h-[100dvh] w-full flex-col">
+      <div className="mx-auto flex h-svh max-h-full w-full flex-col">
         <NetworkStateBanner />
-        <div className="flex h-full max-h-full gap-4 overflow-hidden">
+        <div className="flex h-full max-h-full w-full overflow-hidden">
           <Sidebar />
           <main className="flex-1">{children}</main>
         </div>
