@@ -159,6 +159,10 @@
     @apply font-mono font-light uppercase;
   }
 
+  .lucide {
+    stroke-width: 1px;
+  }
+
   /*  a {
     @apply text-accent underline-offset-4 hover:underline;
   } */

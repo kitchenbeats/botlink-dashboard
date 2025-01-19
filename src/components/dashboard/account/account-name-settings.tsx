@@ -61,7 +61,7 @@ export function NameSettings() {
   if (!user) return null;
 
   return (
-    <Card hideUnderline>
+    <Card variant="slate" hideUnderline>
       <CardHeader>
         <CardTitle>Your Name</CardTitle>
         <CardDescription>Will be visible to your team members.</CardDescription>

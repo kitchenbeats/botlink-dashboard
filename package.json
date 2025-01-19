@@ -15,7 +15,7 @@
     "<-- storybook --->": "",
     "storybook": "storybook dev -p 6006",
     "<-- helpers --->": "",
-    "shad": "pnpm dlx shadcn@latest",
+    "shad": "bunx shadcn@latest",
     "prebuild": "tsx scripts/check-env.ts && tsx scripts/build-storybook.ts",
     "postinstall": "fumadocs-mdx"
   },
@@ -44,6 +44,7 @@
     "autoprefixer": "10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.0.4",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.3",

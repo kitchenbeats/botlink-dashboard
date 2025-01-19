@@ -1,15 +1,28 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { cva, VariantProps } from "class-variance-authority";
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+export const cardVariants = cva("relative", {
+  variants: {
+    variant: {
+      default: "bg-bg text-fg",
+      slate: "",
+    },
+  },
+  defaultVariants: {
+    variant: "slate",
+  },
+});
+
+interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
   hideUnderline?: boolean;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, hideUnderline = false, ...props }, ref) => (
+  ({ className, hideUnderline = false, variant = "slate", ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("relative bg-bg text-fg", className)}
+      className={cn(cardVariants({ variant: variant }), className)}
       {...props}
     />
   ),

@@ -4,6 +4,7 @@ import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 
 import { cn } from "@/lib/utils";
+import { ChevronsUpDown } from "lucide-react";
 
 const Select = SelectPrimitive.Root;
 
@@ -30,7 +31,7 @@ const SelectTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <span className="ml-3 font-mono text-fg-300">▼</span>
+    <ChevronsUpDown className="ml-3 size-3.5 text-fg-300" />
   </SelectPrimitive.Trigger>
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;

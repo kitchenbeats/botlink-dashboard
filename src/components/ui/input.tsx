@@ -15,10 +15,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full bg-bg-100 px-3 py-2",
+          "flex h-10 w-full bg-bg px-3 py-2",
           "font-mono text-sm tracking-wider",
 
-          "rounded-none border border-dashed",
+          "rounded-none border",
 
           "placeholder:font-mono placeholder:text-fg-500",
           "focus:outline-none focus:[border-bottom:1px_solid_hsl(var(--accent))]",
