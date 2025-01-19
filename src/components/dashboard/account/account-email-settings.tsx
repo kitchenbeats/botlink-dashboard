@@ -50,6 +50,10 @@ export function EmailSettings() {
     mutationFn: async (values: FormValues) => {
       const response = await updateUserAction({ email: values.email });
 
+      if (response.type === "error") {
+        throw new Error(response.message);
+      }
+
       return response;
     },
     onSuccess: () => {

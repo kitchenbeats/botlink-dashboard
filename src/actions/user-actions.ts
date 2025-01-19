@@ -6,6 +6,7 @@ import { checkAuthenticated, guardAction } from "./utils";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { E2BError } from "@/types/errors";
 
 const UpdateUserSchema = z.object({
   email: z.string().email().optional(),
@@ -41,7 +42,7 @@ export const updateUserAction = guardAction<
   );
 
   if (error) {
-    throw error;
+    throw new E2BError("update_user_error", error.message);
   }
 
   revalidatePath("/dashboard/[teamId]", "layout");

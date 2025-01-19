@@ -17,12 +17,13 @@ export default function DashboardPageLayout({
     <div className="relative flex h-svh flex-col">
       <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg/70 px-3 backdrop-blur-lg">
         <div className="container mx-auto flex items-center gap-2">
-          <AsciiTextDecrypt
+          <h2 className="mr-auto text-lg font-bold">{title}</h2>
+          {/*           <AsciiTextDecrypt
             title={title}
             interval={7}
             obscureCharacter="X"
             className="mr-auto text-lg"
-          />
+          /> */}
           {/*         {description && (
           <motion.p
             initial={{ opacity: 0, x: 5, y: 5 }}

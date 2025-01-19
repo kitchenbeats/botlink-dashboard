@@ -40,6 +40,11 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
     icon: LucideSheet,
   },
   {
+    label: "Usage",
+    href: (args) => `/dashboard/${args.teamId}/usage`,
+    icon: BarChart,
+  },
+  {
     label: "Settings",
     icon: Settings,
     href: (args) => `/dashboard/${args.teamId}/settings/general`,
@@ -58,12 +63,6 @@ export const SETTINGS_DASHBOARD_LINKS: DashboardNavLink[] = [
     label: "API Keys",
     href: (args) => `/dashboard/${args.teamId}/settings/keys`,
     icon: Key,
-    group: "team",
-  },
-  {
-    label: "Usage",
-    href: (args) => `/dashboard/${args.teamId}/settings/usage`,
-    icon: BarChart,
     group: "team",
   },
   {

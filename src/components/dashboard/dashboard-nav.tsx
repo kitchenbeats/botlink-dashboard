@@ -151,8 +151,8 @@ export default function DasboardNav({ className }: DashboardNavProps) {
                 className="mt-6 flex w-full flex-col gap-1 first:mt-0"
               >
                 {group !== "ungrouped" && (
-                  <div className="mb-2 ml-1 font-mono text-xs uppercase text-accent">
-                    - <span className="text-fg-300">{group}</span>
+                  <div className="mb-2 ml-1 font-mono text-xs uppercase text-fg-300">
+                    {group}
                   </div>
                 )}
                 {links.map((item, index) => (
@@ -176,23 +176,37 @@ export default function DasboardNav({ className }: DashboardNavProps) {
                           item.href({
                             teamId: params.teamId as string | undefined,
                           })
-                          ? "text-fg"
-                          : "text-fg-500",
+                          ? "text-accent"
+                          : "text-fg-500 hover:text-fg-300",
+                        {
+                          "mt-4": item.goesDeeper,
+                        },
                       )}
                     >
                       <div className="flex w-full items-center gap-1 px-2 py-1">
-                        <item.icon className="mr-2 min-w-3.5 text-fg-300" />
+                        <item.icon
+                          className={cn(
+                            "mr-2 w-4 text-fg-300",
+                            pathname ===
+                              item.href({
+                                teamId: params.teamId as string | undefined,
+                              })
+                              ? "text-accent"
+                              : "text-fg-300",
+                          )}
+                        />
                         <span className="shrink-0">{item.label}</span>
-                        <span className="w-full overflow-hidden font-mono leading-[1.15] text-fg-500">
-                          {".".repeat(20)}
-                        </span>
                         {item.goesDeeper && (
-                          <span className="shrink-0">{">>>"}</span>
+                          <span className="ml-auto shrink-0">{">>>"}</span>
                         )}
                         {pathname ===
                           item.href({
                             teamId: params.teamId as string | undefined,
-                          }) && <span className="shrink-0 text-fg">{"*"}</span>}
+                          }) && (
+                          <span className="ml-auto shrink-0 text-accent">
+                            {"*"}
+                          </span>
+                        )}
                       </div>
                     </Link>
                   </motion.div>
