@@ -6,18 +6,15 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn(
-        "w-full caption-bottom",
-        "font-mono text-sm",
-        "border border-dashed border-border bg-bg",
-        className,
-      )}
-      {...props}
-    />
-  </div>
+  <table
+    ref={ref}
+    className={cn(
+      "w-full caption-bottom border-t",
+      "font-mono text-sm",
+      className,
+    )}
+    {...props}
+  />
 ));
 Table.displayName = "Table";
 
@@ -25,15 +22,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead
-    ref={ref}
-    className={cn(
-      "border-b border-dashed border-border",
-      "bg-bg-300/50",
-      className,
-    )}
-    {...props}
-  />
+  <thead ref={ref} className={cn("border-b", className)} {...props} />
 ));
 TableHeader.displayName = "TableHeader";
 
@@ -45,7 +34,7 @@ const TableBody = React.forwardRef<
     ref={ref}
     className={cn(
       "[&_tr:last-child]:border-0",
-      "border-dashed border-border/40 [&_tr]:border-b [&_tr]:border-border/50",
+      "[&_tr]:border-b [&_tr]:border-border/80",
       className,
     )}
     {...props}
@@ -93,7 +82,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-10 px-4 text-center align-middle first:text-left last:text-right first:last:text-center",
+      "h-10 px-4 text-left align-middle",
       "font-mono uppercase tracking-wider",
       "font-medium text-fg-300",
       "[&:has([role=checkbox])]:pr-0",
@@ -101,15 +90,7 @@ const TableHead = React.forwardRef<
     )}
     {...props}
   >
-    <span className="inline-flex items-center gap-1">
-      {children && (
-        <>
-          <span className="opacity-50">[</span>
-          {children}
-          <span className="opacity-50">]</span>
-        </>
-      )}
-    </span>
+    <span className="inline-flex items-center gap-1">{children}</span>
   </th>
 ));
 TableHead.displayName = "TableHead";
@@ -121,7 +102,7 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      "p-4 text-center align-middle first:text-left last:text-right",
+      "p-4 align-middle",
       "font-sans",
       "[&:has([role=checkbox])]:pr-0",
       className,

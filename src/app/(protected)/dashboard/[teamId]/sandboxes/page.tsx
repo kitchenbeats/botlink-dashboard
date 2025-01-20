@@ -4,10 +4,7 @@ import { Suspense } from "react";
 
 export default function Page() {
   return (
-    <DashboardPageLayout
-      title="Sandboxes"
-      description="View and manage your E2B Sandboxes."
-    >
+    <DashboardPageLayout title="Sandboxes" fullscreen>
       <Suspense>
         <SandboxesTable />
       </Suspense>

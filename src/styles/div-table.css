@@ -1,0 +1,33 @@
+.divTable {
+  width: fit-content;
+
+  @apply border-t border-border;
+}
+
+.tr {
+  display: flex;
+}
+
+.tr {
+  width: fit-content;
+  height: 30px;
+
+  @apply border-b border-border;
+}
+
+.th,
+.td {
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.th {
+  padding: 2px 4px;
+  position: relative;
+  height: 30px;
+}
+
+.td {
+  height: 30px;
+}

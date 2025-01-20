@@ -23,15 +23,21 @@ export default function DashboardSearch({ className }: DashboardSearchProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        e.stopPropagation();
-        setOpen((open) => !open);
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    const controller = new AbortController();
+
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(true);
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    return () => controller.abort();
   }, []);
 
   return (

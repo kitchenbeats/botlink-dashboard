@@ -12,12 +12,7 @@ export function Body({
   const mode = useMode();
 
   return (
-    <body
-      className={cn(
-        mode,
-        "relative flex min-h-screen flex-col scrollbar-track-transparent scrollbar-thumb-bg-300",
-      )}
-    >
+    <body className={cn(mode, "relative flex min-h-screen flex-col")}>
       {children}
     </body>
   );

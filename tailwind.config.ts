@@ -62,6 +62,14 @@ const config = {
           "500": "hsl(var(--error-500))",
           DEFAULT: "hsl(var(--error))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          fg: "hsl(var(--success-fg))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning) / 0.2)",
+          fg: "hsl(var(--warning))",
+        },
         ring: "hsl(var(--ring))",
         chart: {
           "1": "hsl(var(--chart-1))",

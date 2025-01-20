@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-} from "@/components/ui/table";
 import { DebouncedInput } from "@/components/ui/input";
 import {
   ColumnDef,
+  ColumnSizingState,
   FilterFn,
   flexRender,
   getCoreRowModel,
@@ -17,38 +12,31 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Sandbox } from "@/types/api";
 import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
 import { useParams } from "next/navigation";
 import {
+  DataTable,
   DataTableHead,
   DataTableCell,
   DataTableRow,
 } from "@/components/ui/data-table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import TableFilterSection from "@/components/globals/table-filter-section";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 import { useApiUrl } from "@/hooks/use-api-url";
 import { useSessionStorage } from "usehooks-ts";
-import { useShareableState } from "@/hooks/use-sharable-state";
-import { motion } from "motion/react";
-import { AnimatePresence } from "motion/react";
-import { useClipboard } from "@/hooks/use-clipboard";
-import { Share, Check } from "lucide-react";
-import { GradientBorder } from "@/components/ui/gradient-border";
-import { Button } from "@/components/ui/button";
+import { ChevronsUpDown, Circle, Pause } from "lucide-react";
 import useSWR from "swr";
 import { QUERY_KEYS } from "@/configs/query-keys";
+import { cn } from "@/lib/utils";
+import { Kbd } from "@/components/ui/kdb";
+import SandboxesTableFilters from "./sandboxes-table-filters";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+
+import "@/styles/div-table.css";
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -62,6 +50,78 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 
 // stable reference for fallback data
 const fallbackData: Sandbox[] = [];
+
+const COLUMNS: ColumnDef<Sandbox>[] = [
+  {
+    id: "expand",
+    cell: ({ row }) => <ChevronsUpDown className="size-3.5 text-fg-500" />,
+    size: 30,
+  },
+  {
+    accessorKey: "alias",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="truncate text-start font-mono font-medium">
+        {row.getValue("alias")}
+      </div>
+    ),
+    size: 250,
+  },
+  {
+    accessorKey: "sandboxID",
+    header: "ID",
+    cell: ({ row }) => (
+      <div className="truncate font-mono text-xs text-fg-500">
+        {row.getValue("sandboxID")}
+      </div>
+    ),
+    size: 100,
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row, table }) => {
+      // TODO: determine status state correctly
+
+      const status: "running" | "paused" | "stopped" =
+        Math.random() > 0.5 ? "running" : "paused";
+
+      const badgeVariant =
+        status === "running"
+          ? "success"
+          : status === "paused"
+            ? "warning"
+            : "default";
+
+      const statusIcon =
+        status === "running" ? (
+          <Circle className="size-2 fill-current" />
+        ) : status === "paused" ? (
+          <Pause className="size-2" />
+        ) : (
+          "_"
+        );
+
+      return (
+        <Badge variant={badgeVariant} className="uppercase">
+          {statusIcon}
+          {status}
+        </Badge>
+      );
+    },
+    size: 120,
+  },
+  {
+    accessorKey: "startedAt",
+    header: "Started At",
+    cell: ({ row }) => (
+      <div className="truncate font-mono text-xs text-fg-500">
+        {new Date(row.getValue("startedAt")).toISOString()}
+      </div>
+    ),
+    size: 250,
+  },
+];
 
 export default function SandboxesTable() {
   "use no memo";
@@ -79,31 +139,6 @@ export default function SandboxesTable() {
 
   const [globalFilter, setGlobalFilter, removeGlobalFilter] =
     useSessionStorage<string>("sandboxes:globalFilter", "");
-
-  const { getShareableUrl } = useShareableState({
-    configs: [
-      {
-        key: "sort",
-        parser: (value: string): SortingState => JSON.parse(value),
-        serializer: (value: SortingState): string => JSON.stringify(value),
-      },
-      {
-        key: "search",
-        parser: (value: string): string => value,
-        serializer: (value: string): string => value,
-      },
-    ],
-    onParams: ({ sort, search }) => {
-      // Clear existing values if sharable state is being used
-      removeSorting();
-      removeGlobalFilter();
-
-      if (sort) setSorting(sort);
-      if (search) setGlobalFilter(search);
-    },
-  });
-
-  const [wasCopied, copy] = useClipboard();
 
   const apiUrl = useApiUrl();
 
@@ -129,12 +164,15 @@ export default function SandboxesTable() {
     },
   );
 
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+
   const table = useReactTable({
     data: sandboxes ?? fallbackData,
     columns: COLUMNS,
     state: {
       globalFilter,
       sorting,
+      columnSizing,
     },
     filterFns: {
       fuzzy: fuzzyFilter,
@@ -145,222 +183,152 @@ export default function SandboxesTable() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableSorting: true,
+    onColumnSizingChange: setColumnSizing,
+    columnResizeMode: "onChange",
+    enableColumnResizing: true,
   });
 
   return (
-    <>
-      <Card className="mb-4">
-        <CardHeader className="flex flex-row items-start justify-between">
-          <div className="space-y-2">
-            <CardTitle>Active Sandboxes</CardTitle>
-            <CardDescription>
-              View and manage your active sandbox environments.
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-3">
-            <AnimatePresence initial={false}>
-              {(sorting.length > 0 || globalFilter) && (
-                <motion.div
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -5 }}
-                  transition={{ duration: 0.2 }}
+    <div className="flex h-full flex-col justify-between">
+      <div className="flex items-center justify-between gap-3 p-3">
+        <SearchInput value={globalFilter} onChange={setGlobalFilter} />
+      </div>
+
+      <SandboxesTableFilters className="mx-4 mb-4 mt-auto" />
+
+      <div className="relative h-[60%]">
+        <DataTable className="h-full w-full overflow-auto">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <DataTableRow key={headerGroup.id} className="sticky top-0">
+              {headerGroup.headers.map((header) => (
+                <DataTableHead
+                  key={header.id}
+                  column={header.column}
+                  style={{
+                    width: header.getSize(),
+                  }}
                 >
-                  <GradientBorder>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-fg-300 focus:ring-0"
-                      onClick={() => {
-                        const url = getShareableUrl({
-                          sort: sorting,
-                          search: globalFilter,
-                        });
-                        copy(url);
-                      }}
-                    >
-                      {wasCopied ? (
-                        <>
-                          <Check className="size-3.5 text-fg" />
-                          Link Copied
-                        </>
-                      ) : (
-                        <>
-                          <Share className="size-3.5 text-fg" />
-                          Share
-                        </>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
                       )}
-                    </Button>
-                  </GradientBorder>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <DebouncedInput
-              value={globalFilter}
-              onChange={(v) => setGlobalFilter(v as string)}
-              placeholder="Fuzzy search..."
-              className="w-[320px]"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <TableFilterSection
-            globalFilter={globalFilter}
-            sorting={sorting}
-            table={table}
-          />
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <DataTableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <DataTableHead
-                      key={header.id}
-                      column={header.column}
-                      sorting={sorting.find((s) => s.id === header.id)?.desc}
-                    >
-                      {header.isPlaceholder
-                        ? ""
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </DataTableHead>
-                  ))}
-                </DataTableRow>
+                  <div
+                    onDoubleClick={() => header.column.resetSize()}
+                    onMouseDown={header.getResizeHandler()}
+                    onTouchStart={header.getResizeHandler()}
+                    className={`resizer ${
+                      header.column.getIsResizing() ? "isResizing" : ""
+                    }`}
+                  />
+                </DataTableHead>
               ))}
-            </TableHeader>
-            <TableBody>
-              {sandboxesError ? (
-                <DataTableRow>
-                  <TableCell
-                    colSpan={COLUMNS.length}
-                    className="h-24 text-left"
-                  >
-                    <Alert className="w-full text-left" variant="error">
-                      <AlertTitle>Error loading sandboxes.</AlertTitle>
-                      <AlertDescription>
-                        {sandboxesError.message}
-                      </AlertDescription>
-                    </Alert>
-                  </TableCell>
-                </DataTableRow>
-              ) : sandboxesLoading ? (
-                <DataTableRow>
-                  <TableCell
-                    colSpan={COLUMNS.length}
-                    className="h-24 text-left"
-                  >
-                    <Alert className="w-full text-left" variant="contrast1">
-                      <AlertTitle className="flex items-center gap-2">
-                        <Loader variant="compute" />
-                        Loading sandboxes...
-                      </AlertTitle>
-                      <AlertDescription>
-                        This may take a moment.
-                      </AlertDescription>
-                    </Alert>
-                  </TableCell>
-                </DataTableRow>
-              ) : sandboxes && table.getRowModel()?.rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
-                    {row.getVisibleCells().map((cell) => (
-                      <DataTableCell
-                        key={cell.id}
-                        cell={flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      />
-                    ))}
-                  </DataTableRow>
-                ))
-              ) : (
-                /* we suppress hydration warning here because the table is not hydrated correctly until the query is enabled on mount */
-                <DataTableRow suppressHydrationWarning>
-                  <TableCell
-                    suppressHydrationWarning
-                    colSpan={COLUMNS.length}
-                    className="h-24 text-left"
-                  >
-                    <Alert
-                      className="w-full text-left"
-                      suppressHydrationWarning
-                      variant="contrast2"
-                    >
-                      <AlertTitle suppressHydrationWarning>
-                        No sandboxes found.
-                      </AlertTitle>
-                      <AlertDescription suppressHydrationWarning>
-                        Start more Sandboxes or try different filters.
-                      </AlertDescription>
-                    </Alert>
-                  </TableCell>
-                </DataTableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </>
+            </DataTableRow>
+          ))}
+
+          {sandboxesError ? (
+            <DataTableRow>
+              <DataTableCell
+                cell={table.getRowModel().rows[0]?.getVisibleCells()[0] ?? null}
+                style={{ width: "100%" }}
+              >
+                <Alert className="w-full text-left" variant="error">
+                  <AlertTitle>Error loading sandboxes.</AlertTitle>
+                  <AlertDescription>{sandboxesError.message}</AlertDescription>
+                </Alert>
+              </DataTableCell>
+            </DataTableRow>
+          ) : sandboxesLoading ? (
+            <DataTableRow>
+              <DataTableCell
+                cell={table.getRowModel().rows[0]?.getVisibleCells()[0] ?? null}
+                style={{ width: "100%" }}
+              >
+                <Alert className="w-full text-left" variant="contrast1">
+                  <AlertTitle className="flex items-center gap-2">
+                    <Loader variant="compute" />
+                    Loading sandboxes...
+                  </AlertTitle>
+                  <AlertDescription>This may take a moment.</AlertDescription>
+                </Alert>
+              </DataTableCell>
+            </DataTableRow>
+          ) : sandboxes && table.getRowModel()?.rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
+                {row.getVisibleCells().map((cell) => (
+                  <DataTableCell key={cell.id} cell={cell}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </DataTableCell>
+                ))}
+              </DataTableRow>
+            ))
+          ) : (
+            <DataTableRow suppressHydrationWarning>
+              <DataTableCell
+                cell={table.getRowModel().rows[0]?.getVisibleCells()[0] ?? null}
+                style={{ width: "100%" }}
+              >
+                <Alert
+                  className="w-full text-left"
+                  suppressHydrationWarning
+                  variant="contrast2"
+                >
+                  <AlertTitle suppressHydrationWarning>
+                    No sandboxes found.
+                  </AlertTitle>
+                  <AlertDescription suppressHydrationWarning>
+                    Start more Sandboxes or try different filters.
+                  </AlertDescription>
+                </Alert>
+              </DataTableCell>
+            </DataTableRow>
+          )}
+        </DataTable>
+      </div>
+    </div>
   );
 }
 
-const COLUMNS: ColumnDef<Sandbox>[] = [
-  {
-    accessorKey: "alias",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="font-mono font-medium">{row.getValue("alias")}</div>
-    ),
-  },
-  {
-    accessorKey: "sandboxID",
-    header: "ID",
-    cell: ({ row }) => (
-      <div className="font-mono text-xs text-fg-500">
-        {row.getValue("sandboxID")}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "cpuCount",
-    header: "CPU",
-    cell: ({ row }) => (
-      <div className="font-mono">{row.getValue("cpuCount")}x vCPU</div>
-    ),
-  },
-  {
-    accessorKey: "memoryMB",
-    header: "Memory",
-    cell: ({ row }) => (
-      <div className="font-mono">
-        {(row.getValue("memoryMB") as number) / 1024}GB RAM
-      </div>
-    ),
-  },
-  {
-    accessorKey: "startedAt",
-    header: "Started",
-    cell: ({ row }) => (
-      <div className="font-mono text-xs">
-        {formatDistanceToNow(new Date(row.getValue("startedAt")), {
-          addSuffix: true,
-        })}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "endAt",
-    header: "Duration",
-    cell: ({ row }) => {
-      const start = new Date(row.getValue("startedAt"));
-      const end = new Date(row.getValue("endAt"));
-      const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-      return (
-        <div className="font-mono text-xs">{duration.toFixed(1)} hours</div>
-      );
-    },
-  },
-];
+function SearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "/") {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+
+          return true;
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    return () => controller.abort();
+  }, []);
+
+  return (
+    <div className="relative w-full max-w-[420px]">
+      <DebouncedInput
+        value={value}
+        onChange={(v) => onChange(v as string)}
+        placeholder="Find a sandbox..."
+        className="w-full pr-14"
+        ref={searchInputRef}
+      />
+      <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
+    </div>
+  );
+}

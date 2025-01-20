@@ -18,7 +18,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           "flex h-10 w-full bg-bg px-3 py-2",
           "font-mono text-sm tracking-wider",
 
-          "rounded-none border",
+          "rounded-md border",
 
           "placeholder:font-mono placeholder:text-fg-500",
           "focus:outline-none focus:[border-bottom:1px_solid_hsl(var(--accent))]",
@@ -43,16 +43,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-function DebouncedInput({
-  value: initialValue,
-  onChange,
-  debounce = 300,
-  ...props
-}: {
-  value: string | number;
-  onChange: (value: string | number) => void;
-  debounce?: number;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">) {
+const DebouncedInput = React.forwardRef<
+  HTMLInputElement,
+  {
+    value: string | number;
+    onChange: (value: string | number) => void;
+    debounce?: number;
+  } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">
+>(({ value: initialValue, onChange, debounce = 300, ...props }, ref) => {
   const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
@@ -65,15 +63,17 @@ function DebouncedInput({
     }, debounce);
 
     return () => clearTimeout(timeout);
-  }, [value]);
+  }, [value, debounce, onChange]);
 
   return (
     <Input
       {...props}
+      ref={ref}
       value={value}
       onChange={(e) => setValue(e.target.value)}
     />
   );
-}
+});
+DebouncedInput.displayName = "DebouncedInput";
 
 export { Input, DebouncedInput };

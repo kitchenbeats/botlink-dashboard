@@ -36,6 +36,11 @@
 
     --error-fg: 0 0% 100%;
 
+    --warning: 60 100% 50%;
+
+    --success: 176 32% 10%;
+    --success-fg: 160 100% 43%;
+
     --border: 0 0% 90%;
     --border-100: 0 0% 85%;
     --border-200: 0 0% 80%;
@@ -137,6 +142,15 @@
 @layer base {
   * {
     @apply border-border;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--accent-200));
   }
 
   *::selection {

@@ -6,7 +6,7 @@ import { Loader } from "./loader";
 
 const buttonVariants = cva(
   [
-    "inline-flex items-center gap-2 justify-center whitespace-nowrap",
+    "inline-flex items-center gap-2 rounded-md justify-center whitespace-nowrap",
     "font-mono uppercase tracking-wider text-sm",
     "transition-colors duration-150",
     "focus-visible:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-0",

@@ -1,10 +1,5 @@
 import { Table } from "@tanstack/react-table";
-import {
-  AnimatePresence,
-  HTMLMotionProps,
-  motion,
-  MotionProps,
-} from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { SortingState } from "@tanstack/react-table";
 import { Button } from "../ui/button";
 import { Search, SortAsc, SortDesc, X } from "lucide-react";
