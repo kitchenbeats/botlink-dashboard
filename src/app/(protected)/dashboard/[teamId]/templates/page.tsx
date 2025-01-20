@@ -4,10 +4,7 @@ import { Suspense } from "react";
 
 export default function Page() {
   return (
-    <DashboardPageLayout
-      title="Templates"
-      description="View and manage your templates."
-    >
+    <DashboardPageLayout title="Templates">
       <Suspense>
         <TemplatesTable />
       </Suspense>

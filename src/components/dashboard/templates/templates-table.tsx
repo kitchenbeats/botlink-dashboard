@@ -270,13 +270,12 @@ export default function TemplatesTable() {
               table.getRowModel().rows.map((row) => (
                 <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
                   {row.getVisibleCells().map((cell) => (
-                    <DataTableCell
-                      key={cell.id}
-                      cell={flexRender(
+                    <DataTableCell key={cell.id} cell={cell}>
+                      {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
                       )}
-                    />
+                    </DataTableCell>
                   ))}
                 </DataTableRow>
               ))

@@ -94,10 +94,7 @@ export default function UsagePageClient() {
   const latestRAM = usageData?.ramSeries[0].data.at(-1)?.y;
 
   return (
-    <DashboardPageLayout
-      title="Usage"
-      description="Monitor your sandbox resource consumption and associated costs over time."
-    >
+    <DashboardPageLayout title="Usage">
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-12 gap-6">
           {/* Cost Card */}

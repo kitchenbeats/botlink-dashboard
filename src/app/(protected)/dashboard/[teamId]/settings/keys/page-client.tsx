@@ -17,10 +17,7 @@ export default function KeysPageClient() {
   const { selectedTeamId } = useMetadata();
 
   return (
-    <DashboardPageLayout
-      title="API Keys"
-      description="Manage your organization's API keys for authentication."
-    >
+    <DashboardPageLayout title="API Keys">
       <div className="flex flex-col gap-6">
         {selectedTeamId && (
           <Card hideUnderline className="relative">
