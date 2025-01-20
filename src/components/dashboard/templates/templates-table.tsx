@@ -6,7 +6,6 @@ import {
   TableCell,
   TableHeader,
 } from "@/components/ui/table";
-import { DebouncedInput } from "@/components/ui/input";
 import {
   ColumnDef,
   FilterFn,
@@ -26,15 +25,10 @@ import {
   DataTableHead,
   DataTableCell,
   DataTableRow,
+  DataTableHeader,
+  DataTableBody,
 } from "@/components/ui/data-table";
 import { getTeamTemplatesAction } from "@/actions/templates-actions";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import TableFilterSection from "@/components/globals/table-filter-section";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
@@ -42,12 +36,7 @@ import { useApiUrl } from "@/hooks/use-api-url";
 import { useShareableState } from "@/hooks/use-sharable-state";
 import { Button } from "@/components/ui/button";
 import { useSessionStorage } from "usehooks-ts";
-import { motion } from "motion/react";
-import { AnimatePresence } from "motion/react";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { Share } from "lucide-react";
-import { Check } from "lucide-react";
-import { GradientBorder } from "@/components/ui/gradient-border";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +50,11 @@ import {
 } from "@/actions/templates-actions";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
+import { useRef, useEffect, useState } from "react";
+import { ColumnSizingState } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
+import { DebouncedInput } from "@/components/ui/input";
+import { Kbd } from "@/components/ui/kdb";
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -92,6 +86,8 @@ export default function TemplatesTable() {
   const [globalFilter, setGlobalFilter, removeGlobalFilter] =
     useSessionStorage<string>("templates:globalFilter", "");
 
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+
   const apiUrl = useApiUrl();
 
   const {
@@ -122,6 +118,7 @@ export default function TemplatesTable() {
     state: {
       globalFilter,
       sorting,
+      columnSizing,
     },
     filterFns: {
       fuzzy: fuzzyFilter,
@@ -132,6 +129,9 @@ export default function TemplatesTable() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableSorting: true,
+    onColumnSizingChange: setColumnSizing,
+    columnResizeMode: "onChange",
+    enableColumnResizing: true,
   });
 
   const { getShareableUrl } = useShareableState({
@@ -160,69 +160,14 @@ export default function TemplatesTable() {
   const [wasCopied, copy] = useClipboard();
 
   return (
-    <Card className="mb-4">
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div className="space-y-2">
-          <CardTitle>Templates</CardTitle>
-          <CardDescription>
-            View and manage your available templates.
-          </CardDescription>
-        </div>
-        <div className="flex items-center gap-3">
-          <AnimatePresence initial={false}>
-            {(sorting.length > 0 || globalFilter) && (
-              <motion.div
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -5 }}
-                transition={{ duration: 0.2 }}
-                suppressHydrationWarning
-              >
-                <GradientBorder>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-fg-300 focus:ring-0"
-                    onClick={() => {
-                      const url = getShareableUrl({
-                        sort: sorting,
-                        search: globalFilter,
-                      });
-                      copy(url);
-                    }}
-                  >
-                    {wasCopied ? (
-                      <>
-                        <Check className="size-3.5 text-fg" />
-                        Link Copied
-                      </>
-                    ) : (
-                      <>
-                        <Share className="size-3.5 text-fg" />
-                        Share
-                      </>
-                    )}
-                  </Button>
-                </GradientBorder>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <DebouncedInput
-            value={globalFilter}
-            onChange={(v) => setGlobalFilter(v as string)}
-            placeholder="Fuzzy search..."
-            className="w-[320px]"
-          />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <TableFilterSection
-          globalFilter={globalFilter}
-          sorting={sorting}
-          table={table}
-        />
-        <Table>
-          <TableHeader>
+    <div className="flex h-full flex-col justify-between">
+      <div className="flex items-center justify-between gap-3 p-3">
+        <SearchInput value={globalFilter} onChange={setGlobalFilter} />
+      </div>
+
+      <div className="relative h-[60%]">
+        <DataTable className="h-full w-full overflow-auto">
+          <DataTableHeader className="sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
               <DataTableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -241,30 +186,24 @@ export default function TemplatesTable() {
                 ))}
               </DataTableRow>
             ))}
-          </TableHeader>
-          <TableBody>
+          </DataTableHeader>
+          <DataTableBody>
             {templatesError ? (
               <DataTableRow>
-                <TableCell colSpan={COLUMNS.length} className="h-24 text-left">
-                  <Alert className="w-full text-left" variant="error">
-                    <AlertTitle>Error loading templates.</AlertTitle>
-                    <AlertDescription>
-                      {templatesError.message}
-                    </AlertDescription>
-                  </Alert>
-                </TableCell>
+                <Alert className="w-full text-left" variant="error">
+                  <AlertTitle>Error loading templates.</AlertTitle>
+                  <AlertDescription>{templatesError.message}</AlertDescription>
+                </Alert>
               </DataTableRow>
             ) : templatesLoading ? (
               <DataTableRow>
-                <TableCell colSpan={COLUMNS.length} className="h-24 text-left">
-                  <Alert className="w-full text-left" variant="contrast1">
-                    <AlertTitle className="flex items-center gap-2">
-                      <Loader variant="compute" />
-                      Loading templates...
-                    </AlertTitle>
-                    <AlertDescription>This may take a moment.</AlertDescription>
-                  </Alert>
-                </TableCell>
+                <Alert className="w-full text-left" variant="contrast1">
+                  <AlertTitle className="flex items-center gap-2">
+                    <Loader variant="compute" />
+                    Loading templates...
+                  </AlertTitle>
+                  <AlertDescription>This may take a moment.</AlertDescription>
+                </Alert>
               </DataTableRow>
             ) : templates && table.getRowModel()?.rows?.length ? (
               table.getRowModel().rows.map((row) => (
@@ -282,30 +221,24 @@ export default function TemplatesTable() {
             ) : (
               /* we suppress hydration warning here because the table is not hydrated correctly until the query is enabled on mount */
               <DataTableRow suppressHydrationWarning>
-                <TableCell
+                <Alert
+                  className="w-full text-left"
                   suppressHydrationWarning
-                  colSpan={COLUMNS.length}
-                  className="h-24 text-left"
+                  variant="contrast2"
                 >
-                  <Alert
-                    className="w-full text-left"
-                    suppressHydrationWarning
-                    variant="contrast2"
-                  >
-                    <AlertTitle suppressHydrationWarning>
-                      No templates found.
-                    </AlertTitle>
-                    <AlertDescription suppressHydrationWarning>
-                      Start more Templates or try different filters.
-                    </AlertDescription>
-                  </Alert>
-                </TableCell>
+                  <AlertTitle suppressHydrationWarning>
+                    No templates found.
+                  </AlertTitle>
+                  <AlertDescription suppressHydrationWarning>
+                    Start more Templates or try different filters.
+                  </AlertDescription>
+                </Alert>
               </DataTableRow>
             )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+          </DataTableBody>
+        </DataTable>
+      </div>
+    </div>
   );
 }
 
@@ -464,3 +397,45 @@ const COLUMNS: ColumnDef<Template>[] = [
     },
   },
 ];
+
+function SearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "/") {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+
+          return true;
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    return () => controller.abort();
+  }, []);
+
+  return (
+    <div className="relative w-full max-w-[420px]">
+      <DebouncedInput
+        value={value}
+        onChange={(v) => onChange(v as string)}
+        placeholder="Find a sandbox..."
+        className="w-full pr-14"
+        ref={searchInputRef}
+      />
+      <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
+    </div>
+  );
+}

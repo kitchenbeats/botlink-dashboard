@@ -22,6 +22,8 @@ import {
   DataTableHead,
   DataTableCell,
   DataTableRow,
+  DataTableHeader,
+  DataTableBody,
 } from "@/components/ui/data-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
@@ -198,53 +200,47 @@ export default function SandboxesTable() {
 
       <div className="relative h-[60%]">
         <DataTable className="h-full w-full overflow-auto">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <DataTableRow key={headerGroup.id} className="sticky top-0">
-              {headerGroup.headers.map((header) => (
-                <DataTableHead
-                  key={header.id}
-                  column={header.column}
-                  style={{
-                    width: header.getSize(),
-                  }}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                  <div
-                    onDoubleClick={() => header.column.resetSize()}
-                    onMouseDown={header.getResizeHandler()}
-                    onTouchStart={header.getResizeHandler()}
-                    className={`resizer ${
-                      header.column.getIsResizing() ? "isResizing" : ""
-                    }`}
-                  />
-                </DataTableHead>
-              ))}
-            </DataTableRow>
-          ))}
+          <DataTableHeader className="sticky top-0">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <DataTableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <DataTableHead
+                    key={header.id}
+                    column={header.column}
+                    style={{
+                      width: header.getSize(),
+                    }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                    <div
+                      onDoubleClick={() => header.column.resetSize()}
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={`resizer ${
+                        header.column.getIsResizing() ? "isResizing" : ""
+                      }`}
+                    />
+                  </DataTableHead>
+                ))}
+              </DataTableRow>
+            ))}
+          </DataTableHeader>
 
-          {sandboxesError ? (
-            <DataTableRow>
-              <DataTableCell
-                cell={table.getRowModel().rows[0]?.getVisibleCells()[0] ?? null}
-                style={{ width: "100%" }}
-              >
+          <DataTableBody>
+            {sandboxesError ? (
+              <DataTableRow>
                 <Alert className="w-full text-left" variant="error">
                   <AlertTitle>Error loading sandboxes.</AlertTitle>
                   <AlertDescription>{sandboxesError.message}</AlertDescription>
                 </Alert>
-              </DataTableCell>
-            </DataTableRow>
-          ) : sandboxesLoading ? (
-            <DataTableRow>
-              <DataTableCell
-                cell={table.getRowModel().rows[0]?.getVisibleCells()[0] ?? null}
-                style={{ width: "100%" }}
-              >
+              </DataTableRow>
+            ) : sandboxesLoading ? (
+              <DataTableRow>
                 <Alert className="w-full text-left" variant="contrast1">
                   <AlertTitle className="flex items-center gap-2">
                     <Loader variant="compute" />
@@ -252,24 +248,22 @@ export default function SandboxesTable() {
                   </AlertTitle>
                   <AlertDescription>This may take a moment.</AlertDescription>
                 </Alert>
-              </DataTableCell>
-            </DataTableRow>
-          ) : sandboxes && table.getRowModel()?.rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
-                {row.getVisibleCells().map((cell) => (
-                  <DataTableCell key={cell.id} cell={cell}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </DataTableCell>
-                ))}
               </DataTableRow>
-            ))
-          ) : (
-            <DataTableRow suppressHydrationWarning>
-              <DataTableCell
-                cell={table.getRowModel().rows[0]?.getVisibleCells()[0] ?? null}
-                style={{ width: "100%" }}
-              >
+            ) : sandboxes && table.getRowModel()?.rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
+                  {row.getVisibleCells().map((cell) => (
+                    <DataTableCell key={cell.id} cell={cell}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </DataTableCell>
+                  ))}
+                </DataTableRow>
+              ))
+            ) : (
+              <DataTableRow suppressHydrationWarning>
                 <Alert
                   className="w-full text-left"
                   suppressHydrationWarning
@@ -282,9 +276,9 @@ export default function SandboxesTable() {
                     Start more Sandboxes or try different filters.
                   </AlertDescription>
                 </Alert>
-              </DataTableCell>
-            </DataTableRow>
-          )}
+              </DataTableRow>
+            )}
+          </DataTableBody>
         </DataTable>
       </div>
     </div>

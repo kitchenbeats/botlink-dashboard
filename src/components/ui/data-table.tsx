@@ -99,7 +99,7 @@ function DataTableRow({
     <div
       className={cn(
         "bg-bg transition-colors data-[state=selected]:bg-bg-300 hover:bg-bg-100/80",
-        "flex w-full items-center first:border-b",
+        "flex w-full items-center",
         {
           "bg-bg-100": isSelected,
         },
@@ -134,4 +134,39 @@ function DataTable({ className, children, ...props }: DataTableProps) {
   );
 }
 
-export { DataTableHead, DataTableCell, DataTableRow, DataTable };
+interface DataTableHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+function DataTableHeader({
+  className,
+  children,
+  ...props
+}: DataTableHeaderProps) {
+  return (
+    <div className={cn("border-b", className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+interface DataTableBodyProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+function DataTableBody({ className, children, ...props }: DataTableBodyProps) {
+  return (
+    <div className={cn(className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+export {
+  DataTableHead,
+  DataTableCell,
+  DataTableRow,
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+};
