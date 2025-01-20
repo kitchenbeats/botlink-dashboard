@@ -1,16 +1,17 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Cell, Column } from "@tanstack/react-table";
+import { Cell, Column, Header } from "@tanstack/react-table";
+import { Separator } from "./separator";
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>;
+  header: Header<TData, TValue>;
   canSort?: boolean;
   sorting?: boolean;
 }
 
 function DataTableHead<TData, TValue>({
-  column,
+  header,
   children,
   className,
   sorting,
@@ -19,26 +20,28 @@ function DataTableHead<TData, TValue>({
   return (
     <div
       className={cn(
-        // Base th styles from table.tsx
         "relative flex h-10 items-center p-2 text-left align-middle",
         "font-mono uppercase tracking-wider",
         "font-medium text-fg-300",
         "[&:has([role=checkbox])]:pr-0",
         {
-          "cursor-pointer hover:bg-bg-100/80": column.getCanSort(),
+          "cursor-pointer hover:bg-bg-100/80": header.column.getCanSort(),
         },
         className,
       )}
       style={{
-        width: `${column.getSize()}px`,
-        maxWidth: `${column.getSize()}px`,
+        width: `${header.column.getSize()}px`,
       }}
-      onClick={column.getCanSort() ? () => column.toggleSorting() : undefined}
+      onClick={
+        header.column.getCanSort()
+          ? () => header.column.toggleSorting()
+          : undefined
+      }
       {...props}
     >
-      {column.getCanSort() ? (
+      {header.column.getCanSort() ? (
         <div
-          onClick={() => column.toggleSorting()}
+          onClick={() => header.column.toggleSorting()}
           className="flex h-full items-center"
         >
           <span>{children}</span>
@@ -50,6 +53,20 @@ function DataTableHead<TData, TValue>({
         </div>
       ) : (
         children
+      )}
+
+      {header.column.getCanResize() && (
+        <div
+          className="ml-auto h-full cursor-ew-resize px-2"
+          onTouchStart={header.getResizeHandler()}
+          onMouseDown={header.getResizeHandler()}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+        >
+          <Separator className="h-full" orientation="vertical" />
+        </div>
       )}
     </div>
   );
@@ -71,7 +88,6 @@ function DataTableCell<TData, TValue>({
     <div
       style={{
         width: `${cell.column.getSize()}px`,
-        maxWidth: `${cell.column.getSize()}px`,
       }}
       className={cn(
         "p-1 px-2 align-middle font-sans text-xs [&:has([role=checkbox])]:pr-0",

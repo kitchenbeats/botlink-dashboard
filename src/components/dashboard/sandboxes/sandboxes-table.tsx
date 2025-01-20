@@ -28,17 +28,16 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 import { useApiUrl } from "@/hooks/use-api-url";
-import { useSessionStorage } from "usehooks-ts";
+import { useLocalStorage, useSessionStorage } from "usehooks-ts";
 import { ChevronsUpDown, Circle, Pause } from "lucide-react";
 import useSWR from "swr";
 import { QUERY_KEYS } from "@/configs/query-keys";
-import { cn } from "@/lib/utils";
 import { Kbd } from "@/components/ui/kdb";
 import SandboxesTableFilters from "./sandboxes-table-filters";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
 import "@/styles/div-table.css";
+import useIsMounted from "@/hooks/use-is-mounted";
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -58,6 +57,7 @@ const COLUMNS: ColumnDef<Sandbox>[] = [
     id: "expand",
     cell: ({ row }) => <ChevronsUpDown className="size-3.5 text-fg-500" />,
     size: 30,
+    enableResizing: false,
   },
   {
     accessorKey: "alias",
@@ -68,6 +68,7 @@ const COLUMNS: ColumnDef<Sandbox>[] = [
       </div>
     ),
     size: 250,
+    minSize: 180,
   },
   {
     accessorKey: "sandboxID",
@@ -78,15 +79,17 @@ const COLUMNS: ColumnDef<Sandbox>[] = [
       </div>
     ),
     size: 100,
+    minSize: 100,
   },
   {
     id: "status",
     header: "Status",
     cell: ({ row, table }) => {
       // TODO: determine status state correctly
+      const randRef = useRef<number>(Math.random());
 
       const status: "running" | "paused" | "stopped" =
-        Math.random() > 0.5 ? "running" : "paused";
+        randRef.current > 0.5 ? "running" : "paused";
 
       const badgeVariant =
         status === "running"
@@ -112,6 +115,7 @@ const COLUMNS: ColumnDef<Sandbox>[] = [
       );
     },
     size: 120,
+    minSize: 120,
   },
   {
     accessorKey: "startedAt",
@@ -122,6 +126,7 @@ const COLUMNS: ColumnDef<Sandbox>[] = [
       </div>
     ),
     size: 250,
+    minSize: 140,
   },
 ];
 
@@ -129,6 +134,8 @@ export default function SandboxesTable() {
   "use no memo";
 
   const { teamId } = useParams();
+  const apiUrl = useApiUrl();
+  const isMounted = useIsMounted();
 
   const [sorting, setSorting, removeSorting] = useSessionStorage<SortingState>(
     "sandboxes:sorting",
@@ -142,7 +149,15 @@ export default function SandboxesTable() {
   const [globalFilter, setGlobalFilter, removeGlobalFilter] =
     useSessionStorage<string>("sandboxes:globalFilter", "");
 
-  const apiUrl = useApiUrl();
+  const [columnSizing, setColumnSizing, removeColumnSizing] =
+    useLocalStorage<ColumnSizingState>(
+      "sandboxes:columnSizing",
+      {},
+      {
+        deserializer: (value) => JSON.parse(value),
+        serializer: (value) => JSON.stringify(value),
+      },
+    );
 
   const {
     data: sandboxes,
@@ -165,8 +180,6 @@ export default function SandboxesTable() {
       return res.data;
     },
   );
-
-  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   const table = useReactTable({
     data: sandboxes ?? fallbackData,
@@ -198,89 +211,94 @@ export default function SandboxesTable() {
 
       <SandboxesTableFilters className="mx-4 mb-4 mt-auto" />
 
-      <div className="relative h-[60%]">
-        <DataTable className="h-full w-full overflow-auto">
-          <DataTableHeader className="sticky top-0">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <DataTableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <DataTableHead
-                    key={header.id}
-                    column={header.column}
-                    style={{
-                      width: header.getSize(),
-                    }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                    <div
-                      onDoubleClick={() => header.column.resetSize()}
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className={`resizer ${
-                        header.column.getIsResizing() ? "isResizing" : ""
-                      }`}
-                    />
-                  </DataTableHead>
-                ))}
-              </DataTableRow>
-            ))}
-          </DataTableHeader>
-
-          <DataTableBody>
-            {sandboxesError ? (
-              <DataTableRow>
-                <Alert className="w-full text-left" variant="error">
-                  <AlertTitle>Error loading sandboxes.</AlertTitle>
-                  <AlertDescription>{sandboxesError.message}</AlertDescription>
-                </Alert>
-              </DataTableRow>
-            ) : sandboxesLoading ? (
-              <DataTableRow>
-                <Alert className="w-full text-left" variant="contrast1">
-                  <AlertTitle className="flex items-center gap-2">
-                    <Loader variant="compute" />
-                    Loading sandboxes...
-                  </AlertTitle>
-                  <AlertDescription>This may take a moment.</AlertDescription>
-                </Alert>
-              </DataTableRow>
-            ) : sandboxes && table.getRowModel()?.rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
-                  {row.getVisibleCells().map((cell) => (
-                    <DataTableCell key={cell.id} cell={cell}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </DataTableCell>
+      {isMounted && (
+        <div className="relative h-[60%]">
+          <DataTable className="h-full w-full overflow-auto">
+            <DataTableHeader className="sticky top-0">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <DataTableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <DataTableHead
+                      key={header.id}
+                      header={header}
+                      style={{
+                        width: header.getSize(),
+                      }}
+                      sorting={sorting.find((s) => s.id === header.id)?.desc}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                      <div
+                        onDoubleClick={() => header.column.resetSize()}
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className={`resizer ${
+                          header.column.getIsResizing() ? "isResizing" : ""
+                        }`}
+                      />
+                    </DataTableHead>
                   ))}
                 </DataTableRow>
-              ))
-            ) : (
-              <DataTableRow suppressHydrationWarning>
-                <Alert
-                  className="w-full text-left"
-                  suppressHydrationWarning
-                  variant="contrast2"
-                >
-                  <AlertTitle suppressHydrationWarning>
-                    No sandboxes found.
-                  </AlertTitle>
-                  <AlertDescription suppressHydrationWarning>
-                    Start more Sandboxes or try different filters.
-                  </AlertDescription>
-                </Alert>
-              </DataTableRow>
-            )}
-          </DataTableBody>
-        </DataTable>
-      </div>
+              ))}
+            </DataTableHeader>
+
+            <DataTableBody>
+              {sandboxesError ? (
+                <DataTableRow>
+                  <Alert className="w-full text-left" variant="error">
+                    <AlertTitle>Error loading sandboxes.</AlertTitle>
+                    <AlertDescription>
+                      {sandboxesError.message}
+                    </AlertDescription>
+                  </Alert>
+                </DataTableRow>
+              ) : sandboxesLoading ? (
+                <DataTableRow>
+                  <Alert className="w-full text-left" variant="contrast1">
+                    <AlertTitle className="flex items-center gap-2">
+                      <Loader variant="compute" />
+                      Loading sandboxes...
+                    </AlertTitle>
+                    <AlertDescription>This may take a moment.</AlertDescription>
+                  </Alert>
+                </DataTableRow>
+              ) : sandboxes && table.getRowModel()?.rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
+                    {row.getVisibleCells().map((cell) => (
+                      <DataTableCell key={cell.id} cell={cell}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </DataTableCell>
+                    ))}
+                  </DataTableRow>
+                ))
+              ) : (
+                <DataTableRow suppressHydrationWarning>
+                  <Alert
+                    className="w-full text-left"
+                    suppressHydrationWarning
+                    variant="contrast2"
+                  >
+                    <AlertTitle suppressHydrationWarning>
+                      No sandboxes found.
+                    </AlertTitle>
+                    <AlertDescription suppressHydrationWarning>
+                      Start more Sandboxes or try different filters.
+                    </AlertDescription>
+                  </Alert>
+                </DataTableRow>
+              )}
+            </DataTableBody>
+          </DataTable>
+        </div>
+      )}
     </div>
   );
 }
