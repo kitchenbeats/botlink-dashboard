@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 export default function Page() {
   return (
-    <DashboardPageLayout title="Sandboxes" fullscreen>
+    <DashboardPageLayout title="Running Sandboxes" fullscreen>
       <Suspense>
         <SandboxesTable />
       </Suspense>

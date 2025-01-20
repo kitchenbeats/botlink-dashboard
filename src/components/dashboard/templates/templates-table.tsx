@@ -26,7 +26,6 @@ import { getTeamTemplatesAction } from "@/actions/templates-actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 import { useApiUrl } from "@/hooks/use-api-url";
-import { useShareableState } from "@/hooks/use-sharable-state";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage, useSessionStorage } from "usehooks-ts";
 import {
@@ -42,7 +41,7 @@ import {
 } from "@/actions/templates-actions";
 import { useToast } from "@/hooks/use-toast";
 import useSWR, { mutate } from "swr";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { ColumnSizingState } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { DebouncedInput } from "@/components/ui/input";

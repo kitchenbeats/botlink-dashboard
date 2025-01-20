@@ -2,9 +2,7 @@
 
 import { DebouncedInput } from "@/components/ui/input";
 import {
-  ColumnDef,
   ColumnSizingState,
-  FilterFn,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -12,9 +10,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useRef, useState } from "react";
-import { rankItem } from "@tanstack/match-sorter-utils";
-import { Sandbox } from "@/types/api";
+import { useEffect, useRef } from "react";
 import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
 import { useParams } from "next/navigation";
 import {
@@ -29,106 +25,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 import { useApiUrl } from "@/hooks/use-api-url";
 import { useLocalStorage, useSessionStorage } from "usehooks-ts";
-import { ChevronsUpDown, Circle, Pause } from "lucide-react";
 import useSWR from "swr";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { Kbd } from "@/components/ui/kdb";
 import SandboxesTableFilters from "./sandboxes-table-filters";
-import { Badge } from "@/components/ui/badge";
-
-import "@/styles/div-table.css";
 import useIsMounted from "@/hooks/use-is-mounted";
-
-const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  addMeta({
-    itemRank,
-  });
-
-  return itemRank.passed;
-};
-
-// stable reference for fallback data
-const fallbackData: Sandbox[] = [];
-
-const COLUMNS: ColumnDef<Sandbox>[] = [
-  {
-    id: "expand",
-    cell: ({ row }) => <ChevronsUpDown className="size-3.5 text-fg-500" />,
-    size: 30,
-    enableResizing: false,
-  },
-  {
-    accessorKey: "alias",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="truncate text-start font-mono font-medium">
-        {row.getValue("alias")}
-      </div>
-    ),
-    size: 250,
-    minSize: 180,
-  },
-  {
-    accessorKey: "sandboxID",
-    header: "ID",
-    cell: ({ row }) => (
-      <div className="truncate font-mono text-xs text-fg-500">
-        {row.getValue("sandboxID")}
-      </div>
-    ),
-    size: 100,
-    minSize: 100,
-  },
-  {
-    id: "status",
-    header: "Status",
-    cell: ({ row, table }) => {
-      // TODO: determine status state correctly
-      const randRef = useRef<number>(Math.random());
-
-      const status: "running" | "paused" | "stopped" =
-        randRef.current > 0.5 ? "running" : "paused";
-
-      const badgeVariant =
-        status === "running"
-          ? "success"
-          : status === "paused"
-            ? "warning"
-            : "default";
-
-      const statusIcon =
-        status === "running" ? (
-          <Circle className="size-2 fill-current" />
-        ) : status === "paused" ? (
-          <Pause className="size-2" />
-        ) : (
-          "_"
-        );
-
-      return (
-        <Badge variant={badgeVariant} className="uppercase">
-          {statusIcon}
-          {status}
-        </Badge>
-      );
-    },
-    size: 120,
-    minSize: 120,
-  },
-  {
-    accessorKey: "startedAt",
-    header: "Started At",
-    cell: ({ row }) => (
-      <div className="truncate font-mono text-xs text-fg-500">
-        {new Date(row.getValue("startedAt")).toISOString()}
-      </div>
-    ),
-    size: 250,
-    minSize: 140,
-  },
-];
+import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
+import { subDays } from "date-fns";
+import { COLUMNS, fallbackData, fuzzyFilter } from "./sandboxes-table-config";
 
 export default function SandboxesTable() {
   "use no memo";
@@ -148,6 +53,18 @@ export default function SandboxesTable() {
 
   const [globalFilter, setGlobalFilter, removeGlobalFilter] =
     useSessionStorage<string>("sandboxes:globalFilter", "");
+
+  const [date, setDate, removeDate] = useSessionStorage<DateRange | undefined>(
+    "sandboxes:date",
+    {
+      from: subDays(new Date(), 1),
+      to: new Date(),
+    },
+    {
+      deserializer: (value) => JSON.parse(value),
+      serializer: (value) => JSON.stringify(value),
+    },
+  );
 
   const [columnSizing, setColumnSizing, removeColumnSizing] =
     useLocalStorage<ColumnSizingState>(
@@ -204,70 +121,76 @@ export default function SandboxesTable() {
   });
 
   return (
-    <div className="flex h-full flex-col justify-between">
-      <div className="flex items-center justify-between gap-3 p-3">
-        <SearchInput value={globalFilter} onChange={setGlobalFilter} />
-      </div>
+    <div className="flex h-full flex-col gap-4 pt-3">
+      {/*       <TableTimelineFilter
+        className="mx-3"
+        date={date}
+        onDateChange={setDate}
+      /> */}
 
-      <SandboxesTableFilters className="mx-4 mb-4 mt-auto" />
+      <SearchInput
+        value={globalFilter}
+        onChange={setGlobalFilter}
+        className="mx-3"
+      />
+
+      <SandboxesTableFilters className="mx-3" />
 
       {isMounted && (
-        <div className="relative h-[60%]">
-          <DataTable className="h-full w-full overflow-auto">
-            <DataTableHeader className="sticky top-0">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <DataTableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <DataTableHead
-                      key={header.id}
-                      header={header}
-                      style={{
-                        width: header.getSize(),
-                      }}
-                      sorting={sorting.find((s) => s.id === header.id)?.desc}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                      <div
-                        onDoubleClick={() => header.column.resetSize()}
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className={`resizer ${
-                          header.column.getIsResizing() ? "isResizing" : ""
-                        }`}
-                      />
-                    </DataTableHead>
-                  ))}
-                </DataTableRow>
-              ))}
-            </DataTableHeader>
+        <DataTable className="h-full w-full overflow-auto pb-12">
+          <DataTableHeader className="sticky top-0">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <DataTableRow key={headerGroup.id} className="hover:bg-bg">
+                {headerGroup.headers.map((header) => (
+                  <DataTableHead
+                    key={header.id}
+                    header={header}
+                    style={{
+                      width: header.getSize(),
+                    }}
+                    sorting={sorting.find((s) => s.id === header.id)?.desc}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                    <div
+                      onDoubleClick={() => header.column.resetSize()}
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={`resizer ${
+                        header.column.getIsResizing() ? "isResizing" : ""
+                      }`}
+                    />
+                  </DataTableHead>
+                ))}
+              </DataTableRow>
+            ))}
+          </DataTableHeader>
 
-            <DataTableBody>
-              {sandboxesError ? (
-                <DataTableRow>
-                  <Alert className="w-full text-left" variant="error">
-                    <AlertTitle>Error loading sandboxes.</AlertTitle>
-                    <AlertDescription>
-                      {sandboxesError.message}
-                    </AlertDescription>
-                  </Alert>
-                </DataTableRow>
-              ) : sandboxesLoading ? (
-                <DataTableRow>
-                  <Alert className="w-full text-left" variant="contrast1">
-                    <AlertTitle className="flex items-center gap-2">
-                      <Loader variant="compute" />
-                      Loading sandboxes...
-                    </AlertTitle>
-                    <AlertDescription>This may take a moment.</AlertDescription>
-                  </Alert>
-                </DataTableRow>
-              ) : sandboxes && table.getRowModel()?.rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+          <DataTableBody>
+            {sandboxesError ? (
+              <DataTableRow>
+                <Alert className="w-full text-left" variant="error">
+                  <AlertTitle>Error loading sandboxes.</AlertTitle>
+                  <AlertDescription>{sandboxesError.message}</AlertDescription>
+                </Alert>
+              </DataTableRow>
+            ) : sandboxesLoading ? (
+              <DataTableRow>
+                <Alert className="w-full text-left" variant="contrast1">
+                  <AlertTitle className="flex items-center gap-2">
+                    <Loader variant="compute" />
+                    Loading sandboxes...
+                  </AlertTitle>
+                  <AlertDescription>This may take a moment.</AlertDescription>
+                </Alert>
+              </DataTableRow>
+            ) : sandboxes && table.getRowModel()?.rows?.length ? (
+              <>
+                {table.getRowModel().rows.map((row) => (
                   <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
                     {row.getVisibleCells().map((cell) => (
                       <DataTableCell key={cell.id} cell={cell}>
@@ -278,26 +201,26 @@ export default function SandboxesTable() {
                       </DataTableCell>
                     ))}
                   </DataTableRow>
-                ))
-              ) : (
-                <DataTableRow suppressHydrationWarning>
-                  <Alert
-                    className="w-full text-left"
-                    suppressHydrationWarning
-                    variant="contrast2"
-                  >
-                    <AlertTitle suppressHydrationWarning>
-                      No sandboxes found.
-                    </AlertTitle>
-                    <AlertDescription suppressHydrationWarning>
-                      Start more Sandboxes or try different filters.
-                    </AlertDescription>
-                  </Alert>
-                </DataTableRow>
-              )}
-            </DataTableBody>
-          </DataTable>
-        </div>
+                ))}
+              </>
+            ) : (
+              <DataTableRow suppressHydrationWarning>
+                <Alert
+                  className="w-full text-left"
+                  suppressHydrationWarning
+                  variant="contrast2"
+                >
+                  <AlertTitle suppressHydrationWarning>
+                    No sandboxes found.
+                  </AlertTitle>
+                  <AlertDescription suppressHydrationWarning>
+                    Start more Sandboxes or try different filters.
+                  </AlertDescription>
+                </Alert>
+              </DataTableRow>
+            )}
+          </DataTableBody>
+        </DataTable>
       )}
     </div>
   );
@@ -306,9 +229,11 @@ export default function SandboxesTable() {
 function SearchInput({
   value,
   onChange,
+  className,
 }: {
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 }) {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -332,7 +257,7 @@ function SearchInput({
   }, []);
 
   return (
-    <div className="relative w-full max-w-[420px]">
+    <div className={cn("relative w-full max-w-[420px]", className)}>
       <DebouncedInput
         value={value}
         onChange={(v) => onChange(v as string)}

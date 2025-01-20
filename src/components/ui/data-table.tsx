@@ -25,7 +25,7 @@ function DataTableHead<TData, TValue>({
         "font-medium text-fg-300",
         "[&:has([role=checkbox])]:pr-0",
         {
-          "cursor-pointer hover:bg-bg-100/80": header.column.getCanSort(),
+          "cursor-pointer": header.column.getCanSort(),
         },
         className,
       )}
