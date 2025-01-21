@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { SortingState } from "@tanstack/react-table";
 import { Button } from "../ui/button";
 import { Search, SortAsc, SortDesc, X } from "lucide-react";
-import { exponentialSmoothing } from "@/lib/utils";
+import { cn, exponentialSmoothing } from "@/lib/utils";
 
 const filterItemVariants = {
   initial: { x: 5, opacity: 0 },
@@ -23,17 +23,19 @@ interface TableFilterSectionProps {
   globalFilter: string;
   sorting: SortingState;
   table: Table<any>;
+  className?: string;
 }
 
 const TableFilterSection = ({
   globalFilter,
   sorting,
   table,
+  className,
 }: TableFilterSectionProps) => (
   <AnimatePresence initial={false}>
     {(globalFilter || sorting.length > 0) && (
       <motion.div
-        className="flex flex-col gap-3"
+        className={cn("flex flex-col gap-3", className)}
         variants={filterContainerVariants}
         initial="initial"
         animate="animate"
@@ -41,7 +43,7 @@ const TableFilterSection = ({
         transition={{ duration: 0.2, ease: exponentialSmoothing(5) }}
       >
         <h4 className="text-xs text-accent">
-          -- <span className="text-fg">Filters</span> --
+          - <span className="text-fg">Filters</span>
         </h4>
         <div className="flex flex-wrap gap-2">
           <AnimatePresence mode="popLayout" initial={false}>
@@ -96,7 +98,7 @@ const TableFilterSection = ({
             ))}
           </AnimatePresence>
         </div>
-        <div className="h-2 w-full" />
+        <div className="h-4 w-full" />
       </motion.div>
     )}
   </AnimatePresence>

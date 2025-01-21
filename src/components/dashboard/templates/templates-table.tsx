@@ -22,7 +22,6 @@ import {
   DataTableHeader,
   DataTableBody,
 } from "@/components/ui/data-table";
-import { getTeamTemplatesAction } from "@/actions/templates-actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 import { useApiUrl } from "@/hooks/use-api-url";
@@ -40,13 +39,14 @@ import {
   updateTemplateAction,
 } from "@/actions/templates-actions";
 import { useToast } from "@/hooks/use-toast";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 import { useRef, useEffect } from "react";
 import { ColumnSizingState } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { DebouncedInput } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kdb";
 import useIsMounted from "@/hooks/use-is-mounted";
+import { useTemplates } from "@/hooks/use-templates";
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -64,8 +64,6 @@ const fallbackData: Template[] = [];
 export default function TemplatesTable() {
   "use no memo";
 
-  const { teamId } = useParams();
-  const apiUrl = useApiUrl();
   const isMounted = useIsMounted();
 
   const [sorting, setSorting, removeSorting] = useSessionStorage<SortingState>(
@@ -93,23 +91,7 @@ export default function TemplatesTable() {
     data: templates,
     isLoading: templatesLoading,
     error: templatesError,
-  } = useSWR(
-    teamId && apiUrl
-      ? QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl)
-      : null,
-    async () => {
-      const res = await getTeamTemplatesAction({
-        apiUrl,
-        teamId: teamId as string,
-      });
-
-      if (res.type === "error") {
-        throw new Error(res.message);
-      }
-
-      return res.data;
-    },
-  );
+  } = useTemplates();
 
   const table = useReactTable({
     data: templates ?? fallbackData,

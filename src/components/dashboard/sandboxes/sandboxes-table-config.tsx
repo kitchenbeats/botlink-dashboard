@@ -92,7 +92,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     header: "Started At",
     cell: ({ row }) => (
       <div className="truncate font-mono text-xs text-fg-500">
-        {new Date(row.getValue("startedAt")).toISOString()}
+        {new Date(row.getValue("startedAt")).toUTCString()}
       </div>
     ),
     size: 250,

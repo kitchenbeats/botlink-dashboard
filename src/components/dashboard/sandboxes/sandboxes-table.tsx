@@ -31,9 +31,9 @@ import { Kbd } from "@/components/ui/kdb";
 import SandboxesTableFilters from "./sandboxes-table-filters";
 import useIsMounted from "@/hooks/use-is-mounted";
 import { cn } from "@/lib/utils";
-import { DateRange } from "react-day-picker";
-import { subDays } from "date-fns";
 import { COLUMNS, fallbackData, fuzzyFilter } from "./sandboxes-table-config";
+import React from "react";
+import { DateRange } from "react-day-picker";
 
 export default function SandboxesTable() {
   "use no memo";
@@ -41,6 +41,8 @@ export default function SandboxesTable() {
   const { teamId } = useParams();
   const apiUrl = useApiUrl();
   const isMounted = useIsMounted();
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [sorting, setSorting, removeSorting] = useSessionStorage<SortingState>(
     "sandboxes:sorting",
@@ -54,18 +56,6 @@ export default function SandboxesTable() {
   const [globalFilter, setGlobalFilter, removeGlobalFilter] =
     useSessionStorage<string>("sandboxes:globalFilter", "");
 
-  const [date, setDate, removeDate] = useSessionStorage<DateRange | undefined>(
-    "sandboxes:date",
-    {
-      from: subDays(new Date(), 1),
-      to: new Date(),
-    },
-    {
-      deserializer: (value) => JSON.parse(value),
-      serializer: (value) => JSON.stringify(value),
-    },
-  );
-
   const [columnSizing, setColumnSizing, removeColumnSizing] =
     useLocalStorage<ColumnSizingState>(
       "sandboxes:columnSizing",
@@ -75,6 +65,31 @@ export default function SandboxesTable() {
         serializer: (value) => JSON.stringify(value),
       },
     );
+
+  const [dateRange, setDateRange, removeDateRange] =
+    useSessionStorage<DateRange>(
+      "sandboxes:dateRange",
+      {
+        from: new Date(),
+        to: new Date(),
+      },
+      {
+        deserializer: (value) => {
+          const obj = JSON.parse(value);
+          return {
+            from: new Date(obj.from),
+            to: new Date(obj.to),
+          };
+        },
+        serializer: (value) =>
+          JSON.stringify({
+            from: value.from?.toISOString(),
+            to: value.to?.toISOString(),
+          }),
+      },
+    );
+
+  const [templateId, setTemplateId] = React.useState<string | undefined>();
 
   const {
     data: sandboxes,
@@ -122,19 +137,26 @@ export default function SandboxesTable() {
 
   return (
     <div className="flex h-full flex-col gap-4 pt-3">
-      {/*       <TableTimelineFilter
-        className="mx-3"
-        date={date}
-        onDateChange={setDate}
+      {/* <TableTimelineFilter
+      className="mx-3"
+      date={date}
+      onDateChange={setDate}
       /> */}
 
       <SearchInput
         value={globalFilter}
         onChange={setGlobalFilter}
         className="mx-3"
+        ref={searchInputRef}
       />
 
-      <SandboxesTableFilters className="mx-3" />
+      <SandboxesTableFilters
+        className="mx-3"
+        clearDateRange={() => removeDateRange()}
+        setDateRange={setDateRange}
+        setTemplateId={setTemplateId}
+        templateId={templateId}
+      />
 
       {isMounted && (
         <DataTable className="h-full w-full overflow-auto pb-12">
@@ -226,17 +248,14 @@ export default function SandboxesTable() {
   );
 }
 
-function SearchInput({
-  value,
-  onChange,
-  className,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  className?: string;
-}) {
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
+const SearchInput = React.forwardRef<
+  HTMLInputElement,
+  {
+    value: string;
+    onChange: (value: string) => void;
+    className?: string;
+  }
+>(({ value, onChange, className }, ref) => {
   useEffect(() => {
     const controller = new AbortController();
 
@@ -245,8 +264,9 @@ function SearchInput({
       (e) => {
         if (e.key === "/") {
           e.preventDefault();
-          searchInputRef.current?.focus();
-
+          if (ref && "current" in ref) {
+            (ref as React.RefObject<HTMLInputElement>).current?.focus();
+          }
           return true;
         }
       },
@@ -254,7 +274,7 @@ function SearchInput({
     );
 
     return () => controller.abort();
-  }, []);
+  }, [ref]);
 
   return (
     <div className={cn("relative w-full max-w-[420px]", className)}>
@@ -263,9 +283,11 @@ function SearchInput({
         onChange={(v) => onChange(v as string)}
         placeholder="Find a sandbox..."
         className="w-full pr-14"
-        ref={searchInputRef}
+        ref={ref}
       />
       <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
     </div>
   );
-}
+});
+
+SearchInput.displayName = "SearchInput";

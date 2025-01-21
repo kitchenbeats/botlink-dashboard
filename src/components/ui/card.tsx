@@ -14,7 +14,9 @@ export const cardVariants = cva("relative", {
   },
 });
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
+interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {
   hideUnderline?: boolean;
 }
 
