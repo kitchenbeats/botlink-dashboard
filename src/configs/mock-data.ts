@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { Sandbox, Template } from "@/types/api";
+import { addDays, addHours, subDays, subHours } from "date-fns";
 
 const TEMPLATES: Template[] = [
   {
@@ -132,16 +133,16 @@ const COMPONENTS = [
 
 function generateMockSandboxes(count: number): Sandbox[] {
   const sandboxes: Sandbox[] = [];
-  const baseDate = new Date("2024-03-19T00:00:00Z");
+  const baseDate = new Date();
 
   for (let i = 0; i < count; i++) {
     const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
     const env = ENVIRONMENTS[Math.floor(Math.random() * ENVIRONMENTS.length)];
     const component = COMPONENTS[Math.floor(Math.random() * COMPONENTS.length)];
 
-    // Each sandbox starts 24 hours after the previous one
-    const startDate = new Date(baseDate.getTime() + i * 24 * 60 * 60 * 1000);
-    const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+    // Distribute sandboxes randomly within 24 hours from the base date
+    const startDate = subHours(baseDate, Math.floor(Math.random() * 30));
+    const endDate = addHours(startDate, 24);
 
     // Random memory and CPU from template's allowed values
     const memory = template.memoryMB;
@@ -167,5 +168,5 @@ function generateMockSandboxes(count: number): Sandbox[] {
   return sandboxes;
 }
 
-export const MOCK_SANDBOXES_DATA = generateMockSandboxes(50);
+export const MOCK_SANDBOXES_DATA = generateMockSandboxes(10000);
 export const MOCK_TEMPLATES_DATA = TEMPLATES;

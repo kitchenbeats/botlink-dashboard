@@ -5,9 +5,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { subHours } from "date-fns";
 import * as React from "react";
-import { DateRange } from "react-day-picker";
 import { TableFilterButton } from "../table-filter";
 import {
   Popover,
@@ -24,10 +22,13 @@ import { useTemplates } from "@/hooks/use-templates";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 
+export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
+
 interface SandboxesTableFiltersProps
   extends React.HTMLAttributes<HTMLDivElement> {
-  setDateRange: (dateRange: DateRange) => void;
-  clearDateRange: () => void;
+  startedAtFilter: StartedAtFilter;
+  onStartedAtChange: (value: StartedAtFilter) => void;
+  clearStartedAt: () => void;
 
   setTemplateId: (templateId: string | undefined) => void;
   templateId: string | undefined;
@@ -40,8 +41,9 @@ const SandboxesTableFilters = React.forwardRef<
   (
     {
       className,
-      setDateRange,
-      clearDateRange,
+      startedAtFilter,
+      onStartedAtChange,
+      clearStartedAt,
       setTemplateId,
       templateId,
       ...props
@@ -55,8 +57,9 @@ const SandboxesTableFilters = React.forwardRef<
         {...props}
       >
         <RunningSinceFilter
-          setDateRange={setDateRange}
-          clearDateRange={clearDateRange}
+          startedAtFilter={startedAtFilter}
+          onStartedAtChange={onStartedAtChange}
+          clearStartedAt={clearStartedAt}
         />
 
         <TemplateFilter setTemplateId={setTemplateId} templateId={templateId} />
@@ -70,39 +73,33 @@ SandboxesTableFilters.displayName = "SandboxesTableFilters";
 export default SandboxesTableFilters;
 
 const RunningSinceFilter = ({
-  setDateRange,
-  clearDateRange,
+  startedAtFilter,
+  onStartedAtChange,
+  clearStartedAt,
 }: {
-  setDateRange: (dateRange: DateRange) => void;
-  clearDateRange: () => void;
+  startedAtFilter: StartedAtFilter;
+  onStartedAtChange: (value: StartedAtFilter) => void;
+  clearStartedAt: () => void;
 }) => {
-  const [runningSince, setRunningSince] = React.useState<string | undefined>();
-
   const now = React.useRef(new Date());
 
   const nowText = now.current.toTimeString();
 
-  const handleRunningSince = (value?: "1h" | "6h" | "12h") => {
-    setRunningSince(value);
-
+  const handleRunningSince = (value?: StartedAtFilter) => {
     if (!value) {
-      clearDateRange();
+      clearStartedAt();
     } else {
-      const now = new Date();
-      setDateRange({
-        from: subHours(now, value === "1h" ? 1 : value === "6h" ? 6 : 12),
-        to: now,
-      });
+      onStartedAtChange(value);
     }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <TableFilterButton label="Started" value={runningSince} />
+        <TableFilterButton label="Started" value={startedAtFilter} />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {runningSince && (
+        {startedAtFilter && (
           <DropdownMenuItem
             onClick={() => handleRunningSince()}
             className="mb-2 bg-accent/10 text-accent"
@@ -110,13 +107,13 @@ const RunningSinceFilter = ({
             Clear
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={() => handleRunningSince("1h")}>
+        <DropdownMenuItem onClick={() => handleRunningSince("1h ago")}>
           1 hour ago
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleRunningSince("6h")}>
+        <DropdownMenuItem onClick={() => handleRunningSince("6h ago")}>
           6 hours ago
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleRunningSince("12h")}>
+        <DropdownMenuItem onClick={() => handleRunningSince("12h ago")}>
           12 hours ago
         </DropdownMenuItem>
       </DropdownMenuContent>

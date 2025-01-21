@@ -2,15 +2,18 @@
 
 import { DebouncedInput } from "@/components/ui/input";
 import {
+  ColumnFiltersState,
   ColumnSizingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  PaginationState,
   SortingState,
+  TableOptions,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
 import { useParams } from "next/navigation";
 import {
@@ -28,13 +31,21 @@ import { useLocalStorage, useSessionStorage } from "usehooks-ts";
 import useSWR from "swr";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { Kbd } from "@/components/ui/kdb";
-import SandboxesTableFilters from "./sandboxes-table-filters";
+import SandboxesTableFilters, {
+  StartedAtFilter,
+} from "./sandboxes-table-filters";
 import useIsMounted from "@/hooks/use-is-mounted";
 import { cn } from "@/lib/utils";
-import { COLUMNS, fallbackData, fuzzyFilter } from "./sandboxes-table-config";
+import {
+  COLUMNS,
+  dateRangeFilter,
+  fallbackData,
+  fuzzyFilter,
+  sandboxesTableConfig,
+} from "./sandboxes-table-config";
 import React from "react";
-import { DateRange } from "react-day-picker";
-import { useTemplates } from "@/hooks/use-templates";
+import { subHours } from "date-fns";
+import { Sandbox } from "@/types/api";
 
 export default function SandboxesTable() {
   "use no memo";
@@ -67,30 +78,54 @@ export default function SandboxesTable() {
       },
     );
 
-  const [dateRange, setDateRange, removeDateRange] =
-    useSessionStorage<DateRange>(
-      "sandboxes:dateRange",
-      {
-        from: new Date(),
-        to: new Date(),
-      },
-      {
-        deserializer: (value) => {
-          const obj = JSON.parse(value);
-          return {
-            from: new Date(obj.from),
-            to: new Date(obj.to),
-          };
-        },
-        serializer: (value) =>
-          JSON.stringify({
-            from: value.from?.toISOString(),
-            to: value.to?.toISOString(),
-          }),
-      },
-    );
+  const [startedAtFilter, setStartedAtFilter, removeStartedAtFilter] =
+    useSessionStorage<StartedAtFilter>("sandboxes:startedAtFilter", undefined);
+
+  const [pagination, setPagination, removePagination] =
+    useSessionStorage<PaginationState>("sandboxes:pagination", {
+      pageIndex: 0,
+      pageSize: 50,
+    });
+
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
 
   const [templateId, setTemplateId] = React.useState<string | undefined>();
+
+  useEffect(() => {
+    if (!startedAtFilter) {
+      setColumnFilters((state) => state.filter((f) => f.id !== "startedAt"));
+      return;
+    }
+
+    const now = new Date();
+    const from =
+      startedAtFilter === "1h ago"
+        ? subHours(now, 1)
+        : startedAtFilter === "6h ago"
+          ? subHours(now, 6)
+          : startedAtFilter === "12h ago"
+            ? subHours(now, 12)
+            : undefined;
+
+    setColumnFilters((state) => [
+      ...state,
+      { id: "startedAt", value: { from, to: now } },
+    ]);
+  }, [startedAtFilter]);
+
+  useEffect(() => {
+    if (!templateId) {
+      setColumnFilters((state) => state.filter((f) => f.id !== "template"));
+      return;
+    }
+
+    setColumnFilters((state) => [
+      ...state,
+      { id: "template", value: templateId },
+    ]);
+  }, [templateId]);
 
   const {
     data: sandboxes,
@@ -115,26 +150,21 @@ export default function SandboxesTable() {
   );
 
   const table = useReactTable({
+    ...sandboxesTableConfig,
     data: sandboxes ?? fallbackData,
-    columns: COLUMNS,
     state: {
       globalFilter,
       sorting,
       columnSizing,
-    },
-    filterFns: {
-      fuzzy: fuzzyFilter,
+      columnFilters,
+      pagination,
     },
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    enableSorting: true,
+    onColumnFiltersChange: setColumnFilters,
     onColumnSizingChange: setColumnSizing,
-    columnResizeMode: "onChange",
-    enableColumnResizing: true,
-  });
+    onPaginationChange: setPagination,
+  } as TableOptions<Sandbox>);
 
   return (
     <div className="flex h-full flex-col gap-4 pt-3">
@@ -153,8 +183,9 @@ export default function SandboxesTable() {
 
       <SandboxesTableFilters
         className="mx-3"
-        clearDateRange={removeDateRange}
-        setDateRange={setDateRange}
+        startedAtFilter={startedAtFilter}
+        onStartedAtChange={setStartedAtFilter}
+        clearStartedAt={removeStartedAtFilter}
         setTemplateId={setTemplateId}
         templateId={templateId}
       />

@@ -1,14 +1,32 @@
 "use client";
 
-import { Circle, ChevronsUpDown, Pause, ArrowUpRight } from "lucide-react";
-import { useRef } from "react";
-import { ColumnDef, FilterFn } from "@tanstack/react-table";
+import { ChevronsUpDown, ArrowUpRight } from "lucide-react";
+import {
+  ColumnDef,
+  FilterFn,
+  getSortedRowModel,
+  getCoreRowModel,
+  getFilteredRowModel,
+  TableOptions,
+  getPaginationRowModel,
+} from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
-import { Sandbox, Template } from "@/types/api";
+import { Sandbox } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { PROTECTED_URLS } from "@/configs/urls";
 import { useSelectedTeam } from "@/hooks/use-teams";
+import { DateRange } from "react-day-picker";
+import { isWithinInterval } from "date-fns";
+
+// FILTERS
+
+declare module "@tanstack/table-core" {
+  interface FilterFns {
+    dateRange: FilterFn<Sandbox>;
+    fuzzy: FilterFn<Sandbox>;
+  }
+}
 
 export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -20,7 +38,30 @@ export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed;
 };
 
-// stable reference for fallback data
+export const dateRangeFilter: FilterFn<Sandbox> = (
+  row,
+  columnId,
+  value: DateRange,
+  addMeta,
+) => {
+  const startedAt = row.getValue(columnId) as string;
+
+  if (!startedAt) return false;
+
+  const startedAtDate = new Date(startedAt);
+
+  if (!value.from || !value.to) return true;
+
+  console.log(startedAtDate, value.from, value.to);
+
+  return isWithinInterval(startedAtDate, {
+    start: value.from,
+    end: value.to,
+  });
+};
+
+// TABLE CONFIG
+
 export const fallbackData: Sandbox[] = [];
 
 export const COLUMNS: ColumnDef<Sandbox>[] = [
@@ -29,6 +70,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     cell: () => <ChevronsUpDown className="size-3.5 text-fg-500" />,
     size: 30,
     enableResizing: false,
+    enableColumnFilter: false,
   },
   {
     accessorKey: "sandboxID",
@@ -40,6 +82,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     ),
     size: 160,
     minSize: 160,
+    enableColumnFilter: false,
   },
   {
     accessorKey: "templateID",
@@ -53,7 +96,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
 
       return (
         <Link href={PROTECTED_URLS.TEMPLATES(team!.id)}>
-          <Badge variant="accent" className="font-sans font-medium">
+          <Badge variant="accent" className="font-sans font-normal">
             {templateId}
             <ArrowUpRight className="size-3" />
           </Badge>
@@ -62,6 +105,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     },
     size: 250,
     minSize: 180,
+    filterFn: "equalsString",
   },
   {
     accessorKey: "alias",
@@ -73,20 +117,18 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     ),
     size: 220,
     minSize: 180,
+    enableColumnFilter: false,
   },
   {
     id: "load",
     header: "Load",
-    cell: ({ row, table }) => {
-      // TODO: determine status state correctly
-      const randRef = useRef<number>(Math.random());
+    accessorFn: (row) => Math.random(),
+    cell: ({ row, getValue }) => {
+      // TODO: find out how to retrieve load status
+      const rng = getValue() as number;
 
       const load: "low" | "medium" | "high" =
-        randRef.current < 0.1
-          ? "high"
-          : randRef.current < 0.5
-            ? "medium"
-            : "low";
+        rng < 0.1 ? "high" : rng < 0.5 ? "medium" : "low";
 
       const badgeVariant =
         load === "low" ? "success" : load === "medium" ? "warning" : "error";
@@ -101,6 +143,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     },
     size: 120,
     minSize: 120,
+    enableColumnFilter: false,
   },
   {
     accessorKey: "startedAt",
@@ -112,5 +155,21 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     ),
     size: 250,
     minSize: 140,
+    filterFn: "dateRange",
   },
 ];
+
+export const sandboxesTableConfig: Partial<TableOptions<Sandbox>> = {
+  columns: COLUMNS,
+  filterFns: {
+    fuzzy: fuzzyFilter,
+    dateRange: dateRangeFilter,
+  },
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
+  enableSorting: true,
+  columnResizeMode: "onChange",
+  enableColumnResizing: true,
+};
