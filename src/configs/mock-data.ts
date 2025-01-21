@@ -1,15 +1,120 @@
 import { nanoid } from "nanoid";
 import { Sandbox, Template } from "@/types/api";
 
-const TEMPLATES = [
-  { id: "node-typescript-v1", memory: [1024, 2048, 4096], cpu: [1, 2, 4] },
-  { id: "react-vite-v2", memory: [1024, 2048], cpu: [1, 2] },
-  { id: "postgres-v15", memory: [2048, 4096, 8192], cpu: [2, 4] },
-  { id: "redis-v7", memory: [2048, 4096], cpu: [1, 2] },
-  { id: "python-ml-v1", memory: [4096, 8192], cpu: [2, 4] },
-  { id: "elastic-v8", memory: [4096, 8192], cpu: [2, 4] },
-  { id: "grafana-v9", memory: [2048, 4096], cpu: [1, 2] },
-  { id: "nginx-v1", memory: [1024, 2048], cpu: [1, 2] },
+const TEMPLATES: Template[] = [
+  {
+    aliases: ["node-typescript", "node-ts"],
+    buildID: "build_001",
+    cpuCount: 2,
+    memoryMB: 2048,
+    public: true,
+    templateID: "node-typescript-v1",
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
+    createdBy: {
+      email: "admin@example.com",
+      id: "user_001",
+    },
+  },
+  {
+    aliases: ["react-vite"],
+    buildID: "build_002",
+    cpuCount: 1,
+    memoryMB: 1024,
+    public: true,
+    templateID: "react-vite-v2",
+    createdAt: "2024-01-02T00:00:00Z",
+    updatedAt: "2024-01-02T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["postgres", "pg"],
+    buildID: "build_003",
+    cpuCount: 2,
+    memoryMB: 4096,
+    public: true,
+    templateID: "postgres-v15",
+    createdAt: "2024-01-03T00:00:00Z",
+    updatedAt: "2024-01-03T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["redis"],
+    buildID: "build_004",
+    cpuCount: 1,
+    memoryMB: 2048,
+    public: true,
+    templateID: "redis-v7",
+    createdAt: "2024-01-04T00:00:00Z",
+    updatedAt: "2024-01-04T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["python-ml", "ml"],
+    buildID: "build_005",
+    cpuCount: 4,
+    memoryMB: 8192,
+    public: true,
+    templateID: "python-ml-v1",
+    createdAt: "2024-01-05T00:00:00Z",
+    updatedAt: "2024-01-05T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["elastic", "es"],
+    buildID: "build_006",
+    cpuCount: 2,
+    memoryMB: 4096,
+    public: true,
+    templateID: "elastic-v8",
+    createdAt: "2024-01-06T00:00:00Z",
+    updatedAt: "2024-01-06T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["grafana"],
+    buildID: "build_007",
+    cpuCount: 1,
+    memoryMB: 2048,
+    public: true,
+    templateID: "grafana-v9",
+    createdAt: "2024-01-07T00:00:00Z",
+    updatedAt: "2024-01-07T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["nginx"],
+    buildID: "build_008",
+    cpuCount: 1,
+    memoryMB: 1024,
+    public: true,
+    templateID: "nginx-v1",
+    createdAt: "2024-01-08T00:00:00Z",
+    updatedAt: "2024-01-08T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["mongodb", "mongo"],
+    buildID: "build_009",
+    cpuCount: 2,
+    memoryMB: 4096,
+    public: true,
+    templateID: "mongodb-v6",
+    createdAt: "2024-01-09T00:00:00Z",
+    updatedAt: "2024-01-09T00:00:00Z",
+    createdBy: null,
+  },
+  {
+    aliases: ["mysql"],
+    buildID: "build_010",
+    cpuCount: 2,
+    memoryMB: 4096,
+    public: true,
+    templateID: "mysql-v8",
+    createdAt: "2024-01-10T00:00:00Z",
+    updatedAt: "2024-01-10T00:00:00Z",
+    createdBy: null,
+  },
 ] as const;
 
 const ENVIRONMENTS = ["prod", "staging", "dev", "test"] as const;
@@ -39,9 +144,8 @@ function generateMockSandboxes(count: number): Sandbox[] {
     const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
 
     // Random memory and CPU from template's allowed values
-    const memory =
-      template.memory[Math.floor(Math.random() * template.memory.length)];
-    const cpu = template.cpu[Math.floor(Math.random() * template.cpu.length)];
+    const memory = template.memoryMB;
+    const cpu = template.cpuCount;
 
     sandboxes.push({
       alias: `${env}-${component}-${nanoid(4)}`,
@@ -56,7 +160,7 @@ function generateMockSandboxes(count: number): Sandbox[] {
       },
       sandboxID: nanoid(8),
       startedAt: startDate.toISOString(),
-      templateID: template.id,
+      templateID: template.templateID,
     });
   }
 
@@ -64,89 +168,4 @@ function generateMockSandboxes(count: number): Sandbox[] {
 }
 
 export const MOCK_SANDBOXES_DATA = generateMockSandboxes(50);
-
-export function generateMockTemplates(count: number = 50): Template[] {
-  const baseTemplates = [
-    {
-      name: "node",
-      versions: ["14", "16", "18", "20"],
-      sizes: ["small", "medium", "large"],
-    },
-    {
-      name: "python",
-      versions: ["3.8", "3.9", "3.10", "3.11"],
-      sizes: ["ml", "web", "data"],
-    },
-    {
-      name: "golang",
-      versions: ["1.19", "1.20", "1.21"],
-      sizes: ["api", "worker"],
-    },
-    {
-      name: "postgres",
-      versions: ["13", "14", "15"],
-      sizes: ["standard", "extended"],
-    },
-    {
-      name: "redis",
-      versions: ["6", "7"],
-      sizes: ["cache", "queue"],
-    },
-  ];
-
-  const templates: Template[] = [];
-  const users = [
-    { email: "alice@example.com", id: nanoid(8) },
-    { email: "bob@example.com", id: nanoid(8) },
-    { email: "charlie@example.com", id: nanoid(8) },
-    { email: null, id: null },
-  ];
-
-  for (let i = 0; i < count; i++) {
-    const baseTemplate =
-      baseTemplates[Math.floor(Math.random() * baseTemplates.length)];
-    const version =
-      baseTemplate.versions[
-        Math.floor(Math.random() * baseTemplate.versions.length)
-      ];
-    const size =
-      baseTemplate.sizes[Math.floor(Math.random() * baseTemplate.sizes.length)];
-
-    const createdDate = new Date(
-      2024 - Math.floor(Math.random() * 2),
-      Math.floor(Math.random() * 12),
-      Math.floor(Math.random() * 28),
-    );
-    const updatedDate = new Date(
-      createdDate.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000,
-    );
-
-    const creator = users[Math.floor(Math.random() * users.length)];
-
-    templates.push({
-      aliases: [
-        `${baseTemplate.name}-${version}-${size}`,
-        `${baseTemplate.name}-${version}`,
-        `${baseTemplate.name}-latest`,
-      ],
-      buildID: nanoid(8),
-      cpuCount: Math.pow(2, Math.floor(Math.random() * 3)), // 1, 2, or 4 CPUs
-      memoryMB: 1024 * Math.pow(2, Math.floor(Math.random() * 4)), // 1GB to 8GB
-      public: Math.random() > 0.3, // 70% chance of being public
-      templateID: `${baseTemplate.name}-${version}-${size}-${nanoid(4)}`,
-      createdAt: createdDate.toISOString(),
-      updatedAt: updatedDate.toISOString(),
-      createdBy:
-        creator.id === null
-          ? null
-          : {
-              email: creator.email!,
-              id: creator.id!,
-            },
-    });
-  }
-
-  return templates;
-}
-
-export const MOCK_TEMPLATES_DATA = generateMockTemplates(50);
+export const MOCK_TEMPLATES_DATA = TEMPLATES;

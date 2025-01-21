@@ -1,11 +1,14 @@
 "use client";
 
-import { Circle, ChevronsUpDown, Pause } from "lucide-react";
+import { Circle, ChevronsUpDown, Pause, ArrowUpRight } from "lucide-react";
 import { useRef } from "react";
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
-import { Sandbox } from "@/types/api";
+import { Sandbox, Template } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { PROTECTED_URLS } from "@/configs/urls";
+import { useSelectedTeam } from "@/hooks/use-teams";
 
 export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -28,60 +31,72 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     enableResizing: false,
   },
   {
-    accessorKey: "alias",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="truncate text-start font-mono font-medium">
-        {row.getValue("alias")}
-      </div>
-    ),
-    size: 250,
-    minSize: 180,
-  },
-  {
     accessorKey: "sandboxID",
-    header: "ID",
+    header: "SANDBOX ID",
     cell: ({ row }) => (
       <div className="truncate font-mono text-xs text-fg-500">
         {row.getValue("sandboxID")}
       </div>
     ),
-    size: 100,
-    minSize: 100,
+    size: 160,
+    minSize: 160,
   },
   {
-    id: "status",
-    header: "Status",
+    accessorKey: "templateID",
+    id: "template",
+    header: "TEMPLATE",
+    cell: ({ getValue }) => {
+      const team = useSelectedTeam();
+      const templateId = getValue() as string;
+
+      if (!team) return null;
+
+      return (
+        <Link href={PROTECTED_URLS.TEMPLATES(team!.id)}>
+          <Badge variant="accent" className="font-sans font-medium">
+            {templateId}
+            <ArrowUpRight className="size-3" />
+          </Badge>
+        </Link>
+      );
+    },
+    size: 250,
+    minSize: 180,
+  },
+  {
+    accessorKey: "alias",
+    header: "Alias",
+    cell: ({ getValue }) => (
+      <div className="truncate text-start font-mono font-medium">
+        {getValue() as string}
+      </div>
+    ),
+    size: 220,
+    minSize: 180,
+  },
+  {
+    id: "load",
+    header: "Load",
     cell: ({ row, table }) => {
       // TODO: determine status state correctly
       const randRef = useRef<number>(Math.random());
 
-      const status: "running" | "paused" | "stopped" =
-        randRef.current > 0.5 ? "running" : "paused";
+      const load: "low" | "medium" | "high" =
+        randRef.current < 0.1
+          ? "high"
+          : randRef.current < 0.5
+            ? "medium"
+            : "low";
 
       const badgeVariant =
-        status === "running"
-          ? "success"
-          : status === "paused"
-            ? "warning"
-            : "default";
+        load === "low" ? "success" : load === "medium" ? "warning" : "error";
 
-      const statusIcon =
-        status === "running" ? (
-          <Circle className="size-2 fill-current" />
-        ) : status === "paused" ? (
-          <Pause className="size-2" />
-        ) : (
-          "_"
-        );
+      const loadIcon = load === "low" ? "_" : load === "medium" ? "~" : "^";
 
       return (
-        <>
-          <Badge variant={badgeVariant} className="uppercase">
-            {statusIcon}
-            {status}
-          </Badge>
-        </>
+        <Badge variant={badgeVariant} className="uppercase">
+          {loadIcon} {load}
+        </Badge>
       );
     },
     size: 120,

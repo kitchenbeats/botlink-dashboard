@@ -10,7 +10,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
 import { useParams } from "next/navigation";
 import {
@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { COLUMNS, fallbackData, fuzzyFilter } from "./sandboxes-table-config";
 import React from "react";
 import { DateRange } from "react-day-picker";
+import { useTemplates } from "@/hooks/use-templates";
 
 export default function SandboxesTable() {
   "use no memo";
@@ -152,7 +153,7 @@ export default function SandboxesTable() {
 
       <SandboxesTableFilters
         className="mx-3"
-        clearDateRange={() => removeDateRange()}
+        clearDateRange={removeDateRange}
         setDateRange={setDateRange}
         setTemplateId={setTemplateId}
         templateId={templateId}
