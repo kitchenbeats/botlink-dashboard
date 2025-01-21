@@ -5,9 +5,6 @@ import {
   ColumnFiltersState,
   ColumnSizingState,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
   PaginationState,
   SortingState,
   TableOptions,
@@ -36,21 +33,18 @@ import SandboxesTableFilters, {
 } from "./sandboxes-table-filters";
 import useIsMounted from "@/hooks/use-is-mounted";
 import { cn } from "@/lib/utils";
-import {
-  COLUMNS,
-  dateRangeFilter,
-  fallbackData,
-  fuzzyFilter,
-  sandboxesTableConfig,
-} from "./sandboxes-table-config";
+import { fallbackData, sandboxesTableConfig } from "./sandboxes-table-config";
 import React from "react";
 import { subHours } from "date-fns";
 import { Sandbox } from "@/types/api";
+import { useSelectedTeam } from "@/hooks/use-teams";
+import { Badge } from "@/components/ui/badge";
+import { Circle } from "lucide-react";
 
 export default function SandboxesTable() {
   "use no memo";
 
-  const { teamId } = useParams();
+  const team = useSelectedTeam();
   const apiUrl = useApiUrl();
   const isMounted = useIsMounted();
 
@@ -132,13 +126,13 @@ export default function SandboxesTable() {
     isLoading: sandboxesLoading,
     error: sandboxesError,
   } = useSWR(
-    teamId && apiUrl
-      ? QUERY_KEYS.TEAM_SANDBOXES(teamId as string, apiUrl)
-      : null,
+    team && apiUrl ? QUERY_KEYS.TEAM_SANDBOXES(team.id, apiUrl) : null,
     async () => {
+      if (!team || !apiUrl) return;
+
       const res = await getTeamSandboxesAction({
         apiUrl,
-        teamId: teamId as string,
+        teamId: team.id,
       });
 
       if (res.type === "error") {
@@ -146,6 +140,10 @@ export default function SandboxesTable() {
       }
 
       return res.data;
+    },
+    {
+      // 1 minute polling interval
+      refreshInterval: 60 * 1000,
     },
   );
 
@@ -174,21 +172,34 @@ export default function SandboxesTable() {
       onDateChange={setDate}
       /> */}
 
-      <SearchInput
-        value={globalFilter}
-        onChange={setGlobalFilter}
-        className="mx-3"
-        ref={searchInputRef}
-      />
-
-      <SandboxesTableFilters
-        className="mx-3"
-        startedAtFilter={startedAtFilter}
-        onStartedAtChange={setStartedAtFilter}
-        clearStartedAt={removeStartedAtFilter}
-        setTemplateId={setTemplateId}
-        templateId={templateId}
-      />
+      <header className="mx-3 flex justify-between">
+        <div className="flex flex-col gap-4">
+          <SearchInput
+            value={globalFilter}
+            onChange={setGlobalFilter}
+            ref={searchInputRef}
+          />
+          <SandboxesTableFilters
+            startedAtFilter={startedAtFilter}
+            onStartedAtChange={setStartedAtFilter}
+            clearStartedAt={removeStartedAtFilter}
+            setTemplateId={setTemplateId}
+            templateId={templateId}
+          />
+        </div>
+        <div className="flex flex-col items-end justify-between gap-2">
+          <Badge
+            variant="success"
+            className="h-min w-fit gap-2 font-bold uppercase"
+          >
+            {sandboxes?.length} Sandboxes running
+            <Circle className="size-2 fill-current" />
+          </Badge>
+          <Badge className="h-min w-fit gap-2 font-bold uppercase">
+            {table.getFilteredRowModel().rows.length} / {sandboxes?.length}
+          </Badge>
+        </div>
+      </header>
 
       {isMounted && (
         <DataTable className="h-full w-full overflow-auto pb-12">
@@ -316,6 +327,7 @@ const SearchInput = React.forwardRef<
         placeholder="Find a sandbox..."
         className="w-full pr-14"
         ref={ref}
+        debounce={200}
       />
       <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
     </div>

@@ -15,7 +15,13 @@ export const TableFilterButton = React.forwardRef<
   TableFilterButtonProps
 >(({ label, value, ...props }, ref) => {
   return (
-    <Button ref={ref} variant="outline" size="sm" {...props}>
+    <Button
+      ref={ref}
+      variant="outline"
+      size="sm"
+      className="h-7 text-xs"
+      {...props}
+    >
       <Plus
         className={cn(
           "size-3.5 transition-transform ease-in-out",
