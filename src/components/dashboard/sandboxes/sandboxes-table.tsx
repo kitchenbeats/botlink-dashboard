@@ -39,7 +39,8 @@ import { subHours } from "date-fns";
 import { Sandbox } from "@/types/api";
 import { useSelectedTeam } from "@/hooks/use-teams";
 import { Badge } from "@/components/ui/badge";
-import { Circle } from "lucide-react";
+import { Circle, RefreshCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function SandboxesTable() {
   "use no memo";
@@ -125,6 +126,7 @@ export default function SandboxesTable() {
     data: sandboxes,
     isLoading: sandboxesLoading,
     error: sandboxesError,
+    mutate: refetchSandboxes,
   } = useSWR(
     team && apiUrl ? QUERY_KEYS.TEAM_SANDBOXES(team.id, apiUrl) : null,
     async () => {
@@ -173,7 +175,7 @@ export default function SandboxesTable() {
       /> */}
 
       <header className="mx-3 flex justify-between">
-        <div className="flex flex-col gap-4">
+        <div className="flex w-full flex-col gap-4">
           <SearchInput
             value={globalFilter}
             onChange={setGlobalFilter}
@@ -187,14 +189,24 @@ export default function SandboxesTable() {
             templateId={templateId}
           />
         </div>
-        <div className="flex flex-col items-end justify-between gap-2">
-          <Badge
-            variant="success"
-            className="h-min w-fit gap-2 font-bold uppercase"
-          >
-            {sandboxes?.length} Sandboxes running
-            <Circle className="size-2 fill-current" />
-          </Badge>
+        <div className="flex w-full flex-col items-end justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="success"
+              className="h-min w-fit gap-2 font-bold uppercase"
+            >
+              {sandboxes?.length} Sandboxes running
+              <Circle className="size-2 fill-current" />
+            </Badge>
+            <Button
+              variant="muted"
+              className="h-min w-fit gap-2 rounded-sm px-2 py-1 font-bold uppercase"
+              onClick={() => refetchSandboxes()}
+              disabled={sandboxesLoading}
+            >
+              <RefreshCcw className="size-3.5" />
+            </Button>
+          </div>
           <Badge className="h-min w-fit gap-2 font-bold uppercase">
             {table.getFilteredRowModel().rows.length} / {sandboxes?.length}
           </Badge>
@@ -256,7 +268,11 @@ export default function SandboxesTable() {
             ) : sandboxes && table.getRowModel()?.rows?.length ? (
               <>
                 {table.getRowModel().rows.map((row) => (
-                  <DataTableRow key={row.id} isSelected={row.getIsSelected()}>
+                  <DataTableRow
+                    key={row.id}
+                    isSelected={row.getIsSelected()}
+                    className="cursor-pointer"
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <DataTableCell key={cell.id} cell={cell}>
                         {flexRender(
@@ -327,7 +343,7 @@ const SearchInput = React.forwardRef<
         placeholder="Find a sandbox..."
         className="w-full pr-14"
         ref={ref}
-        debounce={200}
+        debounce={500}
       />
       <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
     </div>

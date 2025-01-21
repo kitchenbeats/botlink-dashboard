@@ -168,5 +168,5 @@ function generateMockSandboxes(count: number): Sandbox[] {
   return sandboxes;
 }
 
-export const MOCK_SANDBOXES_DATA = generateMockSandboxes(10000);
+export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(10000);
 export const MOCK_TEMPLATES_DATA = TEMPLATES;

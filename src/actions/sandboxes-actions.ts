@@ -15,9 +15,9 @@ export const getTeamSandboxesAction = guardAction(
   async ({ apiUrl, teamId }) => {
     // TODO: Remove this after staging
     if (process.env.NODE_ENV === "development") {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
-      return MOCK_SANDBOXES_DATA;
+      return MOCK_SANDBOXES_DATA();
     }
 
     const { user } = await checkAuthenticated();
