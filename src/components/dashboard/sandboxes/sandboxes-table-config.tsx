@@ -128,34 +128,16 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     filterFn: "equalsString",
   },
   {
-    id: "resources",
-    header: "Resources",
-    accessorFn: (row) => ({
-      cpu: Math.random() * 100,
-      ram: Math.random() * 100,
-    }),
-    sortingFn: (a, b) => {
-      const aResources = a.getValue("resources") as {
-        cpu: number;
-        ram: number;
-      };
-      const bResources = b.getValue("resources") as {
-        cpu: number;
-        ram: number;
-      };
-
-      // Get max usage for each row
-      const aMax = Math.max(aResources.ram, aResources.cpu);
-      const bMax = Math.max(bResources.ram, bResources.cpu);
-
-      // If both resources are high (>80%), add extra weight
-      const aBonus = aResources.ram > 80 && aResources.cpu > 80 ? 100 : 0;
-      const bBonus = bResources.ram > 80 && bResources.cpu > 80 ? 100 : 0;
-
-      return Math.sign(bMax + bBonus - (aMax + aBonus));
+    id: "cpu",
+    header: "CPU Usage",
+    accessorFn: (row) => {
+      // Calculate CPU usage as a percentage of total CPU count
+      // This is a placeholder calculation - adjust based on your actual metrics
+      const cpuUsage = (row.cpuCount / 8) * 100; // Assuming 8 cores is 100%
+      return Math.min(cpuUsage, 100);
     },
     cell: ({ getValue, row }) => {
-      const { cpu, ram } = getValue() as { cpu: number; ram: number };
+      const cpu = getValue() as number;
 
       const getVariant = (
         value: number,
@@ -165,33 +147,76 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
         return "success";
       };
 
-      const variant = getVariant(Math.max(cpu, ram));
-
       return (
         <Tooltip delayDuration={0}>
           <TooltipTrigger>
-            <Badge variant={variant} className="whitespace-nowrap font-mono">
-              <Cpu className="size-2" /> {cpu.toFixed(0)}% · {ram.toFixed(0)}%
-              <CgSmartphoneRam className="size-2" />
+            <Badge
+              variant={getVariant(cpu)}
+              className="whitespace-nowrap font-mono"
+            >
+              <Cpu className="size-2" /> {cpu.toFixed(0)}%
             </Badge>
           </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={10}>
-            <h6 className="mb-2 text-sm font-medium">Max resources</h6>
-            <div className="flex flex-col gap-1 pb-2 pl-2 text-xs">
-              <div className="flex items-center gap-1">
-                <Cpu className="size-3" /> CPU: {row.original.cpuCount} core(s)
-              </div>
-              <div className="flex items-center gap-1">
-                <CgSmartphoneRam className="size-3" /> RAM:{" "}
-                {row.original.memoryMB}MB
-              </div>
+          <TooltipContent side="right" sideOffset={10} className="">
+            <div className="flex items-center gap-1 text-xs">
+              with{" "}
+              <span className="font-mono text-accent">
+                {row.original.cpuCount}
+              </span>{" "}
+              core{row.original.cpuCount > 1 ? "s" : ""}
             </div>
           </TooltipContent>
         </Tooltip>
       );
     },
-    size: 160,
-    minSize: 160,
+    size: 120,
+    minSize: 120,
+    enableColumnFilter: false,
+  },
+  {
+    id: "ram",
+    header: "RAM Usage",
+    accessorFn: (row) => {
+      // Calculate RAM usage as a percentage of total memory
+      // This is a placeholder calculation - adjust based on your actual metrics
+      const ramUsage = (row.memoryMB / 1024) * 100; // Assuming 1024MB is 100%
+      return Math.min(ramUsage, 100);
+    },
+    cell: ({ getValue, row }) => {
+      const ram = getValue() as number;
+
+      const getVariant = (
+        value: number,
+      ): VariantProps<typeof badgeVariants>["variant"] => {
+        if (value >= 80) return "error";
+        if (value >= 50) return "warning";
+        return "success";
+      };
+
+      return (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger>
+            <Badge
+              variant={getVariant(ram)}
+              className="whitespace-nowrap font-mono"
+            >
+              <CgSmartphoneRam className="size-2" /> {ram.toFixed(0)}%
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="right" sideOffset={10}>
+            <div className="flex items-center gap-1 text-xs">
+              of{" "}
+              <span className="font-mono text-accent">
+                {row.original.memoryMB}
+              </span>{" "}
+              MB
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    size: 120,
+    minSize: 120,
     enableColumnFilter: false,
   },
   {

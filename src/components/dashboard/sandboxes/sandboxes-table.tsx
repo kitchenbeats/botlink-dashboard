@@ -239,14 +239,6 @@ export default function SandboxesTable() {
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                    <div
-                      onDoubleClick={() => header.column.resetSize()}
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className={`resizer ${
-                        header.column.getIsResizing() ? "isResizing" : ""
-                      }`}
-                    />
                   </DataTableHead>
                 ))}
               </DataTableRow>
