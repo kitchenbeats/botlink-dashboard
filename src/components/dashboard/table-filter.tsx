@@ -20,6 +20,7 @@ export const TableFilterButton = React.forwardRef<
       variant="outline"
       size="sm"
       className="h-7 text-xs"
+      suppressHydrationWarning
       {...props}
     >
       <Plus
@@ -27,6 +28,7 @@ export const TableFilterButton = React.forwardRef<
           "size-3.5 transition-transform ease-in-out",
           value && "rotate-45",
         )}
+        suppressHydrationWarning
       />
       {label}
       {value && (

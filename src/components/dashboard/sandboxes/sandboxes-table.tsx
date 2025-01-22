@@ -12,7 +12,6 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useRef } from "react";
 import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
-import { useParams } from "next/navigation";
 import {
   DataTable,
   DataTableHead,
@@ -149,6 +148,8 @@ export default function SandboxesTable() {
     },
   );
 
+  const [hoveredRows, setHoveredRows] = React.useState<string[]>([]);
+
   const table = useReactTable({
     ...sandboxesTableConfig,
     data: sandboxes ?? fallbackData,
@@ -158,6 +159,11 @@ export default function SandboxesTable() {
       columnSizing,
       columnFilters,
       pagination,
+      team,
+      hoveredRows,
+    },
+    initialState: {
+      hoveredRows: [],
     },
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,

@@ -10,6 +10,7 @@ import { BASE_URL } from "@/configs/urls";
 import { Metadata } from "next/types";
 import { METADATA } from "@/configs/metadata";
 import Head from "next/head";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -47,10 +48,12 @@ export default function RootLayout({
             disableTransitionOnChange: true,
           }}
         >
-          <ToastProvider>
-            {children}
-            <Toaster />
-          </ToastProvider>
+          <TooltipProvider>
+            <ToastProvider>
+              {children}
+              <Toaster />
+            </ToastProvider>
+          </TooltipProvider>
         </RootProvider>
       </Body>
     </html>
