@@ -37,9 +37,7 @@ export default function DashboardPageLayout({
         {fullscreen ? (
           <div className="h-full">{children}</div>
         ) : (
-          <div className={cn("container mx-auto py-16", className)}>
-            {children}
-          </div>
+          <div className={cn("max-w-[1400px] p-3", className)}>{children}</div>
         )}
       </div>
     </div>

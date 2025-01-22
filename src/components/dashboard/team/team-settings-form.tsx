@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSelectedTeam, useTeams } from "@/hooks/use-teams";
 import { useTimeoutMessage } from "@/hooks/use-timeout-message";
 import { AnimatePresence } from "motion/react";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useState } from "react";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";

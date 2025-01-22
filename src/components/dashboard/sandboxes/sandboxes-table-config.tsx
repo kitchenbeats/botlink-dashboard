@@ -12,7 +12,7 @@ import {
 } from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Sandbox } from "@/types/api";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import Link from "next/link";
 import { PROTECTED_URLS } from "@/configs/urls";
 import { useSelectedTeam } from "@/hooks/use-teams";
@@ -20,13 +20,6 @@ import { DateRange } from "react-day-picker";
 import { isWithinInterval } from "date-fns";
 
 // FILTERS
-
-declare module "@tanstack/table-core" {
-  interface FilterFns {
-    dateRange: FilterFn<Sandbox>;
-    fuzzy: FilterFn<Sandbox>;
-  }
-}
 
 export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value);
@@ -73,6 +66,18 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     enableColumnFilter: false,
   },
   {
+    accessorKey: "alias",
+    header: "Alias",
+    cell: ({ getValue }) => (
+      <div className="truncate text-start font-mono font-medium">
+        {getValue() as string}
+      </div>
+    ),
+    size: 220,
+    minSize: 180,
+    enableColumnFilter: false,
+  },
+  {
     accessorKey: "sandboxID",
     header: "SANDBOX ID",
     cell: ({ row }) => (
@@ -95,11 +100,12 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
       if (!team) return null;
 
       return (
-        <Link href={PROTECTED_URLS.TEMPLATES(team!.id)}>
-          <Badge variant="accent" className="font-sans font-normal">
-            {templateId}
-            <ArrowUpRight className="size-3" />
-          </Badge>
+        <Link
+          href={PROTECTED_URLS.TEMPLATES(team!.id)}
+          className="flex items-center gap-1 font-mono hover:text-accent hover:underline"
+        >
+          {templateId}
+          <ArrowUpRight className="size-3" />
         </Link>
       );
     },
@@ -107,18 +113,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     minSize: 180,
     filterFn: "equalsString",
   },
-  {
-    accessorKey: "alias",
-    header: "Alias",
-    cell: ({ getValue }) => (
-      <div className="truncate text-start font-mono font-medium">
-        {getValue() as string}
-      </div>
-    ),
-    size: 220,
-    minSize: 180,
-    enableColumnFilter: false,
-  },
+
   {
     id: "load",
     header: "Load",
@@ -155,6 +150,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     ),
     size: 250,
     minSize: 140,
+    // @ts-expect-error dateRange is not a valid filterFn
     filterFn: "dateRange",
   },
 ];
