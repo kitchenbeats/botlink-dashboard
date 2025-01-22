@@ -5,6 +5,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 
 import { cn } from "@/lib/utils";
 import { ChevronsUpDown } from "lucide-react";
+import { cardVariants } from "@/lib/variants";
 
 const Select = SelectPrimitive.Root;
 
@@ -19,10 +20,11 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-dashed bg-bg px-3 py-2",
-      "text-sm tracking-wider",
-      "ring-offset-bg placeholder:text-fg-300",
-      "focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0",
+      "flex h-10 w-full items-center justify-between rounded-md",
+      "border border-dashed bg-bg px-3 py-2",
+      "font-mono text-sm uppercase tracking-wider",
+      "cursor-default outline-none",
+      "focus:ring-1",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "[&>span]:line-clamp-1",
       "data-[placeholder]:text-fg-300",
@@ -31,7 +33,7 @@ const SelectTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronsUpDown className="ml-3 size-3.5 text-fg-300" />
+    <ChevronsUpDown className="ml-auto size-3.5 text-fg-300" />
   </SelectPrimitive.Trigger>
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
@@ -79,15 +81,17 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden border-2 border-dashed p-2 pt-0.5",
-        "bg-bg text-fg shadow-[0px_1px_0_0px] shadow-contrast-1",
+        "z-50 min-w-[10rem] overflow-hidden rounded-md",
+        cardVariants({ variant: "layer" }),
+        "shadow-sm",
+        "duration-100 animate-in fade-in-0 slide-in-from-bottom-1",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
-        "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        "data-[side=bottom]:slide-in-from-top-2",
+        "data-[side=left]:slide-in-from-right-2",
+        "data-[side=right]:slide-in-from-left-2",
+        "data-[side=top]:slide-in-from-bottom-2",
         className,
       )}
       position={position}
@@ -96,7 +100,7 @@ const SelectContent = React.forwardRef<
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className={cn(
-          "p-1 font-mono",
+          "p-1",
           position === "popper" &&
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
         )}
@@ -117,17 +121,15 @@ const SelectLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <span
     className={cn(
-      "inline-flex items-center py-1.5 font-mono text-fg-300 first:pt-0 last:pb-0",
+      "inline-flex items-center py-1.5 font-mono text-fg-500 first:pt-0 last:pb-0",
       inset && "pl-8",
     )}
   >
-    [
     <SelectPrimitive.Label
       ref={ref}
-      className={cn("text-xs uppercase tracking-wider", className)}
+      className={cn("text-xs uppercase", className)}
       {...props}
     />
-    ]
   </span>
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
@@ -139,19 +141,19 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full select-none items-center rounded-none py-1.5 pl-10 pr-2",
-      "font-mono tracking-wider",
-      "focus:text-accent-fg outline-none focus:bg-bg-300/80",
+      "relative flex cursor-default select-none items-center gap-2",
+      "px-3 py-1.5 pr-8",
+      "font-mono text-xs",
+      "outline-none",
+      "focus:bg-accent/10 focus:text-accent",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      "cursor-default",
       className,
     )}
     {...props}
   >
-    <span className="absolute left-4 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>×</SelectPrimitive.ItemIndicator>
     </span>
-
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ));

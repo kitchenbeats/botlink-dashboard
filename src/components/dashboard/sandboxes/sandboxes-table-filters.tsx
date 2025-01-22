@@ -83,8 +83,6 @@ const RunningSinceFilter = ({
 }) => {
   const now = React.useRef(new Date());
 
-  const nowText = now.current.toTimeString();
-
   const handleRunningSince = (value?: StartedAtFilter) => {
     if (!value) {
       clearStartedAt();

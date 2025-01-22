@@ -5,6 +5,7 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 import { cn } from "@/lib/utils";
 import { GradientBorder } from "./gradient-border";
+import { cardVariants } from "@/lib/variants";
 
 const Popover = PopoverPrimitive.Root;
 
@@ -33,20 +34,23 @@ const PopoverContent = React.forwardRef<
         align={align}
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
+        className={cn(
+          "z-50 w-72 rounded-md",
+          cardVariants({ variant: "layer" }),
+          "shadow-sm",
+          "duration-100 animate-in fade-in-0 slide-in-from-bottom-1",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          "data-[side=bottom]:slide-in-from-top-2",
+          "data-[side=left]:slide-in-from-right-2",
+          "data-[side=right]:slide-in-from-left-2",
+          "data-[side=top]:slide-in-from-bottom-2",
+          className,
+        )}
         {...props}
       >
-        <GradientBorder
-          gradientFrom="from-border-100"
-          gradientVia="via-border"
-          gradientTo="to-border/60 to-60%"
-          wrapperClassName="animate-in fade-in-0 slide-in-from-bottom-1 duration-100 rounded-md"
-          className={cn(
-            "z-50 w-72 rounded-md bg-bg/80 p-3 shadow-lg outline-none backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-            className,
-          )}
-        >
-          {children}
-        </GradientBorder>
+        {children}
       </PopoverPrimitive.Content>
     </PopoverPortal>
   ),

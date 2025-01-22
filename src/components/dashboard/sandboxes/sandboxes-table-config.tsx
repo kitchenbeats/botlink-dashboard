@@ -78,7 +78,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     enableResizing: false,
     enableColumnFilter: false,
   },
-  {
+  /*   {
     accessorKey: "alias",
     header: "Alias",
     cell: ({ getValue }) => (
@@ -89,7 +89,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     size: 220,
     minSize: 180,
     enableColumnFilter: false,
-  },
+  }, */
   {
     accessorKey: "sandboxID",
     header: "SANDBOX ID",
