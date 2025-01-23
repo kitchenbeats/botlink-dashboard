@@ -11,7 +11,10 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useRef } from "react";
-import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
+import {
+  getSandboxMetricsAction,
+  getTeamSandboxesAction,
+} from "@/actions/sandboxes-actions";
 import {
   DataTable,
   DataTableHead,
@@ -122,7 +125,7 @@ export default function SandboxesTable() {
   }, [templateId]);
 
   const {
-    data,
+    data: sandboxes,
     isLoading: sandboxesLoading,
     error: sandboxesError,
     mutate: refetchSandboxes,
@@ -148,8 +151,37 @@ export default function SandboxesTable() {
     },
   );
 
-  const sandboxes = React.useMemo(() => data?.sandboxes, [data?.sandboxes]);
-  const metrics = React.useMemo(() => data?.metrics, [data?.metrics]);
+  useSWR(
+    team && apiUrl ? QUERY_KEYS.TEAM_SANDBOX_METRICS(team.id, apiUrl) : null,
+    async () => {
+      if (!team || !apiUrl || !sandboxes) return;
+
+      const res = await getSandboxMetricsAction({
+        apiUrl,
+        teamId: team.id,
+        sandboxes: sandboxes ?? [],
+      });
+
+      if (res.type === "error") {
+        throw new Error(res.message);
+      }
+
+      return res.data;
+    },
+    {
+      refreshInterval: 3 * 1000,
+      onSuccess(data, key, config) {
+        if (!data || !sandboxes) return;
+
+        const newSandboxes = sandboxes?.map((sandbox) => ({
+          ...sandbox,
+          lastMetrics: data.get(sandbox.sandboxID),
+        }));
+
+        refetchSandboxes(newSandboxes, { revalidate: false });
+      },
+    },
+  );
 
   const table = useReactTable({
     ...sandboxesTableConfig,
@@ -161,7 +193,6 @@ export default function SandboxesTable() {
       columnFilters,
       pagination,
       team,
-      metrics,
     },
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,

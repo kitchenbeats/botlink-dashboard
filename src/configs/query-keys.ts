@@ -8,6 +8,8 @@ export const QUERY_KEYS = {
   TEAM_API_KEYS: (teamId: string) => `team-api-keys/${teamId}`,
   TEAM_SANDBOXES: (teamId: string, apiUrl: string) =>
     `team-sandboxes/${teamId}/${apiUrl}`,
+  TEAM_SANDBOX_METRICS: (teamId: string, apiUrl: string) =>
+    `team-sandboxes-metrics/${teamId}/${apiUrl}`,
   TEAM_TEMPLATES: (teamId: string, apiUrl: string) =>
     `team-templates/${teamId}/${apiUrl}`,
   TEAM_INVOICES: (teamId: string) => `team-invoices/${teamId}`,

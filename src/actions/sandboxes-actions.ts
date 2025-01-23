@@ -4,36 +4,11 @@ import { Sandbox, SandboxMetrics } from "@/types/api";
 import { checkAuthenticated, getTeamApiKey, guardAction } from "./utils";
 import { z } from "zod";
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from "@/configs/mock-data";
-import { subHours } from "date-fns";
 
 const GetTeamSandboxesParamsSchema = z.object({
   apiUrl: z.string().url(),
   teamId: z.string().uuid(),
 });
-
-type EnhancedSandbox = Sandbox & {
-  lastCpuPercentage: number;
-  lastRamUsage: number;
-};
-
-function enrichSandboxesWithMetrics(
-  sandboxes: Sandbox[],
-  metrics: Record<string, SandboxMetrics[]>,
-): EnhancedSandbox[] {
-  return sandboxes.map((sandbox) => {
-    const sandboxMetrics = metrics[sandbox.sandboxID] || [];
-    const latestMetrics = sandboxMetrics[sandboxMetrics.length - 1] || {
-      cpuPct: 0,
-      memMiBUsed: 0,
-    };
-
-    return {
-      ...sandbox,
-      lastCpuPercentage: latestMetrics.cpuPct,
-      lastRamUsage: latestMetrics.memMiBUsed,
-    };
-  });
-}
 
 export const getTeamSandboxesAction = guardAction(
   GetTeamSandboxesParamsSchema,
@@ -48,10 +23,10 @@ export const getTeamSandboxesAction = guardAction(
       const sandboxes = MOCK_SANDBOXES_DATA();
       const metrics = MOCK_METRICS_DATA(sandboxes);
 
-      return {
-        sandboxes: enrichSandboxesWithMetrics(sandboxes, metrics),
-        metrics,
-      };
+      return sandboxes.map((sandbox) => ({
+        ...sandbox,
+        lastMetrics: metrics.get(sandbox.sandboxID),
+      }));
     }
 
     const { user } = await checkAuthenticated();
@@ -73,9 +48,32 @@ export const getTeamSandboxesAction = guardAction(
     const data = (await res.json()) as Sandbox[];
     const metrics = MOCK_METRICS_DATA(data);
 
-    return {
-      sandboxes: enrichSandboxesWithMetrics(data, metrics),
-      metrics,
-    };
+    return data.map((sandbox) => ({
+      ...sandbox,
+      lastMetrics: metrics.get(sandbox.sandboxID),
+    }));
+  },
+);
+
+// TODO: Refactor after API is ready
+const GetSandboxMetricsParamsSchema = z.object({
+  apiUrl: z.string().url(),
+  teamId: z.string().uuid(),
+  sandboxes: z.array(z.any()),
+});
+
+export const getSandboxMetricsAction = guardAction(
+  GetSandboxMetricsParamsSchema,
+  async ({ apiUrl, teamId, sandboxes }) => {
+    if (
+      process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "production"
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return MOCK_METRICS_DATA(sandboxes);
+    }
+
+    // TODO: Implement real metrics fetching when API is ready
+    return MOCK_METRICS_DATA(sandboxes);
   },
 );

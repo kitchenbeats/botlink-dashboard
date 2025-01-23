@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, ArrowUpRight, Cpu, CircleIcon } from "lucide-react";
+import { ChevronsUpDown, ArrowUpRight, Cpu } from "lucide-react";
 import {
   ColumnDef,
   FilterFn,
@@ -11,7 +11,7 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
-import { Sandbox } from "@/types/api";
+import { Sandbox, SandboxMetrics } from "@/types/api";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import Link from "next/link";
 import { PROTECTED_URLS } from "@/configs/urls";
@@ -20,19 +20,15 @@ import {
   differenceInHours,
   differenceInMinutes,
   differenceInSeconds,
-  formatDistanceToNow,
   isWithinInterval,
 } from "date-fns";
 import { VariantProps } from "class-variance-authority";
 import { CgSmartphoneRam } from "react-icons/cg";
-import { cn, exponentialSmoothing } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
+type SandboxWithMetrics = Sandbox & { lastMetrics: SandboxMetrics };
 
 // FILTERS
 
@@ -68,9 +64,9 @@ export const dateRangeFilter: FilterFn<Sandbox> = (
 
 // TABLE CONFIG
 
-export const fallbackData: Sandbox[] = [];
+export const fallbackData: SandboxWithMetrics[] = [];
 
-export const COLUMNS: ColumnDef<Sandbox>[] = [
+export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
   {
     id: "expand",
     cell: () => <ChevronsUpDown className="size-3.5 text-fg-500" />,
@@ -129,7 +125,8 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     filterFn: "equalsString",
   },
   {
-    accessorKey: "lastCpuPercentage",
+    id: "cpuUsage",
+    accessorKey: "lastMetrics.cpuPct",
     header: "CPU Usage",
     cell: ({ getValue, row }) => {
       const cpu = getValue() as number;
@@ -157,12 +154,14 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     enableColumnFilter: false,
   },
   {
-    accessorKey: "lastRamUsage",
+    id: "ramUsage",
+    accessorFn: (row) => (row.lastMetrics.memMiBUsed / row.memoryMB) * 100,
     header: "RAM Usage",
     cell: ({ getValue, row }) => {
-      const ram = getValue() as number;
+      const ramPercentage = getValue() as number;
+
       const totalRam = row.original.memoryMB;
-      const ramPercentage = (ram / totalRam) * 100;
+      const usedRam = row.original.lastMetrics.memMiBUsed;
 
       const getVariant = (
         percentage: number,
@@ -177,7 +176,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
           variant={getVariant(ramPercentage)}
           className="whitespace-nowrap font-mono"
         >
-          <CgSmartphoneRam className="size-2" /> {ram.toFixed(0)}/{totalRam} MB
+          <CgSmartphoneRam className="size-2" /> {usedRam}/{totalRam} MB
         </Badge>
       );
     },
@@ -230,7 +229,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
   },
 ];
 
-export const sandboxesTableConfig: Partial<TableOptions<Sandbox>> = {
+export const sandboxesTableConfig: Partial<TableOptions<SandboxWithMetrics>> = {
   columns: COLUMNS,
   filterFns: {
     fuzzy: fuzzyFilter,
