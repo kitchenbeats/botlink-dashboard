@@ -152,8 +152,8 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
         </Badge>
       );
     },
-    size: 120,
-    minSize: 120,
+    size: 170,
+    minSize: 170,
     enableColumnFilter: false,
   },
   {
