@@ -38,17 +38,16 @@ function DataTableHead<TData, TValue>({
       }}
       {...props}
     >
-      <div className="flex h-full items-center">
-        <span>{children}</span>
-      </div>
-
-      <div className="ml-auto flex h-full items-center gap-1">
+      <div className="flex h-full items-center gap-3">
         {header.column.getCanSort() && (
           <Button
             variant="muted"
             size="icon"
             onClick={() => header.column.toggleSorting(undefined, true)}
-            className={cn("size-5", sorting !== undefined && "text-accent")}
+            className={cn(
+              "size-5 text-fg-500",
+              sorting !== undefined && "text-accent",
+            )}
           >
             {sorting === undefined ? (
               <ArrowUpDown className="size-3" />
@@ -59,21 +58,22 @@ function DataTableHead<TData, TValue>({
             )}
           </Button>
         )}
-
-        {header.column.getCanResize() && (
-          <div
-            className="h-full cursor-ew-resize px-2"
-            onTouchStart={header.getResizeHandler()}
-            onMouseDown={header.getResizeHandler()}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-          >
-            <Separator className="h-full" orientation="vertical" />
-          </div>
-        )}
+        <span>{children}</span>
       </div>
+
+      {header.column.getCanResize() && (
+        <div
+          className="ml-auto h-full cursor-ew-resize px-2"
+          onTouchStart={header.getResizeHandler()}
+          onMouseDown={header.getResizeHandler()}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+        >
+          <Separator className="h-full" orientation="vertical" />
+        </div>
+      )}
     </div>
   );
 }
