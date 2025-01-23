@@ -25,7 +25,7 @@ import {
 } from "date-fns";
 import { VariantProps } from "class-variance-authority";
 import { CgSmartphoneRam } from "react-icons/cg";
-import { cn } from "@/lib/utils";
+import { cn, exponentialSmoothing } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import {
@@ -101,6 +101,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     size: 160,
     minSize: 160,
     enableColumnFilter: false,
+    enableSorting: false,
   },
   {
     accessorKey: "templateID",
@@ -128,14 +129,8 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     filterFn: "equalsString",
   },
   {
-    id: "cpu",
+    accessorKey: "lastCpuPercentage",
     header: "CPU Usage",
-    accessorFn: (row) => {
-      // Calculate CPU usage as a percentage of total CPU count
-      // This is a placeholder calculation - adjust based on your actual metrics
-      const cpuUsage = (row.cpuCount / 8) * 100; // Assuming 8 cores is 100%
-      return Math.min(cpuUsage, 100);
-    },
     cell: ({ getValue, row }) => {
       const cpu = getValue() as number;
 
@@ -148,25 +143,13 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
       };
 
       return (
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger>
-            <Badge
-              variant={getVariant(cpu)}
-              className="whitespace-nowrap font-mono"
-            >
-              <Cpu className="size-2" /> {cpu.toFixed(0)}%
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={10} className="">
-            <div className="flex items-center gap-1 text-xs">
-              with{" "}
-              <span className="font-mono text-accent">
-                {row.original.cpuCount}
-              </span>{" "}
-              core{row.original.cpuCount > 1 ? "s" : ""}
-            </div>
-          </TooltipContent>
-        </Tooltip>
+        <Badge
+          variant={getVariant(cpu)}
+          className="whitespace-nowrap font-mono"
+        >
+          <Cpu className="size-2" /> {cpu.toFixed(0)}% · {row.original.cpuCount}{" "}
+          core{row.original.cpuCount > 1 ? "s" : ""}
+        </Badge>
       );
     },
     size: 120,
@@ -174,49 +157,32 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     enableColumnFilter: false,
   },
   {
-    id: "ram",
+    accessorKey: "lastRamUsage",
     header: "RAM Usage",
-    accessorFn: (row) => {
-      // Calculate RAM usage as a percentage of total memory
-      // This is a placeholder calculation - adjust based on your actual metrics
-      const ramUsage = (row.memoryMB / 1024) * 100; // Assuming 1024MB is 100%
-      return Math.min(ramUsage, 100);
-    },
     cell: ({ getValue, row }) => {
       const ram = getValue() as number;
+      const totalRam = row.original.memoryMB;
+      const ramPercentage = (ram / totalRam) * 100;
 
       const getVariant = (
-        value: number,
+        percentage: number,
       ): VariantProps<typeof badgeVariants>["variant"] => {
-        if (value >= 80) return "error";
-        if (value >= 50) return "warning";
+        if (percentage >= 80) return "error";
+        if (percentage >= 50) return "warning";
         return "success";
       };
 
       return (
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger>
-            <Badge
-              variant={getVariant(ram)}
-              className="whitespace-nowrap font-mono"
-            >
-              <CgSmartphoneRam className="size-2" /> {ram.toFixed(0)}%
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={10}>
-            <div className="flex items-center gap-1 text-xs">
-              of{" "}
-              <span className="font-mono text-accent">
-                {row.original.memoryMB}
-              </span>{" "}
-              MB
-            </div>
-          </TooltipContent>
-        </Tooltip>
+        <Badge
+          variant={getVariant(ramPercentage)}
+          className="whitespace-nowrap font-mono"
+        >
+          <CgSmartphoneRam className="size-2" /> {ram.toFixed(0)}/{totalRam} MB
+        </Badge>
       );
     },
-    size: 120,
-    minSize: 120,
+    size: 160,
+    minSize: 160,
     enableColumnFilter: false,
   },
   {
@@ -275,6 +241,7 @@ export const sandboxesTableConfig: Partial<TableOptions<Sandbox>> = {
   getSortedRowModel: getSortedRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
   enableSorting: true,
+  enableMultiSort: true,
   columnResizeMode: "onChange",
   enableColumnResizing: true,
 };

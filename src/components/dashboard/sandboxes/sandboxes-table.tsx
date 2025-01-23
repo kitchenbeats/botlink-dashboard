@@ -122,7 +122,7 @@ export default function SandboxesTable() {
   }, [templateId]);
 
   const {
-    data: sandboxes,
+    data,
     isLoading: sandboxesLoading,
     error: sandboxesError,
     mutate: refetchSandboxes,
@@ -148,7 +148,8 @@ export default function SandboxesTable() {
     },
   );
 
-  const [hoveredRows, setHoveredRows] = React.useState<string[]>([]);
+  const sandboxes = React.useMemo(() => data?.sandboxes, [data?.sandboxes]);
+  const metrics = React.useMemo(() => data?.metrics, [data?.metrics]);
 
   const table = useReactTable({
     ...sandboxesTableConfig,
@@ -160,10 +161,7 @@ export default function SandboxesTable() {
       columnFilters,
       pagination,
       team,
-      hoveredRows,
-    },
-    initialState: {
-      hoveredRows: [],
+      metrics,
     },
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,

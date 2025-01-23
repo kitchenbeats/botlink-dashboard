@@ -25,4 +25,12 @@ interface Template {
   } | null;
 }
 
-export type { Sandbox, Template };
+interface SandboxMetrics {
+  cpuCount: number;
+  cpuPct: number;
+  memMiBTotal: number;
+  memMiBUsed: number;
+  timestamp: string;
+}
+
+export type { Sandbox, Template, SandboxMetrics };

@@ -1,14 +1,39 @@
 "use server";
 
-import { Sandbox } from "@/types/api";
+import { Sandbox, SandboxMetrics } from "@/types/api";
 import { checkAuthenticated, getTeamApiKey, guardAction } from "./utils";
 import { z } from "zod";
-import { MOCK_SANDBOXES_DATA } from "@/configs/mock-data";
+import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from "@/configs/mock-data";
+import { subHours } from "date-fns";
 
 const GetTeamSandboxesParamsSchema = z.object({
   apiUrl: z.string().url(),
   teamId: z.string().uuid(),
 });
+
+type EnhancedSandbox = Sandbox & {
+  lastCpuPercentage: number;
+  lastRamUsage: number;
+};
+
+function enrichSandboxesWithMetrics(
+  sandboxes: Sandbox[],
+  metrics: Record<string, SandboxMetrics[]>,
+): EnhancedSandbox[] {
+  return sandboxes.map((sandbox) => {
+    const sandboxMetrics = metrics[sandbox.sandboxID] || [];
+    const latestMetrics = sandboxMetrics[sandboxMetrics.length - 1] || {
+      cpuPct: 0,
+      memMiBUsed: 0,
+    };
+
+    return {
+      ...sandbox,
+      lastCpuPercentage: latestMetrics.cpuPct,
+      lastRamUsage: latestMetrics.memMiBUsed,
+    };
+  });
+}
 
 export const getTeamSandboxesAction = guardAction(
   GetTeamSandboxesParamsSchema,
@@ -20,7 +45,13 @@ export const getTeamSandboxesAction = guardAction(
     ) {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      return MOCK_SANDBOXES_DATA();
+      const sandboxes = MOCK_SANDBOXES_DATA();
+      const metrics = MOCK_METRICS_DATA(sandboxes);
+
+      return {
+        sandboxes: enrichSandboxesWithMetrics(sandboxes, metrics),
+        metrics,
+      };
     }
 
     const { user } = await checkAuthenticated();
@@ -40,6 +71,11 @@ export const getTeamSandboxesAction = guardAction(
     }
 
     const data = (await res.json()) as Sandbox[];
-    return data;
+    const metrics = MOCK_METRICS_DATA(data);
+
+    return {
+      sandboxes: enrichSandboxesWithMetrics(data, metrics),
+      metrics,
+    };
   },
 );

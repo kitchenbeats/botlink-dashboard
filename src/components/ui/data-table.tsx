@@ -34,14 +34,17 @@ function DataTableHead<TData, TValue>({
       }}
       onClick={
         header.column.getCanSort()
-          ? () => header.column.toggleSorting()
+          ? () => header.column.toggleSorting(undefined, true)
           : undefined
       }
       {...props}
     >
       {header.column.getCanSort() ? (
         <div
-          onClick={() => header.column.toggleSorting()}
+          onClick={(e) => {
+            e.stopPropagation();
+            header.column.toggleSorting(undefined, true);
+          }}
           className="flex h-full items-center"
         >
           <span>{children}</span>

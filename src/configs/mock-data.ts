@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
-import { Sandbox, Template } from "@/types/api";
-import { addDays, addHours, subDays, subHours } from "date-fns";
+import { Sandbox, SandboxMetrics, Template } from "@/types/api";
+import { addHours, subHours } from "date-fns";
 
 const TEMPLATES: Template[] = [
   {
@@ -168,5 +168,120 @@ function generateMockSandboxes(count: number): Sandbox[] {
   return sandboxes;
 }
 
-export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(10000);
+export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(100);
 export const MOCK_TEMPLATES_DATA = TEMPLATES;
+
+function generateMockMetrics(
+  sandboxes: Sandbox[],
+  start: Date = subHours(new Date(), 24),
+  end: Date = new Date(),
+): Record<string, SandboxMetrics[]> {
+  const metrics: Record<string, SandboxMetrics[]> = {};
+  const INTERVAL = 30 * 1000; // 30 seconds
+
+  // Define characteristics by template type
+  const templatePatterns: Record<
+    string,
+    { memoryProfile: string; cpuIntensity: number }
+  > = {
+    "node-typescript-v1": { memoryProfile: "web", cpuIntensity: 0.4 },
+    "react-vite-v2": { memoryProfile: "web", cpuIntensity: 0.5 },
+    "postgres-v15": { memoryProfile: "database", cpuIntensity: 0.6 },
+    "redis-v7": { memoryProfile: "cache", cpuIntensity: 0.2 },
+    "python-ml-v1": { memoryProfile: "ml", cpuIntensity: 0.9 },
+    "elastic-v8": { memoryProfile: "search", cpuIntensity: 0.7 },
+    "grafana-v9": { memoryProfile: "visualization", cpuIntensity: 0.3 },
+    "nginx-v1": { memoryProfile: "web", cpuIntensity: 0.2 },
+    "mongodb-v6": { memoryProfile: "database", cpuIntensity: 0.5 },
+    "mysql-v8": { memoryProfile: "database", cpuIntensity: 0.6 },
+  };
+
+  // Update memory profiles to match new categories
+  const memoryBaselines: Record<string, number> = {
+    web: 0.15, // Web servers start very light
+    database: 0.4, // Databases need higher baseline
+    cache: 0.2, // Cache servers efficient but need headroom
+    ml: 0.6, // ML services need substantial baseline
+    search: 0.45, // Search engines need memory for indices
+    visualization: 0.25, // Visualization tools moderate baseline
+  };
+
+  const memoryVolatility: Record<string, number> = {
+    web: 0.15, // Web servers vary with traffic
+    database: 0.1, // Databases are quite stable
+    cache: 0.3, // Cache can grow/shrink quickly
+    ml: 0.35, // ML workloads highly variable
+    search: 0.2, // Search varies with index updates
+    visualization: 0.15, // Visualization stable with query spikes
+  };
+
+  for (const sandbox of sandboxes) {
+    const timeSeriesData: SandboxMetrics[] = [];
+    let currentTime = start.getTime();
+
+    const pattern = templatePatterns[sandbox.templateID] || {
+      memoryProfile: "web",
+      cpuIntensity: 0.5,
+    };
+
+    const memBaseline = memoryBaselines[pattern.memoryProfile];
+    const memVolatility = memoryVolatility[pattern.memoryProfile];
+
+    // Generate base load pattern (0-1 range)
+    const baseLoadPattern = Array.from({ length: 24 }, (_, hour) => {
+      const isBusinessHours = hour >= 8 && hour <= 18;
+      return isBusinessHours
+        ? 0.5 + Math.random() * 0.3
+        : 0.2 + Math.random() * 0.2;
+    });
+
+    let memoryTrend = memBaseline;
+
+    while (currentTime <= end.getTime()) {
+      const hourOfDay = new Date(currentTime).getHours();
+      const baseLoad = baseLoadPattern[hourOfDay];
+
+      // CPU: More spiky, influenced by template type
+      const cpuSpike = Math.random() < 0.1 ? Math.random() * 0.5 : 0; // Occasional spikes
+      const cpuVariation =
+        Math.sin(currentTime / 3600000) * 0.15 + Math.random() * 0.2;
+      const cpuLoad = Math.max(
+        0,
+        Math.min(
+          1,
+          (baseLoad + cpuVariation + cpuSpike) * pattern.cpuIntensity,
+        ),
+      );
+      const cpuPct = Math.min(100, Math.max(0, cpuLoad * 100));
+
+      // Memory: Smoother transitions with profile-based behavior
+      const memoryNoise = (Math.random() - 0.5) * memVolatility;
+      memoryTrend = Math.max(
+        memBaseline,
+        Math.min(0.9, memoryTrend + memoryNoise * 0.1),
+      );
+      const memPct = memoryTrend + baseLoad * memVolatility;
+      const memMiBUsed = Math.floor(sandbox.memoryMB * Math.min(0.95, memPct));
+
+      timeSeriesData.push({
+        cpuCount: sandbox.cpuCount,
+        cpuPct,
+        memMiBTotal: sandbox.memoryMB,
+        memMiBUsed,
+        timestamp: new Date(currentTime).toISOString(),
+      });
+
+      currentTime += INTERVAL;
+    }
+
+    metrics[sandbox.sandboxID] = timeSeriesData;
+  }
+
+  return metrics;
+}
+
+export const MOCK_METRICS_DATA = (
+  sandboxes: Sandbox[],
+  start: Date = subHours(new Date(), 24),
+  end: Date = new Date(),
+) => generateMockMetrics(sandboxes, start, end);
