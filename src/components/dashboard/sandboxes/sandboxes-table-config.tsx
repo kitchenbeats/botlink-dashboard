@@ -144,8 +144,8 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
           variant={getVariant(cpu)}
           className="whitespace-nowrap font-mono"
         >
-          <Cpu className="size-2" /> {cpu.toFixed(0)}% · {row.original.cpuCount}{" "}
-          core{row.original.cpuCount > 1 ? "s" : ""}
+          <Cpu className="size-2" /> {cpu?.toFixed(0)}% ·{" "}
+          {row.original.cpuCount} core{row.original.cpuCount > 1 ? "s" : ""}
         </Badge>
       );
     },

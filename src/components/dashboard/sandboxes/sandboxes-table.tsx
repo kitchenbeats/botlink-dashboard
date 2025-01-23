@@ -10,7 +10,7 @@ import {
   TableOptions,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import {
   getSandboxMetricsAction,
   getTeamSandboxesAction,
@@ -146,9 +146,23 @@ export default function SandboxesTable() {
       return res.data;
     },
     {
-      // 1 minute polling interval
       refreshInterval: 60 * 1000,
+      refreshWhenHidden: false,
     },
+  );
+
+  const handleMetricsSuccess = useCallback(
+    (data: Map<string, any>) => {
+      if (!sandboxes) return;
+
+      const newSandboxes = sandboxes?.map((sandbox) => ({
+        ...sandbox,
+        lastMetrics: data.get(sandbox.sandboxID),
+      }));
+
+      refetchSandboxes(newSandboxes, { revalidate: false });
+    },
+    [sandboxes, refetchSandboxes],
   );
 
   useSWR(
@@ -170,16 +184,12 @@ export default function SandboxesTable() {
     },
     {
       refreshInterval: 3 * 1000,
-      onSuccess(data, key, config) {
-        if (!data || !sandboxes) return;
+      onSuccess: (data) => {
+        if (!data) return;
 
-        const newSandboxes = sandboxes?.map((sandbox) => ({
-          ...sandbox,
-          lastMetrics: data.get(sandbox.sandboxID),
-        }));
-
-        refetchSandboxes(newSandboxes, { revalidate: false });
+        handleMetricsSuccess(data);
       },
+      refreshWhenHidden: false,
     },
   );
 
