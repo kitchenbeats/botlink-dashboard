@@ -127,6 +127,7 @@ export default function SandboxesTable() {
   const {
     data: sandboxes,
     isLoading: sandboxesLoading,
+    isValidating: sandboxesValidating,
     error: sandboxesError,
     mutate: refetchSandboxes,
   } = useSWR(
@@ -168,7 +169,7 @@ export default function SandboxesTable() {
   useSWR(
     team && apiUrl ? QUERY_KEYS.TEAM_SANDBOX_METRICS(team.id, apiUrl) : null,
     async () => {
-      if (!team || !apiUrl || !sandboxes) return;
+      if (!team || !apiUrl || !sandboxes || sandboxesValidating) return;
 
       const res = await getSandboxMetricsAction({
         apiUrl,
@@ -190,6 +191,8 @@ export default function SandboxesTable() {
         handleMetricsSuccess(data);
       },
       refreshWhenHidden: false,
+      revalidateOnFocus: false,
+      revalidateOnMount: false,
     },
   );
 
