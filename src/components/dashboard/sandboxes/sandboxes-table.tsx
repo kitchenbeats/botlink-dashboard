@@ -257,7 +257,7 @@ export default function SandboxesTable() {
       /> */}
 
       <header className="mx-3 flex justify-between">
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-col gap-8">
           <SearchInput
             value={globalFilter}
             onChange={setGlobalFilter}

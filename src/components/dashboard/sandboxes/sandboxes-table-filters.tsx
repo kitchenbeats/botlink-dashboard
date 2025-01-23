@@ -25,6 +25,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useDebounceValue } from "usehooks-ts";
+import { Input } from "@/components/ui/input";
 
 export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
 
@@ -279,53 +280,80 @@ const ResourcesFilter = React.forwardRef<HTMLDivElement, ResourcesFilterProps>(
         </PopoverTrigger>
         <PopoverContent className="w-80 p-4" side="bottom" align="start">
           <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label>CPU Cores</Label>
-              <Slider
-                value={[localCpuCount]}
-                onValueChange={([value]) => setLocalCpuCount(value)}
-                max={8}
-                step={1}
-              />
-              <div className="text-right text-xs text-fg-500">
-                {localCpuCount} cores
+            {/* <div>
+              <h3 className="mb-3 font-medium">Specs</h3>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label className="text-xs">Cores</Label>
+                  <Input
+                    type="number"
+                    value={localCpuCount}
+                    onChange={(e) => setLocalCpuCount(Number(e.target.value))}
+                    min={0}
+                    max={8}
+                    step={1}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label className="text-xs">Memory</Label>
+                  <Input
+                    type="number"
+                    value={localMemoryMB}
+                    onChange={(e) => setLocalMemoryMB(Number(e.target.value))}
+                    min={0}
+                    max={8192}
+                    step={512}
+                    className="mt-1"
+                  />
+                </div>
               </div>
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Label>Memory</Label>
-              <Slider
-                value={[localMemoryMB]}
-                onValueChange={([value]) => setLocalMemoryMB(value)}
-                max={8192}
-                step={512}
-              />
-              <div className="text-right text-xs text-fg-500">
-                {localMemoryMB} MB
-              </div>
-            </div>
-            {/*  <Separator />
-            <div className="space-y-2">
-              <Label>CPU Usage</Label>
-              <Slider
-                value={[cpuUsage || 0]}
-                onValueChange={([value]) => onCpuUsageChange(value)}
-                max={100}
-                step={1}
-              />
-              <div className="text-right text-xs text-fg-500">{cpuUsage}%</div>
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Label>RAM Usage</Label>
-              <Slider
-                value={[ramUsage || 0]}
-                onValueChange={([value]) => onRamUsageChange(value)}
-                max={100}
-                step={1}
-              />
-              <div className="text-right text-xs text-fg-500">{ramUsage}%</div>
             </div> */}
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>CPU Cores</Label>
+                <span className="text-xs text-accent">
+                  {localCpuCount === 0 ? "Off" : `${localCpuCount} cores`}
+                </span>
+              </div>
+              <div>
+                <Slider
+                  value={[localCpuCount]}
+                  onValueChange={([value]) => setLocalCpuCount(value)}
+                  max={8}
+                  step={1}
+                  className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+                />
+
+                <div className="mt-3 flex justify-between text-xs text-fg-500">
+                  <span>Off</span>
+                  <span>8</span>
+                </div>
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Memory</Label>
+                <span className="text-xs text-accent">
+                  {localMemoryMB === 0 ? "Off" : `${localMemoryMB} MB`}
+                </span>
+              </div>
+              <div>
+                <Slider
+                  value={[localMemoryMB]}
+                  onValueChange={([value]) => setLocalMemoryMB(value)}
+                  max={8192}
+                  step={512}
+                  className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+                />
+                <div className="mt-3 flex justify-between text-xs text-fg-500">
+                  <span>Off</span>
+                  <span>8GB</span>
+                </div>
+              </div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>

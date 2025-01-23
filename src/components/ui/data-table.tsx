@@ -1,10 +1,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Cell, Column, Header } from "@tanstack/react-table";
+import { Cell, Header } from "@tanstack/react-table";
 import { Separator } from "./separator";
 import { Button } from "./button";
 import {
-  ArrowDownNarrowWide,
   ArrowDownWideNarrow,
   ArrowUpDown,
   ArrowUpNarrowWide,
