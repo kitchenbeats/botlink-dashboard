@@ -21,6 +21,10 @@ import {
 import { useTemplates } from "@/hooks/use-templates";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useDebounceValue } from "usehooks-ts";
 
 export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
 
@@ -32,6 +36,15 @@ interface SandboxesTableFiltersProps
 
   setTemplateId: (templateId: string | undefined) => void;
   templateId: string | undefined;
+
+  cpuCount?: number;
+  onCpuCountChange: (value?: number) => void;
+  memoryMB?: number;
+  onMemoryMBChange: (value?: number) => void;
+  cpuUsage?: number;
+  onCpuUsageChange: (value?: number) => void;
+  ramUsage?: number;
+  onRamUsageChange: (value?: number) => void;
 }
 
 const SandboxesTableFilters = React.forwardRef<
@@ -46,6 +59,14 @@ const SandboxesTableFilters = React.forwardRef<
       clearStartedAt,
       setTemplateId,
       templateId,
+      cpuCount,
+      onCpuCountChange,
+      memoryMB,
+      onMemoryMBChange,
+      cpuUsage,
+      onCpuUsageChange,
+      ramUsage,
+      onRamUsageChange,
       ...props
     },
     ref,
@@ -63,6 +84,17 @@ const SandboxesTableFilters = React.forwardRef<
         />
 
         <TemplateFilter setTemplateId={setTemplateId} templateId={templateId} />
+
+        <ResourcesFilter
+          cpuCount={cpuCount}
+          onCpuCountChange={onCpuCountChange}
+          memoryMB={memoryMB}
+          onMemoryMBChange={onMemoryMBChange}
+          cpuUsage={cpuUsage}
+          onCpuUsageChange={onCpuUsageChange}
+          ramUsage={ramUsage}
+          onRamUsageChange={onRamUsageChange}
+        />
       </div>
     );
   },
@@ -192,3 +224,113 @@ const TemplateFilter = ({
     </Popover>
   );
 };
+
+interface ResourcesFilterProps {
+  cpuCount?: number;
+  onCpuCountChange: (value?: number) => void;
+  memoryMB?: number;
+  onMemoryMBChange: (value?: number) => void;
+  cpuUsage?: number;
+  onCpuUsageChange: (value?: number) => void;
+  ramUsage?: number;
+  onRamUsageChange: (value: number) => void;
+}
+
+const ResourcesFilter = React.forwardRef<HTMLDivElement, ResourcesFilterProps>(
+  (
+    {
+      cpuCount,
+      onCpuCountChange,
+      memoryMB,
+      onMemoryMBChange,
+      cpuUsage,
+      onCpuUsageChange,
+      ramUsage,
+      onRamUsageChange,
+    },
+    ref,
+  ) => {
+    const [open, setOpen] = React.useState(false);
+    const [localCpuCount, setLocalCpuCount] = React.useState(cpuCount || 0);
+    const [localMemoryMB, setLocalMemoryMB] = React.useState(memoryMB || 0);
+
+    const [debouncedCpuCount] = useDebounceValue(localCpuCount, 300);
+    const [debouncedMemoryMB] = useDebounceValue(localMemoryMB, 300);
+
+    React.useEffect(() => {
+      onCpuCountChange(debouncedCpuCount || undefined);
+    }, [debouncedCpuCount, onCpuCountChange]);
+
+    React.useEffect(() => {
+      onMemoryMBChange(debouncedMemoryMB || undefined);
+    }, [debouncedMemoryMB, onMemoryMBChange]);
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <TableFilterButton
+            label="Resources"
+            value={
+              cpuCount || memoryMB || cpuUsage || ramUsage
+                ? "Active"
+                : undefined
+            }
+          />
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-4" side="bottom" align="start">
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <Label>CPU Cores</Label>
+              <Slider
+                value={[localCpuCount]}
+                onValueChange={([value]) => setLocalCpuCount(value)}
+                max={8}
+                step={1}
+              />
+              <div className="text-right text-xs text-fg-500">
+                {localCpuCount} cores
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label>Memory</Label>
+              <Slider
+                value={[localMemoryMB]}
+                onValueChange={([value]) => setLocalMemoryMB(value)}
+                max={8192}
+                step={512}
+              />
+              <div className="text-right text-xs text-fg-500">
+                {localMemoryMB} MB
+              </div>
+            </div>
+            {/*  <Separator />
+            <div className="space-y-2">
+              <Label>CPU Usage</Label>
+              <Slider
+                value={[cpuUsage || 0]}
+                onValueChange={([value]) => onCpuUsageChange(value)}
+                max={100}
+                step={1}
+              />
+              <div className="text-right text-xs text-fg-500">{cpuUsage}%</div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label>RAM Usage</Label>
+              <Slider
+                value={[ramUsage || 0]}
+                onValueChange={([value]) => onRamUsageChange(value)}
+                max={100}
+                step={1}
+              />
+              <div className="text-right text-xs text-fg-500">{ramUsage}%</div>
+            </div> */}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  },
+);
+
+ResourcesFilter.displayName = "ResourcesFilter";

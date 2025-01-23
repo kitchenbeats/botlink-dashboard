@@ -62,6 +62,26 @@ export const dateRangeFilter: FilterFn<Sandbox> = (
   });
 };
 
+export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
+  row,
+  columnId,
+  value: number,
+) => {
+  if (columnId === "cpuUsage") {
+    const rowValue = row.original.cpuCount;
+    if (!rowValue || !value || value === 0) return true;
+    return rowValue === value;
+  }
+
+  if (columnId === "ramUsage") {
+    const rowValue = row.original.memoryMB;
+    if (!rowValue || !value || value === 0) return true;
+    return rowValue === value;
+  }
+
+  return true;
+};
+
 // TABLE CONFIG
 
 export const fallbackData: SandboxWithMetrics[] = [];
@@ -74,18 +94,6 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     enableResizing: false,
     enableColumnFilter: false,
   },
-  /*   {
-    accessorKey: "alias",
-    header: "Alias",
-    cell: ({ getValue }) => (
-      <div className="truncate text-start font-mono font-medium">
-        {getValue() as string}
-      </div>
-    ),
-    size: 220,
-    minSize: 180,
-    enableColumnFilter: false,
-  }, */
   {
     accessorKey: "sandboxID",
     header: "SANDBOX ID",
@@ -112,7 +120,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
 
       return (
         <Link
-          href={PROTECTED_URLS.TEMPLATES(team!.id)}
+          href={PROTECTED_URLS.TEMPLATES(team.id)}
           className="flex items-center gap-1 font-mono hover:text-accent hover:underline"
         >
           {templateId}
@@ -124,6 +132,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     minSize: 180,
     filterFn: "equalsString",
   },
+
   {
     id: "cpuUsage",
     accessorKey: "lastMetrics.cpuPct",
@@ -151,7 +160,8 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     },
     size: 170,
     minSize: 170,
-    enableColumnFilter: false,
+    // @ts-expect-error resourceRange is not a valid filterFn
+    filterFn: "resourceRange",
   },
   {
     id: "ramUsage",
@@ -182,7 +192,8 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     },
     size: 160,
     minSize: 160,
-    enableColumnFilter: false,
+    // @ts-expect-error resourceRange is not a valid filterFn
+    filterFn: "resourceRange",
   },
   {
     accessorKey: "startedAt",
@@ -234,6 +245,7 @@ export const sandboxesTableConfig: Partial<TableOptions<SandboxWithMetrics>> = {
   filterFns: {
     fuzzy: fuzzyFilter,
     dateRange: dateRangeFilter,
+    resourceRange: resourceRangeFilter,
   },
   getCoreRowModel: getCoreRowModel(),
   getFilteredRowModel: getFilteredRowModel(),

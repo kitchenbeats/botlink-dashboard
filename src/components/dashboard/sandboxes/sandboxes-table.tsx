@@ -88,7 +88,17 @@ export default function SandboxesTable() {
     [],
   );
 
-  const [templateId, setTemplateId] = React.useState<string | undefined>();
+  const [templateId, setTemplateId, removeTemplateId] = useSessionStorage<
+    string | undefined
+  >("sandboxes:templateId", undefined);
+
+  const [cpuCount, setCpuCount, removeCpuCount] = useSessionStorage<
+    number | undefined
+  >("sandboxes:cpuCount", undefined);
+
+  const [memoryMB, setMemoryMB, removeMemoryMB] = useSessionStorage<
+    number | undefined
+  >("sandboxes:memoryMB", undefined);
 
   useEffect(() => {
     if (!startedAtFilter) {
@@ -123,6 +133,30 @@ export default function SandboxesTable() {
       { id: "template", value: templateId },
     ]);
   }, [templateId]);
+
+  useEffect(() => {
+    if (!cpuCount) {
+      setColumnFilters((state) => state.filter((f) => f.id !== "cpuUsage"));
+      return;
+    }
+
+    setColumnFilters((state) => [
+      ...state.filter((f) => f.id !== "cpuUsage"),
+      { id: "cpuUsage", value: cpuCount },
+    ]);
+  }, [cpuCount]);
+
+  useEffect(() => {
+    if (!memoryMB) {
+      setColumnFilters((state) => state.filter((f) => f.id !== "ramUsage"));
+      return;
+    }
+
+    setColumnFilters((state) => [
+      ...state.filter((f) => f.id !== "ramUsage"),
+      { id: "ramUsage", value: memoryMB },
+    ]);
+  }, [memoryMB]);
 
   const {
     data: sandboxes,
@@ -235,6 +269,18 @@ export default function SandboxesTable() {
             clearStartedAt={removeStartedAtFilter}
             setTemplateId={setTemplateId}
             templateId={templateId}
+            cpuCount={cpuCount}
+            onCpuCountChange={(value) => {
+              setCpuCount(value);
+            }}
+            memoryMB={memoryMB}
+            onMemoryMBChange={(value) => {
+              setMemoryMB(value);
+            }}
+            cpuUsage={undefined}
+            onCpuUsageChange={() => {}}
+            ramUsage={undefined}
+            onRamUsageChange={() => {}}
           />
         </div>
         <div className="flex w-full flex-col items-end justify-between gap-2">

@@ -2,6 +2,13 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Cell, Column, Header } from "@tanstack/react-table";
 import { Separator } from "./separator";
+import { Button } from "./button";
+import {
+  ArrowDownNarrowWide,
+  ArrowDownWideNarrow,
+  ArrowUpDown,
+  ArrowUpNarrowWide,
+} from "lucide-react";
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -24,53 +31,49 @@ function DataTableHead<TData, TValue>({
         "font-mono uppercase tracking-wider",
         "font-medium text-fg-300",
         "[&:has([role=checkbox])]:pr-0",
-        {
-          "cursor-pointer": header.column.getCanSort(),
-        },
         className,
       )}
       style={{
         width: `${header.column.getSize()}px`,
       }}
-      onClick={
-        header.column.getCanSort()
-          ? () => header.column.toggleSorting(undefined, true)
-          : undefined
-      }
       {...props}
     >
-      {header.column.getCanSort() ? (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            header.column.toggleSorting(undefined, true);
-          }}
-          className="flex h-full items-center"
-        >
-          <span>{children}</span>
-          {sorting !== undefined && (
-            <span className="ml-2 text-accent">
-              {sorting === true ? "↓" : "↑"}
-            </span>
-          )}
-        </div>
-      ) : (
-        children
-      )}
+      <div className="flex h-full items-center">
+        <span>{children}</span>
+      </div>
 
-      {header.column.getCanResize() && (
-        <div
-          className="ml-auto h-full cursor-ew-resize px-2"
-          onTouchStart={header.getResizeHandler()}
-          onMouseDown={header.getResizeHandler()}
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-          }}
-        >
-          <Separator className="h-full" orientation="vertical" />
-        </div>
-      )}
+      <div className="ml-auto flex h-full items-center gap-1">
+        {header.column.getCanSort() && (
+          <Button
+            variant="muted"
+            size="icon"
+            onClick={() => header.column.toggleSorting(undefined, true)}
+            className={cn("size-5", sorting !== undefined && "text-accent")}
+          >
+            {sorting === undefined ? (
+              <ArrowUpDown className="size-3" />
+            ) : sorting ? (
+              <ArrowDownWideNarrow className="size-3" />
+            ) : (
+              <ArrowUpNarrowWide className="size-3" />
+            )}
+          </Button>
+        )}
+
+        {header.column.getCanResize() && (
+          <div
+            className="h-full cursor-ew-resize px-2"
+            onTouchStart={header.getResizeHandler()}
+            onMouseDown={header.getResizeHandler()}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+          >
+            <Separator className="h-full" orientation="vertical" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
