@@ -38,7 +38,6 @@ export function PollingButton({
         onClick={onRefresh}
         className="h-6 text-fg-500"
       >
-        Refresh
         <RefreshCw
           className={`size-3.5 ${isLoading ? "animate-spin duration-500 ease-in-out" : ""}`}
         />
@@ -52,8 +51,11 @@ export function PollingButton({
           onIntervalChange(Number(value) as PollingInterval)
         }
       >
-        <SelectTrigger className="h-6 w-[70px] border-none bg-transparent">
-          <SelectValue />
+        <SelectTrigger className="h-6 w-fit gap-1 border-none bg-transparent pl-2 text-fg-300">
+          Auto-refresh
+          <span className="ml-1 text-accent">
+            <SelectValue />
+          </span>
         </SelectTrigger>
         <SelectContent>
           {intervals.map((interval) => (

@@ -34,7 +34,7 @@ export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
 
 // Components
 const RunningSinceFilter = () => {
-  const { setStartedAtFilter } = useSandboxTableStore();
+  const { startedAtFilter, setStartedAtFilter } = useSandboxTableStore();
 
   const handleRunningSince = (value?: StartedAtFilter) => {
     if (!value) {
@@ -46,13 +46,31 @@ const RunningSinceFilter = () => {
 
   return (
     <div>
-      <DropdownMenuItem onClick={() => handleRunningSince("1h ago")}>
+      <DropdownMenuItem
+        className={cn(startedAtFilter === "1h ago" && "text-accent")}
+        onClick={(e) => {
+          e.preventDefault();
+          handleRunningSince("1h ago");
+        }}
+      >
         1 hour ago
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => handleRunningSince("6h ago")}>
+      <DropdownMenuItem
+        className={cn(startedAtFilter === "6h ago" && "text-accent")}
+        onClick={(e) => {
+          e.preventDefault();
+          handleRunningSince("6h ago");
+        }}
+      >
         6 hours ago
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => handleRunningSince("12h ago")}>
+      <DropdownMenuItem
+        className={cn(startedAtFilter === "12h ago" && "text-accent")}
+        onClick={(e) => {
+          e.preventDefault();
+          handleRunningSince("12h ago");
+        }}
+      >
         12 hours ago
       </DropdownMenuItem>
     </div>
@@ -71,7 +89,11 @@ const TemplateFilter = () => {
   });
 
   const handleSelect = (templateId: string) => {
-    setTemplateIds([...templateIds, templateId]);
+    if (templateIds.includes(templateId)) {
+      setTemplateIds(templateIds.filter((id) => id !== templateId));
+    } else {
+      setTemplateIds([...templateIds, templateId]);
+    }
   };
 
   return (
@@ -96,6 +118,9 @@ const TemplateFilter = () => {
             <CommandItem
               key={template.templateID}
               onSelect={() => handleSelect(template.templateID)}
+              className={cn(
+                templateIds.includes(template.templateID) && "text-accent",
+              )}
             >
               {template.templateID}
             </CommandItem>
