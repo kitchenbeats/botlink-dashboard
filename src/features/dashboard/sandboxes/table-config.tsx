@@ -135,7 +135,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
 
   {
     id: "cpuUsage",
-    accessorFn: (row) => row.lastMetrics?.cpuPct ?? 0,
+    accessorFn: (row) => row.lastMetrics?.cpuUsedPct ?? 0,
     header: "CPU Usage",
     cell: ({ getValue, row }) => {
       const cpu = getValue() as number;
