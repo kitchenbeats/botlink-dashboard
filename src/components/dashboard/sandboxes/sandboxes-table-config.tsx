@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
-type SandboxWithMetrics = Sandbox & { lastMetrics: SandboxMetrics };
+export type SandboxWithMetrics = Sandbox & { lastMetrics: SandboxMetrics };
 
 // FILTERS
 
@@ -135,7 +135,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
 
   {
     id: "cpuUsage",
-    accessorKey: "lastMetrics.cpuPct",
+    accessorFn: (row) => row.lastMetrics?.cpuPct ?? 0,
     header: "CPU Usage",
     cell: ({ getValue, row }) => {
       const cpu = getValue() as number;
@@ -165,7 +165,10 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
   },
   {
     id: "ramUsage",
-    accessorFn: (row) => (row.lastMetrics.memMiBUsed / row.memoryMB) * 100,
+    accessorFn: (row) => {
+      if (!row.lastMetrics?.memMiBUsed || !row.memoryMB) return 0;
+      return (row.lastMetrics.memMiBUsed / row.memoryMB) * 100;
+    },
     header: "RAM Usage",
     cell: ({ getValue, row }) => {
       const ramPercentage = getValue() as number;

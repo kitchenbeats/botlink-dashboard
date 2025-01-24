@@ -25,102 +25,20 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useDebounceValue } from "usehooks-ts";
-import { Input } from "@/components/ui/input";
+import { useSandboxTableStore } from "@/stores/sandbox-table-store";
 
 export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
 
-interface SandboxesTableFiltersProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  startedAtFilter: StartedAtFilter;
-  onStartedAtChange: (value: StartedAtFilter) => void;
-  clearStartedAt: () => void;
-
-  setTemplateId: (templateId: string | undefined) => void;
-  templateId: string | undefined;
-
-  cpuCount?: number;
-  onCpuCountChange: (value?: number) => void;
-  memoryMB?: number;
-  onMemoryMBChange: (value?: number) => void;
-  cpuUsage?: number;
-  onCpuUsageChange: (value?: number) => void;
-  ramUsage?: number;
-  onRamUsageChange: (value?: number) => void;
-}
-
-const SandboxesTableFilters = React.forwardRef<
-  HTMLDivElement,
-  SandboxesTableFiltersProps
->(
-  (
-    {
-      className,
-      startedAtFilter,
-      onStartedAtChange,
-      clearStartedAt,
-      setTemplateId,
-      templateId,
-      cpuCount,
-      onCpuCountChange,
-      memoryMB,
-      onMemoryMBChange,
-      cpuUsage,
-      onCpuUsageChange,
-      ramUsage,
-      onRamUsageChange,
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("flex items-center gap-4", className)}
-        {...props}
-      >
-        <RunningSinceFilter
-          startedAtFilter={startedAtFilter}
-          onStartedAtChange={onStartedAtChange}
-          clearStartedAt={clearStartedAt}
-        />
-
-        <TemplateFilter setTemplateId={setTemplateId} templateId={templateId} />
-
-        <ResourcesFilter
-          cpuCount={cpuCount}
-          onCpuCountChange={onCpuCountChange}
-          memoryMB={memoryMB}
-          onMemoryMBChange={onMemoryMBChange}
-          cpuUsage={cpuUsage}
-          onCpuUsageChange={onCpuUsageChange}
-          ramUsage={ramUsage}
-          onRamUsageChange={onRamUsageChange}
-        />
-      </div>
-    );
-  },
-);
-
-SandboxesTableFilters.displayName = "SandboxesTableFilters";
-
-export default SandboxesTableFilters;
-
-const RunningSinceFilter = ({
-  startedAtFilter,
-  onStartedAtChange,
-  clearStartedAt,
-}: {
-  startedAtFilter: StartedAtFilter;
-  onStartedAtChange: (value: StartedAtFilter) => void;
-  clearStartedAt: () => void;
-}) => {
-  const now = React.useRef(new Date());
+// Components
+const RunningSinceFilter = () => {
+  const { startedAtFilter, setStartedAtFilter, resetFilters } =
+    useSandboxTableStore();
 
   const handleRunningSince = (value?: StartedAtFilter) => {
     if (!value) {
-      clearStartedAt();
+      resetFilters();
     } else {
-      onStartedAtChange(value);
+      setStartedAtFilter(value);
     }
   };
 
@@ -152,14 +70,9 @@ const RunningSinceFilter = ({
   );
 };
 
-const TemplateFilter = ({
-  setTemplateId,
-  templateId,
-}: {
-  setTemplateId: (templateId: string | undefined) => void;
-  templateId: string | undefined;
-}) => {
+const TemplateFilter = () => {
   const [open, setOpen] = React.useState(false);
+  const { templateId, setTemplateId } = useSandboxTableStore();
 
   const {
     data: templates,
@@ -226,139 +139,109 @@ const TemplateFilter = ({
   );
 };
 
-interface ResourcesFilterProps {
-  cpuCount?: number;
-  onCpuCountChange: (value?: number) => void;
-  memoryMB?: number;
-  onMemoryMBChange: (value?: number) => void;
-  cpuUsage?: number;
-  onCpuUsageChange: (value?: number) => void;
-  ramUsage?: number;
-  onRamUsageChange: (value: number) => void;
-}
+const ResourcesFilter = () => {
+  const [open, setOpen] = React.useState(false);
+  const { cpuCount, setCpuCount, memoryMB, setMemoryMB } =
+    useSandboxTableStore();
 
-const ResourcesFilter = React.forwardRef<HTMLDivElement, ResourcesFilterProps>(
-  (
-    {
-      cpuCount,
-      onCpuCountChange,
-      memoryMB,
-      onMemoryMBChange,
-      cpuUsage,
-      onCpuUsageChange,
-      ramUsage,
-      onRamUsageChange,
-    },
-    ref,
-  ) => {
-    const [open, setOpen] = React.useState(false);
-    const [localCpuCount, setLocalCpuCount] = React.useState(cpuCount || 0);
-    const [localMemoryMB, setLocalMemoryMB] = React.useState(memoryMB || 0);
+  const [localCpuCount, setLocalCpuCount] = React.useState(cpuCount || 0);
+  const [localMemoryMB, setLocalMemoryMB] = React.useState(memoryMB || 0);
 
-    const [debouncedCpuCount] = useDebounceValue(localCpuCount, 300);
-    const [debouncedMemoryMB] = useDebounceValue(localMemoryMB, 300);
+  const [debouncedCpuCount] = useDebounceValue(localCpuCount, 300);
+  const [debouncedMemoryMB] = useDebounceValue(localMemoryMB, 300);
 
-    React.useEffect(() => {
-      onCpuCountChange(debouncedCpuCount || undefined);
-    }, [debouncedCpuCount, onCpuCountChange]);
+  React.useEffect(() => {
+    setCpuCount(debouncedCpuCount || undefined);
+  }, [debouncedCpuCount, setCpuCount]);
 
-    React.useEffect(() => {
-      onMemoryMBChange(debouncedMemoryMB || undefined);
-    }, [debouncedMemoryMB, onMemoryMBChange]);
+  React.useEffect(() => {
+    setMemoryMB(debouncedMemoryMB || undefined);
+  }, [debouncedMemoryMB, setMemoryMB]);
 
-    return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <TableFilterButton
-            label="Resources"
-            value={
-              cpuCount || memoryMB || cpuUsage || ramUsage
-                ? "Active"
-                : undefined
-            }
-          />
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-4" side="bottom" align="start">
-          <div className="grid gap-4">
-            {/* <div>
-              <h3 className="mb-3 font-medium">Specs</h3>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <Label className="text-xs">Cores</Label>
-                  <Input
-                    type="number"
-                    value={localCpuCount}
-                    onChange={(e) => setLocalCpuCount(Number(e.target.value))}
-                    min={0}
-                    max={8}
-                    step={1}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex-1">
-                  <Label className="text-xs">Memory</Label>
-                  <Input
-                    type="number"
-                    value={localMemoryMB}
-                    onChange={(e) => setLocalMemoryMB(Number(e.target.value))}
-                    min={0}
-                    max={8192}
-                    step={512}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-            </div> */}
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>CPU Cores</Label>
-                <span className="text-xs text-accent">
-                  {localCpuCount === 0 ? "Off" : `${localCpuCount} cores`}
-                </span>
-              </div>
-              <div>
-                <Slider
-                  value={[localCpuCount]}
-                  onValueChange={([value]) => setLocalCpuCount(value)}
-                  max={8}
-                  step={1}
-                  className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
-                />
-
-                <div className="mt-3 flex justify-between text-xs text-fg-500">
-                  <span>Off</span>
-                  <span>8</span>
-                </div>
-              </div>
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <TableFilterButton
+          label="Resources"
+          value={cpuCount || memoryMB ? "Active" : undefined}
+        />
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" side="bottom" align="start">
+        <div className="grid gap-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>CPU Cores</Label>
+              <span className="text-xs text-accent">
+                {localCpuCount === 0 ? "Off" : `${localCpuCount} cores`}
+              </span>
             </div>
-            <Separator />
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Memory</Label>
-                <span className="text-xs text-accent">
-                  {localMemoryMB === 0 ? "Off" : `${localMemoryMB} MB`}
-                </span>
-              </div>
-              <div>
-                <Slider
-                  value={[localMemoryMB]}
-                  onValueChange={([value]) => setLocalMemoryMB(value)}
-                  max={8192}
-                  step={512}
-                  className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
-                />
-                <div className="mt-3 flex justify-between text-xs text-fg-500">
-                  <span>Off</span>
-                  <span>8GB</span>
-                </div>
+            <div>
+              <Slider
+                value={[localCpuCount]}
+                onValueChange={([value]) => setLocalCpuCount(value)}
+                max={8}
+                step={1}
+                className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+              />
+              <div className="mt-3 flex justify-between text-xs text-fg-500">
+                <span>Off</span>
+                <span>8</span>
               </div>
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-    );
-  },
-);
+          <Separator />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>Memory</Label>
+              <span className="text-xs text-accent">
+                {localMemoryMB === 0
+                  ? "Off"
+                  : localMemoryMB < 1024
+                    ? `${localMemoryMB} MB`
+                    : `${localMemoryMB / 1024} GB`}
+              </span>
+            </div>
+            <div>
+              <Slider
+                value={[localMemoryMB]}
+                onValueChange={([value]) => setLocalMemoryMB(value)}
+                max={8192}
+                step={512}
+                className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+              />
+              <div className="mt-3 flex justify-between text-xs text-fg-500">
+                <span>Off</span>
+                <span>8GB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
-ResourcesFilter.displayName = "ResourcesFilter";
+// Main component
+export interface SandboxesTableFiltersProps
+  extends React.HTMLAttributes<HTMLDivElement> {}
+
+const SandboxesTableFilters = React.forwardRef<
+  HTMLDivElement,
+  SandboxesTableFiltersProps
+>(({ className, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn("flex items-center gap-4", className)}
+      {...props}
+    >
+      <RunningSinceFilter />
+      <TemplateFilter />
+      <ResourcesFilter />
+    </div>
+  );
+});
+
+SandboxesTableFilters.displayName = "SandboxesTableFilters";
+
+export default SandboxesTableFilters;

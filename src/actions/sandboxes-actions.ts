@@ -25,7 +25,7 @@ export const getTeamSandboxesAction = guardAction(
 
       return sandboxes.map((sandbox) => ({
         ...sandbox,
-        lastMetrics: metrics.get(sandbox.sandboxID),
+        lastMetrics: metrics.get(sandbox.sandboxID)!,
       }));
     }
 
@@ -50,7 +50,7 @@ export const getTeamSandboxesAction = guardAction(
 
     return data.map((sandbox) => ({
       ...sandbox,
-      lastMetrics: metrics.get(sandbox.sandboxID),
+      lastMetrics: metrics.get(sandbox.sandboxID)!,
     }));
   },
 );

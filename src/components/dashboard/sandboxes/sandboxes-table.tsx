@@ -5,8 +5,6 @@ import {
   ColumnFiltersState,
   ColumnSizingState,
   flexRender,
-  PaginationState,
-  SortingState,
   TableOptions,
   useReactTable,
 } from "@tanstack/react-table";
@@ -26,23 +24,25 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
 import { useApiUrl } from "@/hooks/use-api-url";
-import { useLocalStorage, useSessionStorage } from "usehooks-ts";
+import { useLocalStorage } from "usehooks-ts";
 import useSWR from "swr";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { Kbd } from "@/components/ui/kdb";
-import SandboxesTableFilters, {
-  StartedAtFilter,
-} from "./sandboxes-table-filters";
+import SandboxesTableFilters from "./sandboxes-table-filters";
 import useIsMounted from "@/hooks/use-is-mounted";
 import { cn } from "@/lib/utils";
-import { fallbackData, sandboxesTableConfig } from "./sandboxes-table-config";
+import {
+  fallbackData,
+  sandboxesTableConfig,
+  SandboxWithMetrics,
+} from "./sandboxes-table-config";
 import React from "react";
 import { subHours } from "date-fns";
-import { Sandbox } from "@/types/api";
 import { useSelectedTeam } from "@/hooks/use-teams";
 import { Badge } from "@/components/ui/badge";
 import { Circle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSandboxTableStore } from "@/stores/sandbox-table-store";
 
 export default function SandboxesTable() {
   "use no memo";
@@ -52,18 +52,6 @@ export default function SandboxesTable() {
   const isMounted = useIsMounted();
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const [sorting, setSorting, removeSorting] = useSessionStorage<SortingState>(
-    "sandboxes:sorting",
-    [],
-    {
-      deserializer: (value) => JSON.parse(value),
-      serializer: (value) => JSON.stringify(value),
-    },
-  );
-
-  const [globalFilter, setGlobalFilter, removeGlobalFilter] =
-    useSessionStorage<string>("sandboxes:globalFilter", "");
 
   const [columnSizing, setColumnSizing, removeColumnSizing] =
     useLocalStorage<ColumnSizingState>(
@@ -75,30 +63,22 @@ export default function SandboxesTable() {
       },
     );
 
-  const [startedAtFilter, setStartedAtFilter, removeStartedAtFilter] =
-    useSessionStorage<StartedAtFilter>("sandboxes:startedAtFilter", undefined);
-
-  const [pagination, setPagination, removePagination] =
-    useSessionStorage<PaginationState>("sandboxes:pagination", {
-      pageIndex: 0,
-      pageSize: 50,
-    });
+  const {
+    startedAtFilter,
+    templateId,
+    cpuCount,
+    memoryMB,
+    sorting,
+    globalFilter,
+    pagination,
+    setSorting,
+    setGlobalFilter,
+    setPagination,
+  } = useSandboxTableStore();
 
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-
-  const [templateId, setTemplateId, removeTemplateId] = useSessionStorage<
-    string | undefined
-  >("sandboxes:templateId", undefined);
-
-  const [cpuCount, setCpuCount, removeCpuCount] = useSessionStorage<
-    number | undefined
-  >("sandboxes:cpuCount", undefined);
-
-  const [memoryMB, setMemoryMB, removeMemoryMB] = useSessionStorage<
-    number | undefined
-  >("sandboxes:memoryMB", undefined);
 
   useEffect(() => {
     if (!startedAtFilter) {
@@ -239,6 +219,7 @@ export default function SandboxesTable() {
       columnSizing,
       columnFilters,
       pagination,
+      // @ts-expect-error team is not a valid state
       team,
     },
     onGlobalFilterChange: setGlobalFilter,
@@ -246,7 +227,7 @@ export default function SandboxesTable() {
     onColumnFiltersChange: setColumnFilters,
     onColumnSizingChange: setColumnSizing,
     onPaginationChange: setPagination,
-  } as TableOptions<Sandbox>);
+  });
 
   return (
     <div className="flex h-full flex-col gap-4 pt-3">
@@ -258,30 +239,8 @@ export default function SandboxesTable() {
 
       <header className="mx-3 flex justify-between">
         <div className="flex w-full flex-col gap-8">
-          <SearchInput
-            value={globalFilter}
-            onChange={setGlobalFilter}
-            ref={searchInputRef}
-          />
-          <SandboxesTableFilters
-            startedAtFilter={startedAtFilter}
-            onStartedAtChange={setStartedAtFilter}
-            clearStartedAt={removeStartedAtFilter}
-            setTemplateId={setTemplateId}
-            templateId={templateId}
-            cpuCount={cpuCount}
-            onCpuCountChange={(value) => {
-              setCpuCount(value);
-            }}
-            memoryMB={memoryMB}
-            onMemoryMBChange={(value) => {
-              setMemoryMB(value);
-            }}
-            cpuUsage={undefined}
-            onCpuUsageChange={() => {}}
-            ramUsage={undefined}
-            onRamUsageChange={() => {}}
-          />
+          <SearchInput ref={searchInputRef} />
+          <SandboxesTableFilters />
         </div>
         <div className="flex w-full flex-col items-end justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -396,11 +355,11 @@ export default function SandboxesTable() {
 const SearchInput = React.forwardRef<
   HTMLInputElement,
   {
-    value: string;
-    onChange: (value: string) => void;
     className?: string;
   }
->(({ value, onChange, className }, ref) => {
+>(({ className }, ref) => {
+  const { setGlobalFilter, globalFilter } = useSandboxTableStore();
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -424,8 +383,8 @@ const SearchInput = React.forwardRef<
   return (
     <div className={cn("relative w-full max-w-[420px]", className)}>
       <DebouncedInput
-        value={value}
-        onChange={(v) => onChange(v as string)}
+        value={globalFilter}
+        onChange={(v) => setGlobalFilter(v as string)}
         placeholder="Find a sandbox..."
         className="w-full pr-14"
         ref={ref}
