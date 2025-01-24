@@ -162,6 +162,23 @@ export default function SandboxesTable() {
     onPaginationChange: setPagination,
   });
 
+  /**
+   * Use a memo to gather all column sizes once.
+   * We'll store them in a simple object of CSS variables.
+   */
+  const columnSizeVars = React.useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: string } = {};
+
+    headers.forEach((header) => {
+      const sizePx = `${header.getSize()}px`;
+      colSizes[`--header-${header.id}-size`] = sizePx;
+      colSizes[`--col-${header.column.id}-size`] = sizePx;
+    });
+
+    return colSizes;
+  }, [table.getState().columnSizing, table.getState().columnSizingInfo]);
+
   return (
     <div className="flex h-full flex-col gap-4 pt-3">
       <TableHeader
@@ -173,7 +190,10 @@ export default function SandboxesTable() {
       />
 
       {isMounted && (
-        <DataTable className="h-full w-full overflow-auto pb-12">
+        <DataTable
+          className="h-full w-full overflow-auto pb-12"
+          style={{ ...columnSizeVars, width: "100%" }}
+        >
           <DataTableHeader className="sticky top-0">
             {table.getHeaderGroups().map((headerGroup) => (
               <DataTableRow key={headerGroup.id} className="hover:bg-bg">

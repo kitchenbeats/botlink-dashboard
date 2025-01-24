@@ -33,7 +33,7 @@ function DataTableHead<TData, TValue>({
         className,
       )}
       style={{
-        width: `${header.column.getSize()}px`,
+        width: `calc(var(--header-${header.id}-size) * 1)`,
       }}
       {...props}
     >
@@ -92,7 +92,7 @@ function DataTableCell<TData, TValue>({
   return (
     <div
       style={{
-        width: `${cell.column.getSize()}px`,
+        width: `calc(var(--col-${cell.column.id}-size) * 1)`,
       }}
       className={cn(
         "p-1 px-2 align-middle font-sans text-xs [&:has([role=checkbox])]:pr-0",
