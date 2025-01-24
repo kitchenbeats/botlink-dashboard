@@ -3,10 +3,14 @@ import { QUERY_KEYS } from "@/configs/query-keys";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import useSWR from "swr";
 import { useApiUrl } from "@/features/dashboard/developer-settings/stores/developer-settings-store";
+import { useSandboxTableStore } from "../stores/table-store";
 
 export function useSandboxData() {
   const team = useSelectedTeam();
   const apiUrl = useApiUrl();
+  const pollingInterval = useSandboxTableStore(
+    (state) => state.pollingInterval,
+  );
 
   const {
     data: sandboxes,
@@ -31,8 +35,9 @@ export function useSandboxData() {
       return res.data;
     },
     {
-      refreshInterval: 60 * 1000,
+      refreshInterval: pollingInterval * 1000,
       refreshWhenHidden: false,
+      revalidateOnFocus: false,
     },
   );
 

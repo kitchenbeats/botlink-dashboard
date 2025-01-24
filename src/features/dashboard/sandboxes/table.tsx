@@ -27,7 +27,6 @@ import { flexRender } from "@tanstack/react-table";
 import { subHours } from "date-fns";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import { useSandboxData } from "./hooks/use-sandboxes-data";
-import { useSandboxMetrics } from "./hooks/use-sandboxes-metrics";
 
 export default function SandboxesTable() {
   const isMounted = useIsMounted();
@@ -122,26 +121,10 @@ export default function SandboxesTable() {
   const {
     sandboxes,
     sandboxesLoading,
-    sandboxesValidating,
     sandboxesError,
+    sandboxesValidating,
     refetchSandboxes,
   } = useSandboxData();
-
-  const handleMetricsSuccess = useCallback(
-    (data: Map<string, any>) => {
-      if (!sandboxes) return;
-
-      const newSandboxes = sandboxes?.map((sandbox) => ({
-        ...sandbox,
-        lastMetrics: data.get(sandbox.sandboxID),
-      }));
-
-      refetchSandboxes(newSandboxes, { revalidate: false });
-    },
-    [sandboxes, refetchSandboxes],
-  );
-
-  useSandboxMetrics(sandboxes, sandboxesValidating, handleMetricsSuccess);
 
   const table = useReactTable<SandboxWithMetrics>({
     ...sandboxesTableConfig,
@@ -184,7 +167,7 @@ export default function SandboxesTable() {
       <TableHeader
         searchInputRef={searchInputRef}
         sandboxes={sandboxes}
-        sandboxesLoading={sandboxesLoading}
+        sandboxesLoading={sandboxesLoading || sandboxesValidating}
         refetchSandboxes={refetchSandboxes}
         table={table}
       />

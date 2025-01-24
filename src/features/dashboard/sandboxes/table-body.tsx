@@ -18,6 +18,8 @@ export function TableBody({
   sandboxes,
   table,
 }: TableBodyProps) {
+  "use no memo";
+
   return (
     <DataTableBody>
       {sandboxesError ? (
