@@ -27,7 +27,7 @@ interface Template {
 
 interface SandboxMetrics {
   cpuCount: number;
-  cpuPct: number;
+  cpuUsedPct: number;
   memMiBTotal: number;
   memMiBUsed: number;
   timestamp: string;

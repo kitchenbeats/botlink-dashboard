@@ -233,7 +233,7 @@ function generateMockMetrics(
       0,
       Math.min(1, (baseLoad + cpuSpike) * pattern.cpuIntensity),
     );
-    const cpuPct = Math.min(100, Math.max(0, cpuLoad * 100));
+    const cpuUsedPct = Math.min(100, Math.max(0, cpuLoad * 100));
 
     // Memory calculation
     const memoryNoise = (Math.random() - 0.5) * memVolatility;
@@ -242,7 +242,7 @@ function generateMockMetrics(
 
     metrics.set(sandbox.sandboxID, {
       cpuCount: sandbox.cpuCount,
-      cpuPct,
+      cpuUsedPct,
       memMiBTotal: sandbox.memoryMB,
       memMiBUsed,
       timestamp: new Date().toISOString(),
