@@ -6,7 +6,7 @@ import DashboardNavbar from "@/features/dashboard/navbar/navbar";
 
 export default function Sidebar() {
   return (
-    <aside className="relative flex h-svh w-64 min-w-64 flex-col border-r">
+    <aside className="relative flex h-svh w-[var(--protected-sidebar-width)] min-w-[var(--protected-sidebar-width)] flex-col border-r">
       <header className="flex h-[var(--protected-nav-height)] w-full items-center justify-between border-b pr-2">
         <span className="inline-flex items-center">
           <LogoWithoutText className="size-12" />

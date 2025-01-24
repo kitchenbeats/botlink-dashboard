@@ -61,62 +61,52 @@ export default function SandboxesTable() {
 
   // Effect hooks for filters
   React.useEffect(() => {
+    let newFilters = [...columnFilters];
+
+    // Handle startedAt filter
     if (!startedAtFilter) {
-      setColumnFilters((state) => state.filter((f) => f.id !== "startedAt"));
-      return;
+      newFilters = newFilters.filter((f) => f.id !== "startedAt");
+    } else {
+      const now = new Date();
+      const from =
+        startedAtFilter === "1h ago"
+          ? subHours(now, 1)
+          : startedAtFilter === "6h ago"
+            ? subHours(now, 6)
+            : startedAtFilter === "12h ago"
+              ? subHours(now, 12)
+              : undefined;
+
+      newFilters = newFilters.filter((f) => f.id !== "startedAt");
+      newFilters.push({ id: "startedAt", value: { from, to: now } });
     }
 
-    const now = new Date();
-    const from =
-      startedAtFilter === "1h ago"
-        ? subHours(now, 1)
-        : startedAtFilter === "6h ago"
-          ? subHours(now, 6)
-          : startedAtFilter === "12h ago"
-            ? subHours(now, 12)
-            : undefined;
-
-    setColumnFilters((state) => [
-      ...state,
-      { id: "startedAt", value: { from, to: now } },
-    ]);
-  }, [startedAtFilter]);
-
-  React.useEffect(() => {
+    // Handle template filter
     if (!templateId) {
-      setColumnFilters((state) => state.filter((f) => f.id !== "template"));
-      return;
+      newFilters = newFilters.filter((f) => f.id !== "template");
+    } else {
+      newFilters = newFilters.filter((f) => f.id !== "template");
+      newFilters.push({ id: "template", value: templateId });
     }
 
-    setColumnFilters((state) => [
-      ...state,
-      { id: "template", value: templateId },
-    ]);
-  }, [templateId]);
-
-  React.useEffect(() => {
+    // Handle CPU filter
     if (!cpuCount) {
-      setColumnFilters((state) => state.filter((f) => f.id !== "cpuUsage"));
-      return;
+      newFilters = newFilters.filter((f) => f.id !== "cpuUsage");
+    } else {
+      newFilters = newFilters.filter((f) => f.id !== "cpuUsage");
+      newFilters.push({ id: "cpuUsage", value: cpuCount });
     }
 
-    setColumnFilters((state) => [
-      ...state.filter((f) => f.id !== "cpuUsage"),
-      { id: "cpuUsage", value: cpuCount },
-    ]);
-  }, [cpuCount]);
-
-  React.useEffect(() => {
+    // Handle memory filter
     if (!memoryMB) {
-      setColumnFilters((state) => state.filter((f) => f.id !== "ramUsage"));
-      return;
+      newFilters = newFilters.filter((f) => f.id !== "ramUsage");
+    } else {
+      newFilters = newFilters.filter((f) => f.id !== "ramUsage");
+      newFilters.push({ id: "ramUsage", value: memoryMB });
     }
 
-    setColumnFilters((state) => [
-      ...state.filter((f) => f.id !== "ramUsage"),
-      { id: "ramUsage", value: memoryMB },
-    ]);
-  }, [memoryMB]);
+    setColumnFilters(newFilters);
+  }, [startedAtFilter, templateId, cpuCount, memoryMB]);
 
   const {
     sandboxes,
@@ -172,43 +162,45 @@ export default function SandboxesTable() {
         table={table}
       />
 
-      {isMounted && (
-        <DataTable
-          className="h-full w-full overflow-auto pb-12"
-          style={{ ...columnSizeVars, width: "100%" }}
-        >
-          <DataTableHeader className="sticky top-0">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <DataTableRow key={headerGroup.id} className="hover:bg-bg">
-                {headerGroup.headers.map((header) => (
-                  <DataTableHead
-                    key={header.id}
-                    header={header}
-                    style={{
-                      width: header.getSize(),
-                    }}
-                    sorting={sorting.find((s) => s.id === header.id)?.desc}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </DataTableHead>
-                ))}
-              </DataTableRow>
-            ))}
-          </DataTableHeader>
+      <div className="max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
+        {isMounted && (
+          <DataTable
+            className="h-full min-w-[calc(100svw-var(--protected-sidebar-width))] overflow-y-auto pb-12"
+            style={{ ...columnSizeVars }}
+          >
+            <DataTableHeader className="sticky top-0">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <DataTableRow key={headerGroup.id} className="hover:bg-bg">
+                  {headerGroup.headers.map((header) => (
+                    <DataTableHead
+                      key={header.id}
+                      header={header}
+                      style={{
+                        width: header.getSize(),
+                      }}
+                      sorting={sorting.find((s) => s.id === header.id)?.desc}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </DataTableHead>
+                  ))}
+                </DataTableRow>
+              ))}
+            </DataTableHeader>
 
-          <TableBody
-            sandboxesError={sandboxesError}
-            sandboxesLoading={sandboxesLoading}
-            sandboxes={sandboxes}
-            table={table}
-          />
-        </DataTable>
-      )}
+            <TableBody
+              sandboxesError={sandboxesError}
+              sandboxesLoading={sandboxesLoading}
+              sandboxes={sandboxes}
+              table={table}
+            />
+          </DataTable>
+        )}
+      </div>
     </div>
   );
 }
