@@ -1,17 +1,17 @@
 "use client";
 
-import ApiKeysTable from "@/components/dashboard/keys/api-keys-table";
-import CreateApiKeyDialog from "@/components/dashboard/keys/create-api-key-dialog";
-import { useMetadata } from "@/components/providers/metadata-provider";
-import { Button } from "@/components/ui/button";
+import ApiKeysTable from "@/features/dashboard/keys/api-keys-table";
+import CreateApiKeyDialog from "@/features/dashboard/keys/create-api-key-dialog";
+import { useMetadata } from "@/features/dashboard/metadata-provider";
+import { Button } from "@/ui/primitives/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
+} from "@/ui/primitives/card";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
 
 export default function KeysPageClient() {
   const { selectedTeamId } = useMetadata();

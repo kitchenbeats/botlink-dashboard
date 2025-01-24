@@ -1,7 +1,9 @@
 import dotenv from "dotenv";
 import { serverSchema, clientSchema, formatErrors } from "@/lib/env";
 
-dotenv.config();
+dotenv.config({
+  path: ".env.local",
+});
 
 function validateEnv() {
   const merged = serverSchema.merge(clientSchema);
@@ -10,7 +12,7 @@ function validateEnv() {
   if (!parsed.success) {
     console.error(
       "❌ Invalid environment variables:\n",
-      ...formatErrors(parsed.error.format())
+      ...formatErrors(parsed.error.format()),
     );
     throw new Error("Invalid environment variables");
   }

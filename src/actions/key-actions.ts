@@ -6,7 +6,7 @@ import {
   checkUserTeamAuthorization,
   maskApiKey,
   guardAction,
-} from "./utils";
+} from "@/lib/utils/actions";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { z } from "zod";
 

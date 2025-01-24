@@ -6,7 +6,7 @@ import {
   checkAuthenticated,
   checkUserTeamAuthorization,
   guardAction,
-} from "./utils";
+} from "@/lib/utils/actions";
 import { z } from "zod";
 import { User } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";

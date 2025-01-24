@@ -1,4 +1,4 @@
-import { checkAuthenticated } from "@/actions/utils";
+import { checkAuthenticated } from "@/lib/utils/actions";
 import { PROTECTED_URLS } from "@/configs/urls";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";

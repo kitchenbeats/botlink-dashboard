@@ -1,6 +1,10 @@
 "use server";
 
-import { checkAuthenticated, getTeamApiKey, guardAction } from "./utils";
+import {
+  checkAuthenticated,
+  getTeamApiKey,
+  guardAction,
+} from "@/lib/utils/actions";
 import { Usage, TransformedUsageData } from "@/types/usage";
 import { z } from "zod";
 

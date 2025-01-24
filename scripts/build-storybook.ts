@@ -1,7 +1,9 @@
 import { execSync } from "child_process";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({
+  path: ".env.local",
+});
 
 const shouldBuildStorybook =
   process.env.NEXT_PUBLIC_EXPOSE_STORYBOOK &&

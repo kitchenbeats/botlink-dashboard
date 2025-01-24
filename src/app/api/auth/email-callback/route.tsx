@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { encodedRedirect } from "@/lib/utils";
+import { encodedRedirect } from "@/lib/utils/auth";
 import { redirect } from "next/navigation";
 
 export async function GET(request: Request) {

@@ -1,6 +1,6 @@
-import Sidebar from "@/components/dashboard/dashboard-sidebar";
-import ClientProviders from "@/components/globals/client-providers";
-import NetworkStateBanner from "@/components/providers/network-state-banner";
+import Sidebar from "@/features/dashboard/sidebar/sidebar";
+import ClientProviders from "@/features/dashboard/client-providers";
+import NetworkStateBanner from "@/ui/network-state-banner";
 
 export const dynamic = "force-static";
 

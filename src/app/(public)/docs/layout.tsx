@@ -5,9 +5,9 @@ import type { ReactNode } from "react";
 import { baseOptions } from "@/app/layout.config";
 /* import "fumadocs-twoslash/twoslash.css"; */
 import { source } from "@/app/source";
-import DocsNavItem from "@/components/docs/docs-nav-item";
-import DocsNavSeparator from "@/components/docs/docs-nav-separator";
-import DocsNavHeader from "@/components/docs/docs-nav-header";
+import DocsNavItem from "@/features/docs/navbar/item";
+import DocsNavSeparator from "@/features/docs/navbar/separator";
+import DocsNavHeader from "@/features/docs/navbar/header";
 /* import { Trigger } from "@/components/ai/search-ai"; */
 
 const docsOptions: DocsLayoutProps = {

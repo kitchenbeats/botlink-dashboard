@@ -1,4 +1,4 @@
-import { Nav } from "@/components/docs/docs-nav";
+import { Nav } from "@/features/docs/navbar/navbar";
 
 import "@/styles/docs.css";
 

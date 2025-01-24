@@ -11,10 +11,10 @@ import { type ReactElement } from "react";
 /* import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui"; */
 /* import * as Preview from "@/components/preview"; */
 import { source } from "@/app/source";
-import { createMetadata, metadataImage } from "@/lib/metadata";
+import { createMetadata, metadataImage } from "@/configs/metadata";
 import { METADATA } from "@/configs/metadata";
-import components from "@/components/docs/docs-components";
-import { buttonVariants } from "@/components/ui/button";
+import components from "@/features/docs/components";
+import { buttonVariants } from "@/ui/primitives/button";
 import { cn } from "@/lib/utils";
 
 /* function PreviewRenderer({ preview }: { preview: string }): ReactNode {

@@ -1,20 +1,20 @@
 "use client";
 
-import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
-import BillingInvoicesTable from "@/components/dashboard/billing/billing-invoices-table";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import BillingInvoicesTable from "@/features/dashboard/billing/invoices-table";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/ui/primitives/card";
 import { TIERS } from "@/configs/tiers";
-import BillingTierCard from "@/components/dashboard/billing/billing-tier-card";
-import { useSelectedTeam } from "@/hooks/use-teams";
-import { Button } from "@/components/ui/button";
+import BillingTierCard from "@/features/dashboard/billing/tier-card";
+import { useSelectedTeam } from "@/lib/hooks/use-teams";
+import { Button } from "@/ui/primitives/button";
 import Link from "next/link";
-import BillingCreditsContent from "@/components/dashboard/billing/billing-credits-content";
+import BillingCreditsContent from "@/features/dashboard/billing/credits-content";
 
 export default function BillingPageClient() {
   const team = useSelectedTeam();

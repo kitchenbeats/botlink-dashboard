@@ -1,5 +1,5 @@
-import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
-import TemplatesTable from "@/components/dashboard/templates/templates-table";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import TemplatesTable from "@/features/dashboard/templates/table";
 import { Suspense } from "react";
 
 export default function Page() {

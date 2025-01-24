@@ -1,4 +1,4 @@
-import NotFound from "@/components/globals/not-found";
+import NotFound from "@/ui/not-found";
 
 export default function NotFoundPage() {
   return (

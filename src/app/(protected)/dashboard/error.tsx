@@ -1,4 +1,4 @@
 "use client";
 
-import ErrorBoundary from "@/components/globals/error-boundary";
+import ErrorBoundary from "@/ui/error-boundary";
 export default ErrorBoundary;

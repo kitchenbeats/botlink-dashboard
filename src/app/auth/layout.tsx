@@ -1,14 +1,13 @@
 "use client";
 
-import { GridPattern } from "@/components/ui/grid-pattern";
-import { GradientBorder } from "@/components/ui/gradient-border";
+import { GridPattern } from "@/ui/grid-pattern";
+import { GradientBorder } from "@/ui/gradient-border";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
-const NetworkStateBanner = dynamic(
-  () => import("@/components/providers/network-state-banner"),
-  { ssr: false },
-);
+const NetworkStateBanner = dynamic(() => import("@/ui/network-state-banner"), {
+  ssr: false,
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

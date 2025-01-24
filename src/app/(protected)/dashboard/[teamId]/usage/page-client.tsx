@@ -7,18 +7,18 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Loader } from "@/components/ui/loader";
+} from "@/ui/primitives/card";
+import { Loader } from "@/ui/loader";
 import { use } from "react";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
+} from "@/ui/primitives/chart";
 import { Area, AreaChart, XAxis, YAxis } from "recharts";
-import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
 import { QUERY_KEYS } from "@/configs/query-keys";
-import { useSelectedTeam } from "@/hooks/use-teams";
+import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import useSWR from "swr";
 
 const chartConfig = {

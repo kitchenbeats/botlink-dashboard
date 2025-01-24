@@ -1,16 +1,15 @@
 import { RootProvider } from "fumadocs-ui/provider";
 import { Body } from "./layout.client";
-
-import "@/app/_fonts/fonts";
-
-import "@/styles/globals.css";
-import { ToastProvider } from "@/components/ui/toast";
-import { Toaster } from "@/components/ui/toaster";
+import { ToastProvider } from "@/ui/primitives/toast";
+import { Toaster } from "@/ui/primitives/toaster";
+import { TooltipProvider } from "@/ui/primitives/tooltip";
 import { BASE_URL } from "@/configs/urls";
 import { Metadata } from "next/types";
 import { METADATA } from "@/configs/metadata";
 import Head from "next/head";
-import { TooltipProvider } from "@/components/ui/tooltip";
+
+import "@/app/_fonts/fonts";
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

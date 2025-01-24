@@ -1,14 +1,11 @@
 import { signUpAction } from "@/actions/auth-actions";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/ui/primitives/input";
+import { Label } from "@/ui/primitives/label";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { OAuthProviders } from "@/components/auth/oauth-provider-buttons";
-import {
-  AuthFormMessage,
-  AuthMessage,
-} from "@/components/auth/auth-form-message";
-import TextSeparator from "@/components/globals/text-separator";
+import { Button } from "@/ui/primitives/button";
+import { OAuthProviders } from "@/features/auth/oauth-provider-buttons";
+import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
+import TextSeparator from "@/ui/text-separator";
 
 export default async function Signup(props: {
   searchParams: Promise<AuthMessage>;

@@ -1,12 +1,12 @@
 "use client";
 
-import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
-import { NameSettings } from "@/components/dashboard/account/account-name-settings";
-import { EmailSettings } from "@/components/dashboard/account/account-email-settings";
-import { PasswordSettings } from "@/components/dashboard/account/account-password-settings";
-import { DangerZone } from "@/components/dashboard/account/account-danger-zone";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import { NameSettings } from "@/features/dashboard/account/name-settings";
+import { EmailSettings } from "@/features/dashboard/account/email-settings";
+import { PasswordSettings } from "@/features/dashboard/account/password-settings";
+import { DangerZone } from "@/features/dashboard/account/danger-zone";
 import { cn } from "@/lib/utils";
-import { useUser } from "@/hooks/use-user";
+import { useUser } from "@/lib/hooks/use-user";
 
 export default function AccountPageClient() {
   const { user } = useUser();

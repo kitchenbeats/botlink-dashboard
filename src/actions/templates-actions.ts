@@ -7,7 +7,7 @@ import {
   getTeamApiKey,
   getUserAccessToken,
   guardAction,
-} from "./utils";
+} from "@/lib/utils/actions";
 import { MOCK_TEMPLATES_DATA } from "@/configs/mock-data";
 import { E2BError } from "@/types/errors";
 
@@ -20,7 +20,10 @@ export const getTeamTemplatesAction = guardAction(
   GetTeamTemplatesParamsSchema,
   async ({ apiUrl, teamId }) => {
     // TODO: Remove this after staging
-    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "production") {
+    if (
+      process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "production"
+    ) {
       await new Promise((resolve) => setTimeout(resolve, 500));
       return MOCK_TEMPLATES_DATA;
     }

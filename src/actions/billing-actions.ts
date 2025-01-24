@@ -2,7 +2,11 @@
 
 import { ActionResponse } from "@/types/actions";
 import { Invoice } from "@/types/billing";
-import { checkAuthenticated, getTeamApiKey, guardAction } from "./utils";
+import {
+  checkAuthenticated,
+  getTeamApiKey,
+  guardAction,
+} from "@/lib/utils/actions";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 

@@ -1,5 +1,5 @@
-import SandboxesTable from "@/components/dashboard/sandboxes/sandboxes-table";
-import DashboardPageLayout from "@/components/dashboard/dashboard-page-layout";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import SandboxesTable from "@/features/dashboard/sandboxes/table";
 import { Suspense } from "react";
 
 export default function Page() {

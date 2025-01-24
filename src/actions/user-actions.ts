@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { User } from "@supabase/supabase-js";
-import { checkAuthenticated, guardAction } from "./utils";
+import { checkAuthenticated, guardAction } from "@/lib/utils/actions";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";

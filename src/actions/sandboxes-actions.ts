@@ -1,7 +1,11 @@
 "use server";
 
 import { Sandbox, SandboxMetrics } from "@/types/api";
-import { checkAuthenticated, getTeamApiKey, guardAction } from "./utils";
+import {
+  checkAuthenticated,
+  getTeamApiKey,
+  guardAction,
+} from "@/lib/utils/actions";
 import { z } from "zod";
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from "@/configs/mock-data";
 

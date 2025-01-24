@@ -18,7 +18,7 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["Aeonik Pro VF, sans-serif"],
+        sans: ["IBM Plex Sans", "sans-serif"],
         mono: ["IBM Plex Mono", "monospace"],
       },
       colors: {
@@ -135,23 +135,7 @@ const config = {
       },
     },
   },
-  plugins: [
-    require("tailwindcss-animate"),
-    require("tailwind-scrollbar"),
-    /*     plugin(function ({ addComponents }) {
-      addComponents({
-        ".bottom-b-solid-contrast-1": {
-          borderBottom: "2px solid hsl(var(--contrast-1))",
-        },
-        ".bottom-b-solid-contrast-2": {
-          borderBottom: "2px solid hsl(var(--contrast-2))",
-        },
-        ".bottom-b-solid-accent": {
-          borderBottom: "2px solid hsl(var(--accent))",
-        },
-      });
-    }), */
-  ],
+  plugins: [require("tailwindcss-animate"), require("tailwind-scrollbar")],
   presets: [
     // Matchs Fumadocs colors to our theme
     createPreset({

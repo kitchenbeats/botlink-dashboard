@@ -4,7 +4,7 @@ import { loader } from "fumadocs-core/source";
 import { icons } from "lucide-react";
 import { createElement } from "react";
 import { meta, docs } from "@/../.source";
-import { IconContainer } from "@/components/ui/icon";
+import { IconContainer } from "@/ui/icon";
 
 /* import { attachFile, createOpenAPI } from "fumadocs-openapi/server"; */
 
