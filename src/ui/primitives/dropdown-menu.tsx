@@ -5,6 +5,7 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 
 import { cn } from "@/lib/utils";
 import { cardVariants } from "@/ui/primitives/card";
+import { ChevronRight } from "lucide-react";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -23,18 +24,18 @@ const DropdownMenuSubTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex select-none items-center gap-2",
-      "px-3 py-1.5",
-      "font-mono text-sm uppercase tracking-wider",
+      "px-2 py-1.5 font-mono",
+      "text-xs tracking-wider",
       "cursor-default outline-none",
-      "data-[state=open]:bg-bg-300",
-      "focus:bg-bg-300",
+      "data-[state=open]:bg-accent/10 data-[state=open]:text-accent",
+      "focus:bg-accent/10 focus:text-accent",
       inset && "pl-8",
       className,
     )}
     {...props}
   >
     {children}
-    <span className="ml-auto text-fg-300">▶</span>
+    <ChevronRight className="ml-auto size-4" />
   </DropdownMenuPrimitive.SubTrigger>
 ));
 DropdownMenuSubTrigger.displayName =
@@ -47,9 +48,9 @@ const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      "z-50 min-w-[8rem] overflow-hidden rounded-md",
-      "border border-dashed bg-bg p-1",
-      "text-fg [border-bottom:1px_solid_hsl(var(--contrast-1))]",
+      "z-50 mx-1 min-w-[10rem] overflow-hidden rounded-md",
+      cardVariants({ variant: "layer" }),
+      "shadow-sm",
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
       "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -106,7 +107,7 @@ const DropdownMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2",
-      "px-3 py-1.5",
+      "px-2 py-1.5",
       "font-mono text-xs",
       "outline-none",
       "focus:bg-accent/10 focus:text-accent",

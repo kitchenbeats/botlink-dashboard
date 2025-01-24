@@ -1,13 +1,12 @@
-import { Plus } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "./primitives/button";
 import React from "react";
-import { Separator } from "@radix-ui/react-separator";
-import { cn } from "@/lib/utils";
+import { Separator } from "./primitives/separator";
 
 interface TableFilterButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
-  value?: string;
+  value: string;
 }
 
 export const TableFilterButton = React.forwardRef<
@@ -19,22 +18,16 @@ export const TableFilterButton = React.forwardRef<
       ref={ref}
       variant="outline"
       size="sm"
-      className="h-7 text-xs"
+      className="max-w-56 text-xs"
       suppressHydrationWarning
       {...props}
     >
-      <Plus
-        className={cn(
-          "size-3.5 transition-transform ease-in-out",
-          value && "rotate-45",
-        )}
-        suppressHydrationWarning
-      />
+      <X className={"size-3.5"} />
       {label}
       {value && (
         <>
           <Separator orientation="vertical" className="h-4" />
-          <span className="normal-case text-accent">{value}</span>
+          <span className="truncate text-accent">{value}</span>
         </>
       )}
     </Button>

@@ -35,11 +35,10 @@ interface SandboxTableState {
   sorting: SortingState;
   globalFilter: string;
   pagination: PaginationState;
-  columnFilters: ColumnFiltersState;
 
   // Filter state
   startedAtFilter: StartedAtFilter;
-  templateId: string | undefined;
+  templateIds: string[];
   cpuCount: number | undefined;
   memoryMB: number | undefined;
 }
@@ -52,7 +51,7 @@ interface SandboxTableActions {
 
   // Filter actions
   setStartedAtFilter: (filter: StartedAtFilter) => void;
-  setTemplateId: (id: string | undefined) => void;
+  setTemplateIds: (ids: string[]) => void;
   setCpuCount: (count: number | undefined) => void;
   setMemoryMB: (mb: number | undefined) => void;
   resetFilters: () => void;
@@ -74,51 +73,12 @@ const initialState: SandboxTableState = {
     pageIndex: 0,
     pageSize: 50,
   },
-  columnFilters: [],
 
   // Filter state
   startedAtFilter: undefined,
-  templateId: undefined,
+  templateIds: [],
   cpuCount: undefined,
   memoryMB: undefined,
-};
-
-const updateColumnFilters = (state: SandboxTableState): ColumnFiltersState => {
-  const filters: ColumnFiltersState = [];
-
-  // Started At filter
-  if (state.startedAtFilter) {
-    const now = new Date();
-    const from =
-      state.startedAtFilter === "1h ago"
-        ? new Date(now.getTime() - 60 * 60 * 1000)
-        : state.startedAtFilter === "6h ago"
-          ? new Date(now.getTime() - 6 * 60 * 60 * 1000)
-          : state.startedAtFilter === "12h ago"
-            ? new Date(now.getTime() - 12 * 60 * 60 * 1000)
-            : undefined;
-
-    if (from) {
-      filters.push({ id: "startedAt", value: { from, to: now } });
-    }
-  }
-
-  // Template filter
-  if (state.templateId) {
-    filters.push({ id: "template", value: state.templateId });
-  }
-
-  // CPU Usage filter
-  if (state.cpuCount) {
-    filters.push({ id: "cpuUsage", value: state.cpuCount });
-  }
-
-  // RAM Usage filter
-  if (state.memoryMB) {
-    filters.push({ id: "ramUsage", value: state.memoryMB });
-  }
-
-  return filters;
 };
 
 export const useSandboxTableStore = create<Store>()(
@@ -152,57 +112,39 @@ export const useSandboxTableStore = create<Store>()(
 
       // Filter actions
       setStartedAtFilter: (startedAtFilter) => {
-        const state = get();
-        const newState = { ...state, startedAtFilter };
         set({
-          ...newState,
-          columnFilters: updateColumnFilters(newState),
+          startedAtFilter,
         });
       },
-      setTemplateId: (templateId) => {
-        const state = get();
-        const newState = { ...state, templateId };
+      setTemplateIds: (templateIds) => {
         set({
-          ...newState,
-          columnFilters: updateColumnFilters(newState),
+          templateIds,
         });
       },
       setCpuCount: (cpuCount) => {
-        const state = get();
-        const newState = { ...state, cpuCount };
         set({
-          ...newState,
-          columnFilters: updateColumnFilters(newState),
+          cpuCount,
         });
       },
       setMemoryMB: (memoryMB) => {
-        const state = get();
-        const newState = { ...state, memoryMB };
         set({
-          ...newState,
-          columnFilters: updateColumnFilters(newState),
+          memoryMB,
         });
       },
       resetFilters: () => {
-        const resetState = {
-          ...get(),
+        set({
           startedAtFilter: initialState.startedAtFilter,
-          templateId: initialState.templateId,
+          templateIds: initialState.templateIds,
           cpuCount: initialState.cpuCount,
           memoryMB: initialState.memoryMB,
-        };
-        set({
-          ...resetState,
-          columnFilters: updateColumnFilters(resetState),
         });
       },
 
       // Page actions
       setPollingInterval: (pollingInterval) =>
-        set((state) => ({
-          ...state,
+        set({
           pollingInterval,
-        })),
+        }),
     }),
     {
       name: "state",

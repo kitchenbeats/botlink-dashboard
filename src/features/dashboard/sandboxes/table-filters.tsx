@@ -2,16 +2,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/ui/primitives/dropdown-menu";
 import { DropdownMenuTrigger } from "@/ui/primitives/dropdown-menu";
 import { cn } from "@/lib/utils";
 import * as React from "react";
-import { TableFilterButton } from "@/ui/table-filter-button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/ui/primitives/popover";
 import {
   Command,
   CommandInput,
@@ -26,53 +24,41 @@ import { Label } from "@/ui/primitives/label";
 import { Separator } from "@/ui/primitives/separator";
 import { useDebounceValue } from "usehooks-ts";
 import { useSandboxTableStore } from "@/features/dashboard/sandboxes/stores/table-store";
+import { Button } from "@/ui/primitives/button";
+import { FilterIcon } from "lucide-react";
+import { TableFilterButton } from "@/ui/table-filter-button";
 
 export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
 
 // Components
 const RunningSinceFilter = () => {
-  const { startedAtFilter, setStartedAtFilter, resetFilters } =
-    useSandboxTableStore();
+  const { startedAtFilter, setStartedAtFilter } = useSandboxTableStore();
 
   const handleRunningSince = (value?: StartedAtFilter) => {
     if (!value) {
-      resetFilters();
+      setStartedAtFilter(undefined);
     } else {
       setStartedAtFilter(value);
     }
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <TableFilterButton label="Started" value={startedAtFilter} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        {startedAtFilter && (
-          <DropdownMenuItem
-            onClick={() => handleRunningSince()}
-            className="mb-2 bg-accent/10 text-accent"
-          >
-            Clear
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem onClick={() => handleRunningSince("1h ago")}>
-          1 hour ago
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleRunningSince("6h ago")}>
-          6 hours ago
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleRunningSince("12h ago")}>
-          12 hours ago
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div>
+      <DropdownMenuItem onClick={() => handleRunningSince("1h ago")}>
+        1 hour ago
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => handleRunningSince("6h ago")}>
+        6 hours ago
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => handleRunningSince("12h ago")}>
+        12 hours ago
+      </DropdownMenuItem>
+    </div>
   );
 };
 
 const TemplateFilter = () => {
-  const [open, setOpen] = React.useState(false);
-  const { templateId, setTemplateId } = useSandboxTableStore();
+  const { templateIds, setTemplateIds } = useSandboxTableStore();
 
   const {
     data: templates,
@@ -83,64 +69,42 @@ const TemplateFilter = () => {
   });
 
   const handleSelect = (templateId: string) => {
-    setTemplateId(templateId);
-    setOpen(false);
-  };
-
-  const handleClear = () => {
-    setTemplateId(undefined);
-    setOpen(false);
+    setTemplateIds([...templateIds, templateId]);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <TableFilterButton label="Template" value={templateId} />
-      </PopoverTrigger>
-      <PopoverContent className="p-0" side="bottom" align="start">
-        <Command>
-          <CommandInput placeholder="Search templates..." />
-          <CommandList>
-            {templateId && (
-              <CommandItem
-                onSelect={handleClear}
-                className="mb-1 bg-accent/10 text-accent"
-              >
-                Clear
-              </CommandItem>
-            )}
-            {templatesLoading ? (
-              <div className="p-4 text-center">
-                <Loader variant="dots" className="text-accent" />
-              </div>
-            ) : templatesError ? (
-              <Alert variant="error" className="m-2">
-                <AlertTitle>Error loading templates</AlertTitle>
-                <AlertDescription>{templatesError.message}</AlertDescription>
-              </Alert>
-            ) : templates?.length === 0 ? (
-              <div className="p-4 text-center text-sm text-fg-500">
-                No templates found
-              </div>
-            ) : (
-              templates?.map((template) => (
-                <CommandItem
-                  key={template.templateID}
-                  onSelect={() => handleSelect(template.templateID)}
-                >
-                  {template.templateID}
-                </CommandItem>
-              ))
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Command>
+      <CommandInput placeholder="Search templates..." />
+      <CommandList>
+        {templatesLoading ? (
+          <div className="p-4 text-center">
+            <Loader variant="dots" className="text-accent" />
+          </div>
+        ) : templatesError ? (
+          <Alert variant="error" className="m-2">
+            <AlertTitle>Error loading templates</AlertTitle>
+            <AlertDescription>{templatesError.message}</AlertDescription>
+          </Alert>
+        ) : templates?.length === 0 ? (
+          <div className="p-4 text-center text-sm text-fg-500">
+            No templates found
+          </div>
+        ) : (
+          templates?.map((template) => (
+            <CommandItem
+              key={template.templateID}
+              onSelect={() => handleSelect(template.templateID)}
+            >
+              {template.templateID}
+            </CommandItem>
+          ))
+        )}
+      </CommandList>
+    </Command>
   );
 };
 
 const ResourcesFilter = () => {
-  const [open, setOpen] = React.useState(false);
   const { cpuCount, setCpuCount, memoryMB, setMemoryMB } =
     useSandboxTableStore();
 
@@ -159,65 +123,57 @@ const ResourcesFilter = () => {
   }, [debouncedMemoryMB, setMemoryMB]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <TableFilterButton
-          label="Resources"
-          value={cpuCount || memoryMB ? "Active" : undefined}
-        />
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" side="bottom" align="start">
-        <div className="grid gap-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>CPU Cores</Label>
-              <span className="text-xs text-accent">
-                {localCpuCount === 0 ? "Off" : `${localCpuCount} cores`}
-              </span>
-            </div>
-            <div>
-              <Slider
-                value={[localCpuCount]}
-                onValueChange={([value]) => setLocalCpuCount(value)}
-                max={8}
-                step={1}
-                className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
-              />
-              <div className="mt-3 flex justify-between text-xs text-fg-500">
-                <span>Off</span>
-                <span>8</span>
-              </div>
-            </div>
+    <div className="w-80 p-4">
+      <div className="grid gap-4">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label>CPU Cores</Label>
+            <span className="text-xs text-accent">
+              {localCpuCount === 0 ? "Off" : `${localCpuCount} cores`}
+            </span>
           </div>
-          <Separator />
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Memory</Label>
-              <span className="text-xs text-accent">
-                {localMemoryMB === 0
-                  ? "Off"
-                  : localMemoryMB < 1024
-                    ? `${localMemoryMB} MB`
-                    : `${localMemoryMB / 1024} GB`}
-              </span>
-            </div>
-            <div>
-              <Slider
-                value={[localMemoryMB]}
-                onValueChange={([value]) => setLocalMemoryMB(value)}
-                max={8192}
-                step={512}
-                className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
-              />
-              <div className="mt-3 flex justify-between text-xs text-fg-500">
-                <span>Off</span>
-                <span>8GB</span>
-              </div>
+          <div>
+            <Slider
+              value={[localCpuCount]}
+              onValueChange={([value]) => setLocalCpuCount(value)}
+              max={8}
+              step={1}
+              className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+            />
+            <div className="mt-3 flex justify-between text-xs text-fg-500">
+              <span>Off</span>
+              <span>8</span>
             </div>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+        <Separator />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label>Memory</Label>
+            <span className="text-xs text-accent">
+              {localMemoryMB === 0
+                ? "Off"
+                : localMemoryMB < 1024
+                  ? `${localMemoryMB} MB`
+                  : `${localMemoryMB / 1024} GB`}
+            </span>
+          </div>
+          <div>
+            <Slider
+              value={[localMemoryMB]}
+              onValueChange={([value]) => setLocalMemoryMB(value)}
+              max={8192}
+              step={512}
+              className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+            />
+            <div className="mt-3 flex justify-between text-xs text-fg-500">
+              <span>Off</span>
+              <span>8GB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -229,15 +185,94 @@ const SandboxesTableFilters = React.forwardRef<
   HTMLDivElement,
   SandboxesTableFiltersProps
 >(({ className, ...props }, ref) => {
+  const {
+    globalFilter,
+    startedAtFilter,
+    templateIds,
+    cpuCount,
+    memoryMB,
+    setGlobalFilter,
+    setStartedAtFilter,
+    setTemplateIds,
+    setCpuCount,
+    setMemoryMB,
+  } = useSandboxTableStore();
+
   return (
     <div
       ref={ref}
-      className={cn("flex items-center gap-4", className)}
+      className={cn("flex items-center gap-2", className)}
       {...props}
     >
-      <RunningSinceFilter />
-      <TemplateFilter />
-      <ResourcesFilter />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="iconSm" variant="outline">
+            <FilterIcon className="size-4 text-fg-300" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Running Since</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <RunningSinceFilter />
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Template</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <TemplateFilter />
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Resources</DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <ResourcesFilter />
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {globalFilter && (
+        <TableFilterButton
+          label="Search"
+          value={globalFilter}
+          onClick={() => setGlobalFilter("")}
+        />
+      )}
+      {startedAtFilter && (
+        <TableFilterButton
+          label="Started"
+          value={startedAtFilter}
+          onClick={() => setStartedAtFilter(undefined)}
+        />
+      )}
+      {templateIds.length > 0 &&
+        templateIds.map((id) => (
+          <TableFilterButton
+            label="Template"
+            value={id}
+            onClick={() => setTemplateIds(templateIds.filter((t) => t !== id))}
+          />
+        ))}
+      {cpuCount !== undefined && (
+        <TableFilterButton
+          label="CPU"
+          value={cpuCount.toString()}
+          onClick={() => setCpuCount(undefined)}
+        />
+      )}
+      {memoryMB !== undefined && (
+        <TableFilterButton
+          label="Memory"
+          value={memoryMB.toString()}
+          onClick={() => setMemoryMB(undefined)}
+        />
+      )}
     </div>
   );
 });

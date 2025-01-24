@@ -130,7 +130,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     },
     size: 250,
     minSize: 180,
-    filterFn: "equalsString",
+    filterFn: "arrIncludesSome",
   },
 
   {

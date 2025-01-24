@@ -44,7 +44,7 @@ export default function SandboxesTable() {
 
   const {
     startedAtFilter,
-    templateId,
+    templateIds,
     cpuCount,
     memoryMB,
     sorting,
@@ -82,11 +82,11 @@ export default function SandboxesTable() {
     }
 
     // Handle template filter
-    if (!templateId) {
+    if (templateIds.length === 0) {
       newFilters = newFilters.filter((f) => f.id !== "template");
     } else {
       newFilters = newFilters.filter((f) => f.id !== "template");
-      newFilters.push({ id: "template", value: templateId });
+      newFilters.push({ id: "template", value: templateIds });
     }
 
     // Handle CPU filter
@@ -106,7 +106,7 @@ export default function SandboxesTable() {
     }
 
     setColumnFilters(newFilters);
-  }, [startedAtFilter, templateId, cpuCount, memoryMB]);
+  }, [startedAtFilter, templateIds, cpuCount, memoryMB]);
 
   const {
     sandboxes,
