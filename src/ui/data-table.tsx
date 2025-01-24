@@ -40,7 +40,7 @@ function DataTableHead<TData, TValue>({
       <div className="flex h-full items-center gap-3">
         {header.column.getCanSort() && (
           <Button
-            variant="muted"
+            variant="outline"
             size="icon"
             onClick={() => header.column.toggleSorting(undefined, true)}
             className={cn(

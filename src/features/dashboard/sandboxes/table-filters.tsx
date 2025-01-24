@@ -1,7 +1,9 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -32,7 +34,7 @@ export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
 
 // Components
 const RunningSinceFilter = () => {
-  const { startedAtFilter, setStartedAtFilter } = useSandboxTableStore();
+  const { setStartedAtFilter } = useSandboxTableStore();
 
   const handleRunningSince = (value?: StartedAtFilter) => {
     if (!value) {
@@ -211,8 +213,9 @@ const SandboxesTableFilters = React.forwardRef<
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          <DropdownMenuLabel>Filters</DropdownMenuLabel>
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Running Since</DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger>Started</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <RunningSinceFilter />
@@ -237,6 +240,7 @@ const SandboxesTableFilters = React.forwardRef<
           </DropdownMenuSub>
         </DropdownMenuContent>
       </DropdownMenu>
+
       {globalFilter && (
         <TableFilterButton
           label="Search"
@@ -254,6 +258,7 @@ const SandboxesTableFilters = React.forwardRef<
       {templateIds.length > 0 &&
         templateIds.map((id) => (
           <TableFilterButton
+            key={id}
             label="Template"
             value={id}
             onClick={() => setTemplateIds(templateIds.filter((t) => t !== id))}

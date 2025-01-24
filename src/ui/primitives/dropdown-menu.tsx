@@ -187,17 +187,15 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <span
     className={cn(
-      "inline-flex items-center py-1.5 font-mono text-fg-500 first:pt-0 last:pb-0",
+      "inline-flex items-center py-1 pl-2 font-mono text-[0.625rem] text-fg-500 first:pt-0 last:pb-0",
       inset && "pl-8",
     )}
   >
-    [
     <DropdownMenuPrimitive.Label
       ref={ref}
       className={cn("text-xs uppercase", className)}
       {...props}
     />
-    ]
   </span>
 ));
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
