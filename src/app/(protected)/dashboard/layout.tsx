@@ -13,13 +13,7 @@ export default async function Layout({
     <ClientProviders>
       <div className="mx-auto flex h-svh max-h-full w-full flex-col">
         <NetworkStateBanner />
-        <div
-          className="flex h-full max-h-full w-full overflow-hidden"
-          style={{
-            background:
-              "radial-gradient(ellipse at top right, hsl(var(--bg-100)) 10%, hsl(var(--bg)) 30%)",
-          }}
-        >
+        <div className="flex h-full max-h-full w-full overflow-hidden">
           <Sidebar />
           <main className="flex-1">{children}</main>
         </div>

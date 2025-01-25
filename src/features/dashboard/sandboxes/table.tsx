@@ -195,7 +195,7 @@ export default function SandboxesTable() {
         table={table}
       />
 
-      <div className="max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg pt-4">
+      <div className="mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
         {isMounted && (
           <DataTable
             className="h-full min-w-[calc(100svw-var(--protected-sidebar-width))] overflow-y-auto"
