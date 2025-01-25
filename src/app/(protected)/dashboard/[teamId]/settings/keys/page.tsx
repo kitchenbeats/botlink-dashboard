@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import KeysPageClient from "./page-client";
 
 export default function KeysPage() {
-  return <KeysPageClient />;
+  return (
+    <Suspense>
+      <KeysPageClient />
+    </Suspense>
+  );
 }

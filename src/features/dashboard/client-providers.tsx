@@ -2,8 +2,9 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MetadataProvider } from "./metadata-provider";
-import { useState } from "react";
+import { useState, useLayoutEffect } from "react";
 import { DashboardTitleProvider } from "./dashboard-title-provider";
+import { preloadTeams } from "@/lib/hooks/use-teams";
 
 interface ClientProvidersProps {
   children: React.ReactNode;
@@ -11,6 +12,10 @@ interface ClientProvidersProps {
 
 export default function ClientProviders({ children }: ClientProvidersProps) {
   const [queryClient] = useState(() => new QueryClient());
+
+  useLayoutEffect(() => {
+    preloadTeams();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

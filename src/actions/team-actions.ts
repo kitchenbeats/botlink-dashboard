@@ -9,46 +9,11 @@ import {
 } from "@/lib/utils/actions";
 import { z } from "zod";
 import { User } from "@supabase/supabase-js";
-import { redirect } from "next/navigation";
-import { PROTECTED_URLS } from "@/configs/urls";
 import {
   E2BError,
   InvalidParametersError,
   UnauthorizedError,
 } from "@/types/errors";
-import { TeamWithDefault } from "@/types/dashboard";
-
-// Get user teams
-
-export const getUserTeamsAction = guardAction(async () => {
-  const { user } = await checkAuthenticated();
-
-  const { data: usersTeamsData, error } = await supabaseAdmin
-    .from("users_teams")
-    .select("*, teams (*)")
-    .eq("user_id", user.id);
-
-  if (error) {
-    throw error;
-  }
-
-  if (!usersTeamsData || usersTeamsData.length === 0) {
-    redirect(PROTECTED_URLS.DASHBOARD);
-  }
-
-  return transformTeamsData(usersTeamsData);
-});
-
-function transformTeamsData(
-  data: (Database["public"]["Tables"]["users_teams"]["Row"] & {
-    teams: Database["public"]["Tables"]["teams"]["Row"];
-  })[],
-): TeamWithDefault[] {
-  return data.map((userTeam) => {
-    const team = userTeam.teams;
-    return { ...team, is_default: userTeam.is_default };
-  });
-}
 
 // Update team name
 

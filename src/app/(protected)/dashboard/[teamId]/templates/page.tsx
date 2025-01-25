@@ -4,10 +4,10 @@ import { Suspense } from "react";
 
 export default function Page() {
   return (
-    <DashboardPageLayout title="Templates" fullscreen>
-      <Suspense>
+    <Suspense>
+      <DashboardPageLayout title="Templates" fullscreen>
         <TemplatesTable />
-      </Suspense>
-    </DashboardPageLayout>
+      </DashboardPageLayout>
+    </Suspense>
   );
 }

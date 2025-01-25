@@ -1,23 +1,39 @@
-import { getUserTeamsAction } from "@/actions/team-actions";
 import { useMetadata } from "@/features/dashboard/metadata-provider";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { useMemo } from "react";
-import useSWR from "swr";
+import useSWR, { preload } from "swr";
+import { TeamWithDefault } from "@/types/dashboard";
+
+// Fetcher function extracted so we can use it for preloading
+const teamsFetcher = async () => {
+  const response = await fetch("/api/teams/user");
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json.error);
+  }
+
+  return json as TeamWithDefault[];
+};
+
+// Preload teams data - call this as early as possible (e.g., in your root layout)
+export const preloadTeams = () => {
+  preload(QUERY_KEYS.TEAMS(), teamsFetcher);
+};
 
 export const useTeams = () => {
   const { data, error, isLoading, mutate } = useSWR(
     QUERY_KEYS.TEAMS(),
-    async () => {
-      const response = await getUserTeamsAction();
-
-      if (response.type === "error") {
-        throw new Error(response.message);
-      }
-
-      return response.data;
-    },
+    teamsFetcher,
     {
       dedupingInterval: 60000,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      keepPreviousData: true,
+      revalidateIfStale: true,
+      errorRetryCount: 3,
+      ttl: 24 * 60 * 60 * 1000,
     },
   );
 
