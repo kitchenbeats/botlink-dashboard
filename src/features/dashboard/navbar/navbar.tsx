@@ -167,7 +167,7 @@ export default function DasboardNav({ className }: DashboardNavProps) {
                   >
                     <Link
                       shallow
-                      prefetch
+                      prefetch={false}
                       href={item.href({ teamId: selectedTeamId })}
                       suppressHydrationWarning
                       className={cn(

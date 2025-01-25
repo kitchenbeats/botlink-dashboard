@@ -253,7 +253,6 @@ export const sandboxesTableConfig: Partial<TableOptions<SandboxWithMetrics>> = {
   getCoreRowModel: getCoreRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
   getSortedRowModel: getSortedRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
   enableSorting: true,
   enableMultiSort: true,
   columnResizeMode: "onChange",

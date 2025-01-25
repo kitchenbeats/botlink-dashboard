@@ -168,9 +168,6 @@ function generateMockSandboxes(count: number): Sandbox[] {
   return sandboxes;
 }
 
-export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(142);
-export const MOCK_TEMPLATES_DATA = TEMPLATES;
-
 function generateMockMetrics(
   sandboxes: Sandbox[],
 ): Map<string, SandboxMetrics> {
@@ -254,3 +251,5 @@ function generateMockMetrics(
 
 export const MOCK_METRICS_DATA = (sandboxes: Sandbox[]) =>
   generateMockMetrics(sandboxes);
+export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(5000);
+export const MOCK_TEMPLATES_DATA = TEMPLATES;

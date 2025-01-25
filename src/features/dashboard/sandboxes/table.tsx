@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useMemo } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import {
   ColumnFiltersState,
@@ -12,6 +12,7 @@ import {
   DataTableHeader,
   DataTableRow,
   DataTableHead,
+  DataTablePagination,
 } from "@/ui/data-table";
 import useIsMounted from "@/lib/hooks/use-is-mounted";
 import {
@@ -28,10 +29,14 @@ import { subHours } from "date-fns";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import { useSandboxData } from "./hooks/use-sandboxes-data";
 
+const INITIAL_VISUAL_ROWS_COUNT = 50;
+
 export default function SandboxesTable() {
   const isMounted = useIsMounted();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const team = useSelectedTeam();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const [columnSizing, setColumnSizing] = useLocalStorage<ColumnSizingState>(
     "sandboxes:columnSizing",
@@ -49,15 +54,24 @@ export default function SandboxesTable() {
     memoryMB,
     sorting,
     globalFilter,
-    pagination,
     setSorting,
     setGlobalFilter,
-    setPagination,
   } = useSandboxTableStore();
 
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
+
+  const [visualRowsCount, setVisualRowsCount] = React.useState(
+    INITIAL_VISUAL_ROWS_COUNT,
+  );
+
+  const resetScroll = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+    setVisualRowsCount(INITIAL_VISUAL_ROWS_COUNT);
+  };
 
   // Effect hooks for filters
   React.useEffect(() => {
@@ -105,8 +119,13 @@ export default function SandboxesTable() {
       newFilters.push({ id: "ramUsage", value: memoryMB });
     }
 
+    resetScroll();
     setColumnFilters(newFilters);
   }, [startedAtFilter, templateIds, cpuCount, memoryMB]);
+
+  React.useEffect(() => {
+    resetScroll();
+  }, [sorting, globalFilter]);
 
   const {
     sandboxes,
@@ -124,7 +143,6 @@ export default function SandboxesTable() {
       sorting,
       columnSizing,
       columnFilters,
-      pagination,
       // @ts-expect-error team is not a valid state
       team,
     },
@@ -132,7 +150,6 @@ export default function SandboxesTable() {
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnSizingChange: setColumnSizing,
-    onPaginationChange: setPagination,
   });
 
   /**
@@ -152,8 +169,15 @@ export default function SandboxesTable() {
     return colSizes;
   }, [table.getState().columnSizing, table.getState().columnSizingInfo]);
 
+  const handleBottomReached = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollTop + clientHeight >= scrollHeight) {
+      setVisualRowsCount((state) => state + INITIAL_VISUAL_ROWS_COUNT);
+    }
+  };
+
   return (
-    <div className="flex h-full flex-col gap-4 pt-3">
+    <div className="flex h-full flex-col pt-3">
       <TableHeader
         searchInputRef={searchInputRef}
         sandboxes={sandboxes}
@@ -162,11 +186,13 @@ export default function SandboxesTable() {
         table={table}
       />
 
-      <div className="max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
+      <div className="max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg pt-4">
         {isMounted && (
           <DataTable
-            className="h-full min-w-[calc(100svw-var(--protected-sidebar-width))] overflow-y-auto pb-12"
+            className="h-full min-w-[calc(100svw-var(--protected-sidebar-width))] overflow-y-auto"
+            onScroll={handleBottomReached}
             style={{ ...columnSizeVars }}
+            ref={scrollRef}
           >
             <DataTableHeader className="sticky top-0">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -197,6 +223,7 @@ export default function SandboxesTable() {
               sandboxesLoading={sandboxesLoading}
               sandboxes={sandboxes}
               table={table}
+              visualRowsCount={visualRowsCount}
             />
           </DataTable>
         )}

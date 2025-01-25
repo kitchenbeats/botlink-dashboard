@@ -4,12 +4,14 @@ import { Loader } from "@/ui/loader";
 import { Table } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { SandboxWithMetrics } from "./table-config";
+import { useMemo } from "react";
 
 interface TableBodyProps {
   sandboxesError: Error | undefined;
   sandboxesLoading: boolean;
   sandboxes: SandboxWithMetrics[] | undefined;
   table: Table<SandboxWithMetrics>;
+  visualRowsCount: number;
 }
 
 export function TableBody({
@@ -17,8 +19,15 @@ export function TableBody({
   sandboxesLoading,
   sandboxes,
   table,
+  visualRowsCount,
 }: TableBodyProps) {
   "use no memo";
+
+  const { rows } = table.getRowModel();
+
+  const visualRows = useMemo(() => {
+    return rows.slice(0, visualRowsCount);
+  }, [rows, visualRowsCount]);
 
   return (
     <DataTableBody>
@@ -39,9 +48,9 @@ export function TableBody({
             <AlertDescription>This may take a moment.</AlertDescription>
           </Alert>
         </DataTableRow>
-      ) : sandboxes && table.getRowModel()?.rows?.length ? (
+      ) : sandboxes && visualRows.length ? (
         <>
-          {table.getRowModel().rows.map((row) => (
+          {visualRows.map((row) => (
             <DataTableRow
               key={row.id}
               isSelected={row.getIsSelected()}

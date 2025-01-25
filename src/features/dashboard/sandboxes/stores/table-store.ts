@@ -34,7 +34,6 @@ interface SandboxTableState {
   // Table state
   sorting: SortingState;
   globalFilter: string;
-  pagination: PaginationState;
 
   // Filter state
   startedAtFilter: StartedAtFilter;
@@ -47,7 +46,6 @@ interface SandboxTableActions {
   // Table actions
   setSorting: OnChangeFn<SortingState>;
   setGlobalFilter: OnChangeFn<string>;
-  setPagination: OnChangeFn<PaginationState>;
 
   // Filter actions
   setStartedAtFilter: (filter: StartedAtFilter) => void;
@@ -69,10 +67,6 @@ const initialState: SandboxTableState = {
   // Table state
   sorting: [],
   globalFilter: "",
-  pagination: {
-    pageIndex: 0,
-    pageSize: 50,
-  },
 
   // Filter state
   startedAtFilter: undefined,
@@ -100,14 +94,6 @@ export const useSandboxTableStore = create<Store>()(
             typeof globalFilter === "function"
               ? globalFilter(state.globalFilter)
               : globalFilter,
-        })),
-      setPagination: (pagination) =>
-        set((state) => ({
-          ...state,
-          pagination:
-            typeof pagination === "function"
-              ? pagination(state.pagination)
-              : pagination,
         })),
 
       // Filter actions

@@ -8,6 +8,13 @@ import {
   ArrowUpDown,
   ArrowUpNarrowWide,
 } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/ui/primitives/select";
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -110,50 +117,55 @@ interface DataTableRowProps extends React.HTMLAttributes<HTMLDivElement> {
   isSelected?: boolean;
 }
 
-function DataTableRow({
-  children,
-  className,
-  isSelected,
-  ...props
-}: DataTableRowProps) {
-  return (
-    <div
-      className={cn(
-        "bg-bg transition-colors data-[state=selected]:bg-bg-300 hover:bg-bg-100/80",
-        "flex w-full items-center",
-        {
-          "bg-bg-100": isSelected,
-        },
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
+const DataTableRow = React.forwardRef<HTMLDivElement, DataTableRowProps>(
+  ({ children, className, isSelected, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "bg-bg transition-colors data-[state=selected]:bg-bg-300 hover:bg-bg-100/80",
+          "flex w-full items-center",
+          {
+            "bg-bg-100": isSelected,
+          },
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+DataTableRow.displayName = "DataTableRow";
 
 interface DataTableProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
 }
 
-function DataTable({ className, children, ...props }: DataTableProps) {
-  return (
-    <div
-      className={cn(
-        // Base table styles from table.tsx
-        "w-full caption-bottom border-t",
-        "font-mono text-sm",
-        // Div table styles
-        "w-fit",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
+const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          // Base table styles from table.tsx
+          "w-full caption-bottom border-t",
+          "font-mono text-sm",
+          // Div table styles
+          "w-fit",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
+
+DataTable.displayName = "DataTable";
 
 interface DataTableHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -173,12 +185,105 @@ function DataTableHeader({
 
 interface DataTableBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  virtualizedTotalHeight?: number;
 }
 
 function DataTableBody({ className, children, ...props }: DataTableBodyProps) {
   return (
-    <div className={cn(className)} {...props}>
+    <div
+      style={
+        props.virtualizedTotalHeight
+          ? {
+              height: `${props.virtualizedTotalHeight}px`,
+              position: "relative",
+            }
+          : {}
+      }
+      className={cn(className)}
+      {...props}
+    >
       {children}
+    </div>
+  );
+}
+
+interface DataTablePaginationProps {
+  className?: string;
+  pageSize: number;
+  pageIndex: number;
+  pageCount: number;
+  onPageSizeChange: (pageSize: number) => void;
+  onPageChange: (pageIndex: number) => void;
+}
+
+function DataTablePagination({
+  className,
+  pageSize,
+  pageIndex,
+  pageCount,
+  onPageSizeChange,
+  onPageChange,
+}: DataTablePaginationProps) {
+  return (
+    <div className={cn("flex items-center gap-8 border-t p-2 px-3", className)}>
+      <div className="flex items-center gap-2 text-xs">
+        <div className="text-fg-300">
+          Page {pageIndex + 1} of {pageCount}
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="iconSm"
+            onClick={() => onPageChange(0)}
+            disabled={pageIndex === 0}
+          >
+            ««
+          </Button>
+          <Button
+            variant="outline"
+            size="iconSm"
+            onClick={() => onPageChange(pageIndex - 1)}
+            disabled={pageIndex === 0}
+          >
+            «
+          </Button>
+          <Button
+            variant="outline"
+            size="iconSm"
+            onClick={() => onPageChange(pageIndex + 1)}
+            disabled={pageIndex === pageCount - 1}
+          >
+            »
+          </Button>
+          <Button
+            variant="outline"
+            size="iconSm"
+            onClick={() => onPageChange(pageCount - 1)}
+            disabled={pageIndex === pageCount - 1}
+          >
+            »»
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 text-xs text-fg-300">
+        <Select
+          value={pageSize.toString()}
+          onValueChange={(value) => onPageSizeChange(Number(value))}
+        >
+          <SelectTrigger className="h-6 w-fit gap-1 border-none bg-transparent pr-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[10, 20, 30, 40, 50, 75, 100].map((size) => (
+              <SelectItem key={size} value={size.toString()}>
+                {size}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span>rows per page</span>
+      </div>
     </div>
   );
 }
@@ -190,4 +295,5 @@ export {
   DataTable,
   DataTableHeader,
   DataTableBody,
+  DataTablePagination,
 };
