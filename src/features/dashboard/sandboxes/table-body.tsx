@@ -23,11 +23,11 @@ export function TableBody({
 }: TableBodyProps) {
   "use no memo";
 
-  const { rows } = table.getRowModel();
+  const centerRows = table.getCenterRows();
 
   const visualRows = useMemo(() => {
-    return rows.slice(0, visualRowsCount);
-  }, [rows, visualRowsCount]);
+    return centerRows.slice(0, visualRowsCount);
+  }, [centerRows, visualRowsCount]);
 
   return (
     <DataTableBody>
@@ -48,7 +48,7 @@ export function TableBody({
             <AlertDescription>This may take a moment.</AlertDescription>
           </Alert>
         </DataTableRow>
-      ) : sandboxes && visualRows.length ? (
+      ) : sandboxes && visualRows?.length > 0 ? (
         <>
           {visualRows.map((row) => (
             <DataTableRow

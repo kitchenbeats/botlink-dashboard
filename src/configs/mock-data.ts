@@ -251,5 +251,5 @@ function generateMockMetrics(
 
 export const MOCK_METRICS_DATA = (sandboxes: Sandbox[]) =>
   generateMockMetrics(sandboxes);
-export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(5000);
+export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(300);
 export const MOCK_TEMPLATES_DATA = TEMPLATES;

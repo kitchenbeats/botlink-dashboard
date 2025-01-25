@@ -4,6 +4,7 @@ import {
   ColumnFiltersState,
   OnChangeFn,
   PaginationState,
+  RowPinningState,
   SortingState,
 } from "@tanstack/react-table";
 import { StartedAtFilter } from "../table-filters";
@@ -34,6 +35,7 @@ interface SandboxTableState {
   // Table state
   sorting: SortingState;
   globalFilter: string;
+  rowPinning: RowPinningState;
 
   // Filter state
   startedAtFilter: StartedAtFilter;
@@ -46,6 +48,7 @@ interface SandboxTableActions {
   // Table actions
   setSorting: OnChangeFn<SortingState>;
   setGlobalFilter: OnChangeFn<string>;
+  setRowPinning: OnChangeFn<RowPinningState>;
 
   // Filter actions
   setStartedAtFilter: (filter: StartedAtFilter) => void;
@@ -67,6 +70,7 @@ const initialState: SandboxTableState = {
   // Table state
   sorting: [],
   globalFilter: "",
+  rowPinning: {},
 
   // Filter state
   startedAtFilter: undefined,
@@ -94,6 +98,14 @@ export const useSandboxTableStore = create<Store>()(
             typeof globalFilter === "function"
               ? globalFilter(state.globalFilter)
               : globalFilter,
+        })),
+      setRowPinning: (rowPinning) =>
+        set((state) => ({
+          ...state,
+          rowPinning:
+            typeof rowPinning === "function"
+              ? rowPinning(state.rowPinning)
+              : rowPinning,
         })),
 
       // Filter actions
