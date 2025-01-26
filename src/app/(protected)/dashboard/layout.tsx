@@ -3,6 +3,7 @@ import ClientProviders from "@/features/dashboard/client-providers";
 import NetworkStateBanner from "@/ui/network-state-banner";
 
 export const dynamic = "force-static";
+export const experimental_ppr = true;
 
 export default async function Layout({
   children,

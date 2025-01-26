@@ -23,7 +23,7 @@ export default function DashboardPageLayout({
           <h2 className="mr-auto text-lg font-bold">{title}</h2>
 
           <ThemeSwitcher />
-          <Suspense fallback={<></>}>
+          <Suspense>
             <UserMenu />
           </Suspense>
         </div>
@@ -34,11 +34,15 @@ export default function DashboardPageLayout({
           fullscreen ? "overflow-hidden" : "overflow-y-auto",
         )}
       >
-        {fullscreen ? (
-          <div className="h-full">{children}</div>
-        ) : (
-          <div className={cn("max-w-[1400px] p-3", className)}>{children}</div>
-        )}
+        <Suspense>
+          {fullscreen ? (
+            <div className="h-full">{children}</div>
+          ) : (
+            <div className={cn("max-w-[1400px] p-3", className)}>
+              {children}
+            </div>
+          )}
+        </Suspense>
       </div>
     </div>
   );

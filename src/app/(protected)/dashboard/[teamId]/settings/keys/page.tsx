@@ -1,10 +1,10 @@
-import { Suspense } from "react";
 import KeysPageClient from "./page-client";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
 
 export default function KeysPage() {
   return (
-    <Suspense>
+    <DashboardPageLayout title="API Keys">
       <KeysPageClient />
-    </Suspense>
+    </DashboardPageLayout>
   );
 }

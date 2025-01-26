@@ -20,9 +20,10 @@ import Link from "next/link";
 import {
   useParams,
   usePathname,
+  useRouter,
   useSelectedLayoutSegments,
 } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 const terminalFrameVariants = {
   initial: () => ({
@@ -102,6 +103,17 @@ export default function DasboardNav({ className }: DashboardNavProps) {
     [navLinks],
   );
 
+  // Pre-fetch all links
+  const router = useRouter();
+
+  useEffect(() => {
+    if (selectedTeamId) {
+      for (const link of navLinks) {
+        router.prefetch(link.href({ teamId: selectedTeamId }));
+      }
+    }
+  }, [selectedTeamId]);
+
   return (
     <LazyMotion features={domAnimation}>
       <AnimatePresence mode="wait" custom={direction} initial={false}>
@@ -168,6 +180,7 @@ export default function DasboardNav({ className }: DashboardNavProps) {
                     <Link
                       href={item.href({ teamId: selectedTeamId })}
                       suppressHydrationWarning
+                      prefetch
                       className={cn(
                         "group flex w-full items-center font-mono text-sm hover:no-underline",
                         pathname ===

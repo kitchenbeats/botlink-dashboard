@@ -1,6 +1,5 @@
 "use client";
 
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
 import { NameSettings } from "@/features/dashboard/account/name-settings";
 import { EmailSettings } from "@/features/dashboard/account/email-settings";
 import { PasswordSettings } from "@/features/dashboard/account/password-settings";
@@ -14,26 +13,24 @@ export default function AccountPageClient() {
   if (!user) return null;
 
   return (
-    <DashboardPageLayout title="Account">
-      <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-12 gap-6">
-          <div className={cn("col-span-full")}>
-            <NameSettings />
-          </div>
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-12 gap-6">
+        <div className={cn("col-span-full")}>
+          <NameSettings />
+        </div>
 
-          <div className={cn("col-span-full")}>
-            <EmailSettings />
-          </div>
+        <div className={cn("col-span-full")}>
+          <EmailSettings />
+        </div>
 
-          <div className={cn("col-span-6")}>
-            <PasswordSettings />
-          </div>
+        <div className={cn("col-span-6")}>
+          <PasswordSettings />
+        </div>
 
-          <div className={cn("col-span-6 h-min")}>
-            <DangerZone />
-          </div>
+        <div className={cn("col-span-6 h-min")}>
+          <DangerZone />
         </div>
       </div>
-    </DashboardPageLayout>
+    </div>
   );
 }

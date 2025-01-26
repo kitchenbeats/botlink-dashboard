@@ -1,10 +1,10 @@
-import { Suspense } from "react";
 import BillingPageClient from "./page-client";
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
 
 export default function BillingPage() {
   return (
-    <Suspense>
+    <DashboardPageLayout title="Billing">
       <BillingPageClient />
-    </Suspense>
+    </DashboardPageLayout>
   );
 }

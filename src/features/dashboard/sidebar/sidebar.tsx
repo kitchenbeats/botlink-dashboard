@@ -15,9 +15,7 @@ export default function Sidebar() {
       </header>
 
       <div className="p-3">
-        <Suspense fallback={<></>}>
-          <DashboardSearch />
-        </Suspense>
+        <DashboardSearch />
       </div>
 
       <Suspense fallback={<></>}>

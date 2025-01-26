@@ -1,10 +1,10 @@
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
 import PageClient from "./page-client";
-import { Suspense } from "react";
 
 export default function AccountPage() {
   return (
-    <Suspense>
+    <DashboardPageLayout title="Account">
       <PageClient />
-    </Suspense>
+    </DashboardPageLayout>
   );
 }

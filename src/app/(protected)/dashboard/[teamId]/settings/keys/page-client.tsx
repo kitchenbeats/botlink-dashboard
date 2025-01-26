@@ -17,28 +17,26 @@ export default function KeysPageClient() {
   const { selectedTeamId } = useMetadata();
 
   return (
-    <DashboardPageLayout title="API Keys">
-      <div className="flex flex-col gap-6">
-        {selectedTeamId && (
-          <Card hideUnderline className="relative">
-            <CardHeader>
-              <CardTitle>Manage Organization Keys</CardTitle>
-              <CardDescription>
-                Organization keys are used to authenticate API requests from
-                your organization's applications.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {selectedTeamId && (
-                <CreateApiKeyDialog teamId={selectedTeamId}>
-                  <Button className="absolute right-6 top-6">CREATE KEY</Button>
-                </CreateApiKeyDialog>
-              )}
-              <ApiKeysTable teamId={selectedTeamId} />
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </DashboardPageLayout>
+    <div className="flex flex-col gap-6">
+      {selectedTeamId && (
+        <Card hideUnderline className="relative">
+          <CardHeader>
+            <CardTitle>Manage Organization Keys</CardTitle>
+            <CardDescription>
+              Organization keys are used to authenticate API requests from your
+              organization's applications.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {selectedTeamId && (
+              <CreateApiKeyDialog teamId={selectedTeamId}>
+                <Button className="absolute right-6 top-6">CREATE KEY</Button>
+              </CreateApiKeyDialog>
+            )}
+            <ApiKeysTable teamId={selectedTeamId} />
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

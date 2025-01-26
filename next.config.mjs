@@ -8,6 +8,7 @@ const config = {
   experimental: {
     reactCompiler: true,
     reactOwnerStack: true,
+    ppr: "incremental",
   },
   async rewrites() {
     return [

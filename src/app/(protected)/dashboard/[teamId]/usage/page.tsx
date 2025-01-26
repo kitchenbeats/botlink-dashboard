@@ -1,10 +1,10 @@
+import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
 import UsagePageClient from "./page-client";
-import { Suspense } from "react";
 
 export default function UsagePage() {
   return (
-    <Suspense>
+    <DashboardPageLayout title="Usage">
       <UsagePageClient />
-    </Suspense>
+    </DashboardPageLayout>
   );
 }
