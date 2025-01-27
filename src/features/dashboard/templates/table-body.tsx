@@ -2,7 +2,7 @@ import { Table } from "@tanstack/react-table";
 import { Template } from "@/types/api";
 import { DataTableBody, DataTableRow, DataTableCell } from "@/ui/data-table";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { Loader } from "@/ui/loader";
+import { AssemblyLoader, Loader } from "@/ui/loader";
 import { flexRender } from "@tanstack/react-table";
 
 interface TableBodyProps {
@@ -29,16 +29,14 @@ export function TableBody({
             <AlertDescription>{templatesError.message}</AlertDescription>
           </Alert>
         </DataTableRow>
-      ) : templatesLoading ? (
-        <DataTableRow>
-          <Alert className="w-full text-left" variant="contrast1">
-            <AlertTitle className="flex items-center gap-2">
-              <Loader variant="compute" />
-              Loading templates...
-            </AlertTitle>
-            <AlertDescription>This may take a moment.</AlertDescription>
-          </Alert>
-        </DataTableRow>
+      ) : templatesLoading || !templates ? (
+        <AssemblyLoader
+          className="p-6"
+          gridWidth={12}
+          interval={6}
+          emptyChar=" "
+          filledChar="░"
+        />
       ) : templates && table.getRowModel()?.rows?.length ? (
         table.getRowModel().rows.map((row) => (
           <DataTableRow key={row.id} className="h-8">

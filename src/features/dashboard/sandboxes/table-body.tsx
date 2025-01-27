@@ -1,10 +1,11 @@
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { DataTableBody, DataTableCell, DataTableRow } from "@/ui/data-table";
-import { Loader } from "@/ui/loader";
+import { AssemblyLoader, Loader } from "@/ui/loader";
 import { Table } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { SandboxWithMetrics } from "./table-config";
 import { useMemo } from "react";
+import { TableSkeleton } from "@/ui/skeletons";
 
 interface TableBodyProps {
   sandboxesError: Error | undefined;
@@ -38,16 +39,14 @@ export function TableBody({
             <AlertDescription>{sandboxesError.message}</AlertDescription>
           </Alert>
         </DataTableRow>
-      ) : sandboxesLoading ? (
-        <DataTableRow>
-          <Alert className="w-full text-left" variant="contrast1">
-            <AlertTitle className="flex items-center gap-2">
-              <Loader variant="compute" />
-              Loading sandboxes...
-            </AlertTitle>
-            <AlertDescription>This may take a moment.</AlertDescription>
-          </Alert>
-        </DataTableRow>
+      ) : sandboxesLoading || !sandboxes ? (
+        <AssemblyLoader
+          className="p-6"
+          gridWidth={12}
+          interval={6}
+          emptyChar=" "
+          filledChar="░"
+        />
       ) : sandboxes && visualRows?.length > 0 ? (
         <>
           {visualRows.map((row) => (

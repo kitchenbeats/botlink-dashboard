@@ -93,14 +93,7 @@ export function TeamSettingsForm() {
             </Button>
           </form>
         ) : (
-          <Skeleton
-            width={50}
-            waveSpeed={0.1}
-            waveFrequency={0.1}
-            waveAmplitude={0.5}
-            height={2}
-            className="h-10 w-[17rem]"
-          />
+          <Skeleton className="h-10 w-[17rem]" />
         )}
         <AnimatePresence mode="wait" initial={false}>
           {message && <AuthFormMessage className="mt-4" message={message} />}
