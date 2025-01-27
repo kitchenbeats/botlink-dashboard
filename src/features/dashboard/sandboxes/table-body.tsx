@@ -1,11 +1,10 @@
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { DataTableBody, DataTableCell, DataTableRow } from "@/ui/data-table";
-import { AssemblyLoader, Loader } from "@/ui/loader";
+import { AssemblyLoader } from "@/ui/loader";
 import { Table } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import { SandboxWithMetrics } from "./table-config";
 import { useMemo } from "react";
-import { TableSkeleton } from "@/ui/skeletons";
 
 interface TableBodyProps {
   sandboxesError: Error | undefined;
