@@ -23,17 +23,20 @@ import {
 } from "./table-config";
 import React from "react";
 import { useSandboxTableStore } from "@/features/dashboard/sandboxes/stores/table-store";
-import { TableHeader } from "./table-header";
+import { SandboxesHeader } from "./header";
 import { TableBody } from "./table-body";
 import { flexRender } from "@tanstack/react-table";
 import { subHours } from "date-fns";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import { useSandboxData } from "./hooks/use-sandboxes-data";
 import { cn } from "@/lib/utils";
+import { useColumnSizeVars } from "@/lib/hooks/use-column-size-vars";
 
 const INITIAL_VISUAL_ROWS_COUNT = 50;
 
 export default function SandboxesTable() {
+  "use no memo";
+
   const isMounted = useIsMounted();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const team = useSelectedTeam();
@@ -161,22 +164,7 @@ export default function SandboxesTable() {
     onRowPinningChange: setRowPinning,
   });
 
-  /**
-   * Use a memo to gather all column sizes once.
-   * We'll store them in a simple object of CSS variables.
-   */
-  const columnSizeVars = React.useMemo(() => {
-    const headers = table.getFlatHeaders();
-    const colSizes: { [key: string]: string } = {};
-
-    headers.forEach((header) => {
-      const sizePx = `${header.getSize()}px`;
-      colSizes[`--header-${header.id}-size`] = sizePx;
-      colSizes[`--col-${header.column.id}-size`] = sizePx;
-    });
-
-    return colSizes;
-  }, [table.getState().columnSizing, table.getState().columnSizingInfo]);
+  const columnSizeVars = useColumnSizeVars(table);
 
   const handleBottomReached = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -187,7 +175,7 @@ export default function SandboxesTable() {
 
   return (
     <div className="flex h-full flex-col pt-3">
-      <TableHeader
+      <SandboxesHeader
         searchInputRef={searchInputRef}
         sandboxes={sandboxes}
         sandboxesLoading={sandboxesLoading || sandboxesValidating}

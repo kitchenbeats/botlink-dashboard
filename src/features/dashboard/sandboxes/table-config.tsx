@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, ArrowUpRight, Cpu, PinIcon, X } from "lucide-react";
+import { ArrowUpRight, Cpu, PinIcon, X } from "lucide-react";
 import {
   ColumnDef,
   FilterFn,
@@ -8,7 +8,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   TableOptions,
-  getPaginationRowModel,
 } from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Sandbox, SandboxMetrics } from "@/types/api";
@@ -16,17 +15,11 @@ import { Badge, badgeVariants } from "@/ui/primitives/badge";
 import Link from "next/link";
 import { PROTECTED_URLS } from "@/configs/urls";
 import { DateRange } from "react-day-picker";
-import {
-  differenceInHours,
-  differenceInMinutes,
-  differenceInSeconds,
-  isWithinInterval,
-} from "date-fns";
+import { isWithinInterval } from "date-fns";
 import { VariantProps } from "class-variance-authority";
 import { CgSmartphoneRam } from "react-icons/cg";
 import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Button } from "@/ui/primitives/button";
 
 export type SandboxWithMetrics = Sandbox & { lastMetrics: SandboxMetrics };
@@ -112,7 +105,7 @@ export const useColumns = (deps: any[]) => {
       },
       {
         accessorKey: "sandboxID",
-        header: "SANDBOX ID",
+        header: "ID",
         cell: ({ row }) => (
           <div className="truncate font-mono text-xs text-fg-500">
             {row.getValue("sandboxID")}
@@ -122,6 +115,7 @@ export const useColumns = (deps: any[]) => {
         minSize: 160,
         enableColumnFilter: false,
         enableSorting: false,
+        enableGlobalFilter: true,
       },
       {
         accessorKey: "templateID",
@@ -204,7 +198,8 @@ export const useColumns = (deps: any[]) => {
               variant={getVariant(ramPercentage)}
               className="whitespace-nowrap font-mono"
             >
-              <CgSmartphoneRam className="size-2" /> {usedRam}/{totalRam} MB
+              <CgSmartphoneRam className="size-2" /> {usedRam.toLocaleString()}/
+              {totalRam.toLocaleString()} MB
             </Badge>
           );
         },
@@ -214,40 +209,16 @@ export const useColumns = (deps: any[]) => {
         filterFn: "resourceRange",
       },
       {
-        accessorKey: "startedAt",
+        accessorFn: (row) => new Date(row.startedAt).toUTCString(),
         header: "Started At",
-        cell: ({ row, table }) => {
-          const [isHovered, setIsHovered] = useState(false);
-          const startDate = new Date(row.getValue("startedAt"));
-          const duration = `${differenceInHours(new Date(), startDate)}h ${
-            differenceInMinutes(new Date(), startDate) % 60
-          }m ${differenceInSeconds(new Date(), startDate) % 60}s`;
-
+        cell: ({ row, getValue }) => {
           return (
             <div
               className={cn(
                 "h-full truncate font-mono text-xs text-fg-500 hover:text-fg",
               )}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
             >
-              {startDate.toUTCString()}
-              <AnimatePresence mode="wait">
-                {isHovered && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{
-                      height: "auto",
-                      opacity: 1,
-                    }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center justify-end gap-1 overflow-hidden text-success-fg"
-                  >
-                    running for {duration}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {getValue() as string}
             </div>
           );
         },
@@ -255,6 +226,7 @@ export const useColumns = (deps: any[]) => {
         minSize: 140,
         // @ts-expect-error dateRange is not a valid filterFn
         filterFn: "dateRange",
+        enableGlobalFilter: true,
       },
     ],
     deps,
@@ -275,4 +247,7 @@ export const sandboxesTableConfig: Partial<TableOptions<SandboxWithMetrics>> = {
   columnResizeMode: "onChange",
   enableColumnResizing: true,
   keepPinnedRows: true,
+  enableGlobalFilter: true,
+  // @ts-expect-error globalFilterFn is not a valid option
+  globalFilterFn: "fuzzy",
 };

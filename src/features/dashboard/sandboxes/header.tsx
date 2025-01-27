@@ -1,6 +1,5 @@
 import { Badge } from "@/ui/primitives/badge";
-import { Button } from "@/ui/primitives/button";
-import { Circle, RefreshCcw } from "lucide-react";
+import { Circle } from "lucide-react";
 import { Table } from "@tanstack/react-table";
 import { SearchInput } from "./table-search";
 import SandboxesTableFilters from "./table-filters";
@@ -8,7 +7,7 @@ import { SandboxWithMetrics } from "./table-config";
 import { PollingButton } from "@/ui/polling-button";
 import { useSandboxTableStore } from "./stores/table-store";
 
-interface TableHeaderProps {
+interface SandboxesHeaderProps {
   searchInputRef: React.RefObject<HTMLInputElement | null>;
   sandboxes: SandboxWithMetrics[] | undefined;
   sandboxesLoading: boolean;
@@ -16,13 +15,13 @@ interface TableHeaderProps {
   table: Table<SandboxWithMetrics>;
 }
 
-export function TableHeader({
+export function SandboxesHeader({
   searchInputRef,
   sandboxes,
   sandboxesLoading,
   refetchSandboxes,
   table,
-}: TableHeaderProps) {
+}: SandboxesHeaderProps) {
   "use no memo";
 
   const { pollingInterval, setPollingInterval } = useSandboxTableStore();

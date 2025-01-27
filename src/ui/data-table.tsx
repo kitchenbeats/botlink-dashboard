@@ -37,6 +37,9 @@ function DataTableHead<TData, TValue>({
         "font-mono uppercase tracking-wider",
         "font-medium text-fg-300",
         "[&:has([role=checkbox])]:pr-0",
+        {
+          "pl-0": header.column.getCanSort(),
+        },
         className,
       )}
       style={{
@@ -44,14 +47,14 @@ function DataTableHead<TData, TValue>({
       }}
       {...props}
     >
-      <div className="flex h-full items-center gap-3">
+      <div className="flex h-full items-center gap-3 overflow-hidden">
         {header.column.getCanSort() && (
           <Button
             variant="outline"
             size="icon"
             onClick={() => header.column.toggleSorting(undefined, true)}
             className={cn(
-              "size-5 text-fg-500",
+              "ml-2 size-5 min-w-5 text-fg-500",
               sorting !== undefined && "text-accent",
             )}
           >
@@ -64,7 +67,7 @@ function DataTableHead<TData, TValue>({
             )}
           </Button>
         )}
-        <span>{children}</span>
+        <span className="truncate">{children}</span>
       </div>
 
       {header.column.getCanResize() && (
