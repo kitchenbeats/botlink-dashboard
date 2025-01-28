@@ -1,5 +1,5 @@
 import KeysPageClient from "./page-client";
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import DashboardPageLayout from "@/features/dashboard/page-layout";
 
 export default function KeysPage() {
   return (

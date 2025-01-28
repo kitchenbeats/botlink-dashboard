@@ -5,8 +5,9 @@ import TeamProvider from "@/features/dashboard/team-provider";
 import { Suspense } from "react";
 
 export const experimental_ppr = true;
+export const dynamic = "force-static";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;

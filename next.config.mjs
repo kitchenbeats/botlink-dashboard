@@ -8,9 +8,17 @@ const config = {
   experimental: {
     reactCompiler: true,
     reactOwnerStack: true,
-    ppr: true,
-    useCache: true,
+    ppr: "incremental",
     turbo: true,
+    staleTimes: {
+      dynamic: 180,
+      static: 180,
+    },
+  },
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
   },
 };
 

@@ -11,14 +11,13 @@ import BillingCreditsContent from "@/features/dashboard/billing/credits-content"
 import { Suspense } from "react";
 import CustomerPortalLink from "@/features/dashboard/billing/customer-portal-link";
 import ClientOnly from "@/ui/client-only";
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import DashboardPageLayout from "@/features/dashboard/page-layout";
 import BillingInvoicesTable from "@/features/dashboard/billing/invoices-table";
 
 export const experimental_ppr = true;
+export const dynamic = "force-static";
 
-export default async function BillingPage() {
-  "use cache";
-
+export default function BillingPage() {
   return (
     <DashboardPageLayout title="Billing">
       <div className="grid grid-cols-12 gap-6">

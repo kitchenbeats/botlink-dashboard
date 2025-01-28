@@ -55,7 +55,7 @@ export default function DashboardNavbar({ className }: DashboardNavbarProps) {
               {links.map((item) => (
                 <div key={item.label} className="w-full">
                   <Link
-                    prefetch={false}
+                    prefetch
                     href={item.href({ teamId: selectedTeamId ?? undefined })}
                     suppressHydrationWarning
                     className={cn(

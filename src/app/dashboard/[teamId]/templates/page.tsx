@@ -1,4 +1,4 @@
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import DashboardPageLayout from "@/features/dashboard/page-layout";
 import TemplatesTable from "@/features/dashboard/templates/table";
 
 export default function Page() {

@@ -16,7 +16,7 @@ import {
   ChartTooltipContent,
 } from "@/ui/primitives/chart";
 import { Area, AreaChart, XAxis, YAxis } from "recharts";
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import DashboardPageLayout from "@/features/dashboard/page-layout";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import useSWR from "swr";

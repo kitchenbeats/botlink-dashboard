@@ -1,4 +1,4 @@
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import DashboardPageLayout from "@/features/dashboard/page-layout";
 import UsagePageClient from "./page-client";
 
 export default function UsagePage() {

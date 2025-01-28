@@ -1,4 +1,4 @@
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import DashboardPageLayout from "@/features/dashboard/page-layout";
 import { NameSettings } from "@/features/dashboard/account/name-settings";
 import { EmailSettings } from "@/features/dashboard/account/email-settings";
 import { PasswordSettings } from "@/features/dashboard/account/password-settings";
@@ -7,10 +7,9 @@ import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 
 export const experimental_ppr = true;
+export const dynamic = "force-static";
 
-export default async function AccountPage() {
-  "use cache";
-
+export default function AccountPage() {
   return (
     <DashboardPageLayout title="Account">
       <div className="flex flex-col gap-6">

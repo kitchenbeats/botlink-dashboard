@@ -10,14 +10,12 @@ interface DashboardPageLayoutProps {
   fullscreen?: boolean;
 }
 
-export default async function DashboardPageLayout({
+export default function DashboardPageLayout({
   children,
   title,
   className,
   fullscreen = false,
 }: DashboardPageLayoutProps) {
-  "use cache";
-
   return (
     <div className="relative flex h-svh">
       <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg px-3">

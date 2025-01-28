@@ -11,9 +11,6 @@ export const useUser = () => {
     async () => {
       return (await supabase.auth.getSession()).data.session?.user;
     },
-    {
-      dedupingInterval: 60000,
-    },
   );
 
   return {
