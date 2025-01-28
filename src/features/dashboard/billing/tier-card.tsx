@@ -1,3 +1,5 @@
+"use client";
+
 import { redirectToCheckoutAction } from "@/actions/billing-actions";
 import { Button } from "@/ui/primitives/button";
 import { GradientBorder } from "@/ui/gradient-border";
@@ -9,13 +11,11 @@ import { useMutation } from "@tanstack/react-query";
 interface BillingTierCardProps {
   tier: Tier;
   isHighlighted?: boolean;
-  isSelected?: boolean;
 }
 
 export default function BillingTierCard({
   tier,
   isHighlighted = false,
-  isSelected,
 }: BillingTierCardProps) {
   const team = useSelectedTeam();
 
@@ -44,6 +44,8 @@ export default function BillingTierCard({
       });
     },
   });
+
+  const isSelected = team?.tier === tier.id;
 
   return (
     <GradientBorder

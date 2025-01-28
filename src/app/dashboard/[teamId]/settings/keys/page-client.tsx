@@ -2,7 +2,6 @@
 
 import ApiKeysTable from "@/features/dashboard/keys/api-keys-table";
 import CreateApiKeyDialog from "@/features/dashboard/keys/create-api-key-dialog";
-import { useMetadata } from "@/features/dashboard/metadata-provider";
 import { Button } from "@/ui/primitives/button";
 import {
   Card,
@@ -11,10 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/primitives/card";
-import DashboardPageLayout from "@/features/dashboard/layout/page-layout";
+import { useMetadataStore } from "@/lib/stores/metadata-store";
 
 export default function KeysPageClient() {
-  const { selectedTeamId } = useMetadata();
+  const { selectedTeamId } = useMetadataStore();
 
   return (
     <div className="flex flex-col gap-6">

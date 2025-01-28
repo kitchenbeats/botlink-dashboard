@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Database } from "@/types/supabase";
 import { createClient } from "@supabase/supabase-js";
 
@@ -9,5 +11,5 @@ export const supabaseAdmin = createClient<Database>(
       autoRefreshToken: false,
       persistSession: false,
     },
-  }
+  },
 );

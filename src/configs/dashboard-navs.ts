@@ -44,15 +44,7 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
     href: (args) => `/dashboard/${args.teamId}/usage`,
     icon: BarChart,
   },
-  {
-    label: "Settings",
-    icon: Settings,
-    href: (args) => `/dashboard/${args.teamId}/settings/general`,
-    goesDeeper: true,
-  },
-];
 
-export const SETTINGS_DASHBOARD_LINKS: DashboardNavLink[] = [
   {
     label: "General",
     href: (args) => `/dashboard/${args.teamId}/settings/general`,

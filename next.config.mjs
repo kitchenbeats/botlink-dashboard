@@ -4,19 +4,13 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   experimental: {
     reactCompiler: true,
     reactOwnerStack: true,
-    ppr: "incremental",
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/",
-        destination: "https://e2b.dev",
-      },
-    ];
+    ppr: true,
+    useCache: true,
+    turbo: true,
   },
 };
 

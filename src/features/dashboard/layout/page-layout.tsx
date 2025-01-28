@@ -1,7 +1,7 @@
-import { Suspense } from "react";
 import { ThemeSwitcher } from "@/ui/theme-switcher";
 import { cn } from "@/lib/utils";
 import UserMenu from "@/features/auth/user-menu";
+import { Suspense } from "react";
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode;
@@ -10,20 +10,24 @@ interface DashboardPageLayoutProps {
   fullscreen?: boolean;
 }
 
-export default function DashboardPageLayout({
+export default async function DashboardPageLayout({
   children,
   title,
   className,
   fullscreen = false,
 }: DashboardPageLayoutProps) {
+  "use cache";
+
   return (
     <div className="relative flex h-svh">
       <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg px-3">
         <div className="flex w-full items-center gap-2">
           <h2 className="mr-auto text-lg font-bold">{title}</h2>
 
-          <ThemeSwitcher />
-          <Suspense>
+          <Suspense fallback={null}>
+            <ThemeSwitcher />
+          </Suspense>
+          <Suspense fallback={null}>
             <UserMenu />
           </Suspense>
         </div>
@@ -34,15 +38,11 @@ export default function DashboardPageLayout({
           fullscreen ? "overflow-hidden" : "overflow-y-auto",
         )}
       >
-        <Suspense>
-          {fullscreen ? (
-            <div className="h-full">{children}</div>
-          ) : (
-            <div className={cn("max-w-[1400px] p-3", className)}>
-              {children}
-            </div>
-          )}
-        </Suspense>
+        {fullscreen ? (
+          <div className="h-full">{children}</div>
+        ) : (
+          <div className={cn("max-w-[1400px] p-3", className)}>{children}</div>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MetadataProvider } from "./metadata-provider";
 import { useState, useLayoutEffect } from "react";
-import { DashboardTitleProvider } from "./dashboard-title-provider";
 import { preloadTeams } from "@/lib/hooks/use-teams";
 
 interface ClientProvidersProps {
@@ -18,11 +16,6 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <MetadataProvider>
-        <DashboardTitleProvider />
-        {children}
-      </MetadataProvider>
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }

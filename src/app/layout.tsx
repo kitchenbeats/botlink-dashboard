@@ -9,6 +9,8 @@ import { METADATA } from "@/configs/metadata";
 
 import "@/app/_fonts/fonts";
 import "@/styles/globals.css";
+import { ThemeProvider } from "next-themes";
+import ClientProviders from "@/features/client-providers";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -35,23 +37,21 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       {/*       <Script src="https://unpkg.com/react-scan/dist/auto.global.js" async /> */}
-      <Body>
-        <RootProvider
-          theme={{
-            attribute: "class",
-            defaultTheme: "system",
-            enableSystem: true,
-            disableTransitionOnChange: true,
-          }}
+      <body className="relative flex min-h-screen flex-col">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
           <TooltipProvider>
             <ToastProvider>
-              {children}
+              <ClientProviders>{children}</ClientProviders>
               <Toaster />
             </ToastProvider>
           </TooltipProvider>
-        </RootProvider>
-      </Body>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
