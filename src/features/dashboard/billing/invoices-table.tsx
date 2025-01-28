@@ -32,6 +32,10 @@ export default function BillingInvoicesTable() {
       }
       return res.data;
     },
+    {
+      suspense: true,
+      fallbackData: [],
+    },
   );
 
   return (

@@ -34,6 +34,8 @@ export const useTeams = () => {
       revalidateIfStale: true,
       errorRetryCount: 3,
       ttl: 24 * 60 * 60 * 1000,
+      suspense: true,
+      fallbackData: [],
     },
   );
 

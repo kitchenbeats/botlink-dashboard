@@ -6,10 +6,14 @@ import { User } from "@supabase/supabase-js";
 import useSWR from "swr";
 
 export const useUser = () => {
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR<User | null>(
     QUERY_KEYS.USER(),
     async () => {
-      return (await supabase.auth.getSession()).data.session?.user;
+      return (await supabase.auth.getSession()).data.session?.user ?? null;
+    },
+    {
+      suspense: true,
+      fallbackData: null,
     },
   );
 

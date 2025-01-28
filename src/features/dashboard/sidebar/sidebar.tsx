@@ -20,7 +20,7 @@ export default function Sidebar() {
       <nav className="flex flex-col gap-2 p-3">
         {MAIN_DASHBOARD_LINKS.map((link) => (
           <Link
-            prefetch={false}
+            prefetch
             key={link.label}
             href={link.href({ teamId: "14c311de-3b0a-4bfc-89da-43a118c7582e" })}
             className="rounded-md bg-accent/10 p-2"
