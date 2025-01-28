@@ -1,4 +1,4 @@
-import { getSandboxMetricsAction } from "@/actions/sandboxes-actions";
+import { getSandboxMetricsAction } from "@/server/sandboxes-actions";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import { Sandbox } from "@/types/api";

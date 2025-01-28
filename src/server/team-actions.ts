@@ -5,8 +5,8 @@ import { Database } from "@/types/supabase";
 import {
   checkAuthenticated,
   checkUserTeamAuthorization,
-  guardAction,
-} from "@/lib/utils/actions";
+  guard,
+} from "@/lib/utils/server";
 import { z } from "zod";
 import { User } from "@supabase/supabase-js";
 import {
@@ -22,7 +22,7 @@ const UpdateTeamNameSchema = z.object({
   name: z.string().min(1),
 });
 
-export const updateTeamNameAction = guardAction(
+export const updateTeamNameAction = guard(
   UpdateTeamNameSchema,
   async ({ teamId, name }) => {
     const { user } = await checkAuthenticated();
@@ -55,7 +55,7 @@ const AddTeamMemberSchema = z.object({
   email: z.string().email(),
 });
 
-export const addTeamMemberAction = guardAction(
+export const addTeamMemberAction = guard(
   AddTeamMemberSchema,
   async ({ teamId, email }) => {
     const { user } = await checkAuthenticated();
@@ -126,7 +126,7 @@ const GetTeamMembersSchema = z.object({
   teamId: z.string().uuid(),
 });
 
-export const getTeamMembersAction = guardAction<
+export const getTeamMembersAction = guard<
   typeof GetTeamMembersSchema,
   GetTeamMembersResponse
 >(GetTeamMembersSchema, async ({ teamId }) => {
@@ -174,7 +174,7 @@ const RemoveTeamMemberSchema = z.object({
   userId: z.string().uuid(),
 });
 
-export const removeTeamMemberAction = guardAction(
+export const removeTeamMemberAction = guard(
   RemoveTeamMemberSchema,
   async ({ teamId, userId }) => {
     const { user } = await checkAuthenticated();

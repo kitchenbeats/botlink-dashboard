@@ -9,11 +9,7 @@ export const useUser = () => {
   const { data, error, isLoading, mutate } = useSWR<User | null>(
     QUERY_KEYS.USER(),
     async () => {
-      return (await supabase.auth.getSession()).data.session?.user ?? null;
-    },
-    {
-      suspense: true,
-      fallbackData: null,
+      return (await supabase.auth.getUser()).data.user ?? null;
     },
   );
 

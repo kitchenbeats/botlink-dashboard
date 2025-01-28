@@ -1,4 +1,4 @@
-import { signUpAction } from "@/actions/auth-actions";
+import { signUpAction } from "@/server/auth-actions";
 import { Input } from "@/ui/primitives/input";
 import { Label } from "@/ui/primitives/label";
 import Link from "next/link";

@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 
 export const experimental_ppr = true;
-export const dynamic = "force-static";
 
-export default function AccountPage() {
+export default async function AccountPage() {
+  "use cache";
+
   return (
     <DashboardPageLayout title="Account">
       <div className="flex flex-col gap-6">

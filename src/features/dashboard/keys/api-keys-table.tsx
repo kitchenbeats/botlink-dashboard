@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  deleteApiKeyAction,
-  getTeamApiKeysAction,
-} from "@/actions/key-actions";
+import { deleteApiKeyAction, getTeamApiKeysAction } from "@/server/key-actions";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { Button } from "@/ui/primitives/button";
 import {

@@ -4,10 +4,9 @@ import { Template } from "@/types/api";
 import { z } from "zod";
 import {
   checkAuthenticated,
-  getTeamApiKey,
   getUserAccessToken,
-  guardAction,
-} from "@/lib/utils/actions";
+  guard,
+} from "@/lib/utils/server";
 import { MOCK_TEMPLATES_DATA } from "@/configs/mock-data";
 import { E2BError } from "@/types/errors";
 
@@ -16,7 +15,7 @@ const GetTeamTemplatesParamsSchema = z.object({
   teamId: z.string().uuid(),
 });
 
-export const getTeamTemplatesAction = guardAction(
+export const getTeamTemplatesAction = guard(
   GetTeamTemplatesParamsSchema,
   async ({ apiUrl, teamId }) => {
     // TODO: Remove this after staging
@@ -57,7 +56,7 @@ const DeleteTemplateParamsSchema = z.object({
   templateId: z.string(),
 });
 
-export const deleteTemplateAction = guardAction(
+export const deleteTemplateAction = guard(
   DeleteTemplateParamsSchema,
   async ({ apiUrl, templateId }) => {
     const { user } = await checkAuthenticated();
@@ -92,7 +91,7 @@ const UpdateTemplateParamsSchema = z.object({
     .partial(),
 });
 
-export const updateTemplateAction = guardAction(
+export const updateTemplateAction = guard(
   UpdateTemplateParamsSchema,
   async ({ apiUrl, templateId, props }) => {
     const { user } = await checkAuthenticated();

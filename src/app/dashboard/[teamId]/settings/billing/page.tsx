@@ -10,14 +10,17 @@ import BillingTierCard from "@/features/dashboard/billing/tier-card";
 import BillingCreditsContent from "@/features/dashboard/billing/credits-content";
 import { Suspense } from "react";
 import CustomerPortalLink from "@/features/dashboard/billing/customer-portal-link";
-import ClientOnly from "@/ui/client-only";
 import DashboardPageLayout from "@/features/dashboard/page-layout";
 import BillingInvoicesTable from "@/features/dashboard/billing/invoices-table";
+import { Loader } from "@/ui/loader";
 
-export const experimental_ppr = true;
-export const dynamic = "force-static";
+export default async function BillingPage({
+  params,
+}: {
+  params: Promise<{ teamId: string }>;
+}) {
+  const { teamId } = await params;
 
-export default function BillingPage() {
   return (
     <DashboardPageLayout title="Billing">
       <div className="grid grid-cols-12 gap-6">
@@ -31,19 +34,15 @@ export default function BillingPage() {
               <CustomerPortalLink />
             </Suspense>
           </CardHeader>
-          <Suspense fallback={null}>
-            <ClientOnly>
-              <CardContent className="flex gap-8 pt-6">
-                {TIERS.map((tier) => (
-                  <BillingTierCard
-                    key={tier.id}
-                    tier={tier}
-                    isHighlighted={tier.id === "pro_v1"}
-                  />
-                ))}
-              </CardContent>
-            </ClientOnly>
-          </Suspense>
+          <CardContent className="flex gap-8 pt-6">
+            {TIERS.map((tier) => (
+              <BillingTierCard
+                key={tier.id}
+                tier={tier}
+                isHighlighted={tier.id === "pro_v1"}
+              />
+            ))}
+          </CardContent>
         </Card>
 
         <Card className="col-span-4 h-min">
@@ -55,8 +54,10 @@ export default function BillingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Suspense fallback={null}>
-              <BillingCreditsContent />
+            <Suspense
+              fallback={<Loader className="text-2xl" variant="square" />}
+            >
+              <BillingCreditsContent teamId={teamId} />
             </Suspense>
           </CardContent>
         </Card>
@@ -69,9 +70,7 @@ export default function BillingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Suspense fallback={null}>
-              <BillingInvoicesTable />
-            </Suspense>
+            <BillingInvoicesTable teamId={teamId} />
           </CardContent>
         </Card>
       </div>

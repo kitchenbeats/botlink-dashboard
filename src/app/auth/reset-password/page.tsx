@@ -1,4 +1,4 @@
-import { resetPasswordAction } from "@/actions/auth-actions";
+import { resetPasswordAction } from "@/server/auth-actions";
 import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
 import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";

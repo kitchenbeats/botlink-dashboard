@@ -5,8 +5,7 @@ import { MAIN_DASHBOARD_LINKS } from "@/configs/dashboard-navs";
 import { useMetadataStore } from "@/lib/stores/metadata-store";
 import { cn } from "@/lib/utils";
 import ClientOnly from "@/ui/client-only";
-import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 type GroupedLinks = {
@@ -31,6 +30,7 @@ interface DashboardNavbarProps {
 export default function DashboardNavbar({ className }: DashboardNavbarProps) {
   const pathname = usePathname();
   const params = useParams();
+  const router = useRouter();
   const { selectedTeamId } = useMetadataStore();
 
   const groupedNavLinks = useMemo(
@@ -54,9 +54,12 @@ export default function DashboardNavbar({ className }: DashboardNavbarProps) {
               )}
               {links.map((item) => (
                 <div key={item.label} className="w-full">
-                  <Link
-                    prefetch
-                    href={item.href({ teamId: selectedTeamId ?? undefined })}
+                  <button
+                    onClick={() => {
+                      router.push(
+                        item.href({ teamId: selectedTeamId ?? undefined }),
+                      );
+                    }}
                     suppressHydrationWarning
                     className={cn(
                       "group flex w-full items-center rounded-md font-mono text-sm hover:no-underline",
@@ -82,7 +85,7 @@ export default function DashboardNavbar({ className }: DashboardNavbarProps) {
                       />
                       <span className="shrink-0">{item.label}</span>
                     </div>
-                  </Link>
+                  </button>
                 </div>
               ))}
             </div>

@@ -1,4 +1,4 @@
-import { createApiKeyAction } from "@/actions/key-actions";
+import { createApiKeyAction } from "@/server/key-actions";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { Button } from "@/ui/primitives/button";
 import {

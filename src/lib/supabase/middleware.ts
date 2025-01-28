@@ -1,5 +1,3 @@
-import "server-only";
-
 import { AUTH_URLS, PROTECTED_URLS } from "@/configs/urls";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
@@ -36,7 +34,7 @@ export const updateSession = async (request: NextRequest) => {
 
   // This will refresh session if expired - required for Server Components
   // https://supabase.com/docs/guides/auth/server-side/nextjs
-  const { error } = await supabase.auth.getSession();
+  const { error } = await supabase.auth.getUser();
 
   // protected routes
   if (request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD) && error) {

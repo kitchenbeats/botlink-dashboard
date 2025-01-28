@@ -1,6 +1,6 @@
 "use client";
 
-import { addTeamMemberAction } from "@/actions/team-actions";
+import { addTeamMemberAction } from "@/server/team-actions";
 import MemberTable from "@/features/dashboard/team/member-table";
 import { Button } from "@/ui/primitives/button";
 import {

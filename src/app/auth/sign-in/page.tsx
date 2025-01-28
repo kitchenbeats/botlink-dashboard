@@ -1,4 +1,4 @@
-import { signInAction } from "@/actions/auth-actions";
+import { signInAction } from "@/server/auth-actions";
 import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
 import { OAuthProviders } from "@/features/auth/oauth-provider-buttons";
 import TextSeparator from "@/ui/text-separator";

@@ -3,7 +3,7 @@
 import {
   getTeamMembersAction,
   removeTeamMemberAction,
-} from "@/actions/team-actions";
+} from "@/server/team-actions";
 import { AlertDialog } from "@/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/ui/primitives/alert";
 import { Button } from "@/ui/primitives/button";

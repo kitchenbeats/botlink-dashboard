@@ -2,7 +2,7 @@
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { User } from "@supabase/supabase-js";
-import { checkAuthenticated, guardAction } from "@/lib/utils/actions";
+import { checkAuthenticated, guard } from "@/lib/utils/server";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -20,7 +20,7 @@ interface UpdateUserResponse {
   newUser: User;
 }
 
-export const updateUserAction = guardAction<
+export const updateUserAction = guard<
   typeof UpdateUserSchema,
   UpdateUserResponse
 >(UpdateUserSchema, async (data) => {
@@ -52,7 +52,7 @@ export const updateUserAction = guardAction<
   };
 });
 
-export const deleteAccountAction = guardAction(async () => {
+export const deleteAccountAction = guard(async () => {
   const { user } = await checkAuthenticated();
 
   const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);

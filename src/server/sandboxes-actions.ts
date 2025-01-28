@@ -1,11 +1,7 @@
 "use server";
 
 import { Sandbox, SandboxMetrics } from "@/types/api";
-import {
-  checkAuthenticated,
-  getTeamApiKey,
-  guardAction,
-} from "@/lib/utils/actions";
+import { checkAuthenticated, getTeamApiKey, guard } from "@/lib/utils/server";
 import { z } from "zod";
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from "@/configs/mock-data";
 
@@ -14,7 +10,7 @@ const GetTeamSandboxesParamsSchema = z.object({
   teamId: z.string().uuid(),
 });
 
-export const getTeamSandboxesAction = guardAction(
+export const getTeamSandboxesAction = guard(
   GetTeamSandboxesParamsSchema,
   async ({ apiUrl, teamId }) => {
     // TODO: Remove this after staging
@@ -66,7 +62,7 @@ const GetSandboxMetricsParamsSchema = z.object({
   sandboxes: z.array(z.any()),
 });
 
-export const getSandboxMetricsAction = guardAction(
+export const getSandboxMetricsAction = guard(
   GetSandboxMetricsParamsSchema,
   async ({ apiUrl, teamId, sandboxes }) => {
     if (

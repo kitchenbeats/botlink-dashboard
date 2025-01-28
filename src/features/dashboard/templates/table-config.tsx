@@ -26,7 +26,7 @@ import {
 import {
   deleteTemplateAction,
   updateTemplateAction,
-} from "@/actions/templates-actions";
+} from "@/server/templates-actions";
 import { useMemo } from "react";
 import { Badge } from "@/ui/primitives/badge";
 import { CgSmartphoneRam } from "react-icons/cg";

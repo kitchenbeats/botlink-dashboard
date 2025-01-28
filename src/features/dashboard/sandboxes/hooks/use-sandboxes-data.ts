@@ -1,4 +1,4 @@
-import { getTeamSandboxesAction } from "@/actions/sandboxes-actions";
+import { getTeamSandboxesAction } from "@/server/sandboxes-actions";
 import { QUERY_KEYS } from "@/configs/query-keys";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import useSWR from "swr";

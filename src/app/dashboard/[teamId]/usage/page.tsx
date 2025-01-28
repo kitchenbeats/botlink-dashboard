@@ -1,10 +1,16 @@
 import DashboardPageLayout from "@/features/dashboard/page-layout";
-import UsagePageClient from "./page-client";
+import UsageCharts from "@/features/dashboard/usage/charts";
 
-export default function UsagePage() {
+export default async function UsagePage({
+  params,
+}: {
+  params: Promise<{ teamId: string }>;
+}) {
+  const { teamId } = await params;
+
   return (
     <DashboardPageLayout title="Usage">
-      <UsagePageClient />
+      <UsageCharts teamId={teamId} />
     </DashboardPageLayout>
   );
 }

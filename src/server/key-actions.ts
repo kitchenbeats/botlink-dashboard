@@ -5,8 +5,8 @@ import {
   checkAuthenticated,
   checkUserTeamAuthorization,
   maskApiKey,
-  guardAction,
-} from "@/lib/utils/actions";
+  guard,
+} from "@/lib/utils/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { z } from "zod";
 
@@ -28,7 +28,7 @@ interface GetTeamApiKeysResponse {
   apiKeys: ObscuredApiKey[];
 }
 
-export const getTeamApiKeysAction = guardAction(
+export const getTeamApiKeysAction = guard(
   GetApiKeysSchema,
   async ({
     teamId,
@@ -95,7 +95,7 @@ function generateTeamApiKey(): string {
   return API_KEY_PREFIX + hexString;
 }
 
-export const createApiKeyAction = guardAction(
+export const createApiKeyAction = guard(
   CreateApiKeySchema,
   async ({ teamId, name }: z.infer<typeof CreateApiKeySchema>) => {
     const { user } = await checkAuthenticated();
@@ -134,7 +134,7 @@ const DeleteApiKeySchema = z.object({
   apiKeyId: z.string({ required_error: "API Key ID is required" }).uuid(),
 });
 
-export const deleteApiKeyAction = guardAction(
+export const deleteApiKeyAction = guard(
   DeleteApiKeySchema,
   async ({ teamId, apiKeyId }) => {
     const { user } = await checkAuthenticated();

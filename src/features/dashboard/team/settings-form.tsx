@@ -1,6 +1,6 @@
 "use client";
 
-import { updateTeamNameAction } from "@/actions/team-actions";
+import { updateTeamNameAction } from "@/server/team-actions";
 import { AuthFormMessage } from "@/features/auth/form-message";
 import { Button } from "@/ui/primitives/button";
 import {

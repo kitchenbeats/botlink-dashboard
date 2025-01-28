@@ -4,14 +4,13 @@ import { DashboardTitleProvider } from "@/features/dashboard/dashboard-title-pro
 import TeamProvider from "@/features/dashboard/team-provider";
 import { Suspense } from "react";
 
-export const experimental_ppr = true;
-export const dynamic = "force-static";
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  "use cache";
+
   return (
     <div className="mx-auto flex h-svh max-h-full w-full flex-col">
       <NetworkStateBanner />

@@ -159,27 +159,27 @@ export function maskApiKey(
  *
  * @example
  * // Basic usage without schema validation
- * const guardedAction = guardAction(async (params) => {
+ * const guardedAction = guard(async (params) => {
  *   // action implementation
  * });
  *
  * @example
  * // Usage with schema validation
  * const schema = z.object({ id: z.string() });
- * const guardedAction = guardAction(schema, async (params) => {
+ * const guardedAction = guard(schema, async (params) => {
  *   // action implementation
  * });
  */
-export function guardAction<TInput = void, TOutput = void>(
+export function guard<TInput = void, TOutput = void>(
   action: ActionFunction<TInput, TOutput>,
 ): (params: TInput) => Promise<ActionResponse<TOutput>>;
 
-export function guardAction<TSchema extends z.ZodType, TOutput = void>(
+export function guard<TSchema extends z.ZodType, TOutput = void>(
   schema: TSchema,
   action: ActionFunction<z.infer<TSchema>, TOutput>,
 ): (params: z.infer<TSchema>) => Promise<ActionResponse<TOutput>>;
 
-export function guardAction<TInput, TOutput>(
+export function guard<TInput, TOutput>(
   schemaOrAction: z.ZodType | ActionFunction<TInput, TOutput>,
   maybeAction?: ActionFunction<TInput, TOutput>,
 ): (params: TInput) => Promise<ActionResponse<TOutput>> {
