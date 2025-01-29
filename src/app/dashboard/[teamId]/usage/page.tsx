@@ -17,11 +17,12 @@ export default async function UsagePage({
       fullscreen
       className="flex flex-col justify-end"
     >
-      <UsageLimits teamId={teamId} className="h-full w-full" />
-      <div className="grid w-full grid-cols-12 self-end border-t">
+      <div className="grid w-full grid-cols-12 self-end border-b">
         <CostCard teamId={teamId} className="col-span-12 border-b border-r" />
         <VCPUCard teamId={teamId} className="col-span-6 border-r" />
         <RAMCard teamId={teamId} className="col-span-6" />
+
+        <UsageLimits teamId={teamId} className="col-span-12 border-t" />
       </div>
     </DashboardPageLayout>
   );

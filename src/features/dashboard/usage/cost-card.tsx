@@ -31,7 +31,7 @@ export function CostCard({
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="font-mono">Cost Usage</CardTitle>
+        <CardTitle className="font-mono">Usage Costs</CardTitle>
         <CardDescription>
           Total cost of all resources for the current billing period
         </CardDescription>
