@@ -11,15 +11,6 @@ import {
 import { DropdownMenuTrigger } from "@/ui/primitives/dropdown-menu";
 import { cn } from "@/lib/utils";
 import * as React from "react";
-import {
-  Command,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/ui/primitives/command";
-import { useTemplates } from "@/lib/hooks/use-templates";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { Loader } from "@/ui/loader";
 import { Slider } from "@/ui/primitives/slider";
 import { Label } from "@/ui/primitives/label";
 import { Separator } from "@/ui/primitives/separator";
@@ -28,6 +19,13 @@ import { useSandboxTableStore } from "@/features/dashboard/sandboxes/stores/tabl
 import { Button } from "@/ui/primitives/button";
 import { FilterIcon } from "lucide-react";
 import { TableFilterButton } from "@/ui/table-filter-button";
+import { Template } from "@/types/api";
+import {
+  Command,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/ui/primitives/command";
 
 export type StartedAtFilter = "1h ago" | "6h ago" | "12h ago" | undefined;
 
@@ -76,16 +74,12 @@ const RunningSinceFilter = () => {
   );
 };
 
-const TemplateFilter = () => {
-  const { templateIds, setTemplateIds } = useSandboxTableStore();
+interface TemplateFilterProps {
+  templates: Template[];
+}
 
-  const {
-    data: templates,
-    isLoading: templatesLoading,
-    error: templatesError,
-  } = useTemplates({
-    revalidateOnFocus: false,
-  });
+const TemplateFilter = ({ templates }: TemplateFilterProps) => {
+  const { templateIds, setTemplateIds } = useSandboxTableStore();
 
   const handleSelect = (templateId: string) => {
     if (templateIds.includes(templateId)) {
@@ -99,32 +93,17 @@ const TemplateFilter = () => {
     <Command>
       <CommandInput placeholder="Search templates..." />
       <CommandList>
-        {templatesLoading ? (
-          <div className="p-4 text-center">
-            <Loader variant="dots" className="text-accent" />
-          </div>
-        ) : templatesError ? (
-          <Alert variant="error" className="m-2">
-            <AlertTitle>Error loading templates</AlertTitle>
-            <AlertDescription>{templatesError.message}</AlertDescription>
-          </Alert>
-        ) : templates?.length === 0 ? (
-          <div className="p-4 text-center text-sm text-fg-500">
-            No templates found
-          </div>
-        ) : (
-          templates?.map((template) => (
-            <CommandItem
-              key={template.templateID}
-              onSelect={() => handleSelect(template.templateID)}
-              className={cn(
-                templateIds.includes(template.templateID) && "text-accent",
-              )}
-            >
-              {template.templateID}
-            </CommandItem>
-          ))
-        )}
+        {templates?.map((template) => (
+          <CommandItem
+            key={template.templateID}
+            onSelect={() => handleSelect(template.templateID)}
+            className={cn(
+              templateIds.includes(template.templateID) && "text-accent",
+            )}
+          >
+            {template.templateID}
+          </CommandItem>
+        ))}
       </CommandList>
     </Command>
   );
@@ -205,12 +184,14 @@ const ResourcesFilter = () => {
 
 // Main component
 export interface SandboxesTableFiltersProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+  extends React.HTMLAttributes<HTMLDivElement> {
+  templates: Template[];
+}
 
 const SandboxesTableFilters = React.forwardRef<
   HTMLDivElement,
   SandboxesTableFiltersProps
->(({ className, ...props }, ref) => {
+>(({ className, templates, ...props }, ref) => {
   const {
     globalFilter,
     startedAtFilter,
@@ -250,7 +231,7 @@ const SandboxesTableFilters = React.forwardRef<
             <DropdownMenuSubTrigger>Template</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                <TemplateFilter />
+                <TemplateFilter templates={templates} />
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>

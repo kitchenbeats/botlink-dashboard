@@ -1,12 +1,8 @@
 import { ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/primitives/avatar";
-import { useUser } from "@/lib/hooks/use-user";
+import { User } from "@supabase/supabase-js";
 
-export default function UserDetailsTile() {
-  const { user } = useUser();
-
-  if (!user) return null;
-
+export default function UserDetailsTile({ user }: { user: User }) {
   return (
     <div className="relative flex items-center gap-2 overflow-hidden">
       <Avatar className="size-9">

@@ -9,12 +9,13 @@ import {
 import { RefreshCw } from "lucide-react";
 import { Separator } from "./primitives/separator";
 import { PollingInterval } from "@/types/dashboard";
+import { useRouter } from "next/navigation";
 
 interface PollingButtonProps {
   pollingInterval: PollingInterval;
   onIntervalChange: (interval: PollingInterval) => void;
-  onRefresh: () => void;
   isLoading?: boolean;
+  onRefresh: () => void;
 }
 
 const intervals = [
@@ -27,8 +28,8 @@ const intervals = [
 export function PollingButton({
   pollingInterval,
   onIntervalChange,
+  isLoading,
   onRefresh,
-  isLoading = false,
 }: PollingButtonProps) {
   return (
     <div className="flex h-6 items-center gap-1 px-0">
@@ -37,6 +38,7 @@ export function PollingButton({
         size="sm"
         onClick={onRefresh}
         className="h-6 text-fg-500"
+        disabled={isLoading}
       >
         <RefreshCw
           className={`size-3.5 ${isLoading ? "animate-spin duration-500 ease-in-out" : ""}`}

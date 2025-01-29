@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from "@/ui/primitives/dialog";
 import { Button, buttonVariants } from "@/ui/primitives/button";
-import { useDeveloperSettings } from "@/features/dashboard/developer-settings/stores/developer-settings-store";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,22 +38,25 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface DeveloperSettingsDialogProps extends DialogProps {}
+interface DeveloperSettingsDialogProps extends DialogProps {
+  apiDomain?: string;
+}
 
 export default function DeveloperSettingsDialog({
+  apiDomain,
   ...props
 }: DeveloperSettingsDialogProps) {
-  const { apiDomain, setApiDomain } = useDeveloperSettings();
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      domain: apiDomain,
+      domain: apiDomain ?? process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN,
     },
   });
 
   useEffect(() => {
-    form.reset({ domain: apiDomain });
+    form.reset({
+      domain: apiDomain ?? process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN,
+    });
   }, [apiDomain, form]);
 
   const [message, setMessage] = useTimeoutMessage(5000);
@@ -70,7 +72,15 @@ export default function DeveloperSettingsDialog({
         throw new Error("Failed to verify API domain");
       }
 
-      setApiDomain(values.domain);
+      const res = await fetch(`/api/developer/domain`, {
+        method: "POST",
+        body: JSON.stringify({ domain: values.domain }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update API domain");
+      }
+
       setMessage({
         success: "API domain verified and updated successfully",
       });
@@ -87,9 +97,25 @@ export default function DeveloperSettingsDialog({
   const canResetToDefault =
     form.watch("domain") !== process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN;
 
-  const handleResetToDefault = () => {
+  const handleResetToDefault = async () => {
+    const res = await fetch(`/api/developer/domain`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      setMessage({
+        error: "Failed to reset API domain",
+      });
+
+      return;
+    }
+
     form.setValue("domain", process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN, {
       shouldDirty: true,
+    });
+
+    setMessage({
+      success: "API domain reset to default successfully",
     });
   };
 

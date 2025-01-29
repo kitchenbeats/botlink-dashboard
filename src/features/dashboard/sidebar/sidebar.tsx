@@ -1,10 +1,12 @@
-import TeamSelector from "@/features/dashboard/sidebar/team-selector";
 import LogoWithoutText from "@/ui/logo-without-text";
-import { Suspense } from "react";
 import DashboardSearch from "@/features/dashboard/sidebar/search";
-import DashboardNavbar from "@/features/dashboard/navbar/navbar";
+import { Suspense } from "react";
+import DashboardNavbar from "../navbar/navbar";
+import TeamSelector from "./team-selector";
 
-export default function Sidebar() {
+export default async function Sidebar() {
+  "use cache";
+
   return (
     <aside className="relative flex h-svh w-[var(--protected-sidebar-width)] min-w-[var(--protected-sidebar-width)] flex-col border-r">
       <header className="flex h-[var(--protected-nav-height)] w-full items-center justify-between border-b pr-2">
@@ -18,12 +20,12 @@ export default function Sidebar() {
         <DashboardSearch />
       </div>
 
-      <Suspense fallback={<></>}>
+      <Suspense fallback={null}>
         <DashboardNavbar className="flex-1 p-2 pt-0" />
       </Suspense>
 
-      <footer className="flex flex-col gap-2 p-3">
-        <Suspense fallback={<></>}>
+      <footer className="mt-auto p-3">
+        <Suspense fallback={null}>
           <TeamSelector />
         </Suspense>
       </footer>

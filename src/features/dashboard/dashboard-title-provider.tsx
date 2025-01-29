@@ -1,3 +1,5 @@
+"use client";
+
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import { useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";

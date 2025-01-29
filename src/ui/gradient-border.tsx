@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
+import { ReactNode, forwardRef } from "react";
 
 interface GradientBorderProps {
   children: ReactNode;
@@ -19,27 +19,35 @@ interface GradientBorderProps {
     | "bg-gradient-to-tl";
 }
 
-export function GradientBorder({
-  children,
-  wrapperClassName,
-  className,
-  gradientFrom = "from-border-100",
-  gradientVia = "via-border-200",
-  gradientTo = "to-transparent",
-  direction = "bg-gradient-to-b",
-}: GradientBorderProps) {
-  return (
-    <div
-      className={cn(
-        "p-[0.5px] rounded-[1px] transform-gpu",
-        direction,
-        gradientFrom,
-        gradientVia,
-        gradientTo,
-        wrapperClassName
-      )}
-    >
-      <div className={cn("bg-bg rounded-[1px]", className)}>{children}</div>
-    </div>
-  );
-}
+export const GradientBorder = forwardRef<HTMLDivElement, GradientBorderProps>(
+  (
+    {
+      children,
+      wrapperClassName,
+      className,
+      gradientFrom = "from-border-100",
+      gradientVia = "via-border-200",
+      gradientTo = "to-transparent",
+      direction = "bg-gradient-to-b",
+    },
+    ref,
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "transform-gpu rounded-[1px] p-[0.5px]",
+          direction,
+          gradientFrom,
+          gradientVia,
+          gradientTo,
+          wrapperClassName,
+        )}
+      >
+        <div className={cn("rounded-[1px] bg-bg", className)}>{children}</div>
+      </div>
+    );
+  },
+);
+
+GradientBorder.displayName = "GradientBorder";

@@ -1,5 +1,6 @@
 "use client";
 
+import useIsMounted from "@/lib/hooks/use-is-mounted";
 import { Button } from "@/ui/primitives/button";
 import {
   DropdownMenu,
@@ -13,15 +14,10 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 const ThemeSwitcher = () => {
-  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const isMounted = useIsMounted();
 
-  // useEffect only runs on the client, so now we can safely show the UI
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
+  if (!isMounted) {
     return null;
   }
 

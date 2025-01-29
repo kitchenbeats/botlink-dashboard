@@ -1,6 +1,6 @@
 "use client";
 
-import { signInWithOAuth } from "@/actions/auth-actions";
+import { signInWithOAuth } from "@/server/auth-actions";
 import { Button } from "@/ui/primitives/button";
 
 export function OAuthProviders() {

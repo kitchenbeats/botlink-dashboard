@@ -1,6 +1,6 @@
 "use client";
 
-import { updateUserAction } from "@/actions/user-actions";
+import { updateUserAction } from "@/server/user-actions";
 import { AuthFormMessage } from "@/features/auth/form-message";
 import {
   Card,

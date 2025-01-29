@@ -9,17 +9,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/primitives/dropdown-menu";
-import { signOutAction } from "@/actions/auth-actions";
+import { signOutAction } from "@/server/auth-actions";
 import Link from "next/link";
 import { PROTECTED_URLS } from "@/configs/urls";
 import UserDetailsTile from "./user-details-tile";
-import { useUser } from "@/lib/hooks/use-user";
 import DeveloperSettingsDialog from "@/features/dashboard/developer-settings/settings-dialog";
 import { useState } from "react";
+import { User } from "@supabase/supabase-js";
 
-export default function UserMenu() {
-  const { user } = useUser();
+interface UserMenuProps {
+  user: User;
+  apiDomain?: string;
+}
 
+export default function UserMenu({ user, apiDomain }: UserMenuProps) {
   const [developerSettingsOpen, setDeveloperSettingsOpen] = useState(false);
 
   return (
@@ -38,7 +41,7 @@ export default function UserMenu() {
         <DropdownMenuContent align="end" className="w-[15rem]">
           <DropdownMenuItem asChild className="p-1">
             <Link href={PROTECTED_URLS.ACCOUNT_SETTINGS}>
-              <UserDetailsTile />
+              <UserDetailsTile user={user} />
             </Link>
           </DropdownMenuItem>
 
@@ -61,6 +64,7 @@ export default function UserMenu() {
       <DeveloperSettingsDialog
         open={developerSettingsOpen}
         onOpenChange={setDeveloperSettingsOpen}
+        apiDomain={apiDomain}
       />
     </>
   );

@@ -1,16 +1,15 @@
-import { QUERY_KEYS } from "@/configs/query-keys";
+"use client";
+
+import { QUERY_KEYS } from "@/configs/keys";
 import { supabase } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import useSWR from "swr";
 
 export const useUser = () => {
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR<User | null>(
     QUERY_KEYS.USER(),
     async () => {
-      return (await supabase.auth.getUser()).data.user;
-    },
-    {
-      dedupingInterval: 60000,
+      return (await supabase.auth.getUser()).data.user ?? null;
     },
   );
 
@@ -19,7 +18,9 @@ export const useUser = () => {
     error,
     isLoading,
     setUser: (updater: (old: User | null) => User | null) => {
-      mutate((old: User | null | undefined) => updater(old ?? null));
+      mutate(
+        (old: User | null | undefined) => updater(old ?? null) ?? undefined,
+      );
     },
     refetch: () => {
       return mutate();

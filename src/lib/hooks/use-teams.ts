@@ -1,8 +1,8 @@
-import { useMetadata } from "@/features/dashboard/metadata-provider";
-import { QUERY_KEYS } from "@/configs/query-keys";
+import { QUERY_KEYS } from "@/configs/keys";
 import { useMemo } from "react";
 import useSWR, { preload } from "swr";
 import { TeamWithDefault } from "@/types/dashboard";
+import { useMetadataStore } from "../stores/metadata-store";
 
 // Fetcher function extracted so we can use it for preloading
 const teamsFetcher = async () => {
@@ -34,6 +34,8 @@ export const useTeams = () => {
       revalidateIfStale: true,
       errorRetryCount: 3,
       ttl: 24 * 60 * 60 * 1000,
+      suspense: true,
+      fallbackData: [],
     },
   );
 
@@ -51,7 +53,7 @@ export const useTeams = () => {
 
 export const useSelectedTeam = () => {
   const { teams } = useTeams();
-  const { selectedTeamId } = useMetadata();
+  const { selectedTeamId } = useMetadataStore();
 
   const team = useMemo(
     () => teams?.find((team) => team.id === selectedTeamId),

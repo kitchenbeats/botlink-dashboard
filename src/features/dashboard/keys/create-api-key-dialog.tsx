@@ -1,4 +1,6 @@
-import { createApiKeyAction } from "@/actions/key-actions";
+"use client";
+
+import { createApiKeyAction } from "@/server/keys/key-actions";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { Button } from "@/ui/primitives/button";
 import {
@@ -13,7 +15,7 @@ import {
 } from "@/ui/primitives/dialog";
 import { Input } from "@/ui/primitives/input";
 import { Label } from "@/ui/primitives/label";
-import { QUERY_KEYS } from "@/configs/query-keys";
+import { QUERY_KEYS } from "@/configs/keys";
 import { useMutation } from "@tanstack/react-query";
 import { FC, ReactNode, useState } from "react";
 import { mutate } from "swr";
