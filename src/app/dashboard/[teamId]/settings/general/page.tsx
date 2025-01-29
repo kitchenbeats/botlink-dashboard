@@ -1,16 +1,24 @@
 import DashboardPageLayout from "@/features/dashboard/page-layout";
 import { TeamSettingsForm } from "@/features/dashboard/team/settings-form";
 import { MemberManagement } from "@/features/dashboard/team/member-management";
-import { DangerZone } from "@/features/dashboard/team/danger-zone";
+import { Suspense } from "react";
 
-export default function GeneralPage() {
+interface GeneralPageProps {
+  params: Promise<{
+    teamId: string;
+  }>;
+}
+
+export default async function GeneralPage({ params }: GeneralPageProps) {
+  const { teamId } = await params;
+
   return (
-    <DashboardPageLayout title="General">
-      <div className="flex flex-col gap-6">
+    <DashboardPageLayout title="General" className="flex flex-col gap-6">
+      <Suspense fallback={null}>
         <TeamSettingsForm />
-        <MemberManagement />
-        <DangerZone />
-      </div>
+      </Suspense>
+      <MemberManagement teamId={teamId} />
+      {/* <DangerZone teamId={teamId} /> */}
     </DashboardPageLayout>
   );
 }

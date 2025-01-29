@@ -1,4 +1,3 @@
-import { unstable_noStore } from "next/cache";
 import {
   Card,
   CardContent,
@@ -11,6 +10,7 @@ import { getUsage } from "@/server/usage/get-usage";
 import { CostChart } from "./cost-chart";
 import { Loader } from "@/ui/loader";
 import { Suspense } from "react";
+import { bailOutFromPPR } from "@/lib/utils/server";
 
 function ErrorFallback({ error }: { error: Error }) {
   return (
@@ -40,8 +40,7 @@ export function CostCard({ teamId }: { teamId: string }) {
 }
 
 export async function CostCardContent({ teamId }: { teamId: string }) {
-  // bails out of ppr scope
-  unstable_noStore();
+  bailOutFromPPR();
 
   try {
     const res = await getUsage({ teamId });

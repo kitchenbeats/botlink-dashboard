@@ -1,7 +1,8 @@
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuPortal,
@@ -19,19 +20,7 @@ import { Separator } from "@/ui/primitives/separator";
 import { useDebounceValue } from "usehooks-ts";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { DatePickerWithRange } from "@/ui/date-picker";
 import { useTemplateTableStore } from "./stores/table-store";
-import { Calendar } from "@/ui/primitives/calendar";
-
-// Add to table-store.ts:
-interface TemplateTableState {
-  // ... existing state
-  cpuCount?: number;
-  memoryMB?: number;
-  isPublic?: boolean;
-  createdAfter?: Date;
-  createdBefore?: Date;
-}
 
 // Components
 const ResourcesFilter = () => {

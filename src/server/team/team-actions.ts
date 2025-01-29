@@ -108,65 +108,6 @@ export const addTeamMemberAction = guard(
   },
 );
 
-function memberDTO(user: User) {
-  return {
-    id: user.id,
-    email: user.email!,
-    name: user.user_metadata?.name,
-    avatar_url: user.user_metadata?.avatar_url,
-  };
-}
-
-type GetTeamMembersResponse = {
-  info: ReturnType<typeof memberDTO>;
-  relation: Database["public"]["Tables"]["users_teams"]["Row"];
-}[];
-
-const GetTeamMembersSchema = z.object({
-  teamId: z.string().uuid(),
-});
-
-export const getTeamMembersAction = guard<
-  typeof GetTeamMembersSchema,
-  GetTeamMembersResponse
->(GetTeamMembersSchema, async ({ teamId }) => {
-  const { user } = await checkAuthenticated();
-
-  const isAuthorized = await checkUserTeamAuthorization(user.id, teamId);
-
-  if (!isAuthorized) {
-    throw UnauthorizedError("User is not authorized to get team members");
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from("users_teams")
-    .select("*")
-    .eq("team_id", teamId);
-
-  if (error) {
-    throw error;
-  }
-
-  if (!data) {
-    return [];
-  }
-
-  const userResponses = await Promise.all(
-    data.map(
-      async (userTeam) =>
-        (await supabaseAdmin.auth.admin.getUserById(userTeam.user_id)).data
-          .user,
-    ),
-  );
-
-  return userResponses
-    .filter((user) => user !== null)
-    .map((user) => ({
-      info: memberDTO(user),
-      relation: data.find((userTeam) => userTeam.user_id === user.id)!,
-    }));
-});
-
 // Remove team member
 
 const RemoveTeamMemberSchema = z.object({

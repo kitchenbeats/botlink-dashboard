@@ -11,11 +11,10 @@ import {
 } from "@tanstack/react-table";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { Template } from "@/types/api";
-import { useApiUrl } from "@/features/dashboard/developer-settings/stores/developer-settings-store";
 import { useParams } from "next/navigation";
 import { useToast } from "@/lib/hooks/use-toast";
 import { mutate } from "swr";
-import { QUERY_KEYS } from "@/configs/query-keys";
+import { QUERY_KEYS } from "@/configs/keys";
 import { Button } from "@/ui/primitives/button";
 import {
   DropdownMenu,
@@ -26,7 +25,7 @@ import {
 import {
   deleteTemplateAction,
   updateTemplateAction,
-} from "@/server/templates-actions";
+} from "@/server/templates/templates-actions";
 import { useMemo } from "react";
 import { Badge } from "@/ui/primitives/badge";
 import { CgSmartphoneRam } from "react-icons/cg";
@@ -67,14 +66,12 @@ export const useColumns = (deps: any[]) => {
         size: 35,
         cell: ({ row }) => {
           const template = row.original;
-          const apiUrl = useApiUrl();
           const { teamId } = useParams();
           const { toast } = useToast();
 
           const togglePublish = async () => {
             try {
               const response = await updateTemplateAction({
-                apiUrl,
                 templateId: template.templateID,
                 props: {
                   isPublic: !template.public,
@@ -85,7 +82,7 @@ export const useColumns = (deps: any[]) => {
                 throw new Error(response.message);
               }
 
-              await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl));
+              await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string));
               toast({
                 title: "Success",
                 description: `Template ${template.public ? "unpublished" : "published"} successfully`,
@@ -102,7 +99,6 @@ export const useColumns = (deps: any[]) => {
           const deleteTemplate = async () => {
             try {
               const response = await deleteTemplateAction({
-                apiUrl,
                 templateId: template.templateID,
               });
 
@@ -110,7 +106,7 @@ export const useColumns = (deps: any[]) => {
                 throw new Error(response.message);
               }
 
-              await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string, apiUrl));
+              await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string));
               toast({
                 title: "Success",
                 description: "Template deleted successfully",

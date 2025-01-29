@@ -10,6 +10,9 @@ import {
 } from "@/types/errors";
 import { z } from "zod";
 import { ActionFunction, ActionResponse } from "@/types/actions";
+import { cookies } from "next/headers";
+import { unstable_noStore } from "next/cache";
+import { COOKIE_KEYS } from "@/configs/keys";
 
 /*
  *  This function checks if the user is authenticated and returns the user and the supabase client.
@@ -52,14 +55,13 @@ export async function getTeamApiKey(userId: string, teamId: string) {
       .from("users_teams")
       .select("*")
       .eq("user_id", userId)
-      .eq("team_id", teamId)
-      .single();
+      .eq("team_id", teamId);
 
   if (userTeamsRelationError) {
     throw userTeamsRelationError;
   }
 
-  if (!userTeamsRelationData) {
+  if (!userTeamsRelationData || userTeamsRelationData.length === 0) {
     throw UnauthorizedError(
       `User is not a member of team (user: ${userId}, team: ${teamId})`,
     );
@@ -130,6 +132,22 @@ export async function checkUserTeamAuthorization(
   }
 
   return !!userTeamsRelationData;
+}
+
+/*
+ *  This function fetches the API domain from the cookies and returns the domain and the API URL.
+ *  If the domain is not found in the cookies, it returns the default domain.
+ */
+export async function getApiUrl() {
+  const cookieStore = await cookies();
+
+  const domain =
+    cookieStore.get(COOKIE_KEYS.API_DOMAIN)?.value ??
+    process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN;
+
+  const url = `https://api.${domain}`;
+
+  return { domain, url };
 }
 
 /*
@@ -249,4 +267,29 @@ export function guard<TInput, TOutput>(
       };
     }
   };
+}
+
+/**
+ * Forces a component to be dynamically rendered at runtime by accessing cookies.
+ * This opts out of Partial Prerendering (PPR) for the component and its children.
+ *
+ * Use this when you need to ensure a component is rendered at request time,
+ * for example when dealing with user authentication or dynamic data that
+ * must be fresh on every request.
+ *
+ * IMPORTANT: When used in PPR scopes, this must be called before any try-catch blocks
+ * to properly opt out of static optimization. Placing it inside try-catch blocks
+ * may result in unexpected behavior.
+ *
+ * @example
+ * // Correct usage - before try-catch
+ * bailOut();
+ * try {
+ *   // dynamic code
+ * } catch (e) {}
+ *
+ * @see https://nextjs.org/docs/app/api-reference/functions/cookies
+ */
+export function bailOutFromPPR() {
+  unstable_noStore();
 }

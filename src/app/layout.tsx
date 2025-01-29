@@ -1,3 +1,6 @@
+import "@/app/_fonts/fonts";
+import "@/styles/globals.css";
+
 import { RootProvider } from "fumadocs-ui/provider";
 import { Body } from "./layout.client";
 import { ToastProvider } from "@/ui/primitives/toast";
@@ -6,9 +9,6 @@ import { TooltipProvider } from "@/ui/primitives/tooltip";
 import { BASE_URL } from "@/configs/urls";
 import { Metadata } from "next/types";
 import { METADATA } from "@/configs/metadata";
-
-import "@/app/_fonts/fonts";
-import "@/styles/globals.css";
 import ClientProviders from "@/features/client-providers";
 
 export const metadata: Metadata = {

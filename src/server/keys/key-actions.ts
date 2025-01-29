@@ -4,76 +4,11 @@ import { API_KEY_PREFIX } from "@/configs/constants";
 import {
   checkAuthenticated,
   checkUserTeamAuthorization,
-  maskApiKey,
   guard,
 } from "@/lib/utils/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { z } from "zod";
-
-// Get API Keys
-
-const GetApiKeysSchema = z.object({
-  teamId: z.string({ required_error: "Team ID is required" }).uuid(),
-});
-
-interface ObscuredApiKey {
-  id: string;
-  name: string;
-  maskedKey: string;
-  createdBy: string | null;
-  createdAt: string | null;
-}
-
-interface GetTeamApiKeysResponse {
-  apiKeys: ObscuredApiKey[];
-}
-
-export const getTeamApiKeysAction = guard(
-  GetApiKeysSchema,
-  async ({
-    teamId,
-  }: z.infer<typeof GetApiKeysSchema>): Promise<GetTeamApiKeysResponse> => {
-    const { user } = await checkAuthenticated();
-
-    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId);
-
-    if (!isAuthorized) throw new Error("Not authorized to edit team api keys");
-
-    const { data, error } = await supabaseAdmin
-      .from("team_api_keys")
-      .select("*")
-      .eq("team_id", teamId);
-
-    if (error) throw error;
-
-    const resultApiKeys: ObscuredApiKey[] = [];
-
-    for (const apiKey of data) {
-      let userEmail: string | null = null;
-
-      if (apiKey.created_by) {
-        const { data: keyUserData } = await supabaseAdmin
-          .from("auth_users")
-          .select("email")
-          .eq("id", apiKey.created_by);
-
-        if (keyUserData && keyUserData[0]) {
-          userEmail = keyUserData[0].email;
-        }
-      }
-
-      resultApiKeys.push({
-        id: apiKey.id,
-        name: apiKey.name,
-        maskedKey: maskApiKey(apiKey),
-        createdAt: apiKey.created_at,
-        createdBy: userEmail,
-      });
-    }
-
-    return { apiKeys: resultApiKeys };
-  },
-);
+import { revalidatePath } from "next/cache";
 
 // Create API Key
 
@@ -121,6 +56,8 @@ export const createApiKeyAction = guard(
 
     if (error) throw error;
 
+    revalidatePath(`/dashboard/${teamId}/settings/keys`);
+
     return {
       createdApiKey: apiKeyValue,
     };
@@ -151,6 +88,8 @@ export const deleteApiKeyAction = guard(
       .eq("id", apiKeyId);
 
     if (error) throw error;
+
+    revalidatePath(`/dashboard/${teamId}/settings/keys`);
 
     return {
       success: true,

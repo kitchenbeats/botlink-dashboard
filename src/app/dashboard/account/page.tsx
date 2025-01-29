@@ -6,11 +6,7 @@ import { DangerZone } from "@/features/dashboard/account/danger-zone";
 import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 
-export const experimental_ppr = true;
-
 export default async function AccountPage() {
-  "use cache";
-
   return (
     <DashboardPageLayout title="Account">
       <div className="flex flex-col gap-6">

@@ -1,3 +1,5 @@
+"use client";
+
 import { DebouncedInput } from "@/ui/primitives/input";
 import { Kbd } from "@/ui/primitives/kbd";
 import { forwardRef, useEffect } from "react";

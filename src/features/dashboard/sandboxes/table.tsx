@@ -28,13 +28,22 @@ import { TableBody } from "./table-body";
 import { flexRender } from "@tanstack/react-table";
 import { subHours } from "date-fns";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
-import { useSandboxData } from "./hooks/use-sandboxes-data";
 import { cn } from "@/lib/utils";
 import { useColumnSizeVars } from "@/lib/hooks/use-column-size-vars";
+import { Template } from "@/types/api";
+import { useRouter } from "next/navigation";
 
 const INITIAL_VISUAL_ROWS_COUNT = 50;
 
-export default function SandboxesTable() {
+interface SandboxesTableProps {
+  sandboxes: SandboxWithMetrics[];
+  templates: Template[];
+}
+
+export default function SandboxesTable({
+  sandboxes,
+  templates,
+}: SandboxesTableProps) {
   "use no memo";
 
   const isMounted = useIsMounted();
@@ -60,6 +69,7 @@ export default function SandboxesTable() {
     rowPinning,
     sorting,
     globalFilter,
+    pollingInterval,
     setSorting,
     setGlobalFilter,
     setRowPinning,
@@ -130,18 +140,25 @@ export default function SandboxesTable() {
     setColumnFilters(newFilters);
   }, [startedAtFilter, templateIds, cpuCount, memoryMB]);
 
+  // effect hook for scrolling to top when sorting or global filter changes
   React.useEffect(() => {
     resetScroll();
   }, [sorting, globalFilter]);
 
-  const {
-    sandboxes,
-    sandboxesLoading,
-    sandboxesError,
-    sandboxesValidating,
-    refetchSandboxes,
-  } = useSandboxData();
+  // effect hook for polling
+  const router = useRouter();
 
+  React.useEffect(() => {
+    if (pollingInterval > 0) {
+      const interval = setInterval(() => {
+        router.refresh();
+      }, pollingInterval * 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [pollingInterval]);
+
+  // table definitions
   const columns = useColumns([]);
 
   const table = useReactTable<SandboxWithMetrics>({
@@ -177,9 +194,7 @@ export default function SandboxesTable() {
     <div className="flex h-full flex-col pt-3">
       <SandboxesHeader
         searchInputRef={searchInputRef}
-        sandboxes={sandboxes}
-        sandboxesLoading={sandboxesLoading || sandboxesValidating}
-        refetchSandboxes={refetchSandboxes}
+        templates={templates}
         table={table}
       />
 
@@ -236,8 +251,6 @@ export default function SandboxesTable() {
             </DataTableHeader>
 
             <TableBody
-              sandboxesError={sandboxesError}
-              sandboxesLoading={sandboxesLoading}
               sandboxes={sandboxes}
               table={table}
               visualRowsCount={visualRowsCount}

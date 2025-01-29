@@ -7,6 +7,7 @@
     "dev": "pnpm run prebuild && next dev --turbo",
     "build": "next build",
     "start": "next start",
+    "build:start": "next build && next start",
     "dev:scan": "next dev & npx react-scan@latest localhost:3000",
     "start:scan": "next start & npx react-scan@latest localhost:3000",
     "<-- db --->": "",

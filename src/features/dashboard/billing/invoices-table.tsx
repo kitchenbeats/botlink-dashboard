@@ -9,12 +9,10 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { Loader } from "@/ui/loader";
 import { Button } from "@/ui/primitives/button";
-import { Invoice } from "@/types/billing";
 import { Suspense } from "react";
-import { checkAuthenticated, getTeamApiKey } from "@/lib/utils/server";
 import Link from "next/link";
-import { unstable_noStore } from "next/cache";
 import { getInvoices } from "@/server/billing/get-invoices";
+import { bailOutFromPPR } from "@/lib/utils/server";
 
 interface BillingInvoicesTableProps {
   teamId: string;
@@ -50,8 +48,7 @@ function LoadingFallback() {
 }
 
 async function InvoicesTableContent({ teamId }: { teamId: string }) {
-  // bails out of ppr scope
-  unstable_noStore();
+  bailOutFromPPR();
 
   try {
     const res = await getInvoices({ teamId });

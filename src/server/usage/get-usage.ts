@@ -3,6 +3,7 @@ import "server-only";
 import { checkAuthenticated, getTeamApiKey, guard } from "@/lib/utils/server";
 import { Usage, TransformedUsageData } from "@/types/usage";
 import { z } from "zod";
+import { E2BError } from "@/types/errors";
 
 const GetUsageParamsSchema = z.object({
   teamId: z.string().uuid(),
@@ -27,7 +28,10 @@ export const getUsage = guard(GetUsageParamsSchema, async ({ teamId }) => {
   if (!response.ok) {
     const text = await response.text();
 
-    throw new Error(text ?? "Failed to fetch usage data");
+    throw new E2BError(
+      "UNEXPECTED_ERROR",
+      text ?? "Failed to fetch usage data",
+    );
   }
 
   const data = await response.json();

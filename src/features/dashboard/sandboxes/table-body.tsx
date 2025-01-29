@@ -7,16 +7,12 @@ import { SandboxWithMetrics } from "./table-config";
 import { useMemo } from "react";
 
 interface TableBodyProps {
-  sandboxesError: Error | undefined;
-  sandboxesLoading: boolean;
   sandboxes: SandboxWithMetrics[] | undefined;
   table: Table<SandboxWithMetrics>;
   visualRowsCount: number;
 }
 
 export function TableBody({
-  sandboxesError,
-  sandboxesLoading,
   sandboxes,
   table,
   visualRowsCount,
@@ -31,22 +27,7 @@ export function TableBody({
 
   return (
     <DataTableBody>
-      {sandboxesError ? (
-        <DataTableRow>
-          <Alert className="w-full text-left" variant="error">
-            <AlertTitle>Error loading sandboxes.</AlertTitle>
-            <AlertDescription>{sandboxesError.message}</AlertDescription>
-          </Alert>
-        </DataTableRow>
-      ) : sandboxesLoading || !sandboxes ? (
-        <AssemblyLoader
-          className="p-6"
-          gridWidth={12}
-          interval={6}
-          emptyChar=" "
-          filledChar="░"
-        />
-      ) : sandboxes && visualRows?.length > 0 ? (
+      {sandboxes && visualRows?.length > 0 ? (
         <>
           {visualRows.map((row) => (
             <DataTableRow

@@ -2,6 +2,10 @@ import { ThemeSwitcher } from "@/ui/theme-switcher";
 import { cn } from "@/lib/utils";
 import UserMenu from "@/features/auth/user-menu";
 import { Suspense } from "react";
+import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { COOKIE_KEYS } from "@/configs/keys";
+import { Skeleton } from "@/ui/primitives/skeleton";
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode;
@@ -16,8 +20,6 @@ export default async function DashboardPageLayout({
   className,
   fullscreen = false,
 }: DashboardPageLayoutProps) {
-  "use cache";
-
   return (
     <div className="relative flex h-svh">
       <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg px-3">
@@ -27,8 +29,8 @@ export default async function DashboardPageLayout({
           <Suspense fallback={null}>
             <ThemeSwitcher />
           </Suspense>
-          <Suspense fallback={null}>
-            <UserMenu />
+          <Suspense fallback={<Skeleton className="size-8" />}>
+            <UserMenuWrapper />
           </Suspense>
         </div>
       </div>
@@ -46,4 +48,16 @@ export default async function DashboardPageLayout({
       </div>
     </div>
   );
+}
+
+async function UserMenuWrapper() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const apiDomain = (await cookies()).get(COOKIE_KEYS.API_DOMAIN)?.value;
+
+  return <UserMenu user={user!} apiDomain={apiDomain} />;
 }

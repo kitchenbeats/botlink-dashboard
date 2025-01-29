@@ -1,4 +1,4 @@
-import { QUERY_KEYS } from "@/configs/query-keys";
+import { QUERY_KEYS } from "@/configs/keys";
 import { useMemo } from "react";
 import useSWR, { preload } from "swr";
 import { TeamWithDefault } from "@/types/dashboard";

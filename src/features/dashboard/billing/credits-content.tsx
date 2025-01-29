@@ -1,6 +1,6 @@
+import { bailOutFromPPR } from "@/lib/utils/server";
 import { getUsage } from "@/server/usage/get-usage";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { unstable_noStore } from "next/cache";
 
 function ErrorFallback({ error }: { error: Error }) {
   return (
@@ -16,8 +16,7 @@ export default async function BillingCreditsContent({
 }: {
   teamId: string;
 }) {
-  // bails out of ppr scope
-  unstable_noStore();
+  bailOutFromPPR();
 
   try {
     const res = await getUsage({ teamId });
