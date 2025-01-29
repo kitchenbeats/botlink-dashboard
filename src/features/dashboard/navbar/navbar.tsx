@@ -5,8 +5,8 @@ import { MAIN_DASHBOARD_LINKS } from "@/configs/dashboard-navs";
 import { useMetadataStore } from "@/lib/stores/metadata-store";
 import { cn } from "@/lib/utils";
 import ClientOnly from "@/ui/client-only";
-import { useParams, usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 
 type GroupedLinks = {
@@ -55,8 +55,8 @@ export default function DashboardNavbar({ className }: DashboardNavbarProps) {
               {links.map((item) => (
                 <div key={item.label} className="w-full">
                   <Link
+                    prefetch
                     href={item.href({ teamId: selectedTeamId ?? undefined })}
-                    prefetch={false}
                     suppressHydrationWarning
                     className={cn(
                       "group flex w-full items-center rounded-md font-mono text-sm hover:no-underline",
