@@ -42,7 +42,7 @@ export default function Search({ className }: SearchProps) {
   return (
     <div className="relative">
       <Input
-        className={cn("w-full pr-12", className)}
+        className={cn("h-10 w-full pr-12", className)}
         placeholder="JUMP TO"
         onClick={() => setOpen(true)}
         readOnly

@@ -21,9 +21,15 @@ function ErrorFallback({ error }: { error: Error }) {
   );
 }
 
-export function CostCard({ teamId }: { teamId: string }) {
+export function CostCard({
+  teamId,
+  className,
+}: {
+  teamId: string;
+  className?: string;
+}) {
   return (
-    <Card className="col-span-12">
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="font-mono">Cost Usage</CardTitle>
         <CardDescription>

@@ -35,8 +35,8 @@ const buttonVariants = cva(
           "active:translate-y-[1px] active:shadow-none",
         ].join(" "),
         error: [
-          "bg-error text-error-fg",
-          "hover:bg-error/90",
+          "bg-error/10 text-error",
+          "hover:bg-error/20",
           "active:translate-y-[1px] active:shadow-none",
         ].join(" "),
         outline: [

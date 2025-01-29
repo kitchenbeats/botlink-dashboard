@@ -5,4 +5,9 @@ interface Invoice {
   date_created: string;
 }
 
-export type { Invoice };
+interface BillingLimit {
+  limit_amount_gte: number | null;
+  alert_amount_gte: number | null;
+}
+
+export type { Invoice, BillingLimit };

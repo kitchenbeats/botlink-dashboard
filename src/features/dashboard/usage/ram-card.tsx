@@ -21,9 +21,15 @@ function ErrorFallback({ error }: { error: Error }) {
   );
 }
 
-export function RAMCard({ teamId }: { teamId: string }) {
+export function RAMCard({
+  teamId,
+  className,
+}: {
+  teamId: string;
+  className?: string;
+}) {
   return (
-    <Card className="col-span-6">
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="font-mono">RAM Hours</CardTitle>
         <CardDescription>

@@ -4,6 +4,7 @@ import { checkAuthenticated, getTeamApiKey, guard } from "@/lib/utils/server";
 import { Usage, TransformedUsageData } from "@/types/usage";
 import { z } from "zod";
 import { E2BError } from "@/types/errors";
+import { TEAM_API_KEY_HEADER } from "@/configs/constants";
 
 const GetUsageParamsSchema = z.object({
   teamId: z.string().uuid(),
@@ -20,7 +21,7 @@ export const getUsage = guard(GetUsageParamsSchema, async ({ teamId }) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "X-Team-API-Key": apiKey,
+        [TEAM_API_KEY_HEADER]: apiKey,
       },
     },
   );

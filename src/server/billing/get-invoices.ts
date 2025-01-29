@@ -3,6 +3,7 @@ import "server-only";
 import { Invoice } from "@/types/billing";
 import { checkAuthenticated, getTeamApiKey, guard } from "@/lib/utils/server";
 import { z } from "zod";
+import { TEAM_API_KEY_HEADER } from "@/configs/constants";
 
 const GetInvoicesParamsSchema = z.object({
   teamId: z.string().uuid(),
@@ -17,7 +18,7 @@ export const getInvoices = guard(GetInvoicesParamsSchema, async (params) => {
     `${process.env.BILLING_API_URL}/teams/${params.teamId}/invoices`,
     {
       headers: {
-        "X-Team-API-Key": apiKey,
+        [TEAM_API_KEY_HEADER]: apiKey,
       },
     },
   );

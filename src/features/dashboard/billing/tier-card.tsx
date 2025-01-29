@@ -1,6 +1,6 @@
 "use client";
 
-import { redirectToCheckoutAction } from "@/server/billing/checkout-actions";
+import { redirectToCheckoutAction } from "@/server/billing/billing-actions";
 import { Button } from "@/ui/primitives/button";
 import { GradientBorder } from "@/ui/gradient-border";
 import { Tier } from "@/configs/tiers";

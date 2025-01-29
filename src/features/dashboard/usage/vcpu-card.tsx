@@ -21,9 +21,15 @@ function ErrorFallback({ error }: { error: Error }) {
   );
 }
 
-export function VCPUCard({ teamId }: { teamId: string }) {
+export function VCPUCard({
+  teamId,
+  className,
+}: {
+  teamId: string;
+  className?: string;
+}) {
   return (
-    <Card className="col-span-6">
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="font-mono">vCPU Hours</CardTitle>
         <CardDescription>

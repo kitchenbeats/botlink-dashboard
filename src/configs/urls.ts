@@ -14,6 +14,7 @@ export const PROTECTED_URLS = {
   TEAM: (teamId: string) => `/dashboard/${teamId}`,
   SANDBOXES: (teamId: string) => `/dashboard/${teamId}/sandboxes`,
   TEMPLATES: (teamId: string) => `/dashboard/${teamId}/templates`,
+  USAGE: (teamId: string) => `/dashboard/${teamId}/usage`,
 };
 
 export const BASE_URL = process.env.VERCEL_URL
