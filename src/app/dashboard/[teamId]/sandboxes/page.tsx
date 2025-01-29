@@ -4,6 +4,7 @@ import SandboxesTable from "@/features/dashboard/sandboxes/table";
 import { bailOutFromPPR } from "@/lib/utils/server";
 import { getTeamSandboxes } from "@/server/sandboxes/get-team-sandboxes";
 import { getTeamTemplates } from "@/server/templates/get-templates";
+import ClientOnly from "@/ui/client-only";
 import { Suspense } from "react";
 
 interface PageProps {
@@ -48,7 +49,11 @@ async function PageContent({ teamId }: PageContentProps) {
     const sandboxes = sandboxesRes.data;
     const templates = templatesRes.data;
 
-    return <SandboxesTable sandboxes={sandboxes} templates={templates} />;
+    return (
+      <ClientOnly>
+        <SandboxesTable sandboxes={sandboxes} templates={templates} />
+      </ClientOnly>
+    );
   } catch (error) {
     return <div>Error loading sandboxes.</div>;
   }

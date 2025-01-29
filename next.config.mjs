@@ -21,6 +21,14 @@ const config = {
       fullUrl: true,
     },
   },
+  rewrites: async () => {
+    return [
+      {
+        source: "/",
+        destination: "https://e2b.dev",
+      },
+    ];
+  },
 };
 
 export default withMDX(config);
