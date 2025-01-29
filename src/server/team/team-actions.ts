@@ -14,6 +14,8 @@ import {
   InvalidParametersError,
   UnauthorizedError,
 } from "@/types/errors";
+import { kv } from "@vercel/kv";
+import { KV_KEYS } from "@/configs/keys";
 
 // Update team name
 
@@ -105,6 +107,8 @@ export const addTeamMemberAction = guard(
     if (insertError) {
       throw insertError;
     }
+
+    kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId));
   },
 );
 
@@ -164,5 +168,7 @@ export const removeTeamMemberAction = guard(
     if (removeError) {
       throw removeError;
     }
+
+    kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId));
   },
 );
