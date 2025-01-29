@@ -49,11 +49,7 @@ async function PageContent({ teamId }: PageContentProps) {
     const sandboxes = sandboxesRes.data;
     const templates = templatesRes.data;
 
-    return (
-      <ClientOnly>
-        <SandboxesTable sandboxes={sandboxes} templates={templates} />
-      </ClientOnly>
-    );
+    return <SandboxesTable sandboxes={sandboxes} templates={templates} />;
   } catch (error) {
     return <div>Error loading sandboxes.</div>;
   }

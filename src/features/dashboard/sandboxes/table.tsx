@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { useColumnSizeVars } from "@/lib/hooks/use-column-size-vars";
 import { Template } from "@/types/api";
 import { useRouter } from "next/navigation";
+import ClientOnly from "@/ui/client-only";
 
 const INITIAL_VISUAL_ROWS_COUNT = 50;
 
@@ -191,7 +192,7 @@ export default function SandboxesTable({
   };
 
   return (
-    <div className="flex h-full flex-col pt-3">
+    <ClientOnly className="flex h-full flex-col pt-3">
       <SandboxesHeader
         searchInputRef={searchInputRef}
         templates={templates}
@@ -258,6 +259,6 @@ export default function SandboxesTable({
           </DataTable>
         )}
       </div>
-    </div>
+    </ClientOnly>
   );
 }

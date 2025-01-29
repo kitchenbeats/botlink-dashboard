@@ -17,6 +17,7 @@ import { useLocalStorage } from "usehooks-ts";
 import { useColumnSizeVars } from "@/lib/hooks/use-column-size-vars";
 import { TableBody } from "./table-body";
 import TemplatesHeader from "./header";
+import ClientOnly from "@/ui/client-only";
 
 interface TemplatesTableProps {
   templates: Template[];
@@ -93,7 +94,7 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
   const columnSizeVars = useColumnSizeVars(table);
 
   return (
-    <div className="flex h-full flex-col pt-3">
+    <ClientOnly className="flex h-full flex-col pt-3">
       <TemplatesHeader />
 
       <div className="mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
@@ -127,6 +128,6 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
           <TableBody templates={templates} table={table} />
         </DataTable>
       </div>
-    </div>
+    </ClientOnly>
   );
 }

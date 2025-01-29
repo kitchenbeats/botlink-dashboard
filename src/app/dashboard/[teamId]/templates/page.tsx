@@ -39,11 +39,7 @@ async function PageContent({ teamId }: PageContentProps) {
 
     const templates = res.data;
 
-    return (
-      <ClientOnly>
-        <TemplatesTable templates={templates} />
-      </ClientOnly>
-    );
+    return <TemplatesTable templates={templates} />;
   } catch (error) {
     return <div>Error loading templates.</div>;
   }
