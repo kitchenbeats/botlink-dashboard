@@ -1,7 +1,7 @@
 import "server-only";
 
-import { supabaseAdmin } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/clients/supabase/admin";
+import { createClient } from "@/lib/clients/supabase/server";
 import { Database } from "@/types/supabase";
 import {
   E2BError,
@@ -117,13 +117,19 @@ export async function checkUserTeamAuthorization(
   userId: string,
   teamId: string,
 ) {
+  if (
+    !z.string().uuid().safeParse(userId).success ||
+    !z.string().uuid().safeParse(teamId).success
+  ) {
+    return false;
+  }
+
   const { data: userTeamsRelationData, error: userTeamsRelationError } =
     await supabaseAdmin
       .from("users_teams")
       .select("*")
       .eq("user_id", userId)
-      .eq("team_id", teamId)
-      .single();
+      .eq("team_id", teamId);
 
   if (userTeamsRelationError) {
     throw new Error(
@@ -131,7 +137,7 @@ export async function checkUserTeamAuthorization(
     );
   }
 
-  return !!userTeamsRelationData;
+  return !!userTeamsRelationData.length;
 }
 
 /*

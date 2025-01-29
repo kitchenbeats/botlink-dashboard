@@ -6,7 +6,7 @@ import {
   checkUserTeamAuthorization,
   guard,
 } from "@/lib/utils/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseAdmin } from "@/lib/clients/supabase/admin";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 

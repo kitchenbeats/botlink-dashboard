@@ -1,7 +1,7 @@
 "use server";
 
 import { encodedRedirect } from "@/lib/utils/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/clients/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Provider } from "@supabase/supabase-js";

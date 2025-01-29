@@ -26,4 +26,13 @@ export const QUERY_KEYS = {
  */
 export const COOKIE_KEYS = {
   API_DOMAIN: "e2b-api-domain",
+  SELECTED_TEAM_ID: "e2b-selected-team-id",
+};
+
+/*
+ * kv keys in use
+ */
+export const KV_KEYS = {
+  USER_TEAM_ACCESS: (userId: string, teamId: string) =>
+    `user-team-access:${userId}:${teamId}`,
 };

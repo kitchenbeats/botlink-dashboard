@@ -1,7 +1,7 @@
 "use client";
 
 import { QUERY_KEYS } from "@/configs/keys";
-import { supabase } from "@/lib/supabase/client";
+import { supabase } from "@/lib/clients/supabase/client";
 import { User } from "@supabase/supabase-js";
 import useSWR from "swr";
 

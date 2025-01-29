@@ -2,7 +2,7 @@ import { ThemeSwitcher } from "@/ui/theme-switcher";
 import { cn } from "@/lib/utils";
 import UserMenu from "@/features/auth/user-menu";
 import { Suspense } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/clients/supabase/server";
 import { cookies } from "next/headers";
 import { COOKIE_KEYS } from "@/configs/keys";
 import { Skeleton } from "@/ui/primitives/skeleton";

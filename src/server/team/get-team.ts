@@ -1,6 +1,6 @@
 import "server-only";
 
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseAdmin } from "@/lib/clients/supabase/admin";
 import { checkAuthenticated, guard } from "@/lib/utils/server";
 import { TeamWithDefault } from "@/types/dashboard";
 import { UnauthorizedError } from "@/types/errors";

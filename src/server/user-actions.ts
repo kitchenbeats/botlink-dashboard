@@ -1,6 +1,6 @@
 "use server";
 
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseAdmin } from "@/lib/clients/supabase/admin";
 import { User } from "@supabase/supabase-js";
 import { checkAuthenticated, guard } from "@/lib/utils/server";
 import { z } from "zod";

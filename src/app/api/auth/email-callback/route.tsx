@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/clients/supabase/server";
 import { encodedRedirect } from "@/lib/utils/auth";
 import { redirect } from "next/navigation";
 

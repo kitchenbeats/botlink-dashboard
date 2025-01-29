@@ -1,6 +1,6 @@
 "use server";
 
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { supabaseAdmin } from "@/lib/clients/supabase/admin";
 import { Database } from "@/types/supabase";
 import {
   checkAuthenticated,
