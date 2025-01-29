@@ -8,11 +8,8 @@ export const cachedUserTeamAccess = async (userId: string, teamId: string) => {
   const [result] = await kv.mget(KV_KEYS.USER_TEAM_ACCESS(userId, teamId));
 
   if (result) {
-    console.info("CACHE HIT: ", result);
     return result;
   }
-
-  console.info("CACHE MISS: ", userId, teamId);
 
   const isAuthorized = await checkUserTeamAuthorization(userId, teamId);
 
