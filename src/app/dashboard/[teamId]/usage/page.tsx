@@ -17,10 +17,16 @@ export default async function UsagePage({
       fullscreen
       className="flex flex-col justify-end"
     >
-      <div className="mb-auto grid w-full grid-cols-12 self-end">
-        <CostCard teamId={teamId} className="col-span-12 border-b" />
-        <VCPUCard teamId={teamId} className="col-span-6 border-r" />
-        <RAMCard teamId={teamId} className="col-span-6" />
+      <div className="mb-auto grid w-full grid-cols-12 self-end overflow-y-auto">
+        <CostCard
+          teamId={teamId}
+          className="col-span-12 min-h-[360px] border-b"
+        />
+        <VCPUCard
+          teamId={teamId}
+          className="col-span-6 min-h-[320px] border-r"
+        />
+        <RAMCard teamId={teamId} className="col-span-6 min-h-[320px]" />
 
         <UsageLimits teamId={teamId} className="col-span-12 border-t" />
       </div>
