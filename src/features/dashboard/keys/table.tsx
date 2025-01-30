@@ -11,15 +11,17 @@ import {
 import { FC } from "react";
 import TableBodyContent from "./table-body";
 import { Suspense } from "react";
+import { cn } from "@/lib/utils";
 
 interface ApiKeysTableProps {
   teamId: string;
+  className?: string;
 }
 
-const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId }) => {
+const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId, className }) => {
   return (
     <>
-      <Table className="w-full animate-in fade-in">
+      <Table className={cn("w-full animate-in fade-in", className)}>
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Key</TableHead>

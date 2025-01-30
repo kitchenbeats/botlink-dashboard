@@ -76,13 +76,9 @@ export function NameSettings() {
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="max-w-[17rem] flex-1">
                   <FormControl>
-                    <Input
-                      placeholder="Name"
-                      className="w-[17rem]"
-                      {...field}
-                    />
+                    <Input placeholder="Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,7 +89,7 @@ export function NameSettings() {
               disabled={form.watch("name") === user?.user_metadata?.name}
               type="submit"
             >
-              Save Name
+              Save
             </Button>
           </form>
         </Form>

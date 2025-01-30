@@ -77,7 +77,7 @@ export default function MemberTableRow({ member, index }: TableRowProps) {
           </AvatarFallback>
         </Avatar>
       </TableCell>
-      <TableCell>
+      <TableCell className="min-w-36">
         {member.info.id === user?.id
           ? "You"
           : (member.info.name ?? "Anonymous")}

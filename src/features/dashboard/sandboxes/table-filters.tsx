@@ -208,7 +208,7 @@ const SandboxesTableFilters = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("flex items-center gap-2", className)}
+      className={cn("flex flex-wrap items-center gap-2", className)}
       {...props}
     >
       <DropdownMenu>

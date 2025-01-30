@@ -114,11 +114,11 @@ export function EmailSettings() {
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="max-w-[17rem] flex-1">
                   <FormControl>
                     <Input
                       placeholder="Email"
-                      className="w-[17rem]"
+                      className="md:max-w-[17rem]"
                       {...field}
                     />
                   </FormControl>
@@ -131,7 +131,7 @@ export function EmailSettings() {
               disabled={form.watch("email") === user?.email}
               type="submit"
             >
-              Save Email
+              Save
             </Button>
           </form>
         </Form>

@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/primitives/card";
+import { CardDescription, CardTitle } from "@/ui/primitives/card";
 import { TIERS } from "@/configs/tiers";
 import BillingTierCard from "@/features/dashboard/billing/tier-card";
 import BillingCreditsContent from "@/features/dashboard/billing/credits-content";
@@ -23,56 +17,65 @@ export default async function BillingPage({
 
   return (
     <DashboardPageLayout title="Billing">
-      <div className="grid grid-cols-12 gap-6">
-        <Card className="relative col-span-8">
-          <CardHeader>
-            <CardTitle>Plan</CardTitle>
-            <CardDescription>
-              Manage your current plan and subscription details.
-            </CardDescription>
-            <Suspense fallback={null}>
-              <CustomerPortalLink />
-            </Suspense>
-          </CardHeader>
-          <CardContent className="flex gap-8 pt-6">
-            {TIERS.map((tier) => (
-              <BillingTierCard
-                key={tier.id}
-                tier={tier}
-                isHighlighted={tier.id === "pro_v1"}
-              />
-            ))}
-          </CardContent>
-        </Card>
+      <div className="grid w-full gap-4 p-4 sm:gap-6 sm:p-6">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-12 xl:gap-8">
+          {/* Plan Section */}
+          <section className="col-span-1 grid gap-4 xl:col-span-8">
+            <div className="relative flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-1">
+                <CardTitle>Plan</CardTitle>
+                <CardDescription>
+                  Manage your current plan and subscription details.
+                </CardDescription>
+              </div>
+              <Suspense fallback={null}>
+                <CustomerPortalLink />
+              </Suspense>
+            </div>
 
-        <Card className="col-span-4 h-min">
-          <CardHeader>
-            <CardTitle>Credits</CardTitle>
-            <CardDescription>
-              Your current credits balance. Your usage costs are deducted from
-              your credits.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            <div className="flex flex-col gap-4 overflow-x-auto p-4 lg:flex-row lg:gap-8 xl:p-6">
+              {TIERS.map((tier) => (
+                <BillingTierCard
+                  key={tier.id}
+                  tier={tier}
+                  isHighlighted={tier.id === "pro_v1"}
+                  className="min-w-[280px] xl:min-w-0"
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Credits Section */}
+          <section className="col-span-1 flex flex-col gap-4 xl:col-span-4">
+            <div className="flex flex-col gap-1">
+              <CardTitle>Credits</CardTitle>
+              <CardDescription>
+                Your current credits balance. Your usage costs are deducted from
+                your credits.
+              </CardDescription>
+            </div>
+
             <Suspense
               fallback={<Loader className="text-2xl" variant="square" />}
             >
               <BillingCreditsContent teamId={teamId} />
             </Suspense>
-          </CardContent>
-        </Card>
+          </section>
 
-        <Card className="col-span-12">
-          <CardHeader>
-            <CardTitle>Billing History</CardTitle>
-            <CardDescription>
-              View your team's billing history and invoices.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BillingInvoicesTable teamId={teamId} />
-          </CardContent>
-        </Card>
+          {/* Billing History Section */}
+          <section className="col-span-1 mt-8 grid gap-4 xl:col-span-12">
+            <div className="flex flex-col gap-1">
+              <CardTitle>Billing History</CardTitle>
+              <CardDescription>
+                View your team's billing history and invoices.
+              </CardDescription>
+            </div>
+
+            <div className="w-full overflow-x-auto">
+              <BillingInvoicesTable teamId={teamId} />
+            </div>
+          </section>
+        </div>
       </div>
     </DashboardPageLayout>
   );

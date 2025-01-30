@@ -8,14 +8,16 @@ import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { forwardRef } from "react";
+import { cn } from "@/lib/utils";
 
 interface BillingTierCardProps {
   tier: Tier;
   isHighlighted?: boolean;
+  className?: string;
 }
 
 const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
-  ({ tier, isHighlighted = false }, ref) => {
+  ({ tier, isHighlighted = false, className }, ref) => {
     const team = useSelectedTeam();
 
     const { toast } = useToast();
@@ -57,7 +59,7 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
             }
           : {})}
         wrapperClassName="h-min"
-        className="p-6"
+        className={cn("p-6", className)}
       >
         <div className="mb-3 flex justify-between gap-2">
           <h5 className="text-lg font-semibold">

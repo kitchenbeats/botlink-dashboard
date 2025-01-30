@@ -33,7 +33,7 @@ export const SearchInput = React.forwardRef<
   }, [ref]);
 
   return (
-    <div className={cn("relative w-full max-w-[420px]", className)}>
+    <div className={cn("relative w-full", className)}>
       <DebouncedInput
         value={globalFilter}
         onChange={(v) => setGlobalFilter(v as string)}

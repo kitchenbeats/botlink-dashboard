@@ -81,10 +81,8 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
           control={form.control}
           name="email"
           render={({ field }) => (
-            <FormItem className="relative w-full">
-              <FormLabel className="absolute bottom-[115%] left-1">
-                E-Mail
-              </FormLabel>
+            <FormItem className="relative flex-1">
+              <FormLabel className="">E-Mail</FormLabel>
               <div className="flex items-center gap-2">
                 <FormControl>
                   <Input placeholder="member@acme.com" {...field} />

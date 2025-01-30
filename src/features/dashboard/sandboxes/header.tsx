@@ -23,36 +23,58 @@ export function SandboxesHeader({
   "use no memo";
 
   const { pollingInterval, setPollingInterval } = useSandboxTableStore();
-
   const router = useRouter();
 
   return (
-    <header className="mx-3 flex justify-between">
-      <div className="flex w-full flex-col gap-8">
-        <SearchInput ref={searchInputRef} />
-        <SandboxesTableFilters templates={templates} />
-      </div>
-      <div className="flex w-full flex-col items-end justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <PollingButton
-            pollingInterval={pollingInterval}
-            onIntervalChange={setPollingInterval}
-            onRefresh={() => {
-              router.refresh();
-            }}
-          />
-          <Badge
-            variant="success"
-            className="h-min w-fit gap-2 font-bold uppercase"
-          >
-            {table.getRowCount()} Sandboxes running
-            <Circle className="size-2 fill-current" />
+    <header className="mx-3 flex flex-col gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:justify-between">
+        <div className="flex flex-1 flex-col gap-4">
+          <div className="flex items-center justify-between gap-2 lg:hidden">
+            <Badge
+              variant="success"
+              className="h-min w-fit gap-2 font-bold uppercase"
+            >
+              {table.getRowCount()} Sandboxes running
+              <Circle className="size-2 fill-current" />
+            </Badge>
+            <Badge className="h-min w-fit gap-2 font-bold uppercase">
+              {table.getFilteredRowModel().rows.length} / {table.getRowCount()}
+            </Badge>
+          </div>
+          <SearchInput ref={searchInputRef} className="max-w-[380px]" />
+        </div>
+        <div className="flex flex-col items-start gap-2 lg:items-end">
+          <div className="hidden items-center gap-2 lg:flex">
+            <PollingButton
+              pollingInterval={pollingInterval}
+              onIntervalChange={setPollingInterval}
+              onRefresh={() => {
+                router.refresh();
+              }}
+            />
+            <Badge
+              variant="success"
+              className="h-min w-fit gap-2 font-bold uppercase"
+            >
+              {table.getRowCount()} Sandboxes running
+              <Circle className="size-2 fill-current" />
+            </Badge>
+          </div>
+          <div className="flex w-full items-center justify-between gap-2 lg:hidden">
+            <PollingButton
+              pollingInterval={pollingInterval}
+              onIntervalChange={setPollingInterval}
+              onRefresh={() => {
+                router.refresh();
+              }}
+            />
+          </div>
+          <Badge className="hidden h-min w-fit gap-2 font-bold uppercase lg:block">
+            {table.getFilteredRowModel().rows.length} / {table.getRowCount()}
           </Badge>
         </div>
-        <Badge className="h-min w-fit gap-2 font-bold uppercase">
-          {table.getFilteredRowModel().rows.length} / {table.getRowCount()}
-        </Badge>
       </div>
+      <SandboxesTableFilters templates={templates} />
     </header>
   );
 }

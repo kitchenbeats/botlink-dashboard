@@ -16,7 +16,7 @@ export default async function Page({ params }: PageProps) {
   const { teamId } = await params;
 
   return (
-    <DashboardPageLayout title="Running Sandboxes" fullscreen>
+    <DashboardPageLayout title="Active Sandboxes" fullscreen>
       <Suspense fallback={<LoadingLayout />}>
         <PageContent teamId={teamId} />
       </Suspense>

@@ -23,13 +23,13 @@ export default async function AccountPage() {
             </Suspense>
           </div>
 
-          <div className={cn("col-span-6")}>
+          <div className={cn("col-span-12 md:col-span-6")}>
             <Suspense fallback={null}>
               <PasswordSettings />
             </Suspense>
           </div>
 
-          <div className={cn("col-span-6 h-min")}>
+          <div className={cn("col-span-12 h-min md:col-span-6")}>
             <Suspense fallback={null}>
               <DangerZone />
             </Suspense>

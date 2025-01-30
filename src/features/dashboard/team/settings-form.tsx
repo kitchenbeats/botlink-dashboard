@@ -3,13 +3,6 @@
 import { updateTeamNameAction } from "@/server/team/team-actions";
 import { AuthFormMessage } from "@/features/auth/form-message";
 import { Button } from "@/ui/primitives/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/ui/primitives/card";
 import { Input } from "@/ui/primitives/input";
 import { Skeleton } from "@/ui/primitives/skeleton";
 import { useSelectedTeam, useTeams } from "@/lib/hooks/use-teams";
@@ -19,6 +12,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
+import { CardDescription, CardTitle } from "@/ui/primitives/card";
 
 export function TeamSettingsForm() {
   const { refetch: refetchTeams } = useTeams();
@@ -62,14 +56,14 @@ export function TeamSettingsForm() {
   });
 
   return (
-    <Card hideUnderline>
-      <CardHeader>
+    <div>
+      <div className="mb-6 flex flex-col gap-1">
         <CardTitle>Team Name</CardTitle>
         <CardDescription>
           Change your team name to display on your invoices and receipts.
         </CardDescription>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div>
         {team ? (
           <form
             onSubmit={(e) => {
@@ -80,7 +74,7 @@ export function TeamSettingsForm() {
           >
             <Input
               placeholder="Acme, Inc."
-              className="w-[17rem]"
+              className="max-w-[14rem] flex-1"
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
             />
@@ -89,7 +83,7 @@ export function TeamSettingsForm() {
               disabled={teamName === team?.name}
               type="submit"
             >
-              Save Name
+              Save
             </Button>
           </form>
         ) : (
@@ -98,7 +92,7 @@ export function TeamSettingsForm() {
         <AnimatePresence mode="wait" initial={false}>
           {message && <AuthFormMessage className="mt-4" message={message} />}
         </AnimatePresence>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

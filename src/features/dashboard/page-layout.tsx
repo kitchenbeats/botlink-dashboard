@@ -40,30 +40,54 @@ export default async function DashboardPageLayout({
           </Suspense>
         </div>
       </div>
-      <div
-        className={cn(
-          "relative z-0 mt-[var(--protected-nav-height)] flex-1",
-          fullscreen
-            ? "overflow-hidden"
-            : "flex justify-center overflow-y-auto pt-24",
-        )}
-      >
-        {fullscreen ? (
-          <div className={cn("h-full", className)}>{children}</div>
-        ) : (
-          <div
-            className={cn(
-              "relative flex h-fit w-full max-w-[1200px] border pb-2",
-              className,
-            )}
-          >
-            <Dotted />
-            <div className="relative w-full scale-[1.005] border bg-bg shadow-sm dark:shadow-md">
-              {children}
-            </div>
+
+      <DesktopContent fullscreen={fullscreen} className={className}>
+        {children}
+      </DesktopContent>
+      <MobileContent>{children}</MobileContent>
+    </div>
+  );
+}
+
+interface ContentProps {
+  children: React.ReactNode;
+  className?: string;
+  fullscreen?: boolean;
+}
+
+function DesktopContent({ children, className, fullscreen }: ContentProps) {
+  return (
+    <div
+      className={cn(
+        "relative z-0 mt-[var(--protected-nav-height)] flex-1 max-md:hidden",
+        fullscreen
+          ? "overflow-hidden"
+          : "flex justify-center overflow-y-auto p-4 xl:pt-[min(6%,200px)]",
+      )}
+    >
+      {fullscreen ? (
+        <div className={cn("h-full", className)}>{children}</div>
+      ) : (
+        <div
+          className={cn(
+            "relative flex h-fit w-full max-w-[1200px] border pb-2",
+            className,
+          )}
+        >
+          <Dotted />
+          <div className="relative w-full scale-[1.005] border bg-bg shadow-sm dark:shadow-md">
+            {children}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobileContent({ children }: ContentProps) {
+  return (
+    <div className="relative z-0 mt-[var(--protected-nav-height)] flex-1 md:hidden">
+      {children}
     </div>
   );
 }

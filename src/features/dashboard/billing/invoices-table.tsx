@@ -84,7 +84,7 @@ async function InvoicesTableContent({ teamId }: { teamId: string }) {
             <TableCell>${invoice.cost.toFixed(2)}</TableCell>
             <TableCell>{invoice.paid ? "Paid" : "Pending"}</TableCell>
             <TableCell>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="muted" size="sm" asChild>
                 <Link href={invoice.url} target="_blank">
                   View Invoice
                 </Link>
@@ -103,13 +103,13 @@ export default function BillingInvoicesTable({
   teamId,
 }: BillingInvoicesTableProps) {
   return (
-    <Table className="w-full animate-in fade-in">
+    <Table className="w-full min-w-[800px] animate-in fade-in">
       <TableHeader>
         <TableRow>
           <TableHead>Date</TableHead>
           <TableHead>Amount</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Actions</TableHead>
+          <th></th>
         </TableRow>
       </TableHeader>
       <TableBody>
