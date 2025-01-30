@@ -10,7 +10,6 @@ const config = {
     reactOwnerStack: true,
     ppr: true,
     useCache: true,
-    turbo: true,
     staleTimes: {
       dynamic: 180,
       static: 180,

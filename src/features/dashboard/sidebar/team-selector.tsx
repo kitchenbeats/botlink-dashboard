@@ -53,7 +53,7 @@ export default function TeamSelector() {
           </div>
         </div>
       </SelectTrigger>
-      <SelectContent className="min-w-[16rem]">
+      <SelectContent>
         {defaultTeam && (
           <SelectGroup>
             <SelectLabel>Personal</SelectLabel>
@@ -72,10 +72,6 @@ export default function TeamSelector() {
             ))}
           </SelectGroup>
         )}
-        <Button variant="muted" size="sm" className="mt-4 w-full">
-          <Plus className="h-4 w-4" />
-          Create
-        </Button>
       </SelectContent>
     </Select>
   );
