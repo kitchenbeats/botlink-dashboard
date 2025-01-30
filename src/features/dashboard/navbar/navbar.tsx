@@ -41,53 +41,51 @@ export default function DashboardNavbar({ className }: DashboardNavbarProps) {
   return (
     <ClientOnly>
       <nav className={cn("relative h-full", className)}>
-        <div>
-          {Object.entries(groupedNavLinks).map(([group, links]) => (
-            <div
-              key={group}
-              className="mt-6 flex w-full flex-col gap-1 first:mt-0"
-            >
-              {group !== "ungrouped" && (
-                <div className="mb-2 ml-1 font-mono text-xs uppercase text-fg-300">
-                  {group}
-                </div>
-              )}
-              {links.map((item) => (
-                <div key={item.label} className="w-full">
-                  <Link
-                    prefetch
-                    href={item.href({ teamId: selectedTeamId ?? undefined })}
-                    suppressHydrationWarning
-                    className={cn(
-                      "group flex w-full items-center rounded-md font-mono text-sm hover:no-underline",
-                      pathname ===
-                        item.href({
-                          teamId: params.teamId as string | undefined,
-                        })
-                        ? "bg-accent/10 text-accent"
-                        : "text-fg-500 hover:text-fg-300",
-                    )}
-                  >
-                    <div className="flex w-full items-center gap-1 px-2 py-1">
-                      <item.icon
-                        className={cn(
-                          "mr-2 w-4 text-fg-300",
-                          pathname ===
-                            item.href({
-                              teamId: params.teamId as string | undefined,
-                            })
-                            ? "text-accent"
-                            : "text-fg-300",
-                        )}
-                      />
-                      <span className="shrink-0">{item.label}</span>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+        {Object.entries(groupedNavLinks).map(([group, links]) => (
+          <div
+            key={group}
+            className="mt-6 flex w-full flex-col gap-1 first:mt-0"
+          >
+            {group !== "ungrouped" && (
+              <div className="mb-2 ml-1 font-mono text-xs uppercase text-fg-300">
+                {group}
+              </div>
+            )}
+            {links.map((item) => (
+              <div key={item.label} className="w-full">
+                <Link
+                  prefetch
+                  href={item.href({ teamId: selectedTeamId ?? undefined })}
+                  suppressHydrationWarning
+                  className={cn(
+                    "group flex w-full items-center rounded-md font-mono text-sm hover:no-underline",
+                    pathname ===
+                      item.href({
+                        teamId: params.teamId as string | undefined,
+                      })
+                      ? "bg-accent/10 text-accent"
+                      : "text-fg-500 hover:text-fg-300",
+                  )}
+                >
+                  <div className="flex w-full items-center gap-1 px-2 py-1">
+                    <item.icon
+                      className={cn(
+                        "mr-2 w-4 text-fg-300",
+                        pathname ===
+                          item.href({
+                            teamId: params.teamId as string | undefined,
+                          })
+                          ? "text-accent"
+                          : "text-fg-300",
+                      )}
+                    />
+                    <span className="shrink-0">{item.label}</span>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        ))}
       </nav>
     </ClientOnly>
   );

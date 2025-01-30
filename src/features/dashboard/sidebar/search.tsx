@@ -10,9 +10,11 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandShortcut,
 } from "@/ui/primitives/command";
 import { useEffect, useState } from "react";
+import { MAIN_DASHBOARD_LINKS } from "@/configs/dashboard-navs";
+import { useMetadataStore } from "@/lib/stores/metadata-store";
+import { useRouter } from "next/navigation";
 
 interface SearchProps {
   className?: string;
@@ -20,6 +22,8 @@ interface SearchProps {
 
 export default function Search({ className }: SearchProps) {
   const [open, setOpen] = useState(false);
+  const { selectedTeamId } = useMetadataStore();
+  const router = useRouter();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -55,22 +59,25 @@ export default function Search({ className }: SearchProps) {
       </Badge>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
+        <CommandInput placeholder="Quick Jump to..." />
+        <CommandList className="p-1 pb-3">
           <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Suggestions">
-            <CommandItem>
-              Calendar
-              <CommandShortcut>⌘C</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              Settings
-              <CommandShortcut>⌘S</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              Profile
-              <CommandShortcut>⌘P</CommandShortcut>
-            </CommandItem>
+          <CommandGroup heading="Pages">
+            {MAIN_DASHBOARD_LINKS.map((link) => (
+              <CommandItem
+                key={link.label}
+                onSelect={() => {
+                  router.push(
+                    link.href({ teamId: selectedTeamId ?? undefined }),
+                  );
+                  setOpen(false);
+                }}
+                className="group"
+              >
+                <link.icon className="!size-4 text-fg-500 group-[&[data-selected=true]]:text-accent" />
+                {link.label}
+              </CommandItem>
+            ))}
           </CommandGroup>
         </CommandList>
       </CommandDialog>

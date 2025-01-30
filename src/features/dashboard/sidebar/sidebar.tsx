@@ -17,7 +17,9 @@ export default async function Sidebar() {
       </header>
 
       <div className="p-3">
-        <DashboardSearch />
+        <Suspense fallback={null}>
+          <DashboardSearch />
+        </Suspense>
       </div>
 
       <Suspense fallback={null}>
