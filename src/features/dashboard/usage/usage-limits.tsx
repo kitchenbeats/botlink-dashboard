@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import LimitCard from "./limit-card";
 import AlertCard from "./alert-card";
 import { cn } from "@/lib/utils";
+import Dotted from "@/ui/dotted";
 
 interface UsageLimitsProps {
   className?: string;
@@ -24,12 +25,12 @@ export default async function UsageLimits({
     }
 
     return (
-      <div className={cn("flex", className)}>
-        <LimitCard
-          className="flex-1 border-r"
-          value={res.data.limit_amount_gte}
-        />
-        <AlertCard className="flex-1" value={res.data.alert_amount_gte} />
+      <div className={cn("relative flex flex-col pt-2", className)}>
+        <Dotted className="-z-10" />
+        <div className="flex flex-1 border-t bg-bg">
+          <LimitCard value={res.data.limit_amount_gte} className="flex-1" />
+          <AlertCard value={res.data.alert_amount_gte} className="flex-1" />
+        </div>
       </div>
     );
   } catch (error) {

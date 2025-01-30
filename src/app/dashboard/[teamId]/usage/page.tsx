@@ -17,8 +17,8 @@ export default async function UsagePage({
       fullscreen
       className="flex flex-col justify-end"
     >
-      <div className="grid w-full grid-cols-12 self-end border-b">
-        <CostCard teamId={teamId} className="col-span-12 border-b border-r" />
+      <div className="mb-auto grid w-full grid-cols-12 self-end">
+        <CostCard teamId={teamId} className="col-span-12 border-b" />
         <VCPUCard teamId={teamId} className="col-span-6 border-r" />
         <RAMCard teamId={teamId} className="col-span-6" />
 

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/clients/supabase/server";
 import { cookies } from "next/headers";
 import { COOKIE_KEYS } from "@/configs/keys";
 import { Skeleton } from "@/ui/primitives/skeleton";
+import Dotted from "@/ui/dotted";
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export default async function DashboardPageLayout({
   fullscreen = false,
 }: DashboardPageLayoutProps) {
   return (
-    <div className="relative flex h-svh">
+    <div className={cn("relative flex h-svh")}>
       <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg px-3">
         <div className="flex w-full items-center gap-2">
           <h2 className="mr-auto text-lg font-bold">{title}</h2>
@@ -37,13 +38,23 @@ export default async function DashboardPageLayout({
       <div
         className={cn(
           "relative z-0 mt-[var(--protected-nav-height)] flex-1",
-          fullscreen ? "overflow-hidden" : "overflow-y-auto",
+          fullscreen
+            ? "overflow-hidden"
+            : "flex justify-center overflow-y-auto pt-24",
         )}
       >
         {fullscreen ? (
           <div className={cn("h-full", className)}>{children}</div>
         ) : (
-          <div className={cn("max-w-[1400px] p-3", className)}>{children}</div>
+          <div
+            className={cn(
+              "relative flex h-fit w-full max-w-[1200px] border pb-2",
+              className,
+            )}
+          >
+            <Dotted />
+            <div className="relative w-full border-b bg-bg">{children}</div>
+          </div>
         )}
       </div>
     </div>

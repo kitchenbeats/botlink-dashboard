@@ -38,7 +38,7 @@ export const SearchInput = React.forwardRef<
         value={globalFilter}
         onChange={(v) => setGlobalFilter(v as string)}
         placeholder="Find a sandbox..."
-        className="w-full pr-14"
+        className="h-10 w-full pr-14"
         ref={ref}
         debounce={500}
       />

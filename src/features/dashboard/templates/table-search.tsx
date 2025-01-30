@@ -34,7 +34,7 @@ export const SearchInput = forwardRef<HTMLInputElement, {}>((props, ref) => {
         value={globalFilter}
         onChange={(v) => setGlobalFilter(v as string)}
         placeholder="Find template..."
-        className="w-full pr-14"
+        className="h-10 w-full pr-14"
         ref={ref}
         debounce={500}
         {...props}

@@ -16,6 +16,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Loader } from "@/ui/loader";
+import Dotted from "@/ui/dotted";
 
 export default function TeamSelector() {
   const { teams: loadedTeams } = useTeams();
@@ -39,7 +40,9 @@ export default function TeamSelector() {
     >
       <SelectTrigger className="h-auto w-full border px-2 py-1 pr-4 hover:bg-bg-100">
         <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden">
-          <div className="size-8 min-w-8 rounded-sm bg-bg-300" />
+          <div className="relative size-8 min-w-8 rounded-md border">
+            <Dotted />
+          </div>
           <div className="flex flex-col items-start pb-px">
             <span className="-mb-1 text-[0.65rem] text-fg-500">TEAM</span>
             {selectedTeam ? (

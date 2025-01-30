@@ -62,6 +62,7 @@
     --public-nav-height: 60px;
     --protected-nav-height: 50px;
     --protected-sidebar-width: 256px;
+    --protected-max-width: 1920px;
 
     /* Fumadocs */
     --fd-nav-height: var(--public-nav-height) !important;
