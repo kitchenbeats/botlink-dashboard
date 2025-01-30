@@ -10,6 +10,7 @@ import { BASE_URL } from "@/configs/urls";
 import { Metadata } from "next/types";
 import { METADATA } from "@/configs/metadata";
 import ClientProviders from "@/features/client-providers";
+import { DrawerCSSProvider } from "@/ui/drawer-css-provider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

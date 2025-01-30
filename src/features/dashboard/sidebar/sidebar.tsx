@@ -3,10 +3,20 @@ import DashboardSearch from "@/features/dashboard/sidebar/search";
 import { Suspense } from "react";
 import DashboardNavbar from "../navbar/navbar";
 import TeamSelector from "./team-selector";
+import { cn } from "@/lib/utils";
 
-export default function Sidebar() {
+interface SidebarProps {
+  className?: string;
+}
+
+export default function Sidebar({ className }: SidebarProps) {
   return (
-    <aside className="relative flex h-svh w-[var(--protected-sidebar-width)] min-w-[var(--protected-sidebar-width)] flex-col border-r">
+    <aside
+      className={cn(
+        "relative flex h-svh w-[var(--protected-sidebar-width)] min-w-[var(--protected-sidebar-width)] flex-col border-r",
+        className,
+      )}
+    >
       <header className="flex h-[var(--protected-nav-height)] w-full items-center justify-between border-b pr-2">
         <span className="inline-flex items-center">
           <LogoWithoutText className="size-12" />

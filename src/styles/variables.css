@@ -61,8 +61,11 @@
     --radius: 0.375rem;
     --public-nav-height: 60px;
     --protected-nav-height: 50px;
-    --protected-sidebar-width: 256px;
-    --protected-max-width: 1920px;
+    --protected-sidebar-width: 0px;
+
+    @media (min-width: 768px) {
+      --protected-sidebar-width: 256px;
+    }
 
     /* Fumadocs */
     --fd-nav-height: var(--public-nav-height) !important;

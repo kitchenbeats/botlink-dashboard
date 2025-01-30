@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { COOKIE_KEYS } from "@/configs/keys";
 import { Skeleton } from "@/ui/primitives/skeleton";
 import Dotted from "@/ui/dotted";
+import SidebarMobile from "./sidebar/sidebar-mobile";
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode;
@@ -23,8 +24,12 @@ export default async function DashboardPageLayout({
 }: DashboardPageLayoutProps) {
   return (
     <div className={cn("relative flex h-svh")}>
-      <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg px-3">
+      <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg pr-3 md:pl-3">
         <div className="flex w-full items-center gap-2">
+          <Suspense fallback={null}>
+            <SidebarMobile className="h-full border-r px-3 md:hidden" />
+          </Suspense>
+
           <h2 className="mr-auto text-lg font-bold">{title}</h2>
 
           <Suspense fallback={null}>
