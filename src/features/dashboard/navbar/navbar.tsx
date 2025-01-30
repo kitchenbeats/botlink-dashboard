@@ -2,12 +2,9 @@
 
 import { DashboardNavLink } from "@/configs/dashboard-navs";
 import { MAIN_DASHBOARD_LINKS } from "@/configs/dashboard-navs";
-import { useMetadataStore } from "@/lib/stores/metadata-store";
 import { cn } from "@/lib/utils";
-import ClientOnly from "@/ui/client-only";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
-import Link from "next/link";
+import { NavbarItem } from "./navbar-item";
+import { useMetadataStore } from "@/lib/stores/metadata-store";
 
 type GroupedLinks = {
   [key: string]: DashboardNavLink[];
@@ -29,64 +26,29 @@ interface DashboardNavbarProps {
 }
 
 export default function DashboardNavbar({ className }: DashboardNavbarProps) {
-  const pathname = usePathname();
-  const params = useParams();
-  const { selectedTeamId } = useMetadataStore();
+  const selectedTeamId = useMetadataStore((state) => state.selectedTeamId);
 
-  const groupedNavLinks = useMemo(
-    () => createGroupedLinks(MAIN_DASHBOARD_LINKS),
-    [],
-  );
+  const groupedNavLinks = createGroupedLinks(MAIN_DASHBOARD_LINKS);
 
   return (
-    <ClientOnly>
-      <nav className={cn("relative h-full", className)}>
-        {Object.entries(groupedNavLinks).map(([group, links]) => (
-          <div
-            key={group}
-            className="mt-6 flex w-full flex-col gap-1 first:mt-0"
-          >
-            {group !== "ungrouped" && (
-              <div className="mb-2 ml-1 font-mono text-xs uppercase text-fg-300">
-                {group}
-              </div>
-            )}
-            {links.map((item) => (
-              <div key={item.label} className="w-full">
-                <Link
-                  prefetch
-                  href={item.href({ teamId: selectedTeamId ?? undefined })}
-                  suppressHydrationWarning
-                  className={cn(
-                    "group flex w-full items-center rounded-md font-mono text-sm hover:no-underline",
-                    pathname ===
-                      item.href({
-                        teamId: params.teamId as string | undefined,
-                      })
-                      ? "bg-accent/10 text-accent"
-                      : "text-fg-500 hover:text-fg-300",
-                  )}
-                >
-                  <div className="flex w-full items-center gap-1 px-2 py-1">
-                    <item.icon
-                      className={cn(
-                        "mr-2 w-4 text-fg-300",
-                        pathname ===
-                          item.href({
-                            teamId: params.teamId as string | undefined,
-                          })
-                          ? "text-accent"
-                          : "text-fg-300",
-                      )}
-                    />
-                    <span className="shrink-0">{item.label}</span>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </div>
-        ))}
-      </nav>
-    </ClientOnly>
+    <nav className={cn("relative h-full", className)}>
+      {Object.entries(groupedNavLinks).map(([group, links]) => (
+        <div key={group} className="mt-6 flex w-full flex-col gap-1 first:mt-0">
+          {group !== "ungrouped" && (
+            <span className="mb-2 ml-1 font-mono text-xs uppercase text-fg-300">
+              {group}
+            </span>
+          )}
+          {links.map((item) => (
+            <NavbarItem
+              key={item.label}
+              label={item.label}
+              href={item.href({ teamId: selectedTeamId ?? undefined })}
+              icon={item.icon}
+            />
+          ))}
+        </div>
+      ))}
+    </nav>
   );
 }

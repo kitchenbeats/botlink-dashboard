@@ -209,6 +209,7 @@ export const useColumns = (deps: any[]) => {
         filterFn: "resourceRange",
       },
       {
+        id: "startedAt",
         accessorFn: (row) => new Date(row.startedAt).toUTCString(),
         header: "Started At",
         cell: ({ row, getValue }) => {

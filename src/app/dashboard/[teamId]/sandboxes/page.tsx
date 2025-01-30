@@ -4,7 +4,6 @@ import SandboxesTable from "@/features/dashboard/sandboxes/table";
 import { bailOutFromPPR } from "@/lib/utils/server";
 import { getTeamSandboxes } from "@/server/sandboxes/get-team-sandboxes";
 import { getTeamTemplates } from "@/server/templates/get-templates";
-import ClientOnly from "@/ui/client-only";
 import { Suspense } from "react";
 
 interface PageProps {

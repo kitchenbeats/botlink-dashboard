@@ -207,7 +207,12 @@ export default function SandboxesTable({
             style={{ ...columnSizeVars }}
             ref={scrollRef}
           >
-            <DataTableHeader className="sticky top-0 shadow-sm">
+            <DataTableHeader
+              className={cn(
+                "sticky top-0 shadow-sm",
+                table.getTopRows()?.length > 0 && "mb-3",
+              )}
+            >
               {table.getHeaderGroups().map((headerGroup) => (
                 <DataTableRow key={headerGroup.id} className="hover:bg-bg">
                   {headerGroup.headers.map((header) => (

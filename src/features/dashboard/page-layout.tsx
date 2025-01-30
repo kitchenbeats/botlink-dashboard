@@ -53,7 +53,9 @@ export default async function DashboardPageLayout({
             )}
           >
             <Dotted />
-            <div className="relative w-full border-b bg-bg">{children}</div>
+            <div className="relative w-full scale-[1.005] border bg-bg shadow-sm dark:shadow-md">
+              {children}
+            </div>
           </div>
         )}
       </div>
