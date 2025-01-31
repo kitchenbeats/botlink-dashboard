@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "<-- next --->": "",
-    "dev": "pnpm run prebuild && next dev --turbo | pino-pretty",
+    "dev": "bun run prebuild && next dev --turbo | pino-pretty",
     "build": "next build",
     "start": "next start | pino-pretty",
     "build:start": "next build && next start | pino-pretty",

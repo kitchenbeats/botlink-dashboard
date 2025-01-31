@@ -74,7 +74,7 @@ function DesktopContent({ children, className, fullscreen }: ContentProps) {
           <Dotted />
           <div
             className={cn(
-              "bg-bg relative w-full scale-[1.005] border shadow-sm dark:shadow-md",
+              "bg-bg relative w-full scale-[1.005] border shadow-xl dark:shadow-md",
               className,
             )}
           >

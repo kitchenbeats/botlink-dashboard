@@ -129,6 +129,18 @@ const config = {
         grid: "grid 30s linear infinite",
         wave: "wave 2s linear infinite",
       },
+      boxShadow: {
+        sm: "0 1px 2px hsl(var(--shadow) / calc(var(--shadow-strength) + 0.01)), 0 1px 1px hsl(var(--shadow) / var(--shadow-strength))",
+        DEFAULT:
+          "0 1px 3px hsl(var(--shadow) / calc(var(--shadow-strength) + 0.01)), 0 1px 2px hsl(var(--shadow) / var(--shadow-strength))",
+        md: "0 4px 6px hsl(var(--shadow) / calc(var(--shadow-strength) + 0.01)), 0 2px 4px hsl(var(--shadow) / var(--shadow-strength))",
+        lg: "0 10px 15px hsl(var(--shadow) / calc(var(--shadow-strength) + 0.01)), 0 4px 6px hsl(var(--shadow) / var(--shadow-strength))",
+        xl: "0 20px 25px hsl(var(--shadow) / calc(var(--shadow-strength) + 0.01)), 0 8px 10px hsl(var(--shadow) / var(--shadow-strength))",
+        "2xl":
+          "0 25px 50px hsl(var(--shadow) / calc(var(--shadow-strength) + 0.15))",
+        inner:
+          "inset 0 2px 4px hsl(var(--shadow) / calc(var(--shadow-strength) - 0.05))",
+      },
     },
   },
   plugins: [require("tailwindcss-animate"), require("tailwind-scrollbar")],

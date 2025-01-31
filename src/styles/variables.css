@@ -61,6 +61,9 @@
     --protected-nav-height: 50px;
     --protected-sidebar-width: 0px;
 
+    --shadow: 45 20% 85%;
+    --shadow-strength: 0.3;
+
     @media (min-width: 768px) {
       --protected-sidebar-width: 256px;
     }
@@ -129,5 +132,8 @@
     --warning: 60 100% 45%;
 
     --success: 160 100% 43%;
+
+    --shadow: 45 5% 0%;
+    --shadow-strength: 0.3;
   }
 }
