@@ -9,17 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/primitives/select";
-import { PROTECTED_URLS } from "@/configs/urls";
 import { useSelectedTeam, useTeams } from "@/lib/hooks/use-teams";
-import { useRouter } from "next/navigation";
+import {
+  useRouter,
+  useSelectedLayoutSegment,
+  useSelectedLayoutSegments,
+} from "next/navigation";
 import { useMemo } from "react";
 import { Loader } from "@/ui/loader";
 import Dotted from "@/ui/dotted";
+import { PROTECTED_URLS } from "@/configs/urls";
 
 export default function TeamSelector() {
   const { teams: loadedTeams } = useTeams();
   const selectedTeam = useSelectedTeam();
   const router = useRouter();
+  const l = useSelectedLayoutSegments();
 
   const defaultTeam = useMemo(
     () => loadedTeams.find((team) => team.is_default),
@@ -34,7 +39,9 @@ export default function TeamSelector() {
   return (
     <Select
       value={selectedTeam?.id}
-      onValueChange={(value) => router.push(PROTECTED_URLS.SANDBOXES(value))}
+      onValueChange={(value) => {
+        router.push(PROTECTED_URLS.SANDBOXES(value));
+      }}
     >
       <SelectTrigger className="hover:bg-bg-100 h-auto w-full border px-2 py-1 pr-4">
         <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden">

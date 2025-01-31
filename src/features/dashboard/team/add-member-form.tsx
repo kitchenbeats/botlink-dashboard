@@ -20,6 +20,7 @@ import { Input } from "@/ui/primitives/input";
 import { useToast } from "@/lib/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
+import { Label } from "@/ui/primitives/label";
 
 const addMemberSchema = z.object({
   email: z.string().email(),
@@ -48,6 +49,11 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
         teamId: teamId as string,
         email: data.email,
       });
+
+      if (response.type === "error") {
+        throw new Error(response.message);
+      }
+
       return response;
     },
     onSuccess: () => {

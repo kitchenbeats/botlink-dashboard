@@ -30,9 +30,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex h-full w-full items-center justify-center px-4">
         <GradientBorder
           direction="bg-gradient-to-b"
-          gradientFrom="from-bg-400"
-          gradientVia="via-bg-200"
-          gradientTo="to-bg-400"
+          gradientFrom="from-border-400"
+          gradientVia="via-border-100"
+          gradientTo="to-border-200"
           wrapperClassName="w-full max-w-96"
           className="p-6"
         >

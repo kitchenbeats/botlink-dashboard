@@ -12,11 +12,11 @@ const COOKIE_OPTIONS = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  const { domain } = await req.json();
+  const { teamId } = await req.json();
 
   const response = new NextResponse(null, { status: 200 });
 
-  response.cookies.set(COOKIE_NAME, domain, COOKIE_OPTIONS);
+  response.cookies.set(COOKIE_NAME, teamId, COOKIE_OPTIONS);
 
   return response;
 }

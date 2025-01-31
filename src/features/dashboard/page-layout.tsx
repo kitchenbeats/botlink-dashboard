@@ -8,6 +8,7 @@ import { COOKIE_KEYS } from "@/configs/keys";
 import { Skeleton } from "@/ui/primitives/skeleton";
 import Dotted from "@/ui/dotted";
 import SidebarMobile from "./sidebar/sidebar-mobile";
+import Frame from "@/ui/frame";
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode;
@@ -84,22 +85,17 @@ function DesktopContent({
       {fullscreen ? (
         <div className={cn("h-full", className)}>{children}</div>
       ) : (
-        <div
-          className={cn(
-            "relative flex h-fit w-full max-w-[1200px] border pb-2",
-            classNames?.frameWrapper,
-          )}
+        <Frame
+          classNames={{
+            wrapper: cn(
+              "relative flex h-fit w-full max-w-[1200px] border pb-2",
+              classNames?.frameWrapper,
+            ),
+            frame: className,
+          }}
         >
-          <Dotted />
-          <div
-            className={cn(
-              "bg-bg relative w-full scale-[1.005] border shadow-xl dark:shadow-md",
-              className,
-            )}
-          >
-            {children}
-          </div>
-        </div>
+          {children}
+        </Frame>
       )}
     </div>
   );
