@@ -29,8 +29,13 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="iconSm" className="min-w-8" variant="ghost">
-            <Avatar className="h-full w-full">
+          <Button
+            size="iconSm"
+            className="min-h-8 min-w-8 cursor-pointer"
+            variant="ghost"
+            asChild
+          >
+            <Avatar>
               <AvatarImage src={user?.user_metadata.avatar_url} />
               <AvatarFallback>
                 {user?.email?.charAt(0).toUpperCase() || "?"}
