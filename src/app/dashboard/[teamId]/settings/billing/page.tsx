@@ -33,7 +33,7 @@ export default async function BillingPage({
               </Suspense>
             </div>
 
-            <div className="flex flex-col gap-4 overflow-x-auto p-4 lg:flex-row lg:gap-8 xl:p-6">
+            <div className="mt-3 flex flex-col gap-12 overflow-x-auto max-lg:mb-6 lg:flex-row">
               {TIERS.map((tier) => (
                 <BillingTierCard
                   key={tier.id}

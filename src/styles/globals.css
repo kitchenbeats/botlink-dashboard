@@ -1,6 +1,6 @@
-@import "./variables.css";
 @import "fumadocs-ui/css/preset.css";
 @import "./theme.css";
+@import "./variables.css";
 
 @tailwind base;
 @tailwind components;
@@ -44,10 +44,6 @@
 .lucide {
   stroke-width: 1.5px;
 }
-
-/*  a {
-  @apply text-accent underline-offset-4 hover:underline;
-} */
 
 ul li {
   padding-left: 0.5rem;

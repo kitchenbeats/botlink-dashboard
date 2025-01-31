@@ -49,23 +49,12 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
     const isSelected = team?.tier === tier.id;
 
     return (
-      <GradientBorder
-        ref={ref}
-        gradientVia="via-transparent"
-        {...(isHighlighted
-          ? {
-              gradientFrom: "from-accent",
-              gradientTo: "to-transparent",
-            }
-          : {})}
-        wrapperClassName="h-min"
-        className={cn("p-6", className)}
-      >
+      <div ref={ref} className={cn("h-min", className)}>
         <div className="mb-3 flex justify-between gap-2">
           <h5 className="text-lg font-semibold">
             {tier.name}
             {isSelected === true && (
-              <span className="align-top text-sm font-medium text-accent">
+              <span className="text-accent align-top text-sm font-medium">
                 {" *current"}
               </span>
             )}
@@ -89,7 +78,7 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
             </li>
           ))}
         </ul>
-      </GradientBorder>
+      </div>
     );
   },
 );
