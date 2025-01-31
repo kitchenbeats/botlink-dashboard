@@ -1,12 +1,8 @@
 import type { Config } from "tailwindcss";
-import { createPreset } from "fumadocs-ui/tailwind-plugin";
 
 const config = {
   darkMode: ["class"],
-  content: [
-    "./src/**/*.{ts,tsx,mdx}",
-    "./node_modules/fumadocs-ui/dist/**/*.js",
-  ],
+  content: ["./src/**/*.{ts,tsx,mdx}"],
   prefix: "",
   theme: {
     container: {
@@ -136,49 +132,6 @@ const config = {
     },
   },
   plugins: [require("tailwindcss-animate"), require("tailwind-scrollbar")],
-  presets: [
-    // Matchs Fumadocs colors to our theme
-    createPreset({
-      preset: {
-        light: {
-          background: "var(--bg)",
-          foreground: "var(--fg)",
-          muted: "var(--bg-100)",
-          "muted-foreground": "var(--fg-300)",
-          popover: "var(--bg)",
-          "popover-foreground": "var(--fg)",
-          card: "var(--bg)",
-          "card-foreground": "var(--fg)",
-          primary: "var(--accent)",
-          "primary-foreground": "var(--accent-fg)",
-          secondary: "var(--bg-100)",
-          "secondary-foreground": "var(--fg)",
-          accent: "var(--bg-100)",
-          "accent-foreground": "var(--fg)",
-          ring: "var(--ring)",
-          border: "var(--border)",
-        },
-        dark: {
-          background: "var(--bg)",
-          foreground: "var(--fg)",
-          muted: "var(--bg-100)",
-          "muted-foreground": "var(--fg-500)",
-          popover: "var(--bg)",
-          "popover-foreground": "var(--fg)",
-          card: "var(--bg)",
-          "card-foreground": "var(--fg)",
-          primary: "var(--accent)",
-          "primary-foreground": "var(--accent-fg)",
-          secondary: "var(--bg-100)",
-          "secondary-foreground": "var(--fg)",
-          accent: "var(--bg-100)",
-          "accent-foreground": "var(--fg)",
-          ring: "var(--ring)",
-          border: "var(--border)",
-        },
-      },
-    }),
-  ],
 } satisfies Config;
 
 export default config;

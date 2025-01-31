@@ -34,9 +34,7 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
           }}
         >
           <TooltipProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <ToastProvider>{children}</ToastProvider>
           </TooltipProvider>
         </RootProvider>
       </QueryClientProvider>
@@ -48,7 +46,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
       // Note that PostHog will automatically capture page views and common events
-      api_host: "/ingest",
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_API_HOST,
       disable_session_recording: process.env.NODE_ENV !== "production",
       advanced_disable_toolbar_metrics: true,
       opt_in_site_apps: true,

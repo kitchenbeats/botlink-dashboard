@@ -1,4 +1,6 @@
 @import "./variables.css";
+@import "fumadocs-ui/css/preset.css";
+@import "./theme.css";
 
 @tailwind base;
 @tailwind components;
@@ -10,7 +12,7 @@
   }
 
   body {
-    @apply bg-bg tracking-wide text-fg antialiased;
+    @apply bg-bg text-fg tracking-wide antialiased;
 
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
