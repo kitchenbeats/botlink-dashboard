@@ -20,6 +20,7 @@ import { useMutation } from "@tanstack/react-query";
 import { FC, ReactNode, useState } from "react";
 import { mutate } from "swr";
 import CopyButton from "@/ui/copy-button";
+import { usePostHog } from "posthog-js/react";
 
 interface CreateApiKeyDialogProps {
   teamId: string;
@@ -31,6 +32,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
   children,
 }) => {
   const [keyName, setKeyName] = useState("");
+  const posthog = usePostHog();
 
   // mutations
   const {
@@ -106,7 +108,12 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
               <Label>[ Your API Key ]</Label>
               <div className="flex items-center gap-2">
                 <Input readOnly value={createdApiKey} className="font-mono" />
-                <CopyButton value={createdApiKey} />
+                <CopyButton
+                  value={createdApiKey}
+                  onCopy={() => {
+                    posthog.capture("copied API key");
+                  }}
+                />
               </div>
               <Alert variant="contrast2" className="mt-4">
                 <AlertTitle>Important!</AlertTitle>

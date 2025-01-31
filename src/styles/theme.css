@@ -1,0 +1,185 @@
+
+@theme {
+  /* Border Radius */
+  --radius: 0.375rem;
+
+  /* Colors */
+  --color-border-100: hsl(0 0% 85%);
+  --color-border-200: hsl(0 0% 80%);
+  --color-border-300: hsl(0 0% 75%);
+  --color-border-400: hsl(0 0% 70%);
+  --color-border-500: hsl(0 0% 65%);
+  --color-border: hsl(0 0% 90%);
+
+  --color-bg-100: hsl(0 0% 95%);
+  --color-bg-200: hsl(0 0% 90%);
+  --color-bg-300: hsl(0 0% 85%);
+  --color-bg-400: hsl(0 0% 80%);
+  --color-bg-500: hsl(0 0% 75%);
+  --color-bg: hsl(0 0% 97%);
+
+  --color-fg-100: hsl(0 0% 10%);
+  --color-fg-200: hsl(0 0% 20%);
+  --color-fg-300: hsl(0 0% 30%);
+  --color-fg-400: hsl(0 0% 40%);
+  --color-fg-500: hsl(0 0% 50%);
+  --color-fg: hsl(0 0% 0%);
+
+  --color-accent-100: hsl(32 95% 55%);
+  --color-accent-200: hsl(32 90% 60%);
+  --color-accent-300: hsl(32 85% 65%);
+  --color-accent-400: hsl(32 80% 70%);
+  --color-accent-500: hsl(32 75% 75%);
+  --color-accent: hsl(32 100% 50%);
+
+  --color-error-100: hsl(0 84.2% 65%);
+  --color-error-200: hsl(0 84.2% 70%);
+  --color-error-300: hsl(0 84.2% 75%);
+  --color-error-400: hsl(0 84.2% 80%);
+  --color-error-500: hsl(0 84.2% 85%);
+  --color-error: hsl(0 84.2% 60.2%);
+
+  --color-success: hsl(176 38% 90%);
+  --color-success-fg: hsl(160 100% 40%);
+
+  --color-warning: hsl(55 90% 45% / 0.2);
+  --color-warning-fg: hsl(55 90% 45%);
+
+  --color-ring: hsl(32 100% 50%);
+
+  --color-chart-1: hsl(32 85% 55%);
+  --color-chart-2: hsl(212 85% 55%);
+  --color-chart-3: hsl(152 85% 55%);
+  --color-chart-4: hsl(272 85% 55%);
+  --color-chart-5: hsl(332 85% 55%);
+
+  --color-contrast-1: hsl(200 85% 65%);
+  --color-contrast-2: hsl(235 86% 75%);
+
+  --color-fd-background: hsl(var(--color-bg));
+  --color-fd-foreground: hsl(var(--color-fg));
+  --color-fd-muted: hsl(var(--color-bg-100));
+  --color-fd-muted-foreground: hsl(var(--color-fg-300));
+  --color-fd-popover: hsl(var(--color-bg));
+  --color-fd-popover-foreground: hsl(var(--color-fg));
+  --color-fd-card: hsl(var(--color-bg));
+  --color-fd-card-foreground: hsl(var(--color-fg));
+  --color-fd-border: hsl(var(--color-border));
+  --color-fd-primary: hsl(var(--color-accent));
+  --color-fd-primary-foreground: hsl(var(--color-accent-fg));
+  --color-fd-secondary: hsl(var(--color-bg-100));
+  --color-fd-secondary-foreground: hsl(var(--color-fg));
+  --color-fd-accent: hsl(var(--color-bg-100));
+  --color-fd-accent-foreground: hsl(var(--color-fg));
+  --color-fd-ring: hsl(var(--color-ring));
+
+  /* Fonts */
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* Animations */
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes wave {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 100% 0;
+    }
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  @keyframes grid {
+    0% {
+      transform: translateY(-50%);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  --animation-accordion-down: accordion-down 0.2s ease-out;
+  --animation-accordion-up: accordion-up 0.2s ease-out;
+  --animation-shimmer: shimmer 1s ease-in-out infinite;
+  --animation-grid: grid 30s linear infinite;
+  --animation-wave: wave 2s linear infinite;
+}
+
+.dark {
+  --color-border-100: hsl(0 0% 15%);
+  --color-border-200: hsl(0 0% 20%);
+  --color-border-300: hsl(0 0% 25%);
+  --color-border-400: hsl(0 0% 30%);
+  --color-border-500: hsl(0 0% 35%);
+  --color-border: hsl(0 0% 10%);
+
+  --color-bg-100: hsl(0 0% 5%);
+  --color-bg-200: hsl(0 0% 10%);
+  --color-bg-300: hsl(0 0% 15%);
+  --color-bg-400: hsl(0 0% 20%);
+  --color-bg-500: hsl(0 0% 25%);
+  --color-bg: hsl(0 0% 3%);
+
+  --color-fg-100: hsl(0 0% 88%);
+  --color-fg-200: hsl(0 0% 79%);
+  --color-fg-300: hsl(0 0% 70%);
+  --color-fg-400: hsl(0 0% 60%);
+  --color-fg-500: hsl(0 0% 50%);
+  --color-fg: hsl(0 0% 98%);
+
+  --color-accent-100: hsl(32 100% 40%);
+  --color-accent-200: hsl(32 100% 30%);
+  --color-accent-300: hsl(32 100% 20%);
+  --color-accent-400: hsl(32 100% 10%);
+  --color-accent-500: hsl(32 100% 5%);
+  --color-accent: hsl(32 100% 45%);
+
+  --color-error-100: hsl(0 90% 60%);
+  --color-error-200: hsl(0 85% 55%);
+  --color-error-300: hsl(0 80% 50%);
+  --color-error-400: hsl(0 75% 45%);
+  --color-error-500: hsl(0 70% 40%);
+  --color-error: hsl(0 100% 65%);
+
+  --color-success: hsl(176 32% 10%);
+  --color-success-fg: hsl(160 100% 43%);
+
+  --color-warning: hsl(60 100% 50% / 0.2);
+  --color-warning-fg: hsl(60 100% 50%);
+
+  --color-ring: hsl(32 100% 50%);
+
+  --color-chart-1: hsl(220 70% 50%);
+  --color-chart-2: hsl(160 60% 45%);
+  --color-chart-3: hsl(30 80% 55%);
+  --color-chart-4: hsl(280 65% 60%);
+  --color-chart-5: hsl(340 75% 55%);
+
+  --color-contrast-1: hsl(200 85% 65%);
+  --color-contrast-2: hsl(235 86% 75%);
+}

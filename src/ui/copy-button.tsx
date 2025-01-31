@@ -5,13 +5,21 @@ import { FC } from "react";
 
 interface CopyButtonProps extends ButtonProps {
   value: string;
+  onCopy?: () => void;
 }
 
-const CopyButton: FC<CopyButtonProps> = ({ value, ...props }) => {
+const CopyButton: FC<CopyButtonProps> = ({ value, onCopy, ...props }) => {
   const [wasCopied, copy] = useClipboard();
 
   return (
-    <Button size="icon" onClick={() => copy(value)} {...props}>
+    <Button
+      size="icon"
+      onClick={() => {
+        copy(value);
+        onCopy?.();
+      }}
+      {...props}
+    >
       {wasCopied ? (
         <CheckIcon className="h-4 w-4" />
       ) : (

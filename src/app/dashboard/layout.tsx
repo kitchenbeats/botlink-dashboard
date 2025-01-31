@@ -1,10 +1,10 @@
 import Sidebar from "@/features/dashboard/sidebar/sidebar";
 import NetworkStateBanner from "@/ui/network-state-banner";
 import { DashboardTitleProvider } from "@/features/dashboard/dashboard-title-provider";
-import TeamProvider from "@/features/dashboard/team-provider";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { COOKIE_KEYS } from "@/configs/keys";
+import TeamCollector from "@/features/dashboard/team-collector";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -26,7 +26,7 @@ export default async function DashboardLayout({
           <DashboardTitleProvider />
         </Suspense>
         <Suspense fallback={null}>
-          <TeamProvider initialTeamId={selectedTeamId} />
+          <TeamCollector initialTeamId={selectedTeamId} />
         </Suspense>
       </div>
     </div>
