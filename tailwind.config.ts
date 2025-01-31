@@ -59,11 +59,11 @@ const config = {
           DEFAULT: "hsl(var(--error))",
         },
         success: {
-          DEFAULT: "hsl(var(--success))",
-          fg: "hsl(var(--success-fg))",
+          DEFAULT: "hsl(var(--success) / 0.15)",
+          fg: "hsl(var(--success))",
         },
         warning: {
-          DEFAULT: "hsl(var(--warning) / 0.2)",
+          DEFAULT: "hsl(var(--warning) / 0.15)",
           fg: "hsl(var(--warning))",
         },
         ring: "hsl(var(--ring))",

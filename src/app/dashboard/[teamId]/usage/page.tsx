@@ -12,21 +12,22 @@ export default async function UsagePage({
   const { teamId } = await params;
 
   return (
-    <DashboardPageLayout title="Usage" className="flex flex-col justify-end">
-      <div className="grid max-h-full w-full grid-cols-1 self-end overflow-y-auto lg:grid-cols-12">
-        <CostCard
-          teamId={teamId}
-          className="col-span-1 min-h-[360px] border-b lg:col-span-12"
-        />
-        <VCPUCard
-          teamId={teamId}
-          className="col-span-1 min-h-[320px] border-b lg:col-span-6 lg:border-b-0 lg:border-r"
-        />
-        <RAMCard
-          teamId={teamId}
-          className="col-span-1 min-h-[320px] border-b lg:col-span-6 lg:border-b-0"
-        />
-      </div>
+    <DashboardPageLayout
+      title="Usage"
+      className="grid max-h-full w-full grid-cols-1 self-end lg:grid-cols-12"
+    >
+      <CostCard
+        teamId={teamId}
+        className="col-span-1 min-h-[360px] border-b lg:col-span-12"
+      />
+      <VCPUCard
+        teamId={teamId}
+        className="col-span-1 min-h-[320px] border-b lg:col-span-6 lg:border-b-0 lg:border-r"
+      />
+      <RAMCard
+        teamId={teamId}
+        className="col-span-1 min-h-[320px] border-b lg:col-span-6 lg:border-b-0"
+      />
     </DashboardPageLayout>
   );
 }

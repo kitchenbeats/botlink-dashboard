@@ -60,7 +60,7 @@ export function PasswordSettings({ className }: PasswordSettingsProps) {
 
       <CardContent>
         <Button
-          variant="muted"
+          variant="outline"
           onClick={() => {
             if (!user?.email) return;
 

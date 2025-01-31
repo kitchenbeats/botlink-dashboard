@@ -1,14 +1,13 @@
 "use client";
 
-import { redirectToCheckoutAction } from "@/server/billing/billing-actions";
 import { Button } from "@/ui/primitives/button";
-import { GradientBorder } from "@/ui/gradient-border";
 import { Tier } from "@/configs/tiers";
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { redirectToCheckoutAction } from "@/server/billing/billing-actions";
 
 interface BillingTierCardProps {
   tier: Tier;
@@ -52,19 +51,12 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
       <div
         ref={ref}
         className={cn(
-          "bg-bg-100 flex h-full w-1/2 flex-col border p-5",
+          "from-bg flex h-full flex-col border bg-gradient-to-b p-5",
           className,
         )}
       >
         <div className="mb-3">
-          <h5 className="text-lg font-semibold">
-            {tier.name}
-            {isSelected === true && (
-              <span className="text-accent align-top text-sm font-medium">
-                {" *current"}
-              </span>
-            )}
-          </h5>
+          <h5 className="text-lg font-semibold">{tier.name}</h5>
         </div>
         <ul className="mb-4 space-y-1 pl-4">
           {tier.prose.map((prose, i) => (
@@ -76,10 +68,11 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
             </li>
           ))}
         </ul>
-        {isSelected === false && (
+        {isSelected === false && isHighlighted && (
           <Button
-            variant={isHighlighted ? "default" : "muted"}
+            variant={isHighlighted ? "default" : "outline"}
             className="mt-4 w-full rounded-none"
+            size="lg"
             loading={isPending}
             onClick={() => redirectToCheckout()}
           >

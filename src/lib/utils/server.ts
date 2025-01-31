@@ -218,6 +218,10 @@ export function guard<TInput, TOutput>(
           data,
         };
       } catch (error) {
+        if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+          throw error;
+        }
+
         console.error(error);
 
         if (error instanceof E2BError) {
@@ -257,6 +261,10 @@ export function guard<TInput, TOutput>(
         data,
       };
     } catch (error) {
+      if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+        throw error;
+      }
+
       console.error(error);
 
       if (error instanceof E2BError) {

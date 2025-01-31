@@ -38,7 +38,7 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[15rem]">
+        <DropdownMenuContent>
           <DropdownMenuItem asChild className="p-1">
             <Link href={PROTECTED_URLS.ACCOUNT_SETTINGS}>
               <UserDetailsTile user={user} />
