@@ -1,12 +1,10 @@
 import { CardDescription, CardTitle } from "@/ui/primitives/card";
 import { TIERS } from "@/configs/tiers";
 import BillingTierCard from "@/features/dashboard/billing/tier-card";
-import BillingCreditsContent from "@/features/dashboard/billing/credits-content";
 import { Suspense } from "react";
 import CustomerPortalLink from "@/features/dashboard/billing/customer-portal-link";
 import DashboardPageLayout from "@/features/dashboard/page-layout";
 import BillingInvoicesTable from "@/features/dashboard/billing/invoices-table";
-import { Loader } from "@/ui/loader";
 
 export default async function BillingPage({
   params,

@@ -7,7 +7,6 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = createRouteClient(req);
 
-    // Check authentication
     const {
       data: { user },
       error: authError,
@@ -16,7 +15,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user teams
     const { data: usersTeamsData, error } = await supabaseAdmin
       .from("users_teams")
       .select("*, teams (*)")
@@ -30,7 +28,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No teams found" }, { status: 404 });
     }
 
-    // Transform the data
     const teams: TeamWithDefault[] = usersTeamsData.map((userTeam) => {
       const team = userTeam.teams;
       return { ...team, is_default: userTeam.is_default };

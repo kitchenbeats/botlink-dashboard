@@ -1,9 +1,6 @@
 "use client";
 
-import { PROTECTED_URLS } from "@/configs/urls";
-import { useTeams } from "@/lib/hooks/use-teams";
 import { useMetadataStore } from "@/lib/stores/metadata-store";
-import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 interface TeamCollectorProps {
@@ -22,28 +19,11 @@ interface TeamCollectorProps {
  * @param initialTeamId - The team ID from the cookie, used for initial state setup
  */
 export default function TeamCollector({ initialTeamId }: TeamCollectorProps) {
-  const setSelectedTeamId = useMetadataStore(
-    (state) => state.setSelectedTeamId,
-  );
-
-  const { teamId } = useParams();
-  const { teams } = useTeams();
-
   useEffect(() => {
     if (initialTeamId) {
       useMetadataStore.setState({ selectedTeamId: initialTeamId });
     }
   }, [initialTeamId]);
-
-  useEffect(() => {
-    if (!teamId || !teams || !teams.length) {
-      return;
-    }
-
-    if (teams.findIndex((team) => team.id === teamId) !== -1) {
-      setSelectedTeamId(teamId as string);
-    }
-  }, [teamId, teams, setSelectedTeamId]);
 
   return null;
 }

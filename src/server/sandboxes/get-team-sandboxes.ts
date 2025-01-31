@@ -18,10 +18,7 @@ export const getTeamSandboxes = guard(
   GetTeamSandboxesParamsSchema,
   async ({ teamId }) => {
     // TODO: Remove this after staging
-    if (
-      process.env.NODE_ENV === "development" ||
-      process.env.NODE_ENV === "production"
-    ) {
+    if (process.env.NODE_ENV === "development") {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       const sandboxes = MOCK_SANDBOXES_DATA();
