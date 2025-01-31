@@ -14,12 +14,16 @@ interface DashboardPageLayoutProps {
   title: string;
   className?: string;
   fullscreen?: boolean;
+  classNames?: {
+    frameWrapper?: string;
+  };
 }
 
 export default async function DashboardPageLayout({
   children,
   title,
   className,
+  classNames,
   fullscreen = false,
 }: DashboardPageLayoutProps) {
   return (
@@ -41,7 +45,11 @@ export default async function DashboardPageLayout({
         </div>
       </div>
 
-      <DesktopContent fullscreen={fullscreen} className={className}>
+      <DesktopContent
+        fullscreen={fullscreen}
+        classNames={classNames}
+        className={className}
+      >
         {children}
       </DesktopContent>
       <MobileContent className={className}>{children}</MobileContent>
@@ -51,11 +59,19 @@ export default async function DashboardPageLayout({
 
 interface ContentProps {
   children: React.ReactNode;
+  classNames?: {
+    frameWrapper?: string;
+  };
   className?: string;
   fullscreen?: boolean;
 }
 
-function DesktopContent({ children, className, fullscreen }: ContentProps) {
+function DesktopContent({
+  children,
+  classNames,
+  className,
+  fullscreen,
+}: ContentProps) {
   return (
     <div
       className={cn(
@@ -69,7 +85,10 @@ function DesktopContent({ children, className, fullscreen }: ContentProps) {
         <div className={cn("h-full", className)}>{children}</div>
       ) : (
         <div
-          className={"relative flex h-fit w-full max-w-[1200px] border pb-2"}
+          className={cn(
+            "relative flex h-fit w-full max-w-[1200px] border pb-2",
+            classNames?.frameWrapper,
+          )}
         >
           <Dotted />
           <div

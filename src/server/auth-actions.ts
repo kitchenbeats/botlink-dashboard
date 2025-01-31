@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Provider } from "@supabase/supabase-js";
 import { AUTH_URLS, PROTECTED_URLS } from "@/configs/urls";
+import { logger } from "@/lib/clients/logger";
 
 export const signInWithOAuth = async (provider: Provider) => {
   const supabase = await createClient();
@@ -156,6 +157,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   });
 
   if (error) {
+    logger.error(error.message);
     encodedRedirect(
       "error",
       AUTH_URLS.RESET_PASSWORD,

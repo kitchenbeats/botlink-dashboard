@@ -1,5 +1,6 @@
 "use client";
 
+import { useTeams } from "@/lib/hooks/use-teams";
 import { useMetadataStore } from "@/lib/stores/metadata-store";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
@@ -24,6 +25,8 @@ interface TeamCollectorProps {
  */
 export default function TeamCollector({ initialTeamId }: TeamCollectorProps) {
   const { teamId } = useParams();
+  const selectedTeamId = useMetadataStore((state) => state.selectedTeamId);
+  const { teams } = useTeams();
 
   useEffect(() => {
     if (teamId) {
@@ -32,6 +35,15 @@ export default function TeamCollector({ initialTeamId }: TeamCollectorProps) {
       });
     }
   }, [teamId, initialTeamId]);
+
+  useEffect(() => {
+    if (teams && teams.length > 0 && !selectedTeamId) {
+      useMetadataStore.setState({
+        selectedTeamId:
+          teams.find((team) => team.is_default)?.id || teams[0]?.id,
+      });
+    }
+  }, [teams, selectedTeamId]);
 
   return null;
 }
