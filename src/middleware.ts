@@ -45,11 +45,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect authenticated users to dashboard
-  if (request.nextUrl.pathname === "/" && !error) {
+  /*  if (request.nextUrl.pathname === "/" && !error) {
     return NextResponse.redirect(
       new URL(PROTECTED_URLS.DASHBOARD, request.url),
     );
-  }
+  } */
 
   // Handle dashboard root route - determine appropriate team redirect
   if (request.nextUrl.pathname === PROTECTED_URLS.DASHBOARD && data?.user) {

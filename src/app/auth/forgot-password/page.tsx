@@ -6,7 +6,6 @@ import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
 import { Label } from "@/ui/primitives/label";
 import { AUTH_URLS } from "@/configs/urls";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRef, useEffect } from "react";
 
