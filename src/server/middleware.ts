@@ -3,18 +3,33 @@ import { kv } from "@/lib/clients/kv";
 import { KV_KEYS } from "@/configs/keys";
 
 const CACHE_TTL = 60 * 60; // 1 hour
-
 export const cachedUserTeamAccess = async (userId: string, teamId: string) => {
-  const [result] = await kv.mget(KV_KEYS.USER_TEAM_ACCESS(userId, teamId));
+  const cacheKey = KV_KEYS.USER_TEAM_ACCESS(userId, teamId);
+  const [result] = await kv.mget(cacheKey);
+
+  console.log(
+    "[cachedUserTeamAccess] Raw cache result:",
+    result,
+    "type:",
+    typeof result,
+  );
 
   if (result !== null) {
+    if (typeof result === "boolean") {
+      return result;
+    }
     return result === "true";
   }
 
   const isAuthorized = await checkUserTeamAuthorization(userId, teamId);
+  console.log(
+    "[cachedUserTeamAccess] Fresh auth result:",
+    isAuthorized,
+    "type:",
+    typeof isAuthorized,
+  );
 
-  // we do not await here because we want to return the result immediately
-  kv.set(KV_KEYS.USER_TEAM_ACCESS(userId, teamId), isAuthorized.toString(), {
+  await kv.set(cacheKey, isAuthorized, {
     ex: CACHE_TTL,
   });
 

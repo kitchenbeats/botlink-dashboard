@@ -41,14 +41,13 @@ export async function middleware(request: NextRequest) {
   const { error, data } = await supabase.auth.getUser();
 
   // protected routes
-  if (
-    request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD) &&
-    (error || !data?.user)
-  ) {
+  if (request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD) && error) {
+    console.log("[Middleware] User not authenticated, redirecting to sign in");
     return NextResponse.redirect(new URL(AUTH_URLS.SIGN_IN, request.url));
   }
 
   if (request.nextUrl.pathname === "/" && !error) {
+    console.log("[Middleware] User authenticated, redirecting to dashboard");
     return NextResponse.redirect(
       new URL(PROTECTED_URLS.DASHBOARD, request.url),
     );
@@ -56,31 +55,52 @@ export async function middleware(request: NextRequest) {
 
   // Handle /dashboard root route
   if (request.nextUrl.pathname === PROTECTED_URLS.DASHBOARD && data?.user) {
+    console.log(
+      "[Middleware] Handling dashboard root route for user:",
+      data.user.id,
+    );
+
     const selectedTeamId = request.cookies.get(
       COOKIE_KEYS.SELECTED_TEAM_ID,
     )?.value;
 
+    console.log(
+      "[Middleware] Current selected team from cookie:",
+      selectedTeamId,
+    );
+
     // If there's a selected team, verify access
     if (selectedTeamId) {
+      console.log("[Middleware] Verifying access to selected team");
       const hasAccess = await cachedUserTeamAccess(
         data.user.id,
         selectedTeamId,
       );
       if (hasAccess) {
+        console.log(
+          "[Middleware] Access verified, redirecting to team sandboxes",
+        );
         return NextResponse.redirect(
           new URL(PROTECTED_URLS.SANDBOXES(selectedTeamId), request.url),
         );
       }
+      console.log(
+        "[Middleware] No access to selected team, finding alternative",
+      );
       // If no access, continue to find a valid team
     }
 
     // Find user's teams
+    console.log("[Middleware] Fetching user's teams");
     const { data: teamsData, error: teamsError } = await supabaseAdmin
       .from("users_teams")
       .select(`*`)
       .eq("user_id", data.user.id);
 
     if (teamsError || !teamsData?.length) {
+      console.log(
+        "[Middleware] No teams found, redirecting to new team creation",
+      );
       return NextResponse.redirect(
         new URL(PROTECTED_URLS.NEW_TEAM, request.url),
       );
@@ -90,12 +110,18 @@ export async function middleware(request: NextRequest) {
       teamsData.find((data) => data.is_default)?.team_id ??
       teamsData[0].team_id;
 
+    console.log(
+      "[Middleware] Selected team:",
+      teamId,
+      "Default:",
+      teamsData.find((data) => data.is_default) ? "Yes" : "No",
+    );
+
     const redirectResponse = NextResponse.redirect(
       new URL(PROTECTED_URLS.SANDBOXES(teamId), request.url),
     );
 
-    // delete the cache for the selected team
-    kv.del(KV_KEYS.USER_TEAM_ACCESS(data.user.id, teamId));
+    // Set cookie without clearing cache
     redirectResponse.cookies.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId);
 
     return redirectResponse;
@@ -107,18 +133,34 @@ export async function middleware(request: NextRequest) {
     data?.user
   ) {
     const teamId = request.nextUrl.pathname.split("/")[2];
-    const isAuthorized = await cachedUserTeamAccess(data.user.id, teamId);
+    console.log("[Middleware] Verifying access for team route:", teamId);
 
-    if (isAuthorized) {
-      response.cookies.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId);
-      return response;
+    try {
+      const hasAccess = await cachedUserTeamAccess(data.user.id, teamId);
+      console.log(
+        "[Middleware] Raw access result:",
+        hasAccess,
+        "type:",
+        typeof hasAccess,
+      );
+
+      if (hasAccess) {
+        console.log("[Middleware] Access authorized, proceeding");
+        response.cookies.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId);
+        return response;
+      }
+
+      throw new Error("Access denied");
+    } catch (error) {
+      console.log("[Middleware] Access denied or error:", error);
+      // Redirect to dashboard to find a valid team
+      const redirectResponse = NextResponse.redirect(
+        new URL(PROTECTED_URLS.DASHBOARD, request.url),
+      );
+      // Clear the selected team cookie since access was denied
+      redirectResponse.cookies.delete(COOKIE_KEYS.SELECTED_TEAM_ID);
+      return redirectResponse;
     }
-
-    const redirectResponse = NextResponse.redirect(
-      new URL(PROTECTED_URLS.DASHBOARD, request.url),
-    );
-    redirectResponse.cookies.delete(COOKIE_KEYS.SELECTED_TEAM_ID);
-    return redirectResponse;
   }
 
   return response;

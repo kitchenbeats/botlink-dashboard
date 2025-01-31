@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/ui/primitives/button";
 import {
   Select,
   SelectContent,
@@ -12,7 +11,6 @@ import {
 } from "@/ui/primitives/select";
 import { PROTECTED_URLS } from "@/configs/urls";
 import { useSelectedTeam, useTeams } from "@/lib/hooks/use-teams";
-import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Loader } from "@/ui/loader";
@@ -38,13 +36,13 @@ export default function TeamSelector() {
       value={selectedTeam?.id}
       onValueChange={(value) => router.push(PROTECTED_URLS.SANDBOXES(value))}
     >
-      <SelectTrigger className="h-auto w-full border px-2 py-1 pr-4 hover:bg-bg-100">
+      <SelectTrigger className="hover:bg-bg-100 h-auto w-full border px-2 py-1 pr-4">
         <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden">
           <div className="relative size-8 min-w-8 rounded-md border">
             <Dotted />
           </div>
           <div className="flex flex-col items-start pb-px">
-            <span className="-mb-1 text-[0.65rem] text-fg-500">TEAM</span>
+            <span className="text-fg-500 -mb-1 text-[0.65rem]">TEAM</span>
             {selectedTeam ? (
               <SelectValue placeholder="No team selected" />
             ) : (
