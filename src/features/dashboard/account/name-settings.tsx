@@ -25,6 +25,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name cannot be empty"),
@@ -32,7 +33,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function NameSettings() {
+interface NameSettingsProps {
+  className?: string;
+}
+
+export function NameSettings({ className }: NameSettingsProps) {
   const { user, refetch: refetchUser } = useUser();
   const [message, setMessage] = useTimeoutMessage();
 
@@ -61,7 +66,7 @@ export function NameSettings() {
   if (!user) return null;
 
   return (
-    <Card variant="slate" hideUnderline>
+    <Card variant="slate" className={cn(className)} hideUnderline>
       <CardHeader>
         <CardTitle>Your Name</CardTitle>
         <CardDescription>Will be visible to your team members.</CardDescription>

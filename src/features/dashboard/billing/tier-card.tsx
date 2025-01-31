@@ -49,8 +49,14 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
     const isSelected = team?.tier === tier.id;
 
     return (
-      <div ref={ref} className={cn("h-min", className)}>
-        <div className="mb-3 flex justify-between gap-2">
+      <div
+        ref={ref}
+        className={cn(
+          "bg-bg-100 flex h-full w-1/2 flex-col border p-5",
+          className,
+        )}
+      >
+        <div className="mb-3">
           <h5 className="text-lg font-semibold">
             {tier.name}
             {isSelected === true && (
@@ -59,25 +65,27 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
               </span>
             )}
           </h5>
-          {isSelected === false && (
-            <Button
-              variant={isHighlighted ? "accent" : "muted"}
-              className="h-7 text-xs"
-              size="sm"
-              loading={isPending}
-              onClick={() => redirectToCheckout()}
-            >
-              Select
-            </Button>
-          )}
         </div>
-        <ul className="space-y-1 pl-4">
+        <ul className="mb-4 space-y-1 pl-4">
           {tier.prose.map((prose, i) => (
-            <li className="font-sans" key={`tier-${tier.id}-prose-${i}`}>
+            <li
+              className="text-fg-500 font-sans text-xs"
+              key={`tier-${tier.id}-prose-${i}`}
+            >
               {prose}
             </li>
           ))}
         </ul>
+        {isSelected === false && (
+          <Button
+            variant={isHighlighted ? "default" : "muted"}
+            className="mt-4 w-full rounded-none"
+            loading={isPending}
+            onClick={() => redirectToCheckout()}
+          >
+            Select
+          </Button>
+        )}
       </div>
     );
   },

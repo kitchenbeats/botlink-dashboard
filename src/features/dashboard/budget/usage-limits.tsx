@@ -27,11 +27,8 @@ export default async function UsageLimits({
     return (
       <div className={cn("relative flex flex-col pt-2", className)}>
         <Dotted className="-z-10" />
-        <div className="flex flex-col bg-bg lg:flex-row">
-          <LimitCard
-            value={res.data.limit_amount_gte}
-            className="flex-1 border-b lg:border-b-0"
-          />
+        <div className="bg-bg flex flex-col lg:flex-row">
+          <LimitCard value={res.data.limit_amount_gte} className="flex-1" />
           <AlertCard value={res.data.alert_amount_gte} className="flex-1" />
         </div>
       </div>

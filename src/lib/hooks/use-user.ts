@@ -11,6 +11,11 @@ export const useUser = () => {
     async () => {
       return (await supabase.auth.getUser()).data.user ?? null;
     },
+    {
+      dedupingInterval: 60000,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
   );
 
   return {

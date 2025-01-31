@@ -24,7 +24,7 @@ export default async function DashboardPageLayout({
 }: DashboardPageLayoutProps) {
   return (
     <div className={cn("relative flex h-svh")}>
-      <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg pr-3 md:pl-3">
+      <div className="bg-bg absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b pr-3 md:pl-3">
         <div className="flex w-full items-center gap-2">
           <Suspense fallback={null}>
             <SidebarMobile className="h-full border-r px-3 md:hidden" />
@@ -44,7 +44,7 @@ export default async function DashboardPageLayout({
       <DesktopContent fullscreen={fullscreen} className={className}>
         {children}
       </DesktopContent>
-      <MobileContent>{children}</MobileContent>
+      <MobileContent className={className}>{children}</MobileContent>
     </div>
   );
 }
@@ -69,13 +69,15 @@ function DesktopContent({ children, className, fullscreen }: ContentProps) {
         <div className={cn("h-full", className)}>{children}</div>
       ) : (
         <div
-          className={cn(
-            "relative flex h-fit w-full max-w-[1200px] border pb-2",
-            className,
-          )}
+          className={"relative flex h-fit w-full max-w-[1200px] border pb-2"}
         >
           <Dotted />
-          <div className="relative w-full scale-[1.005] border bg-bg shadow-sm dark:shadow-md">
+          <div
+            className={cn(
+              "bg-bg relative w-full scale-[1.005] border shadow-sm dark:shadow-md",
+              className,
+            )}
+          >
             {children}
           </div>
         </div>
@@ -84,9 +86,14 @@ function DesktopContent({ children, className, fullscreen }: ContentProps) {
   );
 }
 
-function MobileContent({ children }: ContentProps) {
+function MobileContent({ children, className }: ContentProps) {
   return (
-    <div className="relative z-0 mt-[var(--protected-nav-height)] flex-1 md:hidden">
+    <div
+      className={cn(
+        "relative z-0 mt-[var(--protected-nav-height)] flex-1 md:hidden",
+        className,
+      )}
+    >
       {children}
     </div>
   );

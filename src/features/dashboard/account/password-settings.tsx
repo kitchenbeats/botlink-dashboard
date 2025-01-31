@@ -15,8 +15,13 @@ import { useUser } from "@/lib/hooks/use-user";
 import { AnimatePresence } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 
-export function PasswordSettings() {
+interface PasswordSettingsProps {
+  className?: string;
+}
+
+export function PasswordSettings({ className }: PasswordSettingsProps) {
   const { user } = useUser();
   const searchParams = useSearchParams();
   const [message, setMessage] = useTimeoutMessage();
@@ -45,9 +50,9 @@ export function PasswordSettings() {
   if (!user) return null;
 
   return (
-    <Card>
+    <Card variant="slate" className={cn(className)}>
       <CardHeader>
-        <CardTitle>Your Password</CardTitle>
+        <CardTitle>Password</CardTitle>
         <CardDescription>
           Change your account password used to sign in.
         </CardDescription>

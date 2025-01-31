@@ -18,8 +18,13 @@ import { useTimeoutMessage } from "@/lib/hooks/use-timeout-message";
 import { useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { useMutation } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
-export function DangerZone() {
+interface DangerZoneProps {
+  className?: string;
+}
+
+export function DangerZone({ className }: DangerZoneProps) {
   const { toast } = useToast();
   const [deleteConfirmation, setDeleteConfirmation] = useState<string>("");
   const [message, setMessage] = useTimeoutMessage();
@@ -48,7 +53,7 @@ export function DangerZone() {
   });
 
   return (
-    <Card>
+    <Card variant="slate" className={cn(className)}>
       <CardHeader>
         <CardTitle>Danger Zone</CardTitle>
         <CardDescription>
@@ -74,9 +79,9 @@ export function DangerZone() {
           }}
         >
           <>
-            <p className="mb-4 text-fg-500">
+            <p className="text-fg-500 mb-4">
               Please type{" "}
-              <span className="font-medium text-fg">delete my account</span> to
+              <span className="text-fg font-medium">delete my account</span> to
               confirm:
             </p>
             <Input

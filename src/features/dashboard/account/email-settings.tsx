@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -34,7 +35,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function EmailSettings() {
+interface EmailSettingsProps {
+  className?: string;
+}
+
+export function EmailSettings({ className }: EmailSettingsProps) {
   const { user, setUser, refetch: refetchUser } = useUser();
   const searchParams = useSearchParams();
   const [message, setMessage] = useTimeoutMessage();
@@ -97,12 +102,10 @@ export function EmailSettings() {
   if (!user) return null;
 
   return (
-    <Card hideUnderline>
+    <Card variant="slate" className={cn(className)}>
       <CardHeader>
-        <CardTitle>Your Email</CardTitle>
-        <CardDescription>
-          Change your email to receive notifications and updates.
-        </CardDescription>
+        <CardTitle>Email</CardTitle>
+        <CardDescription>Update your email address.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <Form {...form}>

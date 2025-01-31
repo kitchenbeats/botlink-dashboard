@@ -20,7 +20,7 @@ export default async function BillingPage({
       <div className="grid w-full gap-4 p-4 sm:gap-6 sm:p-6">
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-12 xl:gap-8">
           {/* Plan Section */}
-          <section className="col-span-1 grid gap-4 xl:col-span-8">
+          <section className="col-span-1 grid gap-4 xl:col-span-12">
             <div className="relative flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <CardTitle>Plan</CardTitle>
@@ -39,27 +39,10 @@ export default async function BillingPage({
                   key={tier.id}
                   tier={tier}
                   isHighlighted={tier.id === "pro_v1"}
-                  className="min-w-[280px] xl:min-w-0"
+                  className="min-w-[280px] max-xl:w-1/2 xl:min-w-0"
                 />
               ))}
             </div>
-          </section>
-
-          {/* Credits Section */}
-          <section className="col-span-1 flex flex-col gap-4 xl:col-span-4">
-            <div className="flex flex-col gap-1">
-              <CardTitle>Credits</CardTitle>
-              <CardDescription>
-                Your current credits balance. Your usage costs are deducted from
-                your credits.
-              </CardDescription>
-            </div>
-
-            <Suspense
-              fallback={<Loader className="text-2xl" variant="square" />}
-            >
-              <BillingCreditsContent teamId={teamId} />
-            </Suspense>
           </section>
 
           {/* Billing History Section */}

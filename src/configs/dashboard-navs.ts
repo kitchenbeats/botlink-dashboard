@@ -1,11 +1,10 @@
 import {
   BarChart,
   Blocks,
-  Code,
   CreditCard,
+  DollarSign,
   Key,
   LucideSheet,
-  Settings,
   User,
   Users,
 } from "lucide-react";
@@ -24,11 +23,6 @@ export type DashboardNavLink = {
 };
 
 export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
-  /*   {
-    label: "Home",
-    href: (args) => `/dashboard/${args.teamId}`,
-    icon: HomeIcon,
-  }, */
   {
     label: "Sandboxes",
     href: (args) => `/dashboard/${args.teamId}/sandboxes`,
@@ -47,20 +41,26 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
 
   {
     label: "General",
-    href: (args) => `/dashboard/${args.teamId}/settings/general`,
+    href: (args) => `/dashboard/${args.teamId}/general`,
     icon: Users,
     group: "team",
   },
   {
     label: "API Keys",
-    href: (args) => `/dashboard/${args.teamId}/settings/keys`,
+    href: (args) => `/dashboard/${args.teamId}/keys`,
     icon: Key,
     group: "team",
   },
   {
     label: "Billing",
-    href: (args) => `/dashboard/${args.teamId}/settings/billing`,
+    href: (args) => `/dashboard/${args.teamId}/billing`,
     icon: CreditCard,
+    group: "team",
+  },
+  {
+    label: "Budget",
+    href: (args) => `/dashboard/${args.teamId}/budget`,
+    icon: DollarSign,
     group: "team",
   },
 
