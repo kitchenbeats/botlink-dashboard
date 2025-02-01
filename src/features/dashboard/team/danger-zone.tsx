@@ -1,6 +1,8 @@
 import { bailOutFromPPR } from "@/lib/utils/server";
 import { getTeam } from "@/server/team/get-team";
+import { UnknownError } from "@/types/errors";
 import { AlertDialog } from "@/ui/alert-dialog";
+import ErrorBoundary from "@/ui/error";
 import { Alert } from "@/ui/primitives/alert";
 import { Button } from "@/ui/primitives/button";
 import {
@@ -48,7 +50,7 @@ async function DangerZoneContent({ teamId }: { teamId: string }) {
         <div className="flex items-center justify-between p-4">
           <div className="flex flex-col gap-1">
             <h4 className="font-medium">Leave Organization</h4>
-            <p className="font-sans text-sm text-fg-500">
+            <p className="text-fg-500 font-sans text-sm">
               Remove yourself from this organization
             </p>
           </div>
@@ -68,8 +70,8 @@ async function DangerZoneContent({ teamId }: { teamId: string }) {
 
         <div className="flex items-center justify-between p-4">
           <div className="flex flex-col gap-1">
-            <h4 className="font-medium text-fg">Delete Organization</h4>
-            <p className="font-sans text-sm text-fg-500">
+            <h4 className="text-fg font-medium">Delete Organization</h4>
+            <p className="text-fg-500 font-sans text-sm">
               Permanently delete this team and all of its data
             </p>
           </div>
@@ -78,6 +80,17 @@ async function DangerZoneContent({ teamId }: { teamId: string }) {
       </>
     );
   } catch (error) {
-    return <Alert variant="error">Error</Alert>;
+    if (error instanceof Error) {
+      return (
+        <ErrorBoundary error={error} description={"Could not load team"} />
+      );
+    }
+
+    return (
+      <ErrorBoundary
+        error={UnknownError()}
+        description={"Could not load team"}
+      />
+    );
   }
 }

@@ -5,6 +5,7 @@ export type E2bErrorCode =
   | "UNAUTHORIZED"
   | "INVALID_PARAMETERS"
   | "INTERNAL_SERVER_ERROR"
+  | "UNKNOWN"
   | string;
 
 export class E2BError extends Error {
@@ -27,3 +28,6 @@ export const UnauthorizedError = (message: string) =>
 
 export const InvalidParametersError = (message: string) =>
   new E2BError("INVALID_PARAMETERS", message);
+
+export const UnknownError = (message?: string) =>
+  new E2BError("UNKNOWN", message ?? "Unexpected error");

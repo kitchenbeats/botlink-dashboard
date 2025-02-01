@@ -17,8 +17,7 @@ const GetTeamTemplatesParamsSchema = z.object({
 export const getTeamTemplates = guard(
   GetTeamTemplatesParamsSchema,
   async ({ teamId }) => {
-    // TODO: Remove this after staging
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NEXT_PUBLIC_MOCK_DATA === "1") {
       await new Promise((resolve) => setTimeout(resolve, 500));
       return MOCK_TEMPLATES_DATA;
     }

@@ -11,15 +11,9 @@ import { VCPUChart } from "./vcpu-chart";
 import { Loader } from "@/ui/loader";
 import { Suspense } from "react";
 import { bailOutFromPPR } from "@/lib/utils/server";
-
-function ErrorFallback({ error }: { error: Error }) {
-  return (
-    <Alert className="w-full text-left" variant="error">
-      <AlertTitle>Error loading vCPU data.</AlertTitle>
-      <AlertDescription>{error.message}</AlertDescription>
-    </Alert>
-  );
-}
+import ErrorBoundary from "@/ui/error";
+import { UnknownError } from "@/types/errors";
+import { ErrorIndicator } from "@/ui/error-indicator";
 
 export function VCPUCard({
   teamId,
@@ -63,12 +57,20 @@ export async function VCPUCardContent({ teamId }: { teamId: string }) {
           <p className="font-mono text-2xl">
             {latestVCPU?.toFixed(2) ?? "0.00"}
           </p>
-          <span className="text-xs text-fg-500">hours used</span>
+          <span className="text-fg-500 text-xs">hours used</span>
         </div>
         <VCPUChart data={res.data.vcpuSeries[0].data} />
       </>
     );
   } catch (error) {
-    return <ErrorFallback error={error as Error} />;
+    return (
+      <div className="p-4">
+        <ErrorIndicator
+          description={"Could not load vCPU usage"}
+          message={error instanceof Error ? error.message : "Unknown error"}
+          className="bg-bg w-full max-w-full"
+        />
+      </div>
+    );
   }
 }

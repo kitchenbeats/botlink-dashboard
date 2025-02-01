@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-10 w-full items-center justify-between rounded-md",
-      "border border-dashed bg-bg px-3 py-2",
+      "bg-bg border border-dashed px-3 py-2",
       "font-mono text-sm uppercase tracking-wider",
       "outline-none",
       "focus:ring-1",
@@ -33,7 +33,7 @@ const SelectTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronsUpDown className="ml-auto size-3.5 text-fg-300" />
+    <ChevronsUpDown className="text-fg-300 ml-2 size-3.5" />
   </SelectPrimitive.Trigger>
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
@@ -84,7 +84,7 @@ const SelectContent = React.forwardRef<
         "z-50 min-w-[10rem] overflow-hidden rounded-md",
         cardVariants({ variant: "layer" }),
         "shadow-sm",
-        "duration-100 animate-in fade-in-0 slide-in-from-bottom-1",
+        "animate-in fade-in-0 slide-in-from-bottom-1 duration-100",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -121,7 +121,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <span
     className={cn(
-      "inline-flex items-center py-1.5 font-mono text-fg-500 first:pt-0 last:pb-0",
+      "text-fg-500 inline-flex items-center py-1.5 font-mono first:pt-0 last:pb-0",
       inset && "pl-8",
     )}
   >
@@ -165,7 +165,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-bg-300", className)}
+    className={cn("bg-bg-300 -mx-1 my-1 h-px", className)}
     {...props}
   />
 ));

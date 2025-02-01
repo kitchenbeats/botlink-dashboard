@@ -126,7 +126,7 @@ export const useColumns = (deps: any[]) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-5 text-fg-500"
+                  className="text-fg-500 size-5"
                 >
                   <MoreVertical className="size-4" />
                 </Button>
@@ -172,7 +172,7 @@ export const useColumns = (deps: any[]) => {
         size: 160,
         minSize: 120,
         cell: ({ row }) => (
-          <div className="truncate font-mono text-xs text-fg-500">
+          <div className="text-fg-500 truncate font-mono text-xs">
             {row.getValue("templateID")}
           </div>
         ),
@@ -216,7 +216,7 @@ export const useColumns = (deps: any[]) => {
         size: 250,
         minSize: 140,
         cell: ({ getValue }) => (
-          <div className="truncate font-mono text-xs text-fg-500">
+          <div className="text-fg-500 truncate font-mono text-xs">
             {getValue() as string}
           </div>
         ),
@@ -228,7 +228,7 @@ export const useColumns = (deps: any[]) => {
         minSize: 140,
         enableGlobalFilter: true,
         cell: ({ getValue }) => (
-          <div className="truncate font-mono text-xs text-fg-500">
+          <div className="text-fg-500 truncate font-mono text-xs">
             {getValue() as string}
           </div>
         ),
@@ -238,12 +238,12 @@ export const useColumns = (deps: any[]) => {
         header: "Public",
         size: 100,
         minSize: 100,
-        cell: ({ row }) => (
+        cell: ({ getValue }) => (
           <Badge
-            variant={row.getValue("public") ? "success" : "muted"}
+            variant={getValue() ? "success" : "muted"}
             className="ml-3 whitespace-nowrap font-mono"
           >
-            {row.getValue("public") ? "true" : "false"}
+            {getValue() ? "true" : "false"}
           </Badge>
         ),
         enableSorting: false,

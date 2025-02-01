@@ -4,6 +4,9 @@ import { TableCell, TableRow } from "@/ui/primitives/table";
 import ApiKeyTableRow from "./table-row";
 import { cookies } from "next/headers";
 import { bailOutFromPPR } from "@/lib/utils/server";
+import { UnknownError } from "@/types/errors";
+import ErrorBoundary from "@/ui/error";
+import { ErrorIndicator } from "@/ui/error-indicator";
 
 interface TableBodyContentProps {
   teamId: string;
@@ -46,16 +49,14 @@ export default async function TableBodyContent({
       </>
     );
   } catch (error) {
-    console.error(error);
     return (
       <TableRow>
         <TableCell colSpan={5}>
-          <Alert className="text-left" variant="contrast2">
-            <AlertTitle>Failed to load API keys</AlertTitle>
-            <AlertDescription>
-              {error instanceof Error ? error.message : "Unknown error"}
-            </AlertDescription>
-          </Alert>
+          <ErrorIndicator
+            description={"Could not load API keys"}
+            message={error instanceof Error ? error.message : "Unknown error"}
+            className="bg-bg mt-2 w-full max-w-full"
+          />
         </TableCell>
       </TableRow>
     );

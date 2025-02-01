@@ -13,6 +13,7 @@ import { ActionFunction, ActionResponse } from "@/types/actions";
 import { cookies } from "next/headers";
 import { unstable_noStore } from "next/cache";
 import { COOKIE_KEYS } from "@/configs/keys";
+import { logger } from "../clients/logger";
 
 /*
  *  This function checks if the user is authenticated and returns the user and the supabase client.
@@ -73,7 +74,7 @@ export async function getTeamApiKey(userId: string, teamId: string) {
     .eq("team_id", teamId);
 
   if (teamApiKeyError) {
-    console.error(teamApiKeyError);
+    logger.error(teamApiKeyError);
     throw new Error(
       `Failed to fetch team API key for team (user: ${userId}, team: ${teamId})`,
     );
@@ -222,7 +223,7 @@ export function guard<TInput, TOutput>(
           throw error;
         }
 
-        console.error(error);
+        logger.error(error);
 
         if (error instanceof E2BError) {
           return {
@@ -247,7 +248,7 @@ export function guard<TInput, TOutput>(
     const parseResult = schema.safeParse(params);
 
     if (!parseResult.success) {
-      console.error(parseResult.error);
+      logger.error(parseResult.error);
       return {
         type: "error",
         message: "Invalid parameters",
@@ -265,7 +266,7 @@ export function guard<TInput, TOutput>(
         throw error;
       }
 
-      console.error(error);
+      logger.error(error);
 
       if (error instanceof E2BError) {
         return {
@@ -297,7 +298,7 @@ export function guard<TInput, TOutput>(
  *
  * @example
  * // Correct usage - before try-catch
- * bailOut();
+ * bailOutFromPPR();
  * try {
  *   // dynamic code
  * } catch (e) {}

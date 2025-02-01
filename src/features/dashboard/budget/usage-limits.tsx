@@ -5,6 +5,9 @@ import LimitCard from "./limit-card";
 import AlertCard from "./alert-card";
 import { cn } from "@/lib/utils";
 import Dotted from "@/ui/dotted";
+import { UnknownError } from "@/types/errors";
+import ErrorBoundary from "@/ui/error";
+import { ErrorIndicator } from "@/ui/error-indicator";
 
 interface UsageLimitsProps {
   className?: string;
@@ -35,14 +38,13 @@ export default async function UsageLimits({
     );
   } catch (error) {
     return (
-      <Alert variant="error">
-        <AlertTitle>Unable to fetch usage limits</AlertTitle>
-        <AlertDescription>
-          {error instanceof Error
-            ? error.message
-            : "An unexpected error occurred"}
-        </AlertDescription>
-      </Alert>
+      <div className="p-4">
+        <ErrorIndicator
+          description={"Could not load usage limits"}
+          message={error instanceof Error ? error.message : "Unknown error"}
+          className="bg-bg w-full max-w-full"
+        />
+      </div>
     );
   }
 }

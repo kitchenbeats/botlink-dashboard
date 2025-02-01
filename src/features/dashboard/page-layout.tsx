@@ -88,7 +88,7 @@ function DesktopContent({
         <Frame
           classNames={{
             wrapper: cn(
-              "relative flex h-fit w-full max-w-[1200px] border pb-2",
+              "relative flex h-fit w-full max-w-[1200px]",
               classNames?.frameWrapper,
             ),
             frame: className,

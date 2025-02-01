@@ -5,6 +5,8 @@ import { bailOutFromPPR } from "@/lib/utils/server";
 import { getTeamSandboxes } from "@/server/sandboxes/get-team-sandboxes";
 import { getTeamTemplates } from "@/server/templates/get-templates";
 import { Suspense } from "react";
+import ErrorBoundary from "@/ui/error";
+import { UnknownError } from "@/types/errors";
 
 interface PageProps {
   params: Promise<{
@@ -50,6 +52,17 @@ async function PageContent({ teamId }: PageContentProps) {
 
     return <SandboxesTable sandboxes={sandboxes} templates={templates} />;
   } catch (error) {
-    return <div>Error loading sandboxes.</div>;
+    if (error instanceof Error) {
+      return (
+        <ErrorBoundary error={error} description={"Could not load sandboxes"} />
+      );
+    }
+
+    return (
+      <ErrorBoundary
+        error={UnknownError()}
+        description={"Could not load sandboxes"}
+      />
+    );
   }
 }

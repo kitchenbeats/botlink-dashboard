@@ -13,22 +13,12 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getInvoices } from "@/server/billing/get-invoices";
 import { bailOutFromPPR } from "@/lib/utils/server";
+import ErrorBoundary from "@/ui/error";
+import { UnknownError } from "@/types/errors";
+import { ErrorIndicator } from "@/ui/error-indicator";
 
 interface BillingInvoicesTableProps {
   teamId: string;
-}
-
-function ErrorFallback({ error }: { error: Error }) {
-  return (
-    <TableRow>
-      <TableCell colSpan={4} className="text-left">
-        <Alert className="w-full text-left" variant="error">
-          <AlertTitle>Error loading invoices.</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      </TableCell>
-    </TableRow>
-  );
 }
 
 function LoadingFallback() {
@@ -95,7 +85,17 @@ async function InvoicesTableContent({ teamId }: { teamId: string }) {
       </>
     );
   } catch (error) {
-    return <ErrorFallback error={error as Error} />;
+    return (
+      <TableRow>
+        <TableCell colSpan={4}>
+          <ErrorIndicator
+            description={"Could not load invoices"}
+            message={error instanceof Error ? error.message : "Unknown error"}
+            className="bg-bg mt-2 w-full max-w-full"
+          />
+        </TableCell>
+      </TableRow>
+    );
   }
 }
 
@@ -103,7 +103,7 @@ export default function BillingInvoicesTable({
   teamId,
 }: BillingInvoicesTableProps) {
   return (
-    <Table className="w-full min-w-[800px] animate-in fade-in">
+    <Table className="animate-in fade-in w-full min-w-[800px]">
       <TableHeader>
         <TableRow>
           <TableHead>Date</TableHead>

@@ -20,7 +20,7 @@ export default function Frame({ children, classNames }: FrameProps) {
       <Dotted />
       <div
         className={cn(
-          "bg-bg relative w-full scale-[1.02] border",
+          "bg-bg relative w-full scale-[1.005] border shadow-md",
           classNames?.frame,
         )}
       >

@@ -17,8 +17,7 @@ const GetTeamSandboxesParamsSchema = z.object({
 export const getTeamSandboxes = guard(
   GetTeamSandboxesParamsSchema,
   async ({ teamId }) => {
-    // TODO: Remove this after staging
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NEXT_PUBLIC_MOCK_DATA === "1") {
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       const sandboxes = MOCK_SANDBOXES_DATA();

@@ -44,14 +44,19 @@ export default function TeamSelector() {
       }}
     >
       <SelectTrigger className="hover:bg-bg-100 h-auto w-full border px-2 py-1 pr-4">
-        <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden">
+        <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden text-ellipsis">
           <div className="relative size-8 min-w-8 rounded-md border">
             <Dotted />
           </div>
-          <div className="flex flex-col items-start pb-px">
-            <span className="text-fg-500 -mb-1 text-[0.65rem]">TEAM</span>
+          <div className="flex flex-col items-start truncate pb-px">
+            <span className="text-fg-500 -mb-1 truncate text-[0.65rem]">
+              TEAM
+            </span>
             {selectedTeam ? (
-              <SelectValue placeholder="No team selected" />
+              <SelectValue
+                placeholder="No team selected"
+                className="truncate"
+              />
             ) : (
               <Loader variant="dots" />
             )}

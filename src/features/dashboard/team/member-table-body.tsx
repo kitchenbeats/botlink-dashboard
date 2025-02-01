@@ -3,6 +3,9 @@ import { TableCell, TableRow } from "@/ui/primitives/table";
 import MemberTableRow from "./member-table-row";
 import { getTeamMembers } from "@/server/team/get-team-members";
 import { bailOutFromPPR } from "@/lib/utils/server";
+import { UnknownError } from "@/types/errors";
+import ErrorBoundary from "@/ui/error";
+import { ErrorIndicator } from "@/ui/error-indicator";
 
 interface TableBodyContentProps {
   teamId: string;
@@ -43,16 +46,14 @@ export default async function MemberTableBody({
       </>
     );
   } catch (error) {
-    console.error(error);
     return (
       <TableRow>
         <TableCell colSpan={5}>
-          <Alert className="text-left" variant="contrast2">
-            <AlertTitle>Failed to load members</AlertTitle>
-            <AlertDescription>
-              {error instanceof Error ? error.message : "Unknown error"}
-            </AlertDescription>
-          </Alert>
+          <ErrorIndicator
+            description={"Could not load team members"}
+            message={error instanceof Error ? error.message : "Unknown error"}
+            className="bg-bg mt-2 w-full max-w-full"
+          />
         </TableCell>
       </TableRow>
     );

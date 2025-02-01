@@ -2,7 +2,6 @@ import { Table } from "@tanstack/react-table";
 import { Template } from "@/types/api";
 import { DataTableBody, DataTableRow, DataTableCell } from "@/ui/data-table";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { AssemblyLoader } from "@/ui/loader";
 import { flexRender } from "@tanstack/react-table";
 
 interface TableBodyProps {

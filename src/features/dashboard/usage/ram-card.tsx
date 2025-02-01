@@ -11,15 +11,9 @@ import { RAMChart } from "./ram-chart";
 import { Loader } from "@/ui/loader";
 import { Suspense } from "react";
 import { bailOutFromPPR } from "@/lib/utils/server";
-
-function ErrorFallback({ error }: { error: Error }) {
-  return (
-    <Alert className="w-full text-left" variant="error">
-      <AlertTitle>Error loading RAM data.</AlertTitle>
-      <AlertDescription>{error.message}</AlertDescription>
-    </Alert>
-  );
-}
+import { UnknownError } from "@/types/errors";
+import ErrorBoundary from "@/ui/error";
+import { ErrorIndicator } from "@/ui/error-indicator";
 
 export function RAMCard({
   teamId,
@@ -63,12 +57,20 @@ export async function RAMCardContent({ teamId }: { teamId: string }) {
           <p className="font-mono text-2xl">
             {latestRAM?.toFixed(2) ?? "0.00"}
           </p>
-          <span className="text-xs text-fg-500">GB-hours used</span>
+          <span className="text-fg-500 text-xs">GB-hours used</span>
         </div>
         <RAMChart data={res.data.ramSeries[0].data} />
       </>
     );
   } catch (error) {
-    return <ErrorFallback error={error as Error} />;
+    return (
+      <div className="p-4">
+        <ErrorIndicator
+          description={"Could not load RAM usage"}
+          message={error instanceof Error ? error.message : "Unknown error"}
+          className="bg-bg w-full max-w-full"
+        />
+      </div>
+    );
   }
 }

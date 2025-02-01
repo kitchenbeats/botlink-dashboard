@@ -1,9 +1,12 @@
 import DashboardPageLayout from "@/features/dashboard/page-layout";
 import TemplatesTable from "@/features/dashboard/templates/table";
 import { getTeamTemplates } from "@/server/templates/get-templates";
-import ClientOnly from "@/ui/client-only";
 import { Suspense } from "react";
 import LoadingLayout from "../../loading";
+import { ErrorIndicator } from "@/ui/error-indicator";
+import ErrorBoundary from "@/ui/error";
+import { E2BError, UnknownError } from "@/types/errors";
+import { bailOutFromPPR } from "@/lib/utils/server";
 
 interface PageProps {
   params: Promise<{
@@ -28,6 +31,8 @@ interface PageContentProps {
 }
 
 async function PageContent({ teamId }: PageContentProps) {
+  bailOutFromPPR();
+
   try {
     const res = await getTeamTemplates({
       teamId,
@@ -41,6 +46,17 @@ async function PageContent({ teamId }: PageContentProps) {
 
     return <TemplatesTable templates={templates} />;
   } catch (error) {
-    return <div>Error loading templates.</div>;
+    if (error instanceof Error) {
+      return (
+        <ErrorBoundary error={error} description={"Could not load templates"} />
+      );
+    }
+
+    return (
+      <ErrorBoundary
+        error={UnknownError()}
+        description={"Could not load templates"}
+      />
+    );
   }
 }
