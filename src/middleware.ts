@@ -4,8 +4,22 @@ import { createServerClient } from "@supabase/ssr";
 import { cachedUserTeamAccess } from "./server/middleware";
 import { COOKIE_KEYS } from "./configs/keys";
 import { supabaseAdmin } from "./lib/clients/supabase/admin";
+import { handleUrlRewrites } from "./server/middleware";
+import {
+  LANDING_PAGE_DOMAIN,
+  LANDING_PAGE_FRAMER_DOMAIN,
+  BLOG_FRAMER_DOMAIN,
+} from "@/configs/domains";
 
 export async function middleware(request: NextRequest) {
+  const rewriteResponse = await handleUrlRewrites(request, {
+    landingPage: LANDING_PAGE_DOMAIN,
+    landingPageFramer: LANDING_PAGE_FRAMER_DOMAIN,
+    blogFramer: BLOG_FRAMER_DOMAIN,
+  });
+
+  if (rewriteResponse) return rewriteResponse;
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
