@@ -4,6 +4,10 @@ import { Suspense } from "react";
 import DashboardNavbar from "../navbar/navbar";
 import TeamSelector from "./team-selector";
 import { cn } from "@/lib/utils";
+import { Button } from "@/ui/primitives/button";
+import { Book, Github } from "lucide-react";
+import Link from "next/link";
+import ExternalIcon from "@/ui/external-icon";
 
 interface SidebarProps {
   className?: string;
@@ -32,7 +36,33 @@ export default function Sidebar({ className }: SidebarProps) {
 
       <DashboardNavbar className="flex-1 p-2 pt-0" />
 
-      <footer className="mt-auto p-3">
+      <footer className="mt-auto flex flex-col gap-2 p-3">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-fg-300 hover:text-fg"
+          asChild
+        >
+          <Link
+            prefetch={false}
+            href="https://github.com/e2b-dev/e2b"
+            target="_blank"
+          >
+            <Github className="size-4 text-fg-500" />
+            GitHub
+            <ExternalIcon className="ml-auto size-4" />
+          </Link>
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-fg-300 hover:text-fg"
+          asChild
+        >
+          <Link prefetch={false} href="/docs" target="_blank">
+            <Book className="size-4 text-fg-500" />
+            Documentation
+            <ExternalIcon className="ml-auto size-4" />
+          </Link>
+        </Button>
         <Suspense fallback={null}>
           <TeamSelector />
         </Suspense>

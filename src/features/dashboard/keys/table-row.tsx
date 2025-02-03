@@ -44,12 +44,12 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
     <TableRow key={`${apiKey.name}-${index}`}>
       <TableCell className="flex flex-col gap-1 text-left font-mono">
         {apiKey.name}
-        <span className="pl-1 text-fg-500">{apiKey.maskedKey}</span>
+        <span className="text-fg-500 pl-1">{apiKey.maskedKey}</span>
       </TableCell>
-      <TableCell className="max-w-36 overflow-hidden truncate text-fg-500">
+      <TableCell className="text-fg-500 max-w-36 overflow-hidden truncate">
         <span className="max-w-full truncate">{apiKey.createdBy}</span>
       </TableCell>
-      <TableCell className="text-right text-fg-300">
+      <TableCell className="text-fg-300 text-right">
         {apiKey.createdAt
           ? new Date(apiKey.createdAt).toLocaleDateString()
           : "-"}
@@ -57,7 +57,7 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="muted" size="sm" className="text-xs">
+            <Button variant="outline" size="sm" className="text-xs">
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>

@@ -76,10 +76,10 @@ const DropdownMenuContent = React.forwardRef<
       sideOffset={sideOffset}
       collisionPadding={collisionPadding}
       className={cn(
-        "z-50 min-w-[10rem] overflow-hidden rounded-md",
+        "z-50 min-w-[12rem] overflow-hidden rounded-md",
         cardVariants({ variant: "layer" }),
         "shadow-sm",
-        "duration-100 animate-in fade-in-0 slide-in-from-bottom-1",
+        "animate-in fade-in-0 slide-in-from-bottom-1 duration-100",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -187,7 +187,7 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <span
     className={cn(
-      "inline-flex items-center py-1 pl-2 font-mono text-[0.625rem] text-fg-500 first:pt-0 last:pb-0",
+      "text-fg-500 inline-flex items-center py-1 pl-2 font-mono text-[0.625rem] first:pt-0 last:pb-0",
       inset && "pl-8",
     )}
   >
@@ -207,7 +207,7 @@ const DropdownMenuSeparator = React.forwardRef<
   <DropdownMenuPrimitive.Separator
     ref={ref}
     className={cn(
-      "-mx-1 my-2 border-t border-dashed border-fg-300/20",
+      "border-fg-300/20 -mx-1 my-2 border-t border-dashed",
       className,
     )}
     {...props}
@@ -221,7 +221,7 @@ const DropdownMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn("ml-auto text-xs tracking-widest text-fg-500", className)}
+      className={cn("text-fg-500 ml-auto text-xs tracking-widest", className)}
       {...props}
     />
   );

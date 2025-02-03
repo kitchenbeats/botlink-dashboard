@@ -33,6 +33,21 @@ const config = {
       ],
     },
   ],
+  rewrites: async () => ({
+    beforeFiles: [
+      {
+        source: "/docs/:path*",
+        destination: `https://e2b-docs.vercel.app/docs/:path*`,
+      },
+    ],
+    afterFiles: [
+      // when proxying /docs, the old dashboard contacts posthog via /ingest. thus we need to proxy /ingest as well
+      {
+        source: "/ingest/:path*",
+        destination: "https://app.posthog.com/:path*",
+      },
+    ],
+  }),
 };
 
 export default withMDX(config);

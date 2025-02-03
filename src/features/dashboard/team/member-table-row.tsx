@@ -18,10 +18,15 @@ import { TeamMember } from "@/server/team/types";
 
 interface TableRowProps {
   member: TeamMember;
+  addedByEmail?: string;
   index: number;
 }
 
-export default function MemberTableRow({ member, index }: TableRowProps) {
+export default function MemberTableRow({
+  member,
+  addedByEmail,
+  index,
+}: TableRowProps) {
   const { toast } = useToast();
   const { teamId } = useParams();
   const router = useRouter();
@@ -84,9 +89,7 @@ export default function MemberTableRow({ member, index }: TableRowProps) {
       </TableCell>
       <TableCell className="text-fg-500">{member.info.email}</TableCell>
       <TableCell className="text-fg-300">
-        {member.relation.added_by === user?.id
-          ? "You"
-          : (member.relation.added_by ?? "")}
+        {member.relation.added_by === user?.id ? "You" : (addedByEmail ?? "")}
       </TableCell>
       <TableCell className="text-end">
         {!member.relation.is_default && user?.id !== member.info.id && (

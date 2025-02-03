@@ -41,7 +41,15 @@ export default async function MemberTableBody({
     return (
       <>
         {members.map((member, index) => (
-          <MemberTableRow key={member.info.id} member={member} index={index} />
+          <MemberTableRow
+            key={member.info.id}
+            member={member}
+            index={index}
+            addedByEmail={
+              members.find((m) => m.info.id === member.relation.added_by)?.info
+                .email
+            }
+          />
         ))}
       </>
     );

@@ -63,13 +63,14 @@ export const handleUrlRewrites = async (
   url.port = "";
 
   // Handle root path
-  if (url.pathname === "" || url.pathname === "/") {
+  /*   if (url.pathname === "" || url.pathname === "/") {
     if (process.env.NODE_ENV === "production") {
       url.hostname = hostnames.landingPage;
     } else {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
+ */
 
   // Static page rewrites
   const landingPagePaths = [
@@ -96,7 +97,6 @@ export const handleUrlRewrites = async (
     url.hostname = hostnames.blogFramer;
   }
 
-  // If no hostname was set, no rewrite is needed
   if (url.hostname === request.nextUrl.hostname) {
     return null;
   }
@@ -104,12 +104,7 @@ export const handleUrlRewrites = async (
   try {
     const res = await fetch(url.toString(), { ...request });
     const htmlBody = await res.text();
-    const modifiedHtmlBody = replaceUrls(
-      htmlBody,
-      url.pathname,
-      'href="',
-      '">',
-    );
+    let modifiedHtmlBody = replaceUrls(htmlBody, url.pathname, 'href="', '">');
 
     return new NextResponse(modifiedHtmlBody, {
       status: res.status,
@@ -118,7 +113,6 @@ export const handleUrlRewrites = async (
       url: request.url,
     });
   } catch (error) {
-    console.error("Error handling URL rewrite:", error);
     return null;
   }
 };
