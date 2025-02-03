@@ -90,11 +90,8 @@ export const handleUrlRewrites = async (
   }
 
   // Blog rewrites
-  if (url.pathname === "/blog" || url.pathname === "/blog/") {
-    url.pathname = "/";
-    url.hostname = hostnames.blogFramer;
-  } else if (url.pathname.startsWith("/blog")) {
-    url.hostname = hostnames.blogFramer;
+  if (url.pathname.startsWith("/blog")) {
+    url.hostname = hostnames.landingPage;
   }
 
   if (url.hostname === request.nextUrl.hostname) {
