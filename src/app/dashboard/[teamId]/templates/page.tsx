@@ -1,6 +1,6 @@
 import DashboardPageLayout from "@/features/dashboard/page-layout";
 import TemplatesTable from "@/features/dashboard/templates/table";
-import { getTeamTemplates } from "@/server/templates/get-templates";
+import { getTeamTemplates } from "@/server/templates/get-team-templates";
 import { Suspense } from "react";
 import LoadingLayout from "../../loading";
 import { ErrorIndicator } from "@/ui/error-indicator";

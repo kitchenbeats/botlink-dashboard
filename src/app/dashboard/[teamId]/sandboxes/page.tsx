@@ -1,12 +1,10 @@
 import LoadingLayout from "@/features/dashboard/loading-layout";
 import DashboardPageLayout from "@/features/dashboard/page-layout";
 import SandboxesTable from "@/features/dashboard/sandboxes/table";
-import { bailOutFromPPR } from "@/lib/utils/server";
 import { getTeamSandboxes } from "@/server/sandboxes/get-team-sandboxes";
-import { getTeamTemplates } from "@/server/templates/get-templates";
+import { getTeamTemplates } from "@/server/templates/get-team-templates";
 import { Suspense } from "react";
 import ErrorBoundary from "@/ui/error";
-import { UnknownError } from "@/types/errors";
 
 interface PageProps {
   params: Promise<{
@@ -31,38 +29,31 @@ interface PageContentProps {
 }
 
 async function PageContent({ teamId }: PageContentProps) {
-  bailOutFromPPR();
+  const [sandboxesRes, templatesRes] = await Promise.all([
+    getTeamSandboxes({ teamId }),
+    getTeamTemplates({ teamId }),
+  ]);
 
-  try {
-    const [sandboxesRes, templatesRes] = await Promise.all([
-      getTeamSandboxes({ teamId }),
-      getTeamTemplates({ teamId }),
-    ]);
-
-    if (sandboxesRes.type === "error") {
-      throw new Error(sandboxesRes.message);
-    }
-
-    if (templatesRes.type === "error") {
-      throw new Error(templatesRes.message);
-    }
-
-    const sandboxes = sandboxesRes.data;
-    const templates = templatesRes.data;
-
-    return <SandboxesTable sandboxes={sandboxes} templates={templates} />;
-  } catch (error) {
-    if (error instanceof Error) {
-      return (
-        <ErrorBoundary error={error} description={"Could not load sandboxes"} />
-      );
-    }
-
+  if (sandboxesRes.type === "error") {
     return (
       <ErrorBoundary
-        error={UnknownError()}
+        error={new Error(sandboxesRes.message)}
         description={"Could not load sandboxes"}
       />
     );
   }
+
+  if (templatesRes.type === "error") {
+    return (
+      <ErrorBoundary
+        error={new Error(templatesRes.message)}
+        description={"Could not load sandboxes"}
+      />
+    );
+  }
+
+  const sandboxes = sandboxesRes.data;
+  const templates = templatesRes.data;
+
+  return <SandboxesTable sandboxes={sandboxes} templates={templates} />;
 }

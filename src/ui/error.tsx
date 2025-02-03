@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useTransition } from "react";
+import { useEffect } from "react";
 import { ErrorIndicator } from "./error-indicator";
-import { useRouter } from "next/navigation";
 import { logger } from "@/lib/clients/logger";
 import Frame from "./frame";
 
