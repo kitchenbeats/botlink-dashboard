@@ -42,15 +42,6 @@ export default function Signup() {
   return (
     <div className="flex w-full flex-col">
       <h1 className="text-2xl font-medium">Sign up</h1>
-      <p className="text-fg-300 text-sm leading-6">
-        Already have an account?{" "}
-        <Link
-          className="text-fg font-medium underline"
-          href={AUTH_URLS.SIGN_IN}
-        >
-          Sign in
-        </Link>
-      </p>
 
       <OAuthProviders />
 
@@ -72,7 +63,7 @@ export default function Signup() {
             id="password"
             type="password"
             name="password"
-            placeholder="Your password"
+            placeholder="Password"
             minLength={6}
             required
             autoComplete="new-password"
@@ -82,7 +73,7 @@ export default function Signup() {
             id="confirmPassword"
             type="password"
             name="confirmPassword"
-            placeholder="Confirm password"
+            placeholder="Confirm Password"
             minLength={6}
             required
             autoComplete="new-password"
@@ -90,6 +81,16 @@ export default function Signup() {
         </div>
         <Button formAction={signUpAction}>Sign up</Button>
       </form>
+
+      <p className="mt-3 text-sm leading-6 text-fg-300">
+        Already have an account?{" "}
+        <Link
+          className="font-medium text-fg underline"
+          href={AUTH_URLS.SIGN_IN}
+        >
+          Sign in
+        </Link>
+      </p>
 
       {message && <AuthFormMessage className="mt-4" message={message} />}
     </div>

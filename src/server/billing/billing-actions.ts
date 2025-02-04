@@ -7,6 +7,7 @@ import {
   getUserAccessToken,
   guard,
 } from "@/lib/utils/server";
+import { E2BError, UnknownError } from "@/types/errors";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -58,7 +59,7 @@ function typeToKey(type: "limit" | "alert") {
 const SetLimitParamsSchema = z.object({
   teamId: z.string().uuid(),
   type: z.enum(["limit", "alert"]),
-  value: z.number().min(0),
+  value: z.number().min(1),
 });
 
 export const setLimitAction = guard(SetLimitParamsSchema, async (params) => {
@@ -82,7 +83,7 @@ export const setLimitAction = guard(SetLimitParamsSchema, async (params) => {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text ?? "Failed to set limit");
+    throw new E2BError("BILLING_API_ERROR", text ?? "Failed to set limit");
   }
 
   revalidatePath(PROTECTED_URLS.USAGE(params.teamId));
@@ -113,7 +114,7 @@ export const clearLimitAction = guard(
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(text ?? "Failed to clear limit");
+      throw new E2BError("BILLING_API_ERROR", text ?? "Failed to clear limit");
     }
 
     revalidatePath(PROTECTED_URLS.USAGE(params.teamId));

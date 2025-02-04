@@ -29,7 +29,7 @@ export default async function DashboardPageLayout({
 }: DashboardPageLayoutProps) {
   return (
     <div className={cn("relative flex h-svh")}>
-      <div className="bg-bg absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b pr-3 md:pl-3">
+      <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg pr-3 md:pl-3">
         <div className="flex w-full items-center gap-2">
           <Suspense fallback={null}>
             <SidebarMobile className="h-full border-r px-3 md:hidden" />
@@ -79,7 +79,7 @@ function DesktopContent({
         "relative z-0 mt-[var(--protected-nav-height)] flex-1 max-md:hidden",
         fullscreen
           ? "overflow-hidden"
-          : "flex justify-center overflow-y-auto p-4 xl:pt-[min(6%,200px)]",
+          : "flex justify-center overflow-y-auto p-4 xl:py-[min(6%,200px)]",
       )}
     >
       {fullscreen ? (

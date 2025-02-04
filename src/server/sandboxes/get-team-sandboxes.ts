@@ -9,11 +9,7 @@ import {
 } from "@/lib/utils/server";
 import { z } from "zod";
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from "@/configs/mock-data";
-import {
-  E2BError,
-  InvalidApiKeyError,
-  UnauthorizedError,
-} from "@/types/errors";
+import { E2BError, InvalidApiKeyError } from "@/types/errors";
 
 const GetTeamSandboxesParamsSchema = z.object({
   teamId: z.string().uuid(),

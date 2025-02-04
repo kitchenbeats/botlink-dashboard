@@ -42,7 +42,7 @@ export const SearchInput = React.forwardRef<
         ref={ref}
         debounce={500}
       />
-      <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
+      <Kbd keys={["/"]} className="absolute right-2 top-1/2 -translate-y-1/2" />
     </div>
   );
 });

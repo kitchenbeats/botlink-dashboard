@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { MAIN_DASHBOARD_LINKS } from "@/configs/dashboard-navs";
 import { useMetadataStore } from "@/lib/stores/metadata-store";
 import { useRouter } from "next/navigation";
+import { Kbd } from "@/ui/primitives/kbd";
 
 interface SearchProps {
   className?: string;
@@ -51,12 +52,10 @@ export default function Search({ className }: SearchProps) {
         onClick={() => setOpen(true)}
         readOnly
       />
-      <Badge
-        variant="muted"
-        className="absolute right-2 top-1/2 -translate-y-1/2"
-      >
-        CMD+K
-      </Badge>
+      <Kbd
+        keys={["cmd", "k"]}
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
+      />
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Quick Jump to..." />

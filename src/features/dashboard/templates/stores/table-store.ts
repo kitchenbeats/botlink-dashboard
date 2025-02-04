@@ -1,24 +1,7 @@
 import { create } from "zustand";
-import { persist, StateStorage, createJSONStorage } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { OnChangeFn, SortingState } from "@tanstack/react-table";
-
-const hashStorage: StateStorage = {
-  getItem: (key): string => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    const storedValue = searchParams.get(key) ?? "";
-    return JSON.parse(storedValue);
-  },
-  setItem: (key, newValue): void => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    searchParams.set(key, JSON.stringify(newValue));
-    window.location.hash = searchParams.toString();
-  },
-  removeItem: (key): void => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    searchParams.delete(key);
-    window.location.hash = searchParams.toString();
-  },
-};
+import { createHashStorage } from "@/lib/utils/store";
 
 interface TemplateTableState {
   // Table state
@@ -42,6 +25,7 @@ interface TemplateTableActions {
   setIsPublic: (value?: boolean) => void;
   setCreatedAfter: (value?: Date) => void;
   setCreatedBefore: (value?: Date) => void;
+  resetFilters: () => void;
 }
 
 type Store = TemplateTableState & TemplateTableActions;
@@ -66,13 +50,11 @@ export const useTemplateTableStore = create<Store>()(
       // Table actions
       setSorting: (sorting) =>
         set((state) => ({
-          ...state,
           sorting:
             typeof sorting === "function" ? sorting(state.sorting) : sorting,
         })),
       setGlobalFilter: (globalFilter) =>
         set((state) => ({
-          ...state,
           globalFilter:
             typeof globalFilter === "function"
               ? globalFilter(state.globalFilter)
@@ -82,33 +64,38 @@ export const useTemplateTableStore = create<Store>()(
       // Filter actions
       setCpuCount: (value) =>
         set((state) => ({
-          ...state,
           cpuCount: value,
         })),
       setMemoryMB: (value) =>
         set((state) => ({
-          ...state,
           memoryMB: value,
         })),
       setIsPublic: (value) =>
         set((state) => ({
-          ...state,
           isPublic: value,
         })),
       setCreatedAfter: (value) =>
         set((state) => ({
-          ...state,
           createdAfter: value,
         })),
       setCreatedBefore: (value) =>
         set((state) => ({
-          ...state,
           createdBefore: value,
         })),
+
+      resetFilters: () =>
+        set({
+          cpuCount: initialState.cpuCount,
+          memoryMB: initialState.memoryMB,
+          isPublic: initialState.isPublic,
+          createdAfter: initialState.createdAfter,
+          createdBefore: initialState.createdBefore,
+          globalFilter: initialState.globalFilter,
+        }),
     }),
     {
       name: "state",
-      storage: createJSONStorage(() => hashStorage),
+      storage: createJSONStorage(() => createHashStorage(initialState)),
     },
   ),
 );

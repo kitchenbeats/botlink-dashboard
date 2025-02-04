@@ -32,7 +32,8 @@ export const getTeamApiKeys = guard(
     const { data, error } = await supabaseAdmin
       .from("team_api_keys")
       .select("*")
-      .eq("team_id", teamId);
+      .eq("team_id", teamId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 

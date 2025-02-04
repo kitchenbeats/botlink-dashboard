@@ -7,9 +7,10 @@ import {
   setLimitAction,
 } from "@/server/billing/billing-actions";
 import { Button } from "@/ui/primitives/button";
-import { Input } from "@/ui/primitives/input";
+import { NumberInput } from "@/ui/number-input";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { Label } from "@/ui/primitives/label";
 
 interface LimitFormProps {
   teamId: string;
@@ -31,12 +32,21 @@ export default function LimitForm({
 
   const { mutate: saveLimit, isPending: isSaving } = useMutation({
     mutationFn: async () => {
-      if (!value) return;
-      await setLimitAction({
+      if (!value) {
+        throw new Error("Input cannot be empty");
+      }
+
+      const res = await setLimitAction({
         type,
         value: value,
         teamId,
       });
+
+      if (res.type === "error") {
+        throw new Error(res.message);
+      }
+
+      return res.data;
     },
     onSuccess: () => {
       toast({
@@ -51,16 +61,23 @@ export default function LimitForm({
       toast({
         title: type === "limit" ? "Error saving limit" : "Error saving alert",
         description: error.message,
+        variant: "error",
       });
     },
   });
 
   const { mutate: clearLimit, isPending: isClearing } = useMutation({
     mutationFn: async () => {
-      await clearLimitAction({
+      const res = await clearLimitAction({
         type,
         teamId,
       });
+
+      if (res.type === "error") {
+        throw new Error(res.message);
+      }
+
+      return res.data;
     },
     onSuccess: () => {
       toast({
@@ -77,6 +94,7 @@ export default function LimitForm({
         title:
           type === "limit" ? "Error clearing limit" : "Error clearing alert",
         description: error.message,
+        variant: "error",
       });
     },
   });
@@ -84,46 +102,44 @@ export default function LimitForm({
   if (originalValue === null || isEditing) {
     return (
       <form
-        className={cn("flex items-center gap-2", className)}
+        className={cn("space-y-2", className)}
         onSubmit={(e) => {
           e.preventDefault();
           saveLimit();
         }}
       >
-        <div className="relative">
-          <Input
-            type="number"
-            min="0"
-            className="w-[10rem] pr-6"
-            value={value || ""}
-            onChange={(e) => setValue(Number(e.target.value))}
-            placeholder={type === "limit" ? "Limit Amount" : "Alert Amount"}
+        <Label>$ (USD)</Label>
+        <div className="flex items-center gap-2">
+          <NumberInput
+            min={0}
+            step={10}
+            value={value || 0}
+            onChange={setValue}
+            placeholder={"$"}
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/50">
-            $
-          </div>
-        </div>
-        <Button
-          type="submit"
-          variant="outline"
-          size="sm"
-          disabled={value === originalValue || isSaving}
-          loading={isSaving}
-        >
-          Save
-        </Button>
-        {originalValue !== null && (
           <Button
-            type="button"
-            variant="error"
-            size="sm"
-            disabled={isClearing}
-            loading={isClearing}
-            onClick={() => clearLimit()}
+            type="submit"
+            variant="outline"
+            className="h-9 px-4"
+            disabled={value === originalValue || isSaving}
+            loading={isSaving}
           >
-            Clear
+            Save
           </Button>
-        )}
+          {originalValue !== null && (
+            <Button
+              type="button"
+              variant="error"
+              size="sm"
+              className="h-9 px-4"
+              disabled={isClearing}
+              loading={isClearing}
+              onClick={() => clearLimit()}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
       </form>
     );
   }

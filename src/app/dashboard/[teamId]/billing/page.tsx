@@ -5,6 +5,8 @@ import { Suspense } from "react";
 import CustomerPortalLink from "@/features/dashboard/billing/customer-portal-link";
 import DashboardPageLayout from "@/features/dashboard/page-layout";
 import BillingInvoicesTable from "@/features/dashboard/billing/invoices-table";
+import CreditsCard from "@/features/dashboard/budget/credits-card";
+import UsageLimits from "@/features/dashboard/budget/usage-limits";
 
 export default async function BillingPage({
   params,
@@ -20,16 +22,11 @@ export default async function BillingPage({
     >
       {/* Plan Section */}
       <section className="col-span-1 grid gap-4 xl:col-span-12">
-        <div className="relative flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <CardTitle>Plan</CardTitle>
-            <CardDescription>
-              Manage your current plan and subscription details.
-            </CardDescription>
-          </div>
-          <Suspense fallback={null}>
-            <CustomerPortalLink />
-          </Suspense>
+        <div className="flex flex-col gap-1">
+          <CardTitle>Plan</CardTitle>
+          <CardDescription>
+            Manage your current plan and subscription details.
+          </CardDescription>
         </div>
 
         <div className="mt-3 flex flex-col gap-12 overflow-x-auto max-lg:mb-6 lg:flex-row">
@@ -38,10 +35,14 @@ export default async function BillingPage({
               key={tier.id}
               tier={tier}
               isHighlighted={tier.id === "pro_v1"}
-              className="min-w-[280px] lg:w-1/2 xl:min-w-0"
+              className="min-w-[280px] shadow-xl lg:w-1/2 xl:min-w-0"
             />
           ))}
         </div>
+
+        <Suspense fallback={null}>
+          <CustomerPortalLink className="mx-auto shadow-lg" />
+        </Suspense>
       </section>
 
       {/* Billing History Section */}

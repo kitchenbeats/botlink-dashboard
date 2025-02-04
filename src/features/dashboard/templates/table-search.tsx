@@ -39,7 +39,7 @@ export const SearchInput = forwardRef<HTMLInputElement, {}>((props, ref) => {
         debounce={500}
         {...props}
       />
-      <Kbd className="absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
+      <Kbd keys={["/"]} className="absolute right-2 top-1/2 -translate-y-1/2" />
     </div>
   );
 });

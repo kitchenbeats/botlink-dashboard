@@ -1,6 +1,7 @@
 "use client";
 
 import { useSelectedTeam } from "@/lib/hooks/use-teams";
+import ExternalIcon from "@/ui/external-icon";
 import { Button } from "@/ui/primitives/button";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -18,12 +19,12 @@ export default function CustomerPortalLink({
   if (!team) return null;
 
   return (
-    <Button asChild variant="outline" className={className}>
+    <Button asChild variant="muted" className={className}>
       <Link
         href={`${process.env.NEXT_PUBLIC_STRIPE_BILLING_URL}?prefilled_email=${team?.email}`}
       >
         Subscription Management
-        <ChevronRight className="text-accent size-4 -translate-y-1 translate-x-1 -rotate-45" />
+        <ExternalIcon className="translate-x-1" />
       </Link>
     </Button>
   );

@@ -1,11 +1,5 @@
 import { cn } from "@/lib/utils";
-import LogoWithoutText from "@/ui/logo-without-text";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerTrigger,
-} from "@/ui/primitives/drawer";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/ui/primitives/drawer";
 import { Sidebar as SidebarIcon } from "lucide-react";
 import Sidebar from "./sidebar";
 

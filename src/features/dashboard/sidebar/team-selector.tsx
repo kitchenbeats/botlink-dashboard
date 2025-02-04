@@ -43,13 +43,13 @@ export default function TeamSelector() {
         router.push(PROTECTED_URLS.SANDBOXES(value));
       }}
     >
-      <SelectTrigger className="hover:bg-bg-100 h-auto w-full border px-2 py-1 pr-4">
+      <SelectTrigger className="h-auto w-full border px-2 py-1 pr-4 hover:bg-bg-100">
         <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden text-ellipsis">
           <div className="relative size-8 min-w-8 rounded-md border">
             <Dotted />
           </div>
           <div className="flex flex-col items-start truncate pb-px">
-            <span className="text-fg-500 -mb-1 truncate text-[0.65rem]">
+            <span className="-mb-1 truncate text-[0.65rem] text-fg-500">
               TEAM
             </span>
             {selectedTeam ? (
@@ -74,7 +74,7 @@ export default function TeamSelector() {
         )}
         {teams.length > 0 && (
           <SelectGroup className="mt-2">
-            <SelectLabel>Organizations</SelectLabel>
+            <SelectLabel>Teams</SelectLabel>
             {teams.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 {team.name}

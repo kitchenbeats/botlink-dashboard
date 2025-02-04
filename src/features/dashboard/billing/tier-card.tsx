@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { redirectToCheckoutAction } from "@/server/billing/billing-actions";
+import { Badge } from "@/ui/primitives/badge";
 
 interface BillingTierCardProps {
   tier: Tier;
@@ -51,17 +52,18 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
       <div
         ref={ref}
         className={cn(
-          "from-bg flex h-full flex-col border bg-gradient-to-b p-5",
+          "flex h-full flex-col border bg-gradient-to-b from-bg p-5",
           className,
         )}
       >
-        <div className="mb-3">
+        <div className="mb-3 flex items-center justify-between">
           <h5 className="text-lg font-semibold">{tier.name}</h5>
+          {isSelected && <Badge variant="accent"> Current Plan {"<<"} </Badge>}
         </div>
         <ul className="mb-4 space-y-1 pl-4">
           {tier.prose.map((prose, i) => (
             <li
-              className="text-fg-500 font-sans text-xs"
+              className="font-sans text-xs text-fg-500"
               key={`tier-${tier.id}-prose-${i}`}
             >
               {prose}

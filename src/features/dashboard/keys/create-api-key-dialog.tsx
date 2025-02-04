@@ -105,7 +105,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
         ) : (
           <>
             <div className="flex flex-col gap-3 px-2 py-6 duration-200 animate-in fade-in slide-in-from-right-5">
-              <Label>[ Your API Key ]</Label>
+              <Label>Your API Key</Label>
               <div className="flex items-center gap-2">
                 <Input readOnly value={createdApiKey} className="font-mono" />
                 <CopyButton

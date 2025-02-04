@@ -4,6 +4,7 @@ import { Button } from "@/ui/primitives/button";
 import { CardDescription, CardTitle } from "@/ui/primitives/card";
 import { Suspense } from "react";
 import DashboardPageLayout from "@/features/dashboard/page-layout";
+import { Plus } from "lucide-react";
 
 interface KeysPageClientProps {
   params: Promise<{
@@ -29,7 +30,9 @@ export default async function KeysPage({ params }: KeysPageClientProps) {
 
             <Suspense fallback={null}>
               <CreateApiKeyDialog teamId={teamId}>
-                <Button className="w-full sm:w-auto">CREATE KEY</Button>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="size-4" /> CREATE KEY
+                </Button>
               </CreateApiKeyDialog>
             </Suspense>
           </div>

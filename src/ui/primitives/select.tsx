@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-10 w-full items-center justify-between rounded-md",
-      "bg-bg border border-dashed px-3 py-2",
+      "border border-dashed bg-bg px-3 py-2",
       "font-mono text-sm uppercase tracking-wider",
       "outline-none",
       "focus:ring-1",
@@ -33,7 +33,7 @@ const SelectTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronsUpDown className="text-fg-300 ml-2 size-3.5" />
+    <ChevronsUpDown className="ml-2 size-3.5 text-fg-300" />
   </SelectPrimitive.Trigger>
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
@@ -84,7 +84,7 @@ const SelectContent = React.forwardRef<
         "z-50 min-w-[10rem] overflow-hidden rounded-md",
         cardVariants({ variant: "layer" }),
         "shadow-sm",
-        "animate-in fade-in-0 slide-in-from-bottom-1 duration-100",
+        "duration-100 animate-in fade-in-0 slide-in-from-bottom-1",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -121,7 +121,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <span
     className={cn(
-      "text-fg-500 inline-flex items-center py-1.5 font-mono first:pt-0 last:pb-0",
+      "inline-flex items-center py-1.5 font-mono text-fg-500 first:pt-0 last:pb-0",
       inset && "pl-8",
     )}
   >
@@ -151,8 +151,8 @@ const SelectItem = React.forwardRef<
     )}
     {...props}
   >
-    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>×</SelectPrimitive.ItemIndicator>
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center text-accent">
+      <SelectPrimitive.ItemIndicator>{"<<"}</SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
@@ -165,7 +165,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn("bg-bg-300 -mx-1 my-1 h-px", className)}
+    className={cn("-mx-1 my-1 h-px bg-bg-300", className)}
     {...props}
   />
 ));

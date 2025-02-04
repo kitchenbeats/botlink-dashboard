@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { Template } from "@/types/api";
 import { DataTableHead, DataTableRow, DataTableHeader } from "@/ui/data-table";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ColumnSizingState } from "@tanstack/react-table";
 import { DataTable } from "@/ui/data-table";
 import { fallbackData, templatesTableConfig, useColumns } from "./table-config";
@@ -23,8 +23,15 @@ interface TemplatesTableProps {
   templates: Template[];
 }
 
+const INITIAL_VISUAL_ROWS_COUNT = 50;
+
 export default function TemplatesTable({ templates }: TemplatesTableProps) {
   "use no memo";
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [visualRowsCount, setVisualRowsCount] = useState(
+    INITIAL_VISUAL_ROWS_COUNT,
+  );
 
   const { sorting, setSorting, globalFilter, setGlobalFilter } =
     useTemplateTableStore();
@@ -93,6 +100,25 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
 
   const columnSizeVars = useColumnSizeVars(table);
 
+  const resetScroll = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+    setVisualRowsCount(INITIAL_VISUAL_ROWS_COUNT);
+  };
+
+  // Add effect hook for scrolling to top when sorting or global filter changes
+  useEffect(() => {
+    resetScroll();
+  }, [sorting, globalFilter]);
+
+  const handleBottomReached = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollTop + clientHeight >= scrollHeight) {
+      setVisualRowsCount((state) => state + INITIAL_VISUAL_ROWS_COUNT);
+    }
+  };
+
   return (
     <ClientOnly className="flex h-full flex-col pt-3">
       <TemplatesHeader />
@@ -101,6 +127,8 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
         <DataTable
           className="h-full min-w-[calc(100svw-var(--protected-sidebar-width))] overflow-y-auto"
           style={{ ...columnSizeVars }}
+          onScroll={handleBottomReached}
+          ref={scrollRef}
         >
           <DataTableHeader className="sticky top-0 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -125,7 +153,11 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
               </DataTableRow>
             ))}
           </DataTableHeader>
-          <TableBody templates={templates} table={table} />
+          <TableBody
+            templates={templates}
+            table={table}
+            visualRowsCount={visualRowsCount}
+          />
         </DataTable>
       </div>
     </ClientOnly>

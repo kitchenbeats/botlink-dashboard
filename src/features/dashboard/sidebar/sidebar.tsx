@@ -8,6 +8,7 @@ import { Button } from "@/ui/primitives/button";
 import { Book, Github } from "lucide-react";
 import Link from "next/link";
 import ExternalIcon from "@/ui/external-icon";
+import { GITHUB_URL } from "@/configs/socials";
 
 interface SidebarProps {
   className?: string;
@@ -22,10 +23,7 @@ export default function Sidebar({ className }: SidebarProps) {
       )}
     >
       <header className="flex h-[var(--protected-nav-height)] w-full items-center justify-between border-b pr-2">
-        <span className="inline-flex items-center">
-          <LogoWithoutText className="size-12" />
-          <span className="font-mono text-xs text-fg-300">E2B</span>
-        </span>
+        <LogoWithoutText className="size-12" />
       </header>
 
       <div className="p-3">
@@ -34,7 +32,7 @@ export default function Sidebar({ className }: SidebarProps) {
         </Suspense>
       </div>
 
-      <DashboardNavbar className="flex-1 p-2 pt-0" />
+      <DashboardNavbar className="flex-1 p-2 pb-8 pt-0" />
 
       <footer className="mt-auto flex flex-col gap-2 p-3">
         <Button
@@ -42,15 +40,11 @@ export default function Sidebar({ className }: SidebarProps) {
           className="w-full justify-start text-fg-300 hover:text-fg"
           asChild
         >
-          <Link
-            prefetch={false}
-            href="https://github.com/e2b-dev/e2b"
-            target="_blank"
-          >
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
             <Github className="size-4 text-fg-500" />
             GitHub
             <ExternalIcon className="ml-auto size-4" />
-          </Link>
+          </a>
         </Button>
         <Button
           variant="ghost"

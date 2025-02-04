@@ -76,4 +76,29 @@ const DebouncedInput = React.forwardRef<
 });
 DebouncedInput.displayName = "DebouncedInput";
 
-export { Input, DebouncedInput };
+const AutosizeInput = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentProps<typeof Input> & { autosize?: boolean }
+>((props, ref) => {
+  const { value, className, autosize = true, ...rest } = props;
+  const displayValue = value?.toString() || "";
+
+  return (
+    <Input
+      {...rest}
+      ref={ref}
+      value={value}
+      className={cn(className, autosize && "w-[var(--width)]")}
+      style={
+        autosize
+          ? ({
+              "--width": `${Math.max(1, displayValue.length)}ch`,
+            } as React.CSSProperties)
+          : undefined
+      }
+    />
+  );
+});
+AutosizeInput.displayName = "AutosizeInput";
+
+export { Input, DebouncedInput, AutosizeInput };

@@ -11,10 +11,9 @@ import {
 } from "@/ui/primitives/dropdown-menu";
 import { Laptop, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 const ThemeSwitcher = () => {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const isMounted = useIsMounted();
 
   if (!isMounted) {
@@ -27,40 +26,38 @@ const ThemeSwitcher = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size={"iconSm"}>
-          {theme === "light" ? (
+          {resolvedTheme === "light" ? (
             <Sun key="light" size={ICON_SIZE} className={"text-fg-300"} />
-          ) : theme === "dark" ? (
-            <Moon key="dark" size={ICON_SIZE} className={"text-fg-300"} />
           ) : (
-            <Laptop key="system" size={ICON_SIZE} className={"text-fg-300"} />
+            <Moon key="dark" size={ICON_SIZE} className={"text-fg-300"} />
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-content" align="start">
+      <DropdownMenuContent className="min-w-[130px]" align="start">
         <DropdownMenuRadioGroup
           value={theme}
           onValueChange={(e) => setTheme(e)}
         >
           <DropdownMenuRadioItem
-            className="flex justify-between gap-2"
+            className="flex items-center gap-2"
             value="light"
           >
+            <Sun className="size-3.5 text-fg-300" />
             <span>Light</span>
-            <Sun size={ICON_SIZE} className="text-fg-300" />{" "}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
-            className="flex justify-between gap-2"
+            className="flex items-center gap-2"
             value="dark"
           >
+            <Moon className="size-3.5 text-fg-300" />
             <span>Dark</span>
-            <Moon size={ICON_SIZE} className="text-fg-300" />{" "}
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
-            className="flex justify-between gap-2"
+            className="flex items-center gap-2"
             value="system"
           >
+            <Laptop className="size-3.5 text-fg-300" />
             <span>System</span>
-            <Laptop size={ICON_SIZE} className="text-fg-300" />{" "}
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

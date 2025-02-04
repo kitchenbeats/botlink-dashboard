@@ -1,32 +1,13 @@
 import { create } from "zustand";
-import { persist, StateStorage, createJSONStorage } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import {
-  ColumnFiltersState,
   OnChangeFn,
-  PaginationState,
   RowPinningState,
   SortingState,
 } from "@tanstack/react-table";
 import { StartedAtFilter } from "../table-filters";
 import { PollingInterval } from "@/types/dashboard";
-
-const hashStorage: StateStorage = {
-  getItem: (key): string => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    const storedValue = searchParams.get(key) ?? "";
-    return JSON.parse(storedValue);
-  },
-  setItem: (key, newValue): void => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    searchParams.set(key, JSON.stringify(newValue));
-    window.location.hash = searchParams.toString();
-  },
-  removeItem: (key): void => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1));
-    searchParams.delete(key);
-    window.location.hash = searchParams.toString();
-  },
-};
+import { createHashStorage } from "@/lib/utils/store";
 
 interface SandboxTableState {
   // Page state
@@ -135,6 +116,7 @@ export const useSandboxTableStore = create<Store>()(
           templateIds: initialState.templateIds,
           cpuCount: initialState.cpuCount,
           memoryMB: initialState.memoryMB,
+          globalFilter: initialState.globalFilter,
         });
       },
 
@@ -146,7 +128,7 @@ export const useSandboxTableStore = create<Store>()(
     }),
     {
       name: "state",
-      storage: createJSONStorage(() => hashStorage),
+      storage: createJSONStorage(() => createHashStorage(initialState)),
     },
   ),
 );

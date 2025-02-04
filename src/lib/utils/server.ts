@@ -234,7 +234,8 @@ export function guard<TInput, TOutput>(
 
         return {
           type: "error",
-          message: "An unexpected error occurred",
+          message:
+            "An unexpected error occurred, please try again. If the problem persists, please contact support.",
         };
       }
     };
@@ -278,7 +279,8 @@ export function guard<TInput, TOutput>(
 
       return {
         type: "error",
-        message: "An unexpected error occurred",
+        message:
+          "An unexpected error occurred, please try again. If the problem persists, please contact support.",
       };
     }
   };

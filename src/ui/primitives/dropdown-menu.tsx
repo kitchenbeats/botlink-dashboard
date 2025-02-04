@@ -79,7 +79,7 @@ const DropdownMenuContent = React.forwardRef<
         "z-50 min-w-[12rem] overflow-hidden rounded-md",
         cardVariants({ variant: "layer" }),
         "shadow-sm",
-        "animate-in fade-in-0 slide-in-from-bottom-1 duration-100",
+        "duration-100 animate-in fade-in-0 slide-in-from-bottom-1",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -159,7 +159,7 @@ const DropdownMenuRadioItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2",
-      "py-1.5 pl-10 pr-2",
+      "py-1.5 pl-2 pr-10",
       "font-mono text-xs",
       "outline-none",
       "focus:bg-accent/10 focus:text-accent",
@@ -169,12 +169,12 @@ const DropdownMenuRadioItem = React.forwardRef<
     )}
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    {children}
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
         (•)
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
-    {children}
   </DropdownMenuPrimitive.RadioItem>
 ));
 DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName;
@@ -187,7 +187,7 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <span
     className={cn(
-      "text-fg-500 inline-flex items-center py-1 pl-2 font-mono text-[0.625rem] first:pt-0 last:pb-0",
+      "inline-flex items-center py-1 pl-2 font-mono text-[0.625rem] text-fg-500 first:pt-0 last:pb-0",
       inset && "pl-8",
     )}
   >
@@ -207,7 +207,7 @@ const DropdownMenuSeparator = React.forwardRef<
   <DropdownMenuPrimitive.Separator
     ref={ref}
     className={cn(
-      "border-fg-300/20 -mx-1 my-2 border-t border-dashed",
+      "-mx-1 my-2 border-t border-dashed border-fg-300/20",
       className,
     )}
     {...props}
@@ -221,7 +221,7 @@ const DropdownMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn("text-fg-500 ml-auto text-xs tracking-widest", className)}
+      className={cn("ml-auto text-xs tracking-widest text-fg-500", className)}
       {...props}
     />
   );

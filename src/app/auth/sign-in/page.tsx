@@ -49,15 +49,6 @@ export default function Login() {
   return (
     <div className="flex w-full flex-col">
       <h1 className="text-2xl font-medium">Sign in</h1>
-      <p className="text-fg-300 text-sm leading-6">
-        Don&apos;t have an account?{" "}
-        <Link
-          className="text-fg font-medium underline"
-          href={AUTH_URLS.SIGN_UP}
-        >
-          Sign up
-        </Link>
-      </p>
 
       <OAuthProviders />
 
@@ -89,11 +80,21 @@ export default function Login() {
           id="password"
           type="password"
           name="password"
-          placeholder="Your password"
+          placeholder="••••••••••••"
           required
         />
         <Button formAction={signInAction}>Sign in</Button>
       </form>
+
+      <p className="mt-3 text-sm leading-6 text-fg-300">
+        Don&apos;t have an account?{" "}
+        <Link
+          className="font-medium text-fg underline"
+          href={AUTH_URLS.SIGN_UP}
+        >
+          Sign up
+        </Link>
+      </p>
 
       {message && <AuthFormMessage className="mt-4" message={message} />}
     </div>
