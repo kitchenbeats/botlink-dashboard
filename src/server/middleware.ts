@@ -63,14 +63,13 @@ export const handleUrlRewrites = async (
   url.port = "";
 
   // Handle root path
-  /*   if (url.pathname === "" || url.pathname === "/") {
+  if (url.pathname === "" || url.pathname === "/") {
     if (process.env.NODE_ENV === "production") {
       url.hostname = hostnames.landingPage;
     } else {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
- */
 
   // Static page rewrites
   const landingPagePaths = [
