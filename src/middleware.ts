@@ -12,6 +12,10 @@ import {
 } from "@/configs/domains";
 
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/docs")) {
+    return NextResponse.next();
+  }
+
   const rewriteResponse = await handleUrlRewrites(request, {
     landingPage: LANDING_PAGE_DOMAIN,
     landingPageFramer: LANDING_PAGE_FRAMER_DOMAIN,
@@ -149,9 +153,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * - api routes
-     * - docs routes
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/|docs/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

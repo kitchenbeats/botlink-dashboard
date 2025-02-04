@@ -9,7 +9,6 @@ const config = {
     reactCompiler: true,
     reactOwnerStack: true,
     ppr: true,
-    useCache: true,
     staleTimes: {
       dynamic: 180,
       static: 180,
