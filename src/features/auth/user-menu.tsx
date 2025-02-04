@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/primitives/dropdown-menu";
-import { signOutAction } from "@/server/auth-actions";
+import { signOutAction } from "@/server/auth/auth-actions";
 import Link from "next/link";
 import { PROTECTED_URLS } from "@/configs/urls";
 import UserDetailsTile from "./user-details-tile";

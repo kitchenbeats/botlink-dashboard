@@ -1,6 +1,6 @@
 "use client";
 
-import { signOutAction } from "@/server/auth-actions";
+import { signOutAction } from "@/server/auth/auth-actions";
 import { deleteAccountAction } from "@/server/user-actions";
 import { AuthFormMessage } from "@/features/auth/form-message";
 import { AlertDialog } from "@/ui/alert-dialog";
@@ -79,9 +79,9 @@ export function DangerZone({ className }: DangerZoneProps) {
           }}
         >
           <>
-            <p className="text-fg-500 mb-4">
+            <p className="mb-4 text-fg-500">
               Please type{" "}
-              <span className="text-fg font-medium">delete my account</span> to
+              <span className="font-medium text-fg">delete my account</span> to
               confirm:
             </p>
             <Input

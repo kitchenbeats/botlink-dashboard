@@ -4,6 +4,7 @@ import { getTeamTemplates } from "@/server/templates/get-team-templates";
 import { Suspense } from "react";
 import LoadingLayout from "../../loading";
 import ErrorBoundary from "@/ui/error";
+import { bailOutFromPPR } from "@/lib/utils/server";
 
 interface PageProps {
   params: Promise<{
@@ -28,6 +29,8 @@ interface PageContentProps {
 }
 
 async function PageContent({ teamId }: PageContentProps) {
+  bailOutFromPPR();
+
   const res = await getTeamTemplates({
     teamId,
   });

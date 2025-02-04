@@ -11,7 +11,7 @@ const config = {
     ppr: true,
     useCache: true,
     staleTimes: {
-      dynamic: 180,
+      dynamic: 0,
       static: 180,
     },
   },
@@ -31,6 +31,14 @@ const config = {
           value: "SAMEORIGIN",
         },
       ],
+    },
+  ],
+  // we redirect here for backward compatibility, because route location changed between old and new dashboard
+  redirects: async () => [
+    {
+      source: "/docs/api/cli",
+      destination: "/auth/cli",
+      permanent: true,
     },
   ],
   rewrites: async () => ({

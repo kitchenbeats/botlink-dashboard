@@ -4,6 +4,7 @@ export const AUTH_URLS = {
   SIGN_IN: "/auth/sign-in",
   SIGN_UP: "/auth/sign-up",
   CALLBACK: "/api/auth/callback",
+  CLI: "/auth/cli",
 };
 
 export const PROTECTED_URLS = {

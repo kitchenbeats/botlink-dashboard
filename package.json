@@ -20,7 +20,7 @@
     "<-- helpers --->": "",
     "shad": "bunx shadcn@latest",
     "prebuild": "tsx scripts/check-env.ts && tsx scripts/build-storybook.ts",
-    "_postinstall": "fumadocs-mdx"
+    "docs:generate": "fumadocs-mdx"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

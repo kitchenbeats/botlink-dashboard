@@ -8,41 +8,57 @@ import { Provider } from "@supabase/supabase-js";
 import { AUTH_URLS, PROTECTED_URLS } from "@/configs/urls";
 import { logger } from "@/lib/clients/logger";
 
-export const signInWithOAuth = async (provider: Provider) => {
+export const signInWithOAuth = async (
+  provider: Provider,
+  returnTo?: string,
+) => {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: provider,
     options: {
-      redirectTo: `${origin}${AUTH_URLS.CALLBACK}`,
+      redirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`,
       scopes: "email",
     },
   });
 
   if (error) {
-    return encodedRedirect("error", AUTH_URLS.SIGN_IN, error.message);
+    const queryParams = returnTo ? { returnTo } : undefined;
+    return encodedRedirect(
+      "error",
+      AUTH_URLS.SIGN_IN,
+      error.message,
+      queryParams,
+    );
   }
 
   if (data.url) {
     return redirect(data.url);
   }
 
-  return encodedRedirect("error", AUTH_URLS.SIGN_IN, "Something went wrong");
+  return encodedRedirect(
+    "error",
+    AUTH_URLS.SIGN_IN,
+    "Something went wrong",
+    returnTo ? { returnTo } : undefined,
+  );
 };
 
 export const signUpAction = async (formData: FormData) => {
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
-  const confirmPassword = formData.get("confirmPassword")?.toString();
+  const email = formData.get("email")?.toString() || "";
+  const password = formData.get("password")?.toString() || "";
+  const confirmPassword = formData.get("confirmPassword")?.toString() || "";
+  const returnTo = formData.get("returnTo")?.toString() || "";
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
+  const origin = (await headers()).get("origin") || "";
 
   if (!email || !password || !confirmPassword) {
     return encodedRedirect(
       "error",
       AUTH_URLS.SIGN_UP,
       "Email and both passwords are required",
+      { returnTo },
     );
   }
 
@@ -51,6 +67,7 @@ export const signUpAction = async (formData: FormData) => {
       "error",
       AUTH_URLS.SIGN_UP,
       "Passwords do not match",
+      { returnTo },
     );
   }
 
@@ -58,18 +75,21 @@ export const signUpAction = async (formData: FormData) => {
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}${AUTH_URLS.CALLBACK}`,
+      emailRedirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`,
     },
   });
 
   if (error) {
     console.error(error.code + " " + error.message);
-    return encodedRedirect("error", AUTH_URLS.SIGN_UP, error.message);
+    return encodedRedirect("error", AUTH_URLS.SIGN_UP, error.message, {
+      returnTo,
+    });
   } else {
     return encodedRedirect(
       "success",
       AUTH_URLS.SIGN_UP,
       "Thanks for signing up! Please check your email for a verification link.",
+      { returnTo },
     );
   }
 };
@@ -77,6 +97,7 @@ export const signUpAction = async (formData: FormData) => {
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const returnTo = formData.get("returnTo")?.toString() || "";
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -85,10 +106,12 @@ export const signInAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return encodedRedirect("error", AUTH_URLS.SIGN_IN, error.message);
+    return encodedRedirect("error", AUTH_URLS.SIGN_IN, error.message, {
+      returnTo,
+    });
   }
 
-  return redirect(PROTECTED_URLS.DASHBOARD);
+  return redirect(returnTo || PROTECTED_URLS.DASHBOARD);
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {

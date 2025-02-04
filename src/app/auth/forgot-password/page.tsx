@@ -1,6 +1,6 @@
 "use client";
 
-import { forgotPasswordAction } from "@/server/auth-actions";
+import { forgotPasswordAction } from "@/server/auth/auth-actions";
 import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
 import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
@@ -42,12 +42,12 @@ export default function ForgotPassword() {
   return (
     <div className="flex w-full flex-col">
       <h1 className="text-2xl font-medium">Reset Password</h1>
-      <p className="text-fg-300 text-sm leading-6">
+      <p className="text-sm leading-6 text-fg-300">
         Remember your password?{" "}
         <button
           type="button"
           onClick={handleBackToSignIn}
-          className="text-fg font-medium underline"
+          className="font-medium text-fg underline"
         >
           Sign in
         </button>

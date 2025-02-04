@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import Frame from "./frame";
 import { Button } from "./primitives/button";
 import {
   Card,
@@ -19,9 +18,6 @@ interface ErrorIndicatorProps {
   title?: string;
   description?: string;
   message?: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  isActing?: boolean;
   className?: string;
 }
 
@@ -37,7 +33,7 @@ export function ErrorIndicator({
   return (
     <Card
       className={cn(
-        "from-bg-100/40 to-bg-100/20 w-full max-w-md border bg-gradient-to-b backdrop-blur-lg",
+        "w-full max-w-md border bg-gradient-to-b from-bg-100/40 to-bg-100/20 backdrop-blur-lg",
         className,
       )}
     >
@@ -48,7 +44,7 @@ export function ErrorIndicator({
         </CardDescription>
       </CardHeader>
       {message && (
-        <CardContent className="text-fg-500 mx-auto max-w-md pb-0 text-center">
+        <CardContent className="mx-auto max-w-md pb-0 text-center text-fg-500">
           <p>{message}</p>
         </CardContent>
       )}
@@ -59,7 +55,7 @@ export function ErrorIndicator({
           className="w-full max-w-md gap-2"
         >
           <RefreshCcw
-            className={`text-fg-500 h-4 w-4 duration-500 ease-in-out ${isPending ? "animate-spin" : ""}`}
+            className={`h-4 w-4 text-fg-500 duration-500 ease-in-out ${isPending ? "animate-spin" : ""}`}
           />
           Refresh
         </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { signUpAction } from "@/server/auth-actions";
+import { signUpAction } from "@/server/auth/auth-actions";
 import { Input } from "@/ui/primitives/input";
 import { Label } from "@/ui/primitives/label";
 import Link from "next/link";
@@ -9,7 +9,7 @@ import { OAuthProviders } from "@/features/auth/oauth-provider-buttons";
 import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
 import TextSeparator from "@/ui/text-separator";
 import { useSearchParams } from "next/navigation";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, Suspense } from "react";
 import { AUTH_URLS } from "@/configs/urls";
 
 export default function Signup() {
@@ -30,6 +30,9 @@ export default function Signup() {
     }
   }, [searchParams]);
 
+  // Get returnTo URL from search params
+  const returnTo = searchParams.get("returnTo");
+
   // Parse search params into AuthMessage
   const message: AuthMessage | undefined = (() => {
     const error = searchParams.get("error");
@@ -43,11 +46,14 @@ export default function Signup() {
     <div className="flex w-full flex-col">
       <h1 className="text-2xl font-medium">Sign up</h1>
 
-      <OAuthProviders />
+      <Suspense>
+        <OAuthProviders />
+      </Suspense>
 
       <TextSeparator text="or" />
 
       <form className="flex flex-col gap-2">
+        <input type="hidden" name="returnTo" value={returnTo || ""} />
         <Label htmlFor="email">Email</Label>
         <Input
           name="email"

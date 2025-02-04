@@ -1,6 +1,6 @@
 "use client";
 
-import { signInAction } from "@/server/auth-actions";
+import { signInAction } from "@/server/auth/auth-actions";
 import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
 import { OAuthProviders } from "@/features/auth/oauth-provider-buttons";
 import TextSeparator from "@/ui/text-separator";
@@ -10,7 +10,7 @@ import { Label } from "@/ui/primitives/label";
 import { AUTH_URLS } from "@/configs/urls";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, Suspense } from "react";
 
 export default function Login() {
   const searchParams = useSearchParams();
@@ -31,10 +31,15 @@ export default function Login() {
     }
   }, [searchParams]);
 
+  // Get returnTo URL from search params
+  const returnTo = searchParams.get("returnTo");
+
   const handleForgotPassword = () => {
     const email = emailRef.current?.value;
-    const searchParams = email ? `?email=${encodeURIComponent(email)}` : "";
-    window.location.href = `${AUTH_URLS.FORGOT_PASSWORD}${searchParams}`;
+    const searchParams = new URLSearchParams();
+    if (email) searchParams.set("email", email);
+    if (returnTo) searchParams.set("returnTo", returnTo);
+    window.location.href = `${AUTH_URLS.FORGOT_PASSWORD}?${searchParams.toString()}`;
   };
 
   // Parse search params into AuthMessage
@@ -50,11 +55,14 @@ export default function Login() {
     <div className="flex w-full flex-col">
       <h1 className="text-2xl font-medium">Sign in</h1>
 
-      <OAuthProviders />
+      <Suspense>
+        <OAuthProviders />
+      </Suspense>
 
       <TextSeparator text="or" />
 
       <form ref={formRef} className="flex flex-col gap-2 [&>input]:mb-3">
+        <input type="hidden" name="returnTo" value={returnTo || ""} />
         <Label htmlFor="email">Email</Label>
         <Input
           ref={emailRef}

@@ -1,6 +1,6 @@
 "use client";
 
-import { forgotPasswordAction } from "@/server/auth-actions";
+import { forgotPasswordAction } from "@/server/auth/auth-actions";
 import { AuthFormMessage } from "@/features/auth/form-message";
 import {
   Card,
