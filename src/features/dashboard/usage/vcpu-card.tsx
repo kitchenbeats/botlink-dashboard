@@ -5,14 +5,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/ui/primitives/card";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { getUsage } from "@/server/usage/get-usage";
 import { VCPUChart } from "./vcpu-chart";
 import { Loader } from "@/ui/loader";
 import { Suspense } from "react";
 import { bailOutFromPPR } from "@/lib/utils/server";
-import ErrorBoundary from "@/ui/error";
-import { UnknownError } from "@/types/errors";
 import { ErrorIndicator } from "@/ui/error-indicator";
 
 export function VCPUCard({
@@ -40,37 +37,29 @@ export function VCPUCard({
 }
 
 export async function VCPUCardContent({ teamId }: { teamId: string }) {
-  bailOutFromPPR();
+  const res = await getUsage({ teamId });
 
-  try {
-    const res = await getUsage({ teamId });
-
-    if (res.type === "error") {
-      throw new Error(res.message);
-    }
-
-    const latestVCPU = res.data.vcpuSeries[0].data.at(-1)?.y;
-
-    return (
-      <>
-        <div className="flex items-baseline gap-2">
-          <p className="font-mono text-2xl">
-            {latestVCPU?.toFixed(2) ?? "0.00"}
-          </p>
-          <span className="text-fg-500 text-xs">hours used</span>
-        </div>
-        <VCPUChart data={res.data.vcpuSeries[0].data} />
-      </>
-    );
-  } catch (error) {
+  if (res.type === "error") {
     return (
       <div className="p-4">
         <ErrorIndicator
           description={"Could not load vCPU usage"}
-          message={error instanceof Error ? error.message : "Unknown error"}
-          className="bg-bg w-full max-w-full"
+          message={res.message}
+          className="w-full max-w-full bg-bg"
         />
       </div>
     );
   }
+
+  const latestVCPU = res.data.vcpuSeries[0].data.at(-1)?.y;
+
+  return (
+    <>
+      <div className="flex items-baseline gap-2">
+        <p className="font-mono text-2xl">{latestVCPU?.toFixed(2) ?? "0.00"}</p>
+        <span className="text-xs text-fg-500">hours used</span>
+      </div>
+      <VCPUChart data={res.data.vcpuSeries[0].data} />
+    </>
+  );
 }

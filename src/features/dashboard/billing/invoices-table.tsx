@@ -13,8 +13,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getInvoices } from "@/server/billing/get-invoices";
 import { bailOutFromPPR } from "@/lib/utils/server";
-import ErrorBoundary from "@/ui/error";
-import { UnknownError } from "@/types/errors";
 import { ErrorIndicator } from "@/ui/error-indicator";
 
 interface BillingInvoicesTableProps {
@@ -38,65 +36,57 @@ function LoadingFallback() {
 }
 
 async function InvoicesTableContent({ teamId }: { teamId: string }) {
-  bailOutFromPPR();
+  const res = await getInvoices({ teamId });
 
-  try {
-    const res = await getInvoices({ teamId });
-
-    if (res.type === "error") {
-      throw new Error(res.message);
-    }
-
-    const invoices = res.data;
-
-    if (!invoices?.length) {
-      return (
-        <TableRow>
-          <TableCell colSpan={4} className="text-left">
-            <Alert className="w-full text-left" variant="contrast1">
-              <AlertTitle>No invoices found.</AlertTitle>
-              <AlertDescription>
-                Your team has no invoices yet.
-              </AlertDescription>
-            </Alert>
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    return (
-      <>
-        {invoices.map((invoice) => (
-          <TableRow key={invoice.url}>
-            <TableCell>
-              {new Date(invoice.date_created).toLocaleDateString()}
-            </TableCell>
-            <TableCell>${invoice.cost.toFixed(2)}</TableCell>
-            <TableCell>{invoice.paid ? "Paid" : "Pending"}</TableCell>
-            <TableCell className="text-right">
-              <Button variant="muted" size="sm" asChild>
-                <Link href={invoice.url} target="_blank">
-                  View Invoice
-                </Link>
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </>
-    );
-  } catch (error) {
+  if (res.type === "error") {
     return (
       <TableRow>
         <TableCell colSpan={4}>
           <ErrorIndicator
             description={"Could not load invoices"}
-            message={error instanceof Error ? error.message : "Unknown error"}
+            message={res.message}
             className="mt-2 w-full max-w-full bg-bg"
           />
         </TableCell>
       </TableRow>
     );
   }
+
+  const invoices = res.data;
+
+  if (!invoices?.length) {
+    return (
+      <TableRow>
+        <TableCell colSpan={4} className="text-left">
+          <Alert className="w-full text-left" variant="contrast1">
+            <AlertTitle>No invoices found.</AlertTitle>
+            <AlertDescription>Your team has no invoices yet.</AlertDescription>
+          </Alert>
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return (
+    <>
+      {invoices.map((invoice) => (
+        <TableRow key={invoice.url}>
+          <TableCell>
+            {new Date(invoice.date_created).toLocaleDateString()}
+          </TableCell>
+          <TableCell>${invoice.cost.toFixed(2)}</TableCell>
+          <TableCell>{invoice.paid ? "Paid" : "Pending"}</TableCell>
+          <TableCell className="text-right">
+            <Button variant="muted" size="sm" asChild>
+              <Link href={invoice.url} target="_blank">
+                View Invoice
+              </Link>
+            </Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
 }
 
 export default function BillingInvoicesTable({

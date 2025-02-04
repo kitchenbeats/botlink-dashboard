@@ -37,7 +37,12 @@ async function PageContent({ teamId }: PageContentProps) {
   if (sandboxesRes.type === "error") {
     return (
       <ErrorBoundary
-        error={new Error(sandboxesRes.message)}
+        error={
+          {
+            name: "Sandboxes Error",
+            message: sandboxesRes.message,
+          } satisfies Error
+        }
         description={"Could not load sandboxes"}
       />
     );
@@ -46,7 +51,12 @@ async function PageContent({ teamId }: PageContentProps) {
   if (templatesRes.type === "error") {
     return (
       <ErrorBoundary
-        error={new Error(templatesRes.message)}
+        error={
+          {
+            name: "Templates Error",
+            message: templatesRes.message,
+          } satisfies Error
+        }
         description={"Could not load sandboxes"}
       />
     );

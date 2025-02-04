@@ -2,10 +2,7 @@ import { getTeamApiKeys } from "@/server/keys/get-api-keys";
 import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
 import { TableCell, TableRow } from "@/ui/primitives/table";
 import ApiKeyTableRow from "./table-row";
-import { cookies } from "next/headers";
 import { bailOutFromPPR } from "@/lib/utils/server";
-import { UnknownError } from "@/types/errors";
-import ErrorBoundary from "@/ui/error";
 import { ErrorIndicator } from "@/ui/error-indicator";
 
 interface TableBodyContentProps {
@@ -55,7 +52,7 @@ export default async function TableBodyContent({
           <ErrorIndicator
             description={"Could not load API keys"}
             message={error instanceof Error ? error.message : "Unknown error"}
-            className="bg-bg mt-2 w-full max-w-full"
+            className="mt-2 w-full max-w-full bg-bg"
           />
         </TableCell>
       </TableRow>
