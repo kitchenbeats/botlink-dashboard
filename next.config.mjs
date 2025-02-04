@@ -11,7 +11,7 @@ const config = {
     ppr: true,
     useCache: true,
     staleTimes: {
-      dynamic: 0,
+      dynamic: 180,
       static: 180,
     },
   },
@@ -42,17 +42,10 @@ const config = {
     },
   ],
   rewrites: async () => ({
-    beforeFiles: [
+    fallback: [
       {
         source: "/docs/:path*",
-        destination: `https://e2b-docs.vercel.app/docs/:path*`,
-      },
-    ],
-    afterFiles: [
-      // when proxying /docs, the old dashboard contacts posthog via /ingest. thus we need to proxy /ingest as well
-      {
-        source: "/ingest/:path*",
-        destination: "https://app.posthog.com/:path*",
+        destination: `https://e2b-web-git-remove-dashboard-auth-parts-to-only-host-5e727c-e2b.vercel.app/docs/:path*`,
       },
     ],
   }),

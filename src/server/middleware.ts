@@ -64,11 +64,7 @@ export const handleUrlRewrites = async (
 
   // Handle root path
   if (url.pathname === "" || url.pathname === "/") {
-    if (process.env.NODE_ENV === "production") {
-      url.hostname = hostnames.landingPage;
-    } else {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+    url.hostname = hostnames.landingPage;
   }
 
   // Static page rewrites
