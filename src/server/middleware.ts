@@ -42,6 +42,7 @@ interface HostnameMapping {
   landingPage: string;
   landingPageFramer: string;
   blogFramer: string;
+  docsNext: string;
 }
 
 /**
@@ -87,6 +88,10 @@ export const handleUrlRewrites = async (
   // Blog rewrites
   if (url.pathname.startsWith("/blog")) {
     url.hostname = hostnames.landingPage;
+  }
+
+  if (url.pathname.startsWith("/docs")) {
+    url.hostname = hostnames.docsNext;
   }
 
   if (url.hostname === request.nextUrl.hostname) {

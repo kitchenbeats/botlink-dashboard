@@ -9,17 +9,15 @@ import {
   LANDING_PAGE_DOMAIN,
   LANDING_PAGE_FRAMER_DOMAIN,
   BLOG_FRAMER_DOMAIN,
+  DOCS_NEXT_DOMAIN,
 } from "@/configs/domains";
 
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/docs")) {
-    return NextResponse.next();
-  }
-
   const rewriteResponse = await handleUrlRewrites(request, {
     landingPage: LANDING_PAGE_DOMAIN,
     landingPageFramer: LANDING_PAGE_FRAMER_DOMAIN,
     blogFramer: BLOG_FRAMER_DOMAIN,
+    docsNext: DOCS_NEXT_DOMAIN,
   });
 
   if (rewriteResponse) return rewriteResponse;

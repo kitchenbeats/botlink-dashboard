@@ -40,14 +40,14 @@ const config = {
       permanent: true,
     },
   ],
-  rewrites: async () => ({
+  /*  rewrites: async () => ({
     fallback: [
       {
         source: "/docs/:path*",
         destination: `https://e2b-web-git-remove-dashboard-auth-parts-to-only-host-5e727c-e2b.vercel.app/docs/:path*`,
       },
     ],
-  }),
+  }), */
 };
 
 export default withMDX(config);
