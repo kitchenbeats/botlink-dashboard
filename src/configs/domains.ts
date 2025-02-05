@@ -13,8 +13,8 @@ export function replaceUrls(
   suffix: string = "",
 ): string {
   const pattern = suffix
-    ? `(?<url>${prefix}https://e2b-[^${suffix}]*)/${suffix}`
-    : `(?<url>${prefix}https://e2b-.*)/$`;
+    ? `(?<url>${prefix}https?://e2b-[^${suffix}]*)/${suffix}`
+    : `(?<url>${prefix}https?://e2b-.*)/$`;
 
   const baseUrl = BASE_URL.replace(/^https?:\/\//, "");
 
