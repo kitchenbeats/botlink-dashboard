@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Popover, PopoverContent, PopoverTrigger } from "../primitives/popover";
 import { Button } from "../primitives/button";
-import { Cog6ToothIcon, CalendarIcon } from "@heroicons/react/24/outline";
+import { Settings, Calendar } from "lucide-react";
 import { Input } from "../primitives/input";
 import { Label } from "../primitives/label";
 
@@ -52,7 +52,7 @@ export const WithIcon: Story = {
     <Popover>
       <PopoverTrigger asChild>
         <Button size="icon">
-          <Cog6ToothIcon className="h-4 w-4" />
+          <Settings className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">
@@ -74,7 +74,7 @@ export const DatePicker: Story = {
     <Popover>
       <PopoverTrigger asChild>
         <Button className="w-[240px] justify-start text-left font-normal">
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <Calendar className="mr-2 h-4 w-4" />
           Pick a date
         </Button>
       </PopoverTrigger>

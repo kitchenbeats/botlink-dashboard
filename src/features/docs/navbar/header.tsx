@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { DocumentIcon, LinkIcon } from "@heroicons/react/24/outline";
-import { CookingPotIcon } from "lucide-react";
+import { CookingPotIcon, FileIcon, LinkIcon } from "lucide-react";
 import { GradientBorder } from "@/ui/gradient-border";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
@@ -10,7 +9,7 @@ const tabs = [
     title: "Documentation",
     description: "The E2B documentation",
     url: "/docs",
-    icon: DocumentIcon,
+    icon: FileIcon,
   },
   {
     title: "Reference",

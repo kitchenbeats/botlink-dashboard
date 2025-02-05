@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Alert, AlertDescription, AlertTitle } from "../primitives/alert";
 import {
-  CommandLineIcon,
-  ExclamationCircleIcon,
-  ExclamationTriangleIcon,
-  InformationCircleIcon,
-  BoltIcon,
-  BeakerIcon,
-} from "@heroicons/react/24/outline";
+  TerminalIcon,
+  AlertCircleIcon,
+  AlertTriangleIcon,
+  InfoIcon,
+  ZapIcon,
+  FlaskConicalIcon,
+} from "lucide-react";
 
 const meta = {
   title: "UI/Alert",
@@ -25,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => (
     <Alert>
-      <CommandLineIcon className="h-4 w-4" />
+      <TerminalIcon className="h-4 w-4" />
       <AlertTitle>Heads up!</AlertTitle>
       <AlertDescription>
         You can add components and dependencies to your app using the cli.
@@ -37,7 +37,7 @@ export const Default: Story = {
 export const Contrast1: Story = {
   render: () => (
     <Alert variant="contrast1">
-      <BoltIcon className="h-4 w-4" />
+      <ZapIcon className="h-4 w-4" />
       <AlertTitle>Quick Tip</AlertTitle>
       <AlertDescription>
         Press <code>Cmd + K</code> to open the command palette at any time.
@@ -49,7 +49,7 @@ export const Contrast1: Story = {
 export const Contrast2: Story = {
   render: () => (
     <Alert variant="contrast2">
-      <BeakerIcon className="h-4 w-4" />
+      <FlaskConicalIcon className="h-4 w-4" />
       <AlertTitle>Experimental Feature</AlertTitle>
       <AlertDescription>
         This feature is in beta. Please report any issues you encounter.
@@ -61,7 +61,7 @@ export const Contrast2: Story = {
 export const Error: Story = {
   render: () => (
     <Alert variant="error">
-      <ExclamationCircleIcon className="h-4 w-4" />
+      <AlertCircleIcon className="h-4 w-4" />
       <AlertTitle>Error</AlertTitle>
       <AlertDescription>
         Your session has expired. Please log in again.
@@ -73,7 +73,7 @@ export const Error: Story = {
 export const WithoutTitle: Story = {
   render: () => (
     <Alert>
-      <InformationCircleIcon className="h-4 w-4" />
+      <InfoIcon className="h-4 w-4" />
       <AlertDescription>
         A simple alert message without a title.
       </AlertDescription>
@@ -96,25 +96,25 @@ export const AllVariants: Story = {
   render: () => (
     <div className="flex flex-col gap-4">
       <Alert>
-        <CommandLineIcon className="h-4 w-4" />
+        <TerminalIcon className="h-4 w-4" />
         <AlertTitle>Default Alert</AlertTitle>
         <AlertDescription>Default alert variant</AlertDescription>
       </Alert>
 
       <Alert variant="contrast1">
-        <BoltIcon className="h-4 w-4" />
+        <ZapIcon className="h-4 w-4" />
         <AlertTitle>Contrast 1</AlertTitle>
         <AlertDescription>First contrast variant</AlertDescription>
       </Alert>
 
       <Alert variant="contrast2">
-        <BeakerIcon className="h-4 w-4" />
+        <FlaskConicalIcon className="h-4 w-4" />
         <AlertTitle>Contrast 2</AlertTitle>
         <AlertDescription>Second contrast variant</AlertDescription>
       </Alert>
 
       <Alert variant="error">
-        <ExclamationCircleIcon className="h-4 w-4" />
+        <AlertCircleIcon className="h-4 w-4" />
         <AlertTitle>Error Alert</AlertTitle>
         <AlertDescription>Error variant for warnings</AlertDescription>
       </Alert>
@@ -125,7 +125,7 @@ export const AllVariants: Story = {
 export const WithCustomStyles: Story = {
   render: () => (
     <Alert className="border-l-[6px] bg-purple-50">
-      <ExclamationTriangleIcon className="h-4 w-4 text-purple-500" />
+      <AlertTriangleIcon className="h-4 w-4 text-purple-500" />
       <AlertTitle className="text-purple-900">Custom Styled Alert</AlertTitle>
       <AlertDescription className="text-purple-800">
         This alert uses custom colors and styling through className props.
