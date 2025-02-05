@@ -1,7 +1,7 @@
 "use client";
 
 import { signOutAction } from "@/server/auth/auth-actions";
-import { deleteAccountAction } from "@/server/user-actions";
+import { deleteAccountAction } from "@/server/user/user-actions";
 import { AuthFormMessage } from "@/features/auth/form-message";
 import { AlertDialog } from "@/ui/alert-dialog";
 import {
