@@ -15,11 +15,12 @@
 
     "# Database": "",
     "db:types": "bunx supabase@latest gen types typescript --schema public > src/types/database.types.ts --project-id \"$1\"",
+    "db:migration": "bun scripts/create-migration.ts",
 
     "# Development": "",
     "storybook": "storybook dev -p 6006",
     "shad": "bunx shadcn@latest",
-    "prebuild": "tsx scripts/check-env.ts && tsx scripts/build-storybook.ts",
+    "prebuild": "bun scripts/check-env.ts && bun scripts/build-storybook.ts",
     "docs": "fumadocs-mdx"
   },
   "dependencies": {

@@ -1,62 +1,62 @@
-"use client";
+'use client'
 
-import { updateTeamNameAction } from "@/server/team/team-actions";
-import { AuthFormMessage } from "@/features/auth/form-message";
-import { Button } from "@/ui/primitives/button";
-import { Input } from "@/ui/primitives/input";
-import { Skeleton } from "@/ui/primitives/skeleton";
-import { useSelectedTeam, useTeams } from "@/lib/hooks/use-teams";
-import { useTimeoutMessage } from "@/lib/hooks/use-timeout-message";
-import { AnimatePresence } from "motion/react";
-import { useEffect } from "react";
-import { useState } from "react";
-import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { CardDescription, CardTitle } from "@/ui/primitives/card";
+import { updateTeamNameAction } from '@/server/team/team-actions'
+import { AuthFormMessage } from '@/features/auth/form-message'
+import { Button } from '@/ui/primitives/button'
+import { Input } from '@/ui/primitives/input'
+import { Skeleton } from '@/ui/primitives/skeleton'
+import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
+import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
+import { AnimatePresence } from 'motion/react'
+import { useEffect } from 'react'
+import { useState } from 'react'
+import { z } from 'zod'
+import { useMutation } from '@tanstack/react-query'
+import { CardDescription, CardTitle } from '@/ui/primitives/card'
 
 export function TeamSettingsForm() {
-  const { refetch: refetchTeams } = useTeams();
-  const team = useSelectedTeam();
-  const [teamName, setTeamName] = useState(team?.name ?? "");
-  const [message, setMessage] = useTimeoutMessage();
+  const { refetch: refetchTeams } = useTeams()
+  const team = useSelectedTeam()
+  const [teamName, setTeamName] = useState(team?.name ?? '')
+  const [message, setMessage] = useTimeoutMessage()
 
   useEffect(() => {
-    if (!team) return;
-    setTeamName(team.name);
-  }, [team]);
+    if (!team) return
+    setTeamName(team.name)
+  }, [team])
 
   const { mutate: updateName, isPending } = useMutation({
     mutationFn: async () => {
       if (!team) {
-        throw new Error("No team selected");
+        throw new Error('No team selected')
       }
 
       if (!z.string().min(1).safeParse(teamName).success) {
-        throw new Error("Name cannot be empty");
+        throw new Error('Name cannot be empty')
       }
 
       const response = await updateTeamNameAction({
         teamId: team.id,
         name: teamName,
-      });
+      })
 
-      if (response.type === "error") {
-        throw new Error(response.message);
+      if (response.type === 'error') {
+        throw new Error(response.message)
       }
 
-      return response;
+      return response
     },
     onSuccess: async () => {
-      await refetchTeams();
-      setMessage({ success: "Team name updated" });
+      await refetchTeams()
+      setMessage({ success: 'Team name updated' })
     },
     onError: (error: Error) => {
-      setMessage({ error: error.message });
+      setMessage({ error: error.message })
     },
-  });
+  })
 
   return (
-    <div>
+    <section>
       <div className="mb-6 flex flex-col gap-1">
         <CardTitle>Team Name</CardTitle>
         <CardDescription>
@@ -67,8 +67,8 @@ export function TeamSettingsForm() {
         {team ? (
           <form
             onSubmit={(e) => {
-              e.preventDefault();
-              updateName();
+              e.preventDefault()
+              updateName()
             }}
             className="flex items-center gap-2"
           >
@@ -93,6 +93,6 @@ export function TeamSettingsForm() {
           {message && <AuthFormMessage className="mt-4" message={message} />}
         </AnimatePresence>
       </div>
-    </div>
-  );
+    </section>
+  )
 }
