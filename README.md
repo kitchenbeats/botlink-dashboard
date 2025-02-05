@@ -1,8 +1,8 @@
-# E2B Dashboard
-
 <p align="center">
   <img width="100" src="/readme-assets/logo-circle.png" alt="e2b logo">
 </p>
+
+# E2B Dashboard
 
 ## Overview
 Our Dashboard is a modern, feature-rich web application built to manage and monitor E2B services. Built with Next.js 15 and React 19, it provides a seamless user experience for managing sandboxes, API keys, and usage analytics.
