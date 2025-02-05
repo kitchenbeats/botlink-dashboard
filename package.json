@@ -1,21 +1,26 @@
 {
-  "name": "dashboard",
+  "name": "@e2b/dashboard",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "<-- next --->": "",
-    "dev": "bun run prebuild && next dev --turbo | pino-pretty",
+    "# Next.js": "",
+    "dev": "bun prebuild && next dev --turbo | pino-pretty",
     "build": "next build",
     "start": "next start | pino-pretty",
-    "build:start": "next build && next start | pino-pretty",
-    "dev:scan": "next dev & npx react-scan@latest localhost:3000",
-    "start:scan": "next start & npx react-scan@latest localhost:3000",
-    "<-- storybook --->": "",
+    "preview": "bun run build && bun start",
+
+    "# Development Tools": "",
+    "dev:scan": "bun dev & bun scan",
+    "start:scan": "bun start & bun scan",
+
+    "# Database": "",
+    "db:types": "bunx supabase@latest gen types typescript --schema public > src/types/database.types.ts --project-id \"$1\"",
+
+    "# Development": "",
     "storybook": "storybook dev -p 6006",
-    "<-- helpers --->": "",
     "shad": "bunx shadcn@latest",
     "prebuild": "tsx scripts/check-env.ts && tsx scripts/build-storybook.ts",
-    "docs:generate": "fumadocs-mdx"
+    "docs": "fumadocs-mdx"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -1,19 +1,19 @@
-import "server-only";
+import 'server-only'
 
-import { supabaseAdmin } from "@/lib/clients/supabase/admin";
-import { createClient } from "@/lib/clients/supabase/server";
-import { Database } from "@/types/supabase";
+import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { createClient } from '@/lib/clients/supabase/server'
+import { Database } from '@/types/database.types'
 import {
   E2BError,
   UnauthenticatedError,
   UnauthorizedError,
-} from "@/types/errors";
-import { z } from "zod";
-import { ActionFunction, ActionResponse } from "@/types/actions";
-import { cookies } from "next/headers";
-import { unstable_noStore } from "next/cache";
-import { COOKIE_KEYS } from "@/configs/keys";
-import { logger } from "../clients/logger";
+} from '@/types/errors'
+import { z } from 'zod'
+import { ActionFunction, ActionResponse } from '@/types/actions'
+import { cookies } from 'next/headers'
+import { unstable_noStore } from 'next/cache'
+import { COOKIE_KEYS } from '@/configs/keys'
+import { logger } from '../clients/logger'
 
 /*
  *  This function checks if the user is authenticated and returns the user and the supabase client.
@@ -22,28 +22,28 @@ import { logger } from "../clients/logger";
  *  @params request - an optional NextRequest object to create a supabase client for route handlers
  */
 export async function checkAuthenticated() {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   // retrieve session from storage medium (cookies)
   // if no stored session found, not authenticated
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getSession()
 
   if (!session) {
-    throw UnauthenticatedError();
+    throw UnauthenticatedError()
   }
 
   // now retrieve user from supabase to use further
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser()
 
   if (!user) {
-    throw UnauthenticatedError();
+    throw UnauthenticatedError()
   }
 
-  return { user, supabase };
+  return { user, supabase }
 }
 
 /*
@@ -53,40 +53,40 @@ export async function checkAuthenticated() {
 export async function getTeamApiKey(userId: string, teamId: string) {
   const { data: userTeamsRelationData, error: userTeamsRelationError } =
     await supabaseAdmin
-      .from("users_teams")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("team_id", teamId);
+      .from('users_teams')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('team_id', teamId)
 
   if (userTeamsRelationError) {
-    throw userTeamsRelationError;
+    throw userTeamsRelationError
   }
 
   if (!userTeamsRelationData || userTeamsRelationData.length === 0) {
     throw UnauthorizedError(
-      `User is not a member of team (user: ${userId}, team: ${teamId})`,
-    );
+      `User is not a member of team (user: ${userId}, team: ${teamId})`
+    )
   }
 
   const { data: teamApiKeyData, error: teamApiKeyError } = await supabaseAdmin
-    .from("team_api_keys")
-    .select("*")
-    .eq("team_id", teamId);
+    .from('team_api_keys')
+    .select('*')
+    .eq('team_id', teamId)
 
   if (teamApiKeyError) {
-    logger.error(teamApiKeyError);
+    logger.error(teamApiKeyError)
     throw new Error(
-      `Failed to fetch team API key for team (user: ${userId}, team: ${teamId})`,
-    );
+      `Failed to fetch team API key for team (user: ${userId}, team: ${teamId})`
+    )
   }
 
   if (!teamApiKeyData || teamApiKeyData.length === 0) {
     throw new Error(
-      `No team API key found for team (user: ${userId}, team: ${teamId})`,
-    );
+      `No team API key found for team (user: ${userId}, team: ${teamId})`
+    )
   }
 
-  return teamApiKeyData[0].api_key;
+  return teamApiKeyData[0].api_key
 }
 
 /*
@@ -95,17 +95,17 @@ export async function getTeamApiKey(userId: string, teamId: string) {
  */
 export async function getUserAccessToken(userId: string) {
   const { data: userAccessTokenData, error: userAccessTokenError } =
-    await supabaseAdmin.from("access_tokens").select("*").eq("user_id", userId);
+    await supabaseAdmin.from('access_tokens').select('*').eq('user_id', userId)
 
   if (userAccessTokenError) {
-    throw userAccessTokenError;
+    throw userAccessTokenError
   }
 
   if (!userAccessTokenData || userAccessTokenData.length === 0) {
-    throw new Error(`No user access token found for user (user: ${userId})`);
+    throw new Error(`No user access token found for user (user: ${userId})`)
   }
 
-  return userAccessTokenData[0].access_token;
+  return userAccessTokenData[0].access_token
 }
 
 // TODO: we should probably add some team permission system here
@@ -116,29 +116,29 @@ export async function getUserAccessToken(userId: string) {
  */
 export async function checkUserTeamAuthorization(
   userId: string,
-  teamId: string,
+  teamId: string
 ) {
   if (
     !z.string().uuid().safeParse(userId).success ||
     !z.string().uuid().safeParse(teamId).success
   ) {
-    return false;
+    return false
   }
 
   const { data: userTeamsRelationData, error: userTeamsRelationError } =
     await supabaseAdmin
-      .from("users_teams")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("team_id", teamId);
+      .from('users_teams')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('team_id', teamId)
 
   if (userTeamsRelationError) {
     throw new Error(
-      `Failed to fetch users_teams relation (user: ${userId}, team: ${teamId})`,
-    );
+      `Failed to fetch users_teams relation (user: ${userId}, team: ${teamId})`
+    )
   }
 
-  return !!userTeamsRelationData.length;
+  return !!userTeamsRelationData.length
 }
 
 /*
@@ -146,15 +146,15 @@ export async function checkUserTeamAuthorization(
  *  If the domain is not found in the cookies, it returns the default domain.
  */
 export async function getApiUrl() {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies()
 
   const domain =
     cookieStore.get(COOKIE_KEYS.API_DOMAIN)?.value ??
-    process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN;
+    process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN
 
-  const url = `https://api.${domain}`;
+  const url = `https://api.${domain}`
 
-  return { domain, url };
+  return { domain, url }
 }
 
 /*
@@ -163,13 +163,13 @@ export async function getApiUrl() {
  *  Returns the masked API key string.
  */
 export function maskApiKey(
-  apiKey: Database["public"]["Tables"]["team_api_keys"]["Row"],
+  apiKey: Database['public']['Tables']['team_api_keys']['Row']
 ) {
-  const firstFour = apiKey.api_key.slice(0, 6);
-  const lastFour = apiKey.api_key.slice(-4);
-  const dots = "...";
+  const firstFour = apiKey.api_key.slice(0, 6)
+  const lastFour = apiKey.api_key.slice(-4)
+  const dots = '...'
 
-  return `${firstFour}${dots}${lastFour}`;
+  return `${firstFour}${dots}${lastFour}`
 }
 
 /**
@@ -196,94 +196,94 @@ export function maskApiKey(
  * });
  */
 export function guard<TInput = void, TOutput = void>(
-  action: ActionFunction<TInput, TOutput>,
-): (params: TInput) => Promise<ActionResponse<TOutput>>;
+  action: ActionFunction<TInput, TOutput>
+): (params: TInput) => Promise<ActionResponse<TOutput>>
 
 export function guard<TSchema extends z.ZodType, TOutput = void>(
   schema: TSchema,
-  action: ActionFunction<z.infer<TSchema>, TOutput>,
-): (params: z.infer<TSchema>) => Promise<ActionResponse<TOutput>>;
+  action: ActionFunction<z.infer<TSchema>, TOutput>
+): (params: z.infer<TSchema>) => Promise<ActionResponse<TOutput>>
 
 export function guard<TInput, TOutput>(
   schemaOrAction: z.ZodType | ActionFunction<TInput, TOutput>,
-  maybeAction?: ActionFunction<TInput, TOutput>,
+  maybeAction?: ActionFunction<TInput, TOutput>
 ): (params: TInput) => Promise<ActionResponse<TOutput>> {
   // If only one argument is provided, it's the action
   if (!maybeAction) {
-    const action = schemaOrAction as ActionFunction<TInput, TOutput>;
+    const action = schemaOrAction as ActionFunction<TInput, TOutput>
     return async (params) => {
       try {
-        const data = await action(params);
+        const data = await action(params)
         return {
-          type: "success",
+          type: 'success',
           data,
-        };
+        }
       } catch (error) {
-        if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
-          throw error;
+        if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+          throw error
         }
 
-        logger.error(error);
+        logger.error(error)
 
         if (error instanceof E2BError) {
           return {
-            type: "error",
+            type: 'error',
             message: error.message,
-          };
+          }
         }
 
         return {
-          type: "error",
+          type: 'error',
           message:
-            "An unexpected error occurred, please try again. If the problem persists, please contact support.",
-        };
+            'An unexpected error occurred, please try again. If the problem persists, please contact support.',
+        }
       }
-    };
+    }
   }
 
   // If both arguments are provided, first is schema and second is action
-  const schema = schemaOrAction as z.ZodType;
-  const action = maybeAction;
+  const schema = schemaOrAction as z.ZodType
+  const action = maybeAction
 
   return async (params) => {
-    const parseResult = schema.safeParse(params);
+    const parseResult = schema.safeParse(params)
 
     if (!parseResult.success) {
-      logger.error(parseResult.error);
+      logger.error(parseResult.error)
       return {
-        type: "error",
-        message: "Invalid parameters",
-      };
+        type: 'error',
+        message: 'Invalid parameters',
+      }
     }
 
     try {
-      const data = await action(params);
+      const data = await action(params)
       return {
-        type: "success",
+        type: 'success',
         data,
-      };
+      }
     } catch (error) {
-      if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
-        throw error;
+      if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+        throw error
       }
 
-      logger.error(error);
+      logger.error(error)
 
       if (error instanceof E2BError) {
         return {
-          type: "error",
+          type: 'error',
           code: error.code,
           message: error.message,
-        };
+        }
       }
 
       return {
-        type: "error",
+        type: 'error',
         message:
-          "An unexpected error occurred, please try again. If the problem persists, please contact support.",
-      };
+          'An unexpected error occurred, please try again. If the problem persists, please contact support.',
+      }
     }
-  };
+  }
 }
 
 /**
@@ -308,5 +308,5 @@ export function guard<TInput, TOutput>(
  * @see https://nextjs.org/docs/app/api-reference/functions/cookies
  */
 export function bailOutFromPPR() {
-  unstable_noStore();
+  unstable_noStore()
 }

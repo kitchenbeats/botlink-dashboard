@@ -1,6 +1,6 @@
-import { createMDX } from "fumadocs-mdx/next";
+import { createMDX } from 'fumadocs-mdx/next'
 
-const withMDX = createMDX();
+const withMDX = createMDX()
 
 /** @type {import('next').NextConfig} */
 const config = {
@@ -14,32 +14,25 @@ const config = {
       static: 180,
     },
   },
-  serverExternalPackages: ["pino", "pino-pretty"],
+  serverExternalPackages: ['pino', 'pino-pretty'],
   logging: {
     fetches: {
       fullUrl: true,
     },
   },
+  trailingSlash: false,
   headers: async () => [
     {
-      source: "/:path*",
+      source: '/:path*',
       headers: [
         {
           // config to prevent the browser from rendering the page inside a frame or iframe and avoid clickjacking http://en.wikipedia.org/wiki/Clickjacking
-          key: "X-Frame-Options",
-          value: "SAMEORIGIN",
+          key: 'X-Frame-Options',
+          value: 'SAMEORIGIN',
         },
       ],
     },
   ],
-  // we redirect here for backward compatibility, because route location changed between old and new dashboard
-  redirects: async () => [
-    {
-      source: "/docs/api/cli",
-      destination: "/auth/cli",
-      permanent: true,
-    },
-  ],
-};
+}
 
-export default withMDX(config);
+export default withMDX(config)
