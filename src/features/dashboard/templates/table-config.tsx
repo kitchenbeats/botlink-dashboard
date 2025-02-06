@@ -31,6 +31,7 @@ import {
 import { useMemo } from 'react'
 import { Badge } from '@/ui/primitives/badge'
 import { CgSmartphoneRam } from 'react-icons/cg'
+import { useSelectedTeam } from '@/lib/hooks/use-teams'
 
 // FILTERS
 export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
@@ -68,10 +69,14 @@ export const useColumns = (deps: any[]) => {
         size: 35,
         cell: ({ row }) => {
           const template = row.original
-          const { teamId } = useParams()
+          const selectedTeam = useSelectedTeam()
           const { toast } = useToast()
 
           const togglePublish = async () => {
+            if (!selectedTeam) {
+              return
+            }
+
             try {
               const response = await updateTemplateAction({
                 templateId: template.templateID,
@@ -84,7 +89,7 @@ export const useColumns = (deps: any[]) => {
                 throw new Error(response.message)
               }
 
-              await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string))
+              await mutate(QUERY_KEYS.TEAM_TEMPLATES(selectedTeam!.id))
               toast({
                 title: 'Success',
                 description: `Template ${template.public ? 'unpublished' : 'published'} successfully`,
@@ -99,6 +104,10 @@ export const useColumns = (deps: any[]) => {
           }
 
           const deleteTemplate = async () => {
+            if (!selectedTeam) {
+              return
+            }
+
             try {
               const response = await deleteTemplateAction({
                 templateId: template.templateID,
@@ -108,7 +117,7 @@ export const useColumns = (deps: any[]) => {
                 throw new Error(response.message)
               }
 
-              await mutate(QUERY_KEYS.TEAM_TEMPLATES(teamId as string))
+              await mutate(QUERY_KEYS.TEAM_TEMPLATES(selectedTeam!.id))
               toast({
                 title: 'Success',
                 description: 'Template deleted successfully',

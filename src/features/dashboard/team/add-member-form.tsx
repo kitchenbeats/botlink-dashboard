@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { Button } from "@/ui/primitives/button";
+import { Button } from '@/ui/primitives/button'
 import {
   Form,
   FormControl,
@@ -8,80 +8,85 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/ui/primitives/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import { mutate } from "swr";
-import { QUERY_KEYS } from "@/configs/keys";
-import { addTeamMemberAction } from "@/server/team/team-actions";
-import { z } from "zod";
-import { Input } from "@/ui/primitives/input";
-import { useToast } from "@/lib/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import { useForm } from "react-hook-form";
-import { Label } from "@/ui/primitives/label";
+} from '@/ui/primitives/form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
+import { useParams } from 'next/navigation'
+import { mutate } from 'swr'
+import { QUERY_KEYS } from '@/configs/keys'
+import { addTeamMemberAction } from '@/server/team/team-actions'
+import { z } from 'zod'
+import { Input } from '@/ui/primitives/input'
+import { useToast } from '@/lib/hooks/use-toast'
+import { cn } from '@/lib/utils'
+import { useForm } from 'react-hook-form'
+import { Label } from '@/ui/primitives/label'
+import { useSelectedTeam } from '@/lib/hooks/use-teams'
 
 const addMemberSchema = z.object({
   email: z.string().email(),
-});
+})
 
-type AddMemberForm = z.infer<typeof addMemberSchema>;
+type AddMemberForm = z.infer<typeof addMemberSchema>
 
 interface AddMemberFormProps {
-  className?: string;
+  className?: string
 }
 
 export default function AddMemberForm({ className }: AddMemberFormProps) {
-  const { teamId } = useParams();
-  const { toast } = useToast();
+  const selectedTeam = useSelectedTeam()
+  const { toast } = useToast()
 
   const form = useForm<AddMemberForm>({
     resolver: zodResolver(addMemberSchema),
     defaultValues: {
-      email: "",
+      email: '',
     },
-  });
+  })
 
   const { mutate: addMember, isPending } = useMutation({
     mutationFn: async (data: AddMemberForm) => {
-      const response = await addTeamMemberAction({
-        teamId: teamId as string,
-        email: data.email,
-      });
-
-      if (response.type === "error") {
-        throw new Error(response.message);
+      if (!selectedTeam) {
+        throw new Error('No team selected')
       }
 
-      return response;
+      const response = await addTeamMemberAction({
+        teamId: selectedTeam.id,
+        email: data.email,
+      })
+
+      if (response.type === 'error') {
+        throw new Error(response.message)
+      }
+
+      return response
     },
     onSuccess: () => {
-      mutate(QUERY_KEYS.TEAM_MEMBERS(teamId as string));
+      mutate(QUERY_KEYS.TEAM_MEMBERS(selectedTeam!.id))
       toast({
-        title: "Member added to team",
-        description: "The member has been added to the team.",
-      });
-      form.reset();
+        title: 'Member added to team',
+        description: 'The member has been added to the team.',
+      })
+      form.reset()
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: error.message,
-        variant: "error",
-      });
+        variant: 'error',
+      })
     },
-  });
+  })
 
   function onSubmit(data: AddMemberForm) {
-    addMember(data);
+    addMember(data)
   }
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn("flex gap-2", className)}
+        className={cn('flex gap-2', className)}
       >
         <FormField
           control={form.control}
@@ -107,5 +112,5 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
         />
       </form>
     </Form>
-  );
+  )
 }
