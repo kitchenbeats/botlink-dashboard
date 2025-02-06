@@ -189,7 +189,7 @@ export const useColumns = (deps: any[]) => {
 
           // Convert MiB to MB
           const usedRamMB = Math.round(
-            row.original.metrics[0]?.memUsedMiB * 1.048576
+            row.original.metrics[0]?.memUsedMiB / 0.945
           )
 
           const getVariant = (
