@@ -104,3 +104,6 @@ EXECUTE FUNCTION generate_team_slug_trigger();
 
 ALTER TABLE teams
 ADD CONSTRAINT teams_slug_unique UNIQUE (slug);
+
+ALTER TABLE teams
+ALTER COLUMN slug SET NOT NULL;
