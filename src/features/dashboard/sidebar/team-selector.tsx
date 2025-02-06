@@ -71,7 +71,7 @@ export default function TeamSelector() {
           </SelectGroup>
         )}
         {teams.length > 0 && (
-          <SelectGroup className="mt-2">
+          <SelectGroup>
             <SelectLabel>Teams</SelectLabel>
             {teams.map((team) => (
               <SelectItem key={team.id} value={team.id}>

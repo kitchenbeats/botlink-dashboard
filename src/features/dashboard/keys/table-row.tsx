@@ -1,58 +1,61 @@
-"use client";
+'use client'
 
-import { useToast } from "@/lib/hooks/use-toast";
-import { TableCell, TableRow } from "@/ui/primitives/table";
-import { MoreHorizontal } from "lucide-react";
-import { Button } from "@/ui/primitives/button";
+import { useToast } from '@/lib/hooks/use-toast'
+import { TableCell, TableRow } from '@/ui/primitives/table'
+import { MoreHorizontal } from 'lucide-react'
+import { Button } from '@/ui/primitives/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/ui/primitives/dropdown-menu";
-import { ObscuredApiKey } from "@/server/keys/types";
-import { deleteApiKeyAction } from "@/server/keys/key-actions";
-import { useParams } from "next/navigation";
+} from '@/ui/primitives/dropdown-menu'
+import { ObscuredApiKey } from '@/server/keys/types'
+import { deleteApiKeyAction } from '@/server/keys/key-actions'
+import { useParams } from 'next/navigation'
 
 interface TableRowProps {
-  apiKey: ObscuredApiKey;
-  index: number;
+  apiKey: ObscuredApiKey
+  index: number
 }
 
 export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
-  const { toast } = useToast();
-  const { teamId } = useParams();
+  const { toast } = useToast()
+  const { teamId } = useParams()
 
   const deleteKey = async (apiKeyId: string) => {
     try {
-      await deleteApiKeyAction({ teamId: teamId as string, apiKeyId });
+      await deleteApiKeyAction({ teamId: teamId as string, apiKeyId })
       toast({
-        title: "Success",
-        description: "API key deleted successfully",
-        variant: "default",
-      });
+        title: 'Success',
+        description: 'API key deleted successfully',
+        variant: 'default',
+      })
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete API key",
-        variant: "error",
-      });
+        title: 'Error',
+        description: 'Failed to delete API key',
+        variant: 'error',
+      })
     }
-  };
+  }
 
   return (
     <TableRow key={`${apiKey.name}-${index}`}>
       <TableCell className="flex flex-col gap-1 text-left font-mono">
         {apiKey.name}
-        <span className="text-fg-500 pl-1">{apiKey.maskedKey}</span>
+        <span className="pl-1 text-fg-500">{apiKey.maskedKey}</span>
       </TableCell>
-      <TableCell className="text-fg-500 max-w-36 overflow-hidden truncate">
+      <TableCell className="max-w-36 overflow-hidden truncate text-fg-500">
         <span className="max-w-full truncate">{apiKey.createdBy}</span>
       </TableCell>
-      <TableCell className="text-fg-300 text-right">
+      <TableCell className="text-right text-fg-300">
         {apiKey.createdAt
           ? new Date(apiKey.createdAt).toLocaleDateString()
-          : "-"}
+          : '-'}
       </TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
@@ -62,15 +65,19 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem
-              className="text-error"
-              onClick={() => deleteKey(apiKey.id)}
-            >
-              X Delete
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Danger Zone</DropdownMenuLabel>
+              <DropdownMenuItem
+                inset
+                variant="error"
+                onClick={() => deleteKey(apiKey.id)}
+              >
+                X Delete
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
     </TableRow>
-  );
+  )
 }

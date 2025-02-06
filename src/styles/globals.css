@@ -1,6 +1,6 @@
-@import "fumadocs-ui/css/preset.css";
-@import "./theme.css";
-@import "./variables.css";
+@import 'fumadocs-ui/css/preset.css';
+@import './theme.css';
+@import './variables.css';
 
 @tailwind base;
 @tailwind components;
@@ -50,5 +50,5 @@ ul li {
 }
 ul li::marker {
   color: hsl(var(--contrast-2));
-  content: "-";
+  content: '-';
 }

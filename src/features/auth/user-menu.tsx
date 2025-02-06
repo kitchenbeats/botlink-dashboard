@@ -1,29 +1,29 @@
-"use client";
+'use client'
 
-import { Button } from "@/ui/primitives/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/primitives/avatar";
+import { Button } from '@/ui/primitives/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/ui/primitives/dropdown-menu";
-import { signOutAction } from "@/server/auth/auth-actions";
-import Link from "next/link";
-import { PROTECTED_URLS } from "@/configs/urls";
-import UserDetailsTile from "./user-details-tile";
-import DeveloperSettingsDialog from "@/features/dashboard/developer-settings/settings-dialog";
-import { useState } from "react";
-import { User } from "@supabase/supabase-js";
+} from '@/ui/primitives/dropdown-menu'
+import { signOutAction } from '@/server/auth/auth-actions'
+import Link from 'next/link'
+import { PROTECTED_URLS } from '@/configs/urls'
+import UserDetailsTile from './user-details-tile'
+import DeveloperSettingsDialog from '@/features/dashboard/developer-settings/settings-dialog'
+import { useState } from 'react'
+import { User } from '@supabase/supabase-js'
 
 interface UserMenuProps {
-  user: User;
-  apiDomain?: string;
+  user: User
+  apiDomain?: string
 }
 
 export default function UserMenu({ user, apiDomain }: UserMenuProps) {
-  const [developerSettingsOpen, setDeveloperSettingsOpen] = useState(false);
+  const [developerSettingsOpen, setDeveloperSettingsOpen] = useState(false)
 
   return (
     <>
@@ -38,7 +38,7 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
             <Avatar>
               <AvatarImage src={user?.user_metadata.avatar_url} />
               <AvatarFallback>
-                {user?.email?.charAt(0).toUpperCase() || "?"}
+                {user?.email?.charAt(0).toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -72,5 +72,5 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
         apiDomain={apiDomain}
       />
     </>
-  );
+  )
 }
