@@ -9,13 +9,7 @@ import { logger } from '@/lib/clients/logger'
 import { INFO_CODES, ERROR_CODES } from '@/configs/logs'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { z } from 'zod'
-
-const COOKIE_OPTIONS = {
-  maxAge: 60 * 60 * 24 * 30, // 30 days
-  path: '/',
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-}
+import { cookies } from 'next/headers'
 
 /**
  * Core function to resolve team ID and ensure access for dashboard routes.
@@ -28,12 +22,9 @@ export async function resolveTeamForDashboard(
   logger.info(INFO_CODES.TEAM_RESOLUTION, 'Starting team resolution', {
     url: request.url,
     userId,
+    pathname: request.nextUrl.pathname,
+    cookies: (await cookies()).getAll(),
   })
-
-  // Early return for new team route to prevent redirect loop
-  if (request.nextUrl.pathname === PROTECTED_URLS.NEW_TEAM) {
-    return {}
-  }
 
   // Extract teamIdOrSlug from URL if present
   const segments = request.nextUrl.pathname.split('/')
@@ -43,11 +34,22 @@ export async function resolveTeamForDashboard(
     COOKIE_KEYS.SELECTED_TEAM_SLUG
   )?.value
 
+  logger.debug('Extracted URL and cookie data', {
+    segments,
+    teamIdOrSlug,
+    currentTeamId,
+    currentTeamSlug,
+  })
+
   // Case 1: URL contains team identifier
   if (teamIdOrSlug && teamIdOrSlug !== 'account') {
+    logger.debug('Processing URL team identifier', { teamIdOrSlug })
     try {
       const teamId = await resolveTeamId(teamIdOrSlug)
+      logger.debug('Resolved team ID', { teamIdOrSlug, teamId })
+
       const hasAccess = await checkUserTeamAccess(userId, teamId)
+      logger.debug('Checked team access', { userId, teamId, hasAccess })
 
       if (!hasAccess) {
         logger.info(INFO_CODES.ACCESS_DENIED, 'User denied access to team', {
@@ -58,15 +60,20 @@ export async function resolveTeamForDashboard(
       }
 
       // If teamIdOrSlug was a slug, use it, otherwise get it from cache
-      const teamSlug = z.string().uuid().safeParse(teamIdOrSlug).success
+      const isUuid = z.string().uuid().safeParse(teamIdOrSlug).success
+      logger.debug('Checking if teamIdOrSlug is UUID', { isUuid, teamIdOrSlug })
+
+      const teamSlug = isUuid
         ? (await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(teamId))) || undefined
         : teamIdOrSlug || undefined
 
+      logger.debug('Resolved team slug', { teamId, teamSlug, isUuid })
       return { teamId, teamSlug }
     } catch (error) {
       logger.error(ERROR_CODES.TEAM_RESOLUTION, 'Failed to resolve team', {
         error,
         teamIdOrSlug,
+        stack: error instanceof Error ? error.stack : undefined,
       })
       return { redirect: PROTECTED_URLS.DASHBOARD }
     }
@@ -74,7 +81,14 @@ export async function resolveTeamForDashboard(
 
   // Case 2: No team in URL, try cookie
   if (currentTeamId) {
+    logger.debug('Trying cookie team ID', { currentTeamId })
     const hasAccess = await checkUserTeamAccess(userId, currentTeamId)
+    logger.debug('Checked cookie team access', {
+      userId,
+      currentTeamId,
+      hasAccess,
+    })
+
     if (hasAccess) {
       // Use cached slug or fetch it
       const teamSlug =
@@ -82,6 +96,7 @@ export async function resolveTeamForDashboard(
         (await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(currentTeamId))) ||
         undefined
 
+      logger.debug('Resolved cookie team slug', { currentTeamId, teamSlug })
       return {
         teamId: currentTeamId,
         teamSlug,
@@ -98,18 +113,27 @@ export async function resolveTeamForDashboard(
     userId,
   })
 
-  const { data: teamsData } = await supabaseAdmin
+  const { data: teamsData, error: teamsError } = await supabaseAdmin
     .from('users_teams')
-    .select('team_id, is_default, team:teams(slug)')
+    .select('team_id, is_default, team:teams(id, slug)')
     .eq('user_id', userId)
 
+  logger.debug('Fetched teams data', {
+    teamsData,
+    teamsCount: teamsData?.length,
+    error: teamsError,
+  })
+
   if (!teamsData?.length) {
+    logger.debug('No teams found, redirecting to new team', { userId })
     return {
       redirect: PROTECTED_URLS.NEW_TEAM,
     }
   }
 
   const defaultTeam = teamsData.find((t) => t.is_default) || teamsData[0]
+  logger.debug('Selected default team', { defaultTeam })
+
   return {
     teamId: defaultTeam.team_id,
     teamSlug: defaultTeam.team?.slug || undefined,
@@ -130,12 +154,21 @@ async function checkUserTeamAccess(
   teamId: string
 ): Promise<boolean> {
   const cacheKey = KV_KEYS.USER_TEAM_ACCESS(userId, teamId)
-  const cached = await kv.get<boolean>(cacheKey)
+  logger.debug('Checking team access', { userId, teamId, cacheKey })
 
-  if (cached !== null) return cached
+  const cached = await kv.get<boolean>(cacheKey)
+  logger.debug('Got cached access value', { cached, cacheKey })
+
+  if (cached !== null) {
+    logger.debug('Returning cached access value', { cached, userId, teamId })
+    return cached
+  }
 
   const hasAccess = await checkUserTeamAuthorization(userId, teamId)
+  logger.debug('Checked direct team access', { hasAccess, userId, teamId })
+
   await kv.set(cacheKey, hasAccess, { ex: 60 * 60 }) // 1 hour
+  logger.debug('Set cache value', { cacheKey, hasAccess })
 
   return hasAccess
 }
@@ -152,16 +185,28 @@ export const handleUrlRewrites = async (
     docsNext: string
   }
 ): Promise<NextResponse | null> => {
-  if (request.method !== 'GET') return null
+  logger.debug('Starting URL rewrite', {
+    url: request.url,
+    method: request.method,
+    hostnames,
+  })
+
+  if (request.method !== 'GET') {
+    logger.debug('Skipping non-GET request', { method: request.method })
+    return null
+  }
 
   const url = new URL(request.nextUrl.toString())
-  url.protocol = 'https'
-  url.port = ''
+
+  if (url.pathname === '' || url.pathname === '/') {
+    url.hostname = hostnames.landingPage
+    url.port = ''
+    url.protocol = 'https'
+    logger.debug('Rewriting root path', { newHostname: url.hostname })
+  }
 
   // Static page mappings
   const hostnameMap = {
-    '': hostnames.landingPage,
-    '/': hostnames.landingPage,
     '/terms': hostnames.landingPage,
     '/privacy': hostnames.landingPage,
     '/pricing': hostnames.landingPage,
@@ -176,18 +221,42 @@ export const handleUrlRewrites = async (
     (path) => url.pathname === path || url.pathname.startsWith(path + '/')
   )
 
+  logger.debug('Checking path mappings', {
+    pathname: url.pathname,
+    matchingPath,
+  })
+
   if (matchingPath) {
     url.hostname = hostnameMap[matchingPath as keyof typeof hostnameMap]
+    url.port = ''
+    url.protocol = 'https'
+    logger.debug('Rewriting hostname', {
+      matchingPath,
+      newHostname: url.hostname,
+    })
   }
 
   if (url.hostname === request.nextUrl.hostname) {
+    logger.debug('Skipping rewrite for same hostname', {
+      hostname: url.hostname,
+    })
     return null
   }
 
   try {
+    logger.debug('Fetching content', { url: url.toString() })
     const res = await fetch(url.toString(), { ...request })
     const htmlBody = await res.text()
+    logger.debug('Fetched content', {
+      status: res.status,
+      contentLength: htmlBody.length,
+    })
+
     const modifiedHtmlBody = replaceUrls(htmlBody, url.pathname, 'href="', '">')
+    logger.debug('Modified content', {
+      originalLength: htmlBody.length,
+      modifiedLength: modifiedHtmlBody.length,
+    })
 
     return new NextResponse(modifiedHtmlBody, {
       status: res.status,
@@ -197,6 +266,7 @@ export const handleUrlRewrites = async (
   } catch (error) {
     logger.error(ERROR_CODES.URL_REWRITE, 'URL rewrite failed', {
       error,
+      stack: error instanceof Error ? error.stack : undefined,
       url: url.toString(),
     })
     return null

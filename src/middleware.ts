@@ -20,120 +20,135 @@ const COOKIE_OPTIONS = {
 }
 
 export async function middleware(request: NextRequest) {
-  // 1. Handle URL rewrites first (early return for non-dashboard routes)
-  const rewriteResponse = await handleUrlRewrites(request, {
-    landingPage: LANDING_PAGE_DOMAIN,
-    landingPageFramer: LANDING_PAGE_FRAMER_DOMAIN,
-    blogFramer: BLOG_FRAMER_DOMAIN,
-    docsNext: DOCS_NEXT_DOMAIN,
-  })
-
-  if (rewriteResponse) return rewriteResponse
-
-  // 2. Setup response and Supabase client
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookies) {
-          cookies.forEach(({ name, value, options }) => {
-            request.cookies.set({ name, value, ...options })
-            response.cookies.set({ name, value, ...options })
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-        },
-      },
-    }
-  )
-
-  // 3. Refresh session and handle auth redirects
-  const { error, data } = await supabase.auth.getUser()
-
-  // Handle authentication redirects
-  if (request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD) && error) {
-    logger.info(INFO_CODES.AUTH_REDIRECT, 'Redirecting to sign in', {
-      url: request.url,
-      error: error.message,
+  try {
+    // 1. Handle URL rewrites first (early return for non-dashboard routes)
+    const rewriteResponse = await handleUrlRewrites(request, {
+      landingPage: LANDING_PAGE_DOMAIN,
+      landingPageFramer: LANDING_PAGE_FRAMER_DOMAIN,
+      blogFramer: BLOG_FRAMER_DOMAIN,
+      docsNext: DOCS_NEXT_DOMAIN,
     })
-    return NextResponse.redirect(new URL(AUTH_URLS.SIGN_IN, request.url))
-  }
 
-  if (request.nextUrl.pathname === '/' && !error) {
-    return NextResponse.redirect(new URL(PROTECTED_URLS.DASHBOARD, request.url))
-  }
+    if (rewriteResponse) return rewriteResponse
 
-  // Early return for non-dashboard routes or no user
-  if (
-    !data?.user ||
-    !request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD)
-  ) {
-    return response
-  }
+    // 2. Setup response and Supabase client
+    let response = NextResponse.next({
+      request,
+    })
 
-  // 4. Handle team resolution for all dashboard routes
-  const { teamId, teamSlug, redirect } = await resolveTeamForDashboard(
-    request,
-    data.user.id
-  )
-
-  if (!teamId) {
-    // No valid team access, redirect to dashboard
-    const redirectResponse = NextResponse.redirect(
-      new URL(redirect || PROTECTED_URLS.DASHBOARD, request.url),
-      { status: 302 }
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options)
+            })
+          },
+        },
+      }
     )
-    // Delete both cookies
-    redirectResponse.cookies.delete(COOKIE_KEYS.SELECTED_TEAM_ID)
-    redirectResponse.cookies.delete(COOKIE_KEYS.SELECTED_TEAM_SLUG)
-    return redirectResponse
-  }
 
-  // 5. Handle redirects and set cookie
-  if (redirect) {
-    const redirectResponse = NextResponse.redirect(
-      new URL(redirect, request.url),
-      { status: 302 }
+    // 3. Refresh session and handle auth redirects
+    const { error, data } = await supabase.auth.getUser()
+
+    // Handle authentication redirects
+    if (
+      request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD) &&
+      error
+    ) {
+      logger.info(INFO_CODES.AUTH_REDIRECT, 'Redirecting to sign in', {
+        url: request.url,
+        error: error.message,
+      })
+      return NextResponse.redirect(new URL(AUTH_URLS.SIGN_IN, request.url))
+    }
+
+    if (request.nextUrl.pathname === '/' && !error) {
+      return NextResponse.redirect(
+        new URL(PROTECTED_URLS.DASHBOARD, request.url)
+      )
+    }
+
+    // Early return for non-dashboard routes or no user
+    if (
+      !data?.user ||
+      !request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD)
+    ) {
+      return response
+    }
+
+    // 4. Handle team resolution for all dashboard routes
+    const { teamId, teamSlug, redirect } = await resolveTeamForDashboard(
+      request,
+      data.user.id
     )
-    // Set both cookies
-    redirectResponse.cookies.set(
-      COOKIE_KEYS.SELECTED_TEAM_ID,
-      teamId,
-      COOKIE_OPTIONS
-    )
-    if (teamSlug) {
+
+    if (!teamId) {
+      // No valid team access, redirect to dashboard
+      const redirectResponse = NextResponse.redirect(
+        new URL(redirect || PROTECTED_URLS.DASHBOARD, request.url),
+        { status: 302 }
+      )
+      // Delete both cookies
+      redirectResponse.cookies.delete(COOKIE_KEYS.SELECTED_TEAM_ID)
+      redirectResponse.cookies.delete(COOKIE_KEYS.SELECTED_TEAM_SLUG)
+      return redirectResponse
+    }
+
+    // 5. Handle redirects and set cookie
+    if (redirect) {
+      const redirectResponse = NextResponse.redirect(
+        new URL(redirect, request.url),
+        { status: 302 }
+      )
+      // Set both cookies
       redirectResponse.cookies.set(
+        COOKIE_KEYS.SELECTED_TEAM_ID,
+        teamId,
+        COOKIE_OPTIONS
+      )
+      if (teamSlug) {
+        redirectResponse.cookies.set(
+          COOKIE_KEYS.SELECTED_TEAM_SLUG,
+          teamSlug,
+          COOKIE_OPTIONS
+        )
+      }
+      return redirectResponse
+    }
+
+    // 6. Continue with request, ensuring cookies are set
+    response.cookies.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId, COOKIE_OPTIONS)
+    if (teamSlug) {
+      response.cookies.set(
         COOKIE_KEYS.SELECTED_TEAM_SLUG,
         teamSlug,
         COOKIE_OPTIONS
       )
     }
-    return redirectResponse
-  }
+    return response
+  } catch (error) {
+    logger.error('Middleware error', {
+      error,
+      stack: error instanceof Error ? error.stack : undefined,
+      url: request.url,
+      pathname: request.nextUrl.pathname,
+      cookies: Object.fromEntries(
+        request.cookies.getAll().map((cookie) => [cookie.name, cookie.value])
+      ),
+      headers: Object.fromEntries(request.headers.entries()),
+    })
 
-  // 6. Continue with request, ensuring cookies are set
-  response.cookies.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId, COOKIE_OPTIONS)
-  if (teamSlug) {
-    response.cookies.set(
-      COOKIE_KEYS.SELECTED_TEAM_SLUG,
-      teamSlug,
-      COOKIE_OPTIONS
-    )
+    // Return a basic response to avoid infinite loops
+    return NextResponse.next({
+      request,
+    })
   }
-  return response
 }
 
 export const config = {
