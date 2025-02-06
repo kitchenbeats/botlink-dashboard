@@ -132,10 +132,7 @@ export async function resolveTeamForDashboard(
       `
       team_id,
       is_default,
-      teams (
-        id,
-        slug
-      )
+      team:teams(*)
     `
     )
     .eq('user_id', userId)
@@ -166,12 +163,12 @@ export async function resolveTeamForDashboard(
 
   return {
     teamId: defaultTeam.team_id,
-    teamSlug: defaultTeam.teams?.slug || undefined,
+    teamSlug: defaultTeam.team?.slug || undefined,
     redirect:
       teamIdOrSlug === 'account'
         ? undefined
         : PROTECTED_URLS.SANDBOXES(
-            defaultTeam.teams?.slug || defaultTeam.team_id
+            defaultTeam.team?.slug || defaultTeam.team_id
           ),
   }
 }
