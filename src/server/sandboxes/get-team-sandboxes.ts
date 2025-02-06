@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { Sandbox } from '@/types/api'
+import { Sandbox, SandboxMetrics } from '@/types/api'
 import {
   checkAuthenticated,
   getApiUrl,
@@ -10,6 +10,9 @@ import {
 import { z } from 'zod'
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from '@/configs/mock-data'
 import { E2BError, InvalidApiKeyError } from '@/types/errors'
+import { logger } from '@/lib/clients/logger'
+import { ERROR_CODES } from '@/configs/logs'
+import { SandboxWithMetrics } from '@/features/dashboard/sandboxes/table-config'
 
 const GetTeamSandboxesParamsSchema = z.object({
   teamId: z.string().uuid(),
@@ -26,7 +29,7 @@ export const getTeamSandboxes = guard(
 
       return sandboxes.map((sandbox) => ({
         ...sandbox,
-        lastMetrics: metrics.get(sandbox.sandboxID)!,
+        metrics: [metrics.get(sandbox.sandboxID)!],
       }))
     }
 
@@ -34,7 +37,7 @@ export const getTeamSandboxes = guard(
     const apiKey = await getTeamApiKey(user.id, teamId)
     const { url } = await getApiUrl()
 
-    const res = await fetch(`${url}/sandboxes`, {
+    const res = await fetch(`${url}/sandboxes/metrics`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -45,8 +48,10 @@ export const getTeamSandboxes = guard(
     if (!res.ok) {
       const json = await res.json()
 
+      logger.error(ERROR_CODES.INFRA, '/sandboxes/metrics', json)
+
       if (res.status === 401) {
-        // this case should never happen for the described reason, hence we assume the user defined the wrong infra domain
+        // this case should never happen for the original reason, hence we assume the user defined the wrong infra domain
         throw InvalidApiKeyError(
           "Authorization failed. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
         )
@@ -58,12 +63,8 @@ export const getTeamSandboxes = guard(
       )
     }
 
-    const data = (await res.json()) as Sandbox[]
-    const metrics = MOCK_METRICS_DATA(data)
+    const json = (await res.json()) as SandboxWithMetrics[]
 
-    return data.map((sandbox) => ({
-      ...sandbox,
-      lastMetrics: metrics.get(sandbox.sandboxID)!,
-    }))
+    return json
   }
 )

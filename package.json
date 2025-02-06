@@ -21,7 +21,8 @@
     "storybook": "storybook dev -p 6006",
     "shad": "bunx shadcn@latest",
     "prebuild": "bun scripts/check-env.ts && bun scripts/build-storybook.ts",
-    "docs": "fumadocs-mdx"
+    "docs": "fumadocs-mdx",
+    "cli": "E2B_DOCS_BASE=http://localhost:3000/docs bunx @e2b/cli@latest"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
