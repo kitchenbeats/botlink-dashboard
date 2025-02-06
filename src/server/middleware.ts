@@ -126,10 +126,18 @@ export async function resolveTeamForDashboard(
   logger.info(INFO_CODES.EXPENSIVE_OPERATION, 'Resolving default team', {
     userId,
   })
-
   const { data: teamsData, error: teamsError } = await supabaseAdmin
     .from('users_teams')
-    .select('team_id, is_default, team:teams(id, slug)')
+    .select(
+      `
+      team_id,
+      is_default,
+      teams (
+        id,
+        slug
+      )
+    `
+    )
     .eq('user_id', userId)
 
   logger.debug('Fetched teams data', {
@@ -137,6 +145,14 @@ export async function resolveTeamForDashboard(
     teamsCount: teamsData?.length,
     error: teamsError,
   })
+
+  if (teamsError) {
+    logger.error(ERROR_CODES.TEAM_RESOLUTION, 'Failed to fetch teams', {
+      error: teamsError,
+      stack: teamsError instanceof Error ? teamsError.stack : undefined,
+    })
+    return { redirect: '/' }
+  }
 
   if (!teamsData?.length) {
     logger.debug('No teams found, redirecting to new team', { userId })
@@ -150,12 +166,12 @@ export async function resolveTeamForDashboard(
 
   return {
     teamId: defaultTeam.team_id,
-    teamSlug: defaultTeam.team?.slug || undefined,
+    teamSlug: defaultTeam.teams?.slug || undefined,
     redirect:
       teamIdOrSlug === 'account'
         ? undefined
         : PROTECTED_URLS.SANDBOXES(
-            defaultTeam.team?.slug || defaultTeam.team_id
+            defaultTeam.teams?.slug || defaultTeam.team_id
           ),
   }
 }
