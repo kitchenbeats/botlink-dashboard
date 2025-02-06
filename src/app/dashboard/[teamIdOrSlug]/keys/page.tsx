@@ -1,19 +1,21 @@
-import ApiKeysTable from "@/features/dashboard/keys/table";
-import CreateApiKeyDialog from "@/features/dashboard/keys/create-api-key-dialog";
-import { Button } from "@/ui/primitives/button";
-import { CardDescription, CardTitle } from "@/ui/primitives/card";
-import { Suspense } from "react";
-import DashboardPageLayout from "@/features/dashboard/page-layout";
-import { Plus } from "lucide-react";
+import ApiKeysTable from '@/features/dashboard/keys/table'
+import CreateApiKeyDialog from '@/features/dashboard/keys/create-api-key-dialog'
+import { Button } from '@/ui/primitives/button'
+import { CardDescription, CardTitle } from '@/ui/primitives/card'
+import { Suspense } from 'react'
+import DashboardPageLayout from '@/features/dashboard/page-layout'
+import { Plus } from 'lucide-react'
+import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 
 interface KeysPageClientProps {
   params: Promise<{
-    teamId: string;
-  }>;
+    teamIdOrSlug: string
+  }>
 }
 
 export default async function KeysPage({ params }: KeysPageClientProps) {
-  const { teamId } = await params;
+  const { teamIdOrSlug } = await params
+  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   return (
     <DashboardPageLayout title="API Keys">
@@ -43,5 +45,5 @@ export default async function KeysPage({ params }: KeysPageClientProps) {
         </section>
       </div>
     </DashboardPageLayout>
-  );
+  )
 }

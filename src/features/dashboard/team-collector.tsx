@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { useTeams } from "@/lib/hooks/use-teams";
-import { useMetadataStore } from "@/lib/stores/metadata-store";
-import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useTeams } from '@/lib/hooks/use-teams'
+import { useMetadataStore } from '@/lib/stores/metadata-store'
+import { useParams } from 'next/navigation'
+import { useEffect } from 'react'
 
 interface TeamCollectorProps {
   /** The team ID from the cookie, if one exists */
-  initialTeamId?: string;
+  initialTeamId?: string
 }
 
 /**
@@ -24,26 +24,26 @@ interface TeamCollectorProps {
  * @returns null - This component has no visual output
  */
 export default function TeamCollector({ initialTeamId }: TeamCollectorProps) {
-  const { teamId } = useParams();
-  const selectedTeamId = useMetadataStore((state) => state.selectedTeamId);
-  const { teams } = useTeams();
+  const { teamId } = useParams()
+  const selectedTeamId = useMetadataStore((state) => state.selectedTeamId)
+  const { teams } = useTeams()
 
   useEffect(() => {
     if (teamId) {
       useMetadataStore.setState({
         selectedTeamId: (teamId as string) ?? initialTeamId,
-      });
+      })
     }
-  }, [teamId, initialTeamId]);
+  }, [teamId, initialTeamId])
 
   useEffect(() => {
     if (teams && teams.length > 0 && !selectedTeamId) {
       useMetadataStore.setState({
         selectedTeamId:
           teams.find((team) => team.is_default)?.id || teams[0]?.id,
-      });
+      })
     }
-  }, [teams, selectedTeamId]);
+  }, [teams, selectedTeamId])
 
-  return null;
+  return null
 }

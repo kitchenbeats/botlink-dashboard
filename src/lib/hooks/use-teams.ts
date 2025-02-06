@@ -1,26 +1,27 @@
-import { QUERY_KEYS } from "@/configs/keys";
-import { useMemo } from "react";
-import useSWR, { preload } from "swr";
-import { TeamWithDefault } from "@/types/dashboard";
-import { useMetadataStore } from "../stores/metadata-store";
+import { QUERY_KEYS } from '@/configs/keys'
+import { useMemo } from 'react'
+import useSWR, { preload } from 'swr'
+import { TeamWithDefault } from '@/types/dashboard'
+import { useMetadataStore } from '../stores/metadata-store'
+import { useServerContext } from './use-server-context'
 
 // Fetcher function extracted so we can use it for preloading
 const teamsFetcher = async () => {
-  const response = await fetch("/api/teams/user");
+  const response = await fetch('/api/teams/user')
 
-  const json = await response.json();
+  const json = await response.json()
 
   if (!response.ok) {
-    throw new Error(json.error);
+    throw new Error(json.error)
   }
 
-  return json as TeamWithDefault[];
-};
+  return json as TeamWithDefault[]
+}
 
 // Preload teams data - call this as early as possible (e.g., in your root layout)
 export const preloadTeams = () => {
-  preload(QUERY_KEYS.TEAMS(), teamsFetcher);
-};
+  preload(QUERY_KEYS.TEAMS(), teamsFetcher)
+}
 
 export const useTeams = () => {
   const { data, error, isLoading, mutate } = useSWR(
@@ -36,8 +37,8 @@ export const useTeams = () => {
       ttl: 24 * 60 * 60 * 1000,
       suspense: true,
       fallbackData: [],
-    },
-  );
+    }
+  )
 
   return {
     data: data ?? [],
@@ -46,19 +47,19 @@ export const useTeams = () => {
     mutate,
     teams: data ?? [],
     refetch: () => {
-      return mutate();
+      return mutate()
     },
-  };
-};
+  }
+}
 
 export const useSelectedTeam = () => {
-  const { teams } = useTeams();
-  const { selectedTeamId } = useMetadataStore();
+  const { teams } = useTeams()
+  const { selectedTeamId } = useServerContext()
 
   const team = useMemo(
     () => teams?.find((team) => team.id === selectedTeamId),
-    [teams, selectedTeamId],
-  );
+    [teams, selectedTeamId]
+  )
 
-  return team;
-};
+  return team
+}

@@ -1,15 +1,16 @@
-import DashboardPageLayout from "@/features/dashboard/page-layout";
-import { CostCard } from "@/features/dashboard/usage/cost-card";
-import { RAMCard } from "@/features/dashboard/usage/ram-card";
-import UsageLimits from "@/features/dashboard/budget/usage-limits";
-import { VCPUCard } from "@/features/dashboard/usage/vcpu-card";
+import DashboardPageLayout from '@/features/dashboard/page-layout'
+import { CostCard } from '@/features/dashboard/usage/cost-card'
+import { RAMCard } from '@/features/dashboard/usage/ram-card'
+import { VCPUCard } from '@/features/dashboard/usage/vcpu-card'
+import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 
 export default async function UsagePage({
   params,
 }: {
-  params: Promise<{ teamId: string }>;
+  params: Promise<{ teamIdOrSlug: string }>
 }) {
-  const { teamId } = await params;
+  const { teamIdOrSlug } = await params
+  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   return (
     <DashboardPageLayout
@@ -29,5 +30,5 @@ export default async function UsagePage({
         className="col-span-1 min-h-[320px] border-b lg:col-span-6 lg:border-b-0"
       />
     </DashboardPageLayout>
-  );
+  )
 }

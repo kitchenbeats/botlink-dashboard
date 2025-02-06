@@ -1,34 +1,36 @@
-import Sidebar from "@/features/dashboard/sidebar/sidebar";
-import NetworkStateBanner from "@/ui/network-state-banner";
-import { DashboardTitleProvider } from "@/features/dashboard/dashboard-title-provider";
-import { Suspense } from "react";
-import { cookies } from "next/headers";
-import { COOKIE_KEYS } from "@/configs/keys";
-import TeamCollector from "@/features/dashboard/team-collector";
+import Sidebar from '@/features/dashboard/sidebar/sidebar'
+import NetworkStateBanner from '@/ui/network-state-banner'
+import { DashboardTitleProvider } from '@/features/dashboard/dashboard-title-provider'
+import { Suspense } from 'react'
+import { ServerContextProvider } from '@/lib/hooks/use-server-context'
+import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 
 interface DashboardLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
+  params: Promise<{
+    teamIdOrSlug: string
+  }>
 }
 
 export default async function DashboardLayout({
   children,
+  params,
 }: DashboardLayoutProps) {
-  const cookieStore = await cookies();
-  const selectedTeamId = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value;
+  const { teamIdOrSlug } = await params
+  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   return (
-    <div className="mx-auto flex h-svh max-h-full w-full flex-col">
-      <NetworkStateBanner />
-      <div className="flex h-full max-h-full w-full overflow-hidden">
-        <Sidebar className="max-md:hidden" />
-        <main className="flex-1">{children}</main>
-        <Suspense fallback={null}>
-          <DashboardTitleProvider />
-        </Suspense>
-        <Suspense fallback={null}>
-          <TeamCollector initialTeamId={selectedTeamId} />
-        </Suspense>
+    <ServerContextProvider teamId={teamId}>
+      <div className="mx-auto flex h-svh max-h-full w-full flex-col">
+        <NetworkStateBanner />
+        <div className="flex h-full max-h-full w-full overflow-hidden">
+          <Sidebar className="max-md:hidden" />
+          <main className="flex-1">{children}</main>
+          <Suspense fallback={null}>
+            <DashboardTitleProvider />
+          </Suspense>
+        </div>
       </div>
-    </div>
-  );
+    </ServerContextProvider>
+  )
 }

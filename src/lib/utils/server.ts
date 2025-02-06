@@ -14,6 +14,10 @@ import { cookies } from 'next/headers'
 import { unstable_noStore } from 'next/cache'
 import { COOKIE_KEYS } from '@/configs/keys'
 import { logger } from '../clients/logger'
+import { kv } from '@/lib/clients/kv'
+import { KV_KEYS } from '@/configs/keys'
+import { ERROR_CODES, INFO_CODES } from '@/configs/logs'
+import { getDefaultTeamRelation } from '@/server/auth/get-default-team'
 
 /*
  *  This function checks if the user is authenticated and returns the user and the supabase client.
@@ -309,4 +313,85 @@ export function guard<TInput, TOutput>(
  */
 export function bailOutFromPPR() {
   unstable_noStore()
+}
+
+/**
+ * Resolves a team identifier (UUID or slug) to a team ID.
+ * If the input is a valid UUID, returns it directly.
+ * If it's a slug, attempts to resolve it to an ID using Redis cache first, then database.
+ *
+ * @param identifier - Team UUID or slug
+ * @returns Promise<string> - Resolved team ID
+ * @throws E2BError if team not found or identifier invalid
+ */
+export async function resolveTeamId(identifier: string): Promise<string> {
+  // If identifier is UUID, return directly
+  if (z.string().uuid().safeParse(identifier).success) {
+    return identifier
+  }
+
+  // Try to get from cache first
+  const cacheKey = KV_KEYS.TEAM_SLUG_TO_ID(identifier)
+  const cachedId = await kv.get<string>(cacheKey)
+
+  if (cachedId) return cachedId
+
+  // Not in cache or invalid cache, query database
+  const { data: team, error } = await supabaseAdmin
+    .from('teams')
+    .select('id')
+    .eq('slug', identifier)
+    .single()
+
+  if (error || !team) {
+    logger.error(
+      {
+        code: ERROR_CODES.SELECTED_TEAM_RESOLUTION,
+        identifier,
+        error,
+      },
+      `Failed to resolve team ID from slug: ${identifier}`
+    )
+    throw new E2BError('INVALID_PARAMETERS', 'Invalid team identifier')
+  }
+  // Cache the result
+  await Promise.all([
+    kv.set(cacheKey, team.id, { ex: 60 * 60 }), // 1 hour
+    kv.set(KV_KEYS.TEAM_ID_TO_SLUG(team.id), identifier, { ex: 60 * 60 }),
+  ])
+
+  return team.id
+}
+
+/**
+ * Resolves a team identifier (UUID or slug) to a team ID.
+ * If the input is a valid UUID, returns it directly.
+ * If it's a slug, attempts to resolve it to an ID using Redis cache first, then database.
+ *
+ * This function should be used in page components rather than client components for better performance,
+ * as it avoids unnecessary database queries by checking cookies first.
+ *
+ * @param identifier - Team UUID or slug
+ * @returns Promise<string> - Resolved team ID
+ */
+export async function resolveTeamIdInServerComponent(identifier: string) {
+  const cookiesStore = await cookies()
+
+  let teamId = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
+
+  if (!teamId) {
+    // Middleware should prevent this case, but just in case
+    teamId = await resolveTeamId(identifier)
+    cookiesStore.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId)
+
+    logger.info(
+      INFO_CODES.EXPENSIVE_OPERATION,
+      'Resolving teamId resolution in server component from data sources',
+      {
+        identifier,
+        teamId,
+      }
+    )
+  }
+  return teamId
 }

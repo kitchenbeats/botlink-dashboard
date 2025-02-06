@@ -7,67 +7,67 @@ import {
   LucideSheet,
   User,
   Users,
-} from "lucide-react";
-import { ForwardRefExoticComponent } from "react";
+} from 'lucide-react'
+import { ForwardRefExoticComponent } from 'react'
 
 type DashboardNavLinkArgs = {
-  teamId?: string;
-};
+  teamIdOrSlug?: string
+}
 
 export type DashboardNavLink = {
-  label: string;
-  href: (args: DashboardNavLinkArgs) => string;
-  icon: ForwardRefExoticComponent<any>;
-  group?: string;
-  goesDeeper?: boolean;
-};
+  label: string
+  href: (args: DashboardNavLinkArgs) => string
+  icon: ForwardRefExoticComponent<any>
+  group?: string
+  goesDeeper?: boolean
+}
 
 export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
   {
-    label: "Sandboxes",
-    href: (args) => `/dashboard/${args.teamId}/sandboxes`,
+    label: 'Sandboxes',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/sandboxes`,
     icon: Blocks,
   },
   {
-    label: "Templates",
-    href: (args) => `/dashboard/${args.teamId}/templates`,
+    label: 'Templates',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/templates`,
     icon: LucideSheet,
   },
   {
-    label: "Usage",
-    href: (args) => `/dashboard/${args.teamId}/usage`,
+    label: 'Usage',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/usage`,
     icon: BarChart,
   },
 
   {
-    label: "General",
-    href: (args) => `/dashboard/${args.teamId}/general`,
+    label: 'General',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/general`,
     icon: Users,
-    group: "team",
+    group: 'team',
   },
   {
-    label: "API Keys",
-    href: (args) => `/dashboard/${args.teamId}/keys`,
+    label: 'API Keys',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/keys`,
     icon: Key,
-    group: "team",
+    group: 'team',
   },
   {
-    label: "Billing",
-    href: (args) => `/dashboard/${args.teamId}/billing`,
+    label: 'Billing',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/billing`,
     icon: CreditCard,
-    group: "team",
+    group: 'team',
   },
   {
-    label: "Budget",
-    href: (args) => `/dashboard/${args.teamId}/budget`,
+    label: 'Budget',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/budget`,
     icon: DollarSign,
-    group: "team",
+    group: 'team',
   },
 
   {
-    label: "Account",
+    label: 'Account',
     href: () => `/dashboard/account`,
     icon: User,
-    group: "personal",
+    group: 'personal',
   },
-];
+]

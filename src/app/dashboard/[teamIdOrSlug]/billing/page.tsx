@@ -1,19 +1,19 @@
-import { CardDescription, CardTitle } from "@/ui/primitives/card";
-import { TIERS } from "@/configs/tiers";
-import BillingTierCard from "@/features/dashboard/billing/tier-card";
-import { Suspense } from "react";
-import CustomerPortalLink from "@/features/dashboard/billing/customer-portal-link";
-import DashboardPageLayout from "@/features/dashboard/page-layout";
-import BillingInvoicesTable from "@/features/dashboard/billing/invoices-table";
-import CreditsCard from "@/features/dashboard/budget/credits-card";
-import UsageLimits from "@/features/dashboard/budget/usage-limits";
+import { CardDescription, CardTitle } from '@/ui/primitives/card'
+import { TIERS } from '@/configs/tiers'
+import BillingTierCard from '@/features/dashboard/billing/tier-card'
+import { Suspense } from 'react'
+import CustomerPortalLink from '@/features/dashboard/billing/customer-portal-link'
+import DashboardPageLayout from '@/features/dashboard/page-layout'
+import BillingInvoicesTable from '@/features/dashboard/billing/invoices-table'
+import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 
 export default async function BillingPage({
   params,
 }: {
-  params: Promise<{ teamId: string }>;
+  params: Promise<{ teamIdOrSlug: string }>
 }) {
-  const { teamId } = await params;
+  const { teamIdOrSlug } = await params
+  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   return (
     <DashboardPageLayout
@@ -34,7 +34,7 @@ export default async function BillingPage({
             <BillingTierCard
               key={tier.id}
               tier={tier}
-              isHighlighted={tier.id === "pro_v1"}
+              isHighlighted={tier.id === 'pro_v1'}
               className="min-w-[280px] shadow-xl lg:w-1/2 xl:min-w-0"
             />
           ))}
@@ -59,5 +59,5 @@ export default async function BillingPage({
         </div>
       </section>
     </DashboardPageLayout>
-  );
+  )
 }

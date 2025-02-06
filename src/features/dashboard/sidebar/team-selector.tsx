@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Select,
@@ -8,39 +8,37 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/ui/primitives/select";
-import { useSelectedTeam, useTeams } from "@/lib/hooks/use-teams";
-import {
-  useRouter,
-  useSelectedLayoutSegment,
-  useSelectedLayoutSegments,
-} from "next/navigation";
-import { useMemo } from "react";
-import { Loader } from "@/ui/loader";
-import Dotted from "@/ui/dotted";
-import { PROTECTED_URLS } from "@/configs/urls";
+} from '@/ui/primitives/select'
+import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
+import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
+import { Loader } from '@/ui/loader'
+import Dotted from '@/ui/dotted'
+import { PROTECTED_URLS } from '@/configs/urls'
 
 export default function TeamSelector() {
-  const { teams: loadedTeams } = useTeams();
-  const selectedTeam = useSelectedTeam();
-  const router = useRouter();
-  const l = useSelectedLayoutSegments();
+  const { teams: loadedTeams } = useTeams()
+  const selectedTeam = useSelectedTeam()
+  const router = useRouter()
 
   const defaultTeam = useMemo(
     () => loadedTeams.find((team) => team.is_default),
-    [loadedTeams],
-  );
+    [loadedTeams]
+  )
 
   const teams = useMemo(
     () => loadedTeams.filter((team) => team.id !== defaultTeam?.id) ?? [],
-    [loadedTeams, defaultTeam],
-  );
+    [loadedTeams, defaultTeam]
+  )
 
   return (
     <Select
       value={selectedTeam?.id}
-      onValueChange={(value) => {
-        router.push(PROTECTED_URLS.SANDBOXES(value));
+      onValueChange={(teamId) => {
+        const team = loadedTeams.find((team) => team.id === teamId)
+
+        router.push(PROTECTED_URLS.SANDBOXES(team?.slug || teamId))
+        router.refresh()
       }}
     >
       <SelectTrigger className="h-auto w-full border px-2 py-1 pr-4 hover:bg-bg-100">
@@ -84,5 +82,5 @@ export default function TeamSelector() {
         )}
       </SelectContent>
     </Select>
-  );
+  )
 }

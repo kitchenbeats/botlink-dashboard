@@ -14,7 +14,7 @@
     "start:scan": "bun start & bun scan",
 
     "# Database": "",
-    "db:types": "bunx supabase@latest gen types typescript --schema public > src/types/database.types.ts --project-id \"$1\"",
+    "db:types": "bunx supabase@latest gen types typescript --schema public > src/types/database.types.ts --project-id $SUPABASE_PROJECT_ID",
     "db:migration": "bun scripts/create-migration.ts",
 
     "# Development": "",

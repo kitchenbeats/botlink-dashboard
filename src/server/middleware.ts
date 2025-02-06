@@ -1,115 +1,194 @@
-import { checkUserTeamAuthorization } from "@/lib/utils/server";
-import { kv } from "@/lib/clients/kv";
-import { KV_KEYS } from "@/configs/keys";
-import { NextRequest, NextResponse } from "next/server";
-import { replaceUrls } from "@/configs/domains";
+import { checkUserTeamAuthorization, resolveTeamId } from '@/lib/utils/server'
+import { kv } from '@/lib/clients/kv'
+import { KV_KEYS } from '@/configs/keys'
+import { NextRequest, NextResponse } from 'next/server'
+import { replaceUrls } from '@/configs/domains'
+import { COOKIE_KEYS } from '@/configs/keys'
+import { PROTECTED_URLS } from '@/configs/urls'
+import { logger } from '@/lib/clients/logger'
+import { INFO_CODES, ERROR_CODES } from '@/configs/logs'
+import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { z } from 'zod'
 
-/** Cache TTL in seconds for team access results */
-const CACHE_TTL = 60 * 60; // 1 hour
-
-/**
- * Checks if a user has access to a team, with caching for performance.
- *
- * This function first checks a Redis cache for the user-team access result.
- * If not found in cache, it performs a fresh authorization check and caches
- * the result for 1 hour.
- *
- * @param userId - The ID of the user to check access for
- * @param teamId - The ID of the team to check access to
- * @returns Promise<boolean> - Whether the user has access to the team
- */
-export const cachedUserTeamAccess = async (userId: string, teamId: string) => {
-  const cacheKey = KV_KEYS.USER_TEAM_ACCESS(userId, teamId);
-  const [result] = await kv.mget(cacheKey);
-
-  if (result !== null) {
-    if (typeof result === "boolean") {
-      return result;
-    }
-    return result === "true";
-  }
-
-  const isAuthorized = await checkUserTeamAuthorization(userId, teamId);
-
-  await kv.set(cacheKey, isAuthorized, {
-    ex: CACHE_TTL,
-  });
-
-  return isAuthorized;
-};
-
-interface HostnameMapping {
-  landingPage: string;
-  landingPageFramer: string;
-  blogFramer: string;
-  docsNext: string;
+const COOKIE_OPTIONS = {
+  maxAge: 60 * 60 * 24 * 30, // 30 days
+  path: '/',
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
 }
 
 /**
- * Handles URL rewrites and content modifications for specific paths.
- * Returns null if no rewrite is needed.
- *
- * @param request - The incoming Next.js request
- * @param hostnames - Mapping of hostnames for different environments
- * @returns Promise<NextResponse | null> - The rewritten response or null
+ * Core function to resolve team ID and ensure access for dashboard routes.
+ * Handles both direct team ID access and default team resolution.
+ */
+export async function resolveTeamForDashboard(
+  request: NextRequest,
+  userId: string
+): Promise<{ teamId?: string; teamSlug?: string; redirect?: string }> {
+  // Extract teamIdOrSlug from URL if present
+  const segments = request.nextUrl.pathname.split('/')
+  const teamIdOrSlug = segments.length > 2 ? segments[2] : null
+  const currentTeamId = request.cookies.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
+  const currentTeamSlug = request.cookies.get(
+    COOKIE_KEYS.SELECTED_TEAM_SLUG
+  )?.value
+
+  // Case 1: URL contains team identifier
+  if (teamIdOrSlug && teamIdOrSlug !== 'account') {
+    try {
+      const teamId = await resolveTeamId(teamIdOrSlug)
+      const hasAccess = await checkUserTeamAccess(userId, teamId)
+
+      if (!hasAccess) {
+        logger.info(INFO_CODES.ACCESS_DENIED, 'User denied access to team', {
+          userId,
+          teamId,
+        })
+        return { redirect: PROTECTED_URLS.DASHBOARD }
+      }
+
+      // If teamIdOrSlug was a slug, use it, otherwise get it from cache
+      const teamSlug = z.string().uuid().safeParse(teamIdOrSlug).success
+        ? (await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(teamId))) || undefined
+        : teamIdOrSlug || undefined
+
+      return { teamId, teamSlug }
+    } catch (error) {
+      logger.error(ERROR_CODES.TEAM_RESOLUTION, 'Failed to resolve team', {
+        error,
+        teamIdOrSlug,
+      })
+      return { redirect: PROTECTED_URLS.DASHBOARD }
+    }
+  }
+
+  // Case 2: No team in URL, try cookie
+  if (currentTeamId) {
+    const hasAccess = await checkUserTeamAccess(userId, currentTeamId)
+    if (hasAccess) {
+      // Use cached slug or fetch it
+      const teamSlug =
+        currentTeamSlug ||
+        (await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(currentTeamId))) ||
+        undefined
+
+      return {
+        teamId: currentTeamId,
+        teamSlug,
+        redirect:
+          teamIdOrSlug === 'account'
+            ? undefined
+            : PROTECTED_URLS.SANDBOXES(teamSlug || currentTeamId),
+      }
+    }
+  }
+
+  // Case 3: Fall back to default team
+  logger.info(INFO_CODES.EXPENSIVE_OPERATION, 'Resolving default team', {
+    userId,
+  })
+
+  const { data: teamsData } = await supabaseAdmin
+    .from('users_teams')
+    .select('team_id, is_default, team:teams(slug)')
+    .eq('user_id', userId)
+
+  if (!teamsData?.length) {
+    return {
+      redirect: PROTECTED_URLS.NEW_TEAM,
+    }
+  }
+
+  const defaultTeam = teamsData.find((t) => t.is_default) || teamsData[0]
+  return {
+    teamId: defaultTeam.team_id,
+    teamSlug: defaultTeam.team?.slug || undefined,
+    redirect:
+      teamIdOrSlug === 'account'
+        ? undefined
+        : PROTECTED_URLS.SANDBOXES(
+            defaultTeam.team?.slug || defaultTeam.team_id
+          ),
+  }
+}
+
+/**
+ * Checks user access to team with caching
+ */
+async function checkUserTeamAccess(
+  userId: string,
+  teamId: string
+): Promise<boolean> {
+  const cacheKey = KV_KEYS.USER_TEAM_ACCESS(userId, teamId)
+  const cached = await kv.get<boolean>(cacheKey)
+
+  if (cached !== null) return cached
+
+  const hasAccess = await checkUserTeamAuthorization(userId, teamId)
+  await kv.set(cacheKey, hasAccess, { ex: 60 * 60 }) // 1 hour
+
+  return hasAccess
+}
+
+/**
+ * Handles URL rewrites for static pages and content modifications
  */
 export const handleUrlRewrites = async (
   request: NextRequest,
-  hostnames: HostnameMapping,
+  hostnames: {
+    landingPage: string
+    landingPageFramer: string
+    blogFramer: string
+    docsNext: string
+  }
 ): Promise<NextResponse | null> => {
-  if (request.method !== "GET") return null;
+  if (request.method !== 'GET') return null
 
-  const url = new URL(request.nextUrl.toString());
-  url.protocol = "https";
-  url.port = "";
+  const url = new URL(request.nextUrl.toString())
+  url.protocol = 'https'
+  url.port = ''
 
-  // Handle root path
-  if (url.pathname === "" || url.pathname === "/") {
-    url.hostname = hostnames.landingPage;
+  // Static page mappings
+  const hostnameMap = {
+    '': hostnames.landingPage,
+    '/': hostnames.landingPage,
+    '/terms': hostnames.landingPage,
+    '/privacy': hostnames.landingPage,
+    '/pricing': hostnames.landingPage,
+    '/cookbook': hostnames.landingPage,
+    '/changelog': hostnames.landingPage,
+    '/blog': hostnames.landingPage,
+    '/ai-agents': hostnames.landingPageFramer,
+    '/docs': hostnames.docsNext,
   }
 
-  // Static page rewrites
-  const landingPagePaths = [
-    "/terms",
-    "/privacy",
-    "/pricing",
-    "/cookbook",
-    "/changelog",
-  ];
-  if (landingPagePaths.some((path) => url.pathname.startsWith(path))) {
-    url.hostname = hostnames.landingPage;
-  }
+  const matchingPath = Object.keys(hostnameMap).find(
+    (path) => url.pathname === path || url.pathname.startsWith(path + '/')
+  )
 
-  // Special case for AI agents page
-  if (url.pathname.startsWith("/ai-agents")) {
-    url.hostname = hostnames.landingPageFramer;
-  }
-
-  // Blog rewrites
-  if (url.pathname.startsWith("/blog")) {
-    url.hostname = hostnames.landingPage;
-  }
-
-  if (url.pathname.startsWith("/docs")) {
-    url.hostname = hostnames.docsNext;
+  if (matchingPath) {
+    url.hostname = hostnameMap[matchingPath as keyof typeof hostnameMap]
   }
 
   if (url.hostname === request.nextUrl.hostname) {
-    return null;
+    return null
   }
 
   try {
-    const res = await fetch(url.toString(), { ...request });
-    const htmlBody = await res.text();
-    let modifiedHtmlBody = replaceUrls(htmlBody, url.pathname, 'href="', '">');
+    const res = await fetch(url.toString(), { ...request })
+    const htmlBody = await res.text()
+    const modifiedHtmlBody = replaceUrls(htmlBody, url.pathname, 'href="', '">')
 
     return new NextResponse(modifiedHtmlBody, {
       status: res.status,
       statusText: res.statusText,
       headers: res.headers,
-      url: request.url,
-    });
+    })
   } catch (error) {
-    return null;
+    logger.error(ERROR_CODES.URL_REWRITE, 'URL rewrite failed', {
+      error,
+      url: url.toString(),
+    })
+    return null
   }
-};
+}
