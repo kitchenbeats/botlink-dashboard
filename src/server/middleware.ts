@@ -25,6 +25,16 @@ export async function resolveTeamForDashboard(
   request: NextRequest,
   userId: string
 ): Promise<{ teamId?: string; teamSlug?: string; redirect?: string }> {
+  logger.info(INFO_CODES.TEAM_RESOLUTION, 'Starting team resolution', {
+    url: request.url,
+    userId,
+  })
+
+  // Early return for new team route to prevent redirect loop
+  if (request.nextUrl.pathname === PROTECTED_URLS.NEW_TEAM) {
+    return {}
+  }
+
   // Extract teamIdOrSlug from URL if present
   const segments = request.nextUrl.pathname.split('/')
   const teamIdOrSlug = segments.length > 2 ? segments[2] : null
