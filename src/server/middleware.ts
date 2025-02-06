@@ -18,13 +18,27 @@ import { cookies } from 'next/headers'
 export async function resolveTeamForDashboard(
   request: NextRequest,
   userId: string
-): Promise<{ teamId?: string; teamSlug?: string; redirect?: string }> {
+): Promise<{
+  teamId?: string
+  teamSlug?: string
+  redirect?: string
+  allowAccess?: boolean
+}> {
   logger.info(INFO_CODES.TEAM_RESOLUTION, 'Starting team resolution', {
     url: request.url,
     userId,
     pathname: request.nextUrl.pathname,
     cookies: (await cookies()).getAll(),
   })
+
+  // Early returns for special protected routes to prevent loops
+  if (request.nextUrl.pathname === PROTECTED_URLS.NEW_TEAM) {
+    logger.debug('Early return for special route', {
+      pathname: request.nextUrl.pathname,
+    })
+    // Return allowAccess: true to indicate this route should be allowed without team check
+    return { allowAccess: true }
+  }
 
   // Extract teamIdOrSlug from URL if present
   const segments = request.nextUrl.pathname.split('/')

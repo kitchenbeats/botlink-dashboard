@@ -83,10 +83,13 @@ export async function middleware(request: NextRequest) {
     }
 
     // 4. Handle team resolution for all dashboard routes
-    const { teamId, teamSlug, redirect } = await resolveTeamForDashboard(
-      request,
-      data.user.id
-    )
+    const { teamId, teamSlug, redirect, allowAccess } =
+      await resolveTeamForDashboard(request, data.user.id)
+
+    // Allow special routes to bypass team checks
+    if (allowAccess) {
+      return response
+    }
 
     if (!teamId) {
       // No valid team access, redirect to dashboard
