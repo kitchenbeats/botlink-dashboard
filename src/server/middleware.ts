@@ -24,7 +24,7 @@ export async function resolveTeamForDashboard(
   redirect?: string
   allowAccess?: boolean
 }> {
-  logger.info(INFO_CODES.TEAM_RESOLUTION, 'Starting team resolution', {
+  logger.debug('Starting team resolution', {
     url: request.url,
     userId,
     pathname: request.nextUrl.pathname,
@@ -66,7 +66,7 @@ export async function resolveTeamForDashboard(
       logger.debug('Checked team access', { userId, teamId, hasAccess })
 
       if (!hasAccess) {
-        logger.info(INFO_CODES.ACCESS_DENIED, 'User denied access to team', {
+        logger.debug('User denied access to team', {
           userId,
           teamId,
         })
@@ -123,7 +123,7 @@ export async function resolveTeamForDashboard(
   }
 
   // Case 3: Fall back to default team
-  logger.info(INFO_CODES.EXPENSIVE_OPERATION, 'Resolving default team', {
+  logger.debug('Resolving default team', {
     userId,
   })
   const { data: teamsData, error: teamsError } = await supabaseAdmin

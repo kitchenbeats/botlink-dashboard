@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD) &&
       error
     ) {
-      logger.info(INFO_CODES.AUTH_REDIRECT, 'Redirecting to sign in', {
+      logger.debug(INFO_CODES.AUTH_REDIRECT, 'Redirecting to sign in', {
         url: request.url,
         error: error.message,
       })
