@@ -1,10 +1,21 @@
-import { ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronRight, Settings2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import { User } from '@supabase/supabase-js'
+import { cn } from '@/lib/utils'
 
-export default function UserDetailsTile({ user }: { user: User }) {
+interface UserDetailsTileProps {
+  user: User
+  className?: string
+}
+
+export default function UserDetailsTile({
+  user,
+  className,
+}: UserDetailsTileProps) {
   return (
-    <div className="relative flex items-center gap-2 pr-2">
+    <div
+      className={cn('group relative flex items-center gap-2 pr-4', className)}
+    >
       <Avatar className="size-9">
         <AvatarImage src={user.user_metadata.avatar_url} />
         <AvatarFallback>
@@ -12,14 +23,14 @@ export default function UserDetailsTile({ user }: { user: User }) {
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-1 flex-col normal-case">
-        <div className="max-w-[120px] truncate whitespace-nowrap text-fg-200">
+        <h6 className="max-w-[140px] truncate whitespace-nowrap text-sm text-fg-300 transition-colors group-hover:text-fg">
           {user.user_metadata.name}
-        </div>
-        <div className="max-w-[140px] truncate whitespace-nowrap font-sans text-fg-300">
+        </h6>
+        <span className="max-w-[160px] truncate whitespace-nowrap font-sans text-xs text-fg-500 transition-colors group-hover:text-fg-300">
           {user.email}
-        </div>
+        </span>
       </div>
-      <ChevronRight className="absolute right-0 top-0 size-4 -rotate-45 text-accent" />
+      <Settings2 className="absolute right-0 top-1/2 size-4 -translate-y-1/2 text-accent" />
     </div>
   )
 }

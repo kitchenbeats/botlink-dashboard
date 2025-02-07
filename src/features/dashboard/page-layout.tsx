@@ -1,13 +1,9 @@
 import { ThemeSwitcher } from '@/ui/theme-switcher'
 import { cn } from '@/lib/utils'
-import UserMenu from '@/features/auth/user-menu'
 import { Suspense } from 'react'
-import { createClient } from '@/lib/clients/supabase/server'
-import { cookies } from 'next/headers'
-import { COOKIE_KEYS } from '@/configs/keys'
-import { Skeleton } from '@/ui/primitives/skeleton'
 import SidebarMobile from './sidebar/sidebar-mobile'
 import Frame from '@/ui/frame'
+import DashboardSearch from './sidebar/search'
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode
@@ -38,9 +34,6 @@ export default async function DashboardPageLayout({
 
           <Suspense fallback={null}>
             <ThemeSwitcher />
-          </Suspense>
-          <Suspense fallback={<Skeleton className="size-8" />}>
-            <UserMenuWrapper />
           </Suspense>
         </div>
       </div>
@@ -111,16 +104,4 @@ function MobileContent({ children, className }: ContentProps) {
       {children}
     </div>
   )
-}
-
-async function UserMenuWrapper() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const apiDomain = (await cookies()).get(COOKIE_KEYS.API_DOMAIN)?.value
-
-  return <UserMenu user={user!} apiDomain={apiDomain} />
 }

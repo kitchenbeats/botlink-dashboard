@@ -46,31 +46,24 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
     label: 'General',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/general`,
     icon: Users,
-    group: 'team',
+    group: 'manage',
   },
   {
     label: 'API Keys',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/keys`,
     icon: Key,
-    group: 'team',
+    group: 'manage',
   },
   {
     label: 'Billing',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/billing`,
     icon: CreditCard,
-    group: 'team',
+    group: 'expenses',
   },
   {
     label: 'Budget',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/budget`,
+    group: 'expenses',
     icon: DollarSign,
-    group: 'team',
-  },
-
-  {
-    label: 'Account',
-    href: () => `/dashboard/account`,
-    icon: User,
-    group: 'personal',
   },
 ]

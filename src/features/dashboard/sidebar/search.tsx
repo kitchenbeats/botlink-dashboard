@@ -46,8 +46,8 @@ export default function Search({ className }: SearchProps) {
   return (
     <div className="relative">
       <Input
-        className={cn('h-10 w-full pr-12', className)}
-        placeholder="JUMP TO"
+        className={cn('h-10 w-full border-none pr-12', className)}
+        placeholder="QUICK NAVIGATE"
         onClick={() => setOpen(true)}
         readOnly
       />

@@ -31,7 +31,7 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
         <DropdownMenuTrigger asChild>
           <Button
             size="iconSm"
-            className="min-h-8 min-w-8 cursor-pointer"
+            className="min-h-8 min-w-8 cursor-pointer before:absolute before:inset-0 before:z-10 before:bg-black/30 before:content-['']"
             variant="ghost"
             asChild
           >

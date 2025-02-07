@@ -16,8 +16,14 @@ import { useMemo } from 'react'
 import { Loader } from '@/ui/loader'
 import Dotted from '@/ui/dotted'
 import { PROTECTED_URLS } from '@/configs/urls'
+import { cn } from '@/lib/utils'
+import { GradientBorder } from '@/ui/gradient-border'
 
-export default function TeamSelector() {
+interface TeamSelectorProps {
+  className?: string
+}
+
+export default function TeamSelector({ className }: TeamSelectorProps) {
   const { teams: loadedTeams } = useTeams()
   const selectedTeam = useSelectedTeam()
   const router = useRouter()
@@ -42,13 +48,18 @@ export default function TeamSelector() {
         router.refresh()
       }}
     >
-      <SelectTrigger className="h-auto w-full border px-2 py-1 pr-4 hover:bg-bg-100">
+      <SelectTrigger
+        className={cn(
+          'h-auto w-full rounded-sm border-0 px-2 py-1 pr-4 hover:bg-bg-100',
+          className
+        )}
+      >
         <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden text-ellipsis">
-          <div className="relative size-8 min-w-8 rounded-md border">
+          <div className="relative size-9 min-w-9 rounded-md border bg-bg-200">
             <Dotted />
           </div>
           <div className="flex flex-col items-start truncate pb-px">
-            <span className="-mb-1 truncate text-[0.65rem] text-fg-500">
+            <span className="-mb-1 truncate text-[0.65rem] text-accent-200">
               TEAM
             </span>
             {selectedTeam ? (
@@ -62,9 +73,9 @@ export default function TeamSelector() {
           </div>
         </div>
       </SelectTrigger>
-      <SelectContent className="p-0">
+      <SelectContent collisionPadding={0} className="p-0">
         {defaultTeam && (
-          <SelectGroup className="px-2 pb-1 first:pt-2">
+          <SelectGroup className="w-full px-2 pb-1 first:pt-2">
             <SelectLabel>Personal</SelectLabel>
             <SelectItem key={defaultTeam.id} value={defaultTeam.id}>
               {defaultTeam.name}
@@ -73,7 +84,7 @@ export default function TeamSelector() {
         )}
         <SelectSeparator />
         {teams.length > 0 && (
-          <SelectGroup className="px-2 pt-1 last:pb-2">
+          <SelectGroup className="w-full px-2 pt-1 last:pb-2">
             <SelectLabel>Teams</SelectLabel>
             {teams.map((team) => (
               <SelectItem key={team.id} value={team.id}>
