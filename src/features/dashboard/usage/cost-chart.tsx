@@ -1,22 +1,22 @@
-"use client";
+'use client'
 
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/ui/primitives/chart";
-import { Area, AreaChart, XAxis, YAxis } from "recharts";
+} from '@/ui/primitives/chart'
+import { Area, AreaChart, XAxis, YAxis } from 'recharts'
 import {
   chartConfig,
   commonChartProps,
   commonXAxisProps,
   commonYAxisProps,
-} from "./chart-config";
+} from './chart-config'
 
 type ChartData = {
-  x: string;
-  y: number;
-}[];
+  x: string
+  y: number
+}[]
 
 export function CostChart({ data }: { data: ChartData }) {
   return (
@@ -32,17 +32,17 @@ export function CostChart({ data }: { data: ChartData }) {
         <YAxis {...commonYAxisProps} tickFormatter={(value) => `$${value}`} />
         <ChartTooltip
           content={({ active, payload }) => {
-            if (!active || !payload) return null;
+            if (!active || !payload) return null
             return (
               <ChartTooltipContent
                 formatter={(value) => [
                   <span key="value">${Number(value).toFixed(2)}</span>,
-                  "Cost",
+                  'Cost',
                 ]}
                 payload={payload}
                 active={active}
               />
-            );
+            )
           }}
         />
         <Area
@@ -54,5 +54,5 @@ export function CostChart({ data }: { data: ChartData }) {
         />
       </AreaChart>
     </ChartContainer>
-  );
+  )
 }

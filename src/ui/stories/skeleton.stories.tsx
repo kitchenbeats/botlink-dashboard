@@ -1,17 +1,17 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Skeleton } from "../primitives/skeleton";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Skeleton } from '../primitives/skeleton'
 
 const meta = {
-  title: "UI/Skeleton",
+  title: 'UI/Skeleton',
   component: Skeleton,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Skeleton>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Skeleton>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const ProfileCard: Story = {
   render: () => (
@@ -23,4 +23,4 @@ export const ProfileCard: Story = {
       </div>
     </div>
   ),
-};
+}

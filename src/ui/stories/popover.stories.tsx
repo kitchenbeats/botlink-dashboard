@@ -1,21 +1,21 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Popover, PopoverContent, PopoverTrigger } from "../primitives/popover";
-import { Button } from "../primitives/button";
-import { Settings, Calendar } from "lucide-react";
-import { Input } from "../primitives/input";
-import { Label } from "../primitives/label";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Popover, PopoverContent, PopoverTrigger } from '../primitives/popover'
+import { Button } from '../primitives/button'
+import { Settings, Calendar } from 'lucide-react'
+import { Input } from '../primitives/input'
+import { Label } from '../primitives/label'
 
 const meta = {
-  title: "UI/Popover",
+  title: 'UI/Popover',
   component: Popover,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Popover>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Popover>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   render: () => (
@@ -45,7 +45,7 @@ export const Default: Story = {
       </PopoverContent>
     </Popover>
   ),
-};
+}
 
 export const WithIcon: Story = {
   render: () => (
@@ -67,7 +67,7 @@ export const WithIcon: Story = {
       </PopoverContent>
     </Popover>
   ),
-};
+}
 
 export const DatePicker: Story = {
   render: () => (
@@ -90,4 +90,4 @@ export const DatePicker: Story = {
       </PopoverContent>
     </Popover>
   ),
-};
+}

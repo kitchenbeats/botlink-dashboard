@@ -1,1 +1,1 @@
-export { default } from "@/features/dashboard/loading-layout";
+export { default } from '@/features/dashboard/loading-layout'

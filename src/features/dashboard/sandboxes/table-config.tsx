@@ -26,7 +26,12 @@ export type SandboxWithMetrics = Sandbox & { metrics: SandboxMetrics[] }
 
 // FILTERS
 
-export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+export const fuzzyFilter: FilterFn<unknown> = (
+  row,
+  columnId,
+  value,
+  addMeta
+) => {
   const itemRank = rankItem(row.getValue(columnId), value)
 
   addMeta({
@@ -80,7 +85,7 @@ export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
 
 export const fallbackData: SandboxWithMetrics[] = []
 
-export const useColumns = (deps: any[]) => {
+export const useColumns = (deps: unknown[]) => {
   return useMemo<ColumnDef<SandboxWithMetrics>[]>(
     () => [
       {

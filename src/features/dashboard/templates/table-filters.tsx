@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   DropdownMenu,
@@ -10,36 +10,36 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/ui/primitives/dropdown-menu";
-import { Button } from "@/ui/primitives/button";
-import { FilterIcon } from "lucide-react";
-import { TableFilterButton } from "@/ui/table-filter-button";
-import { Slider } from "@/ui/primitives/slider";
-import { Label } from "@/ui/primitives/label";
-import { Separator } from "@/ui/primitives/separator";
-import { useDebounceValue } from "usehooks-ts";
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { useTemplateTableStore } from "./stores/table-store";
+} from '@/ui/primitives/dropdown-menu'
+import { Button } from '@/ui/primitives/button'
+import { FilterIcon } from 'lucide-react'
+import { TableFilterButton } from '@/ui/table-filter-button'
+import { Slider } from '@/ui/primitives/slider'
+import { Label } from '@/ui/primitives/label'
+import { Separator } from '@/ui/primitives/separator'
+import { useDebounceValue } from 'usehooks-ts'
+import * as React from 'react'
+import { cn } from '@/lib/utils'
+import { useTemplateTableStore } from './stores/table-store'
 
 // Components
 const ResourcesFilter = () => {
   const { cpuCount, setCpuCount, memoryMB, setMemoryMB } =
-    useTemplateTableStore();
+    useTemplateTableStore()
 
-  const [localCpuCount, setLocalCpuCount] = React.useState(cpuCount || 0);
-  const [localMemoryMB, setLocalMemoryMB] = React.useState(memoryMB || 0);
+  const [localCpuCount, setLocalCpuCount] = React.useState(cpuCount || 0)
+  const [localMemoryMB, setLocalMemoryMB] = React.useState(memoryMB || 0)
 
-  const [debouncedCpuCount] = useDebounceValue(localCpuCount, 300);
-  const [debouncedMemoryMB] = useDebounceValue(localMemoryMB, 300);
-
-  React.useEffect(() => {
-    setCpuCount(debouncedCpuCount || undefined);
-  }, [debouncedCpuCount, setCpuCount]);
+  const [debouncedCpuCount] = useDebounceValue(localCpuCount, 300)
+  const [debouncedMemoryMB] = useDebounceValue(localMemoryMB, 300)
 
   React.useEffect(() => {
-    setMemoryMB(debouncedMemoryMB || undefined);
-  }, [debouncedMemoryMB, setMemoryMB]);
+    setCpuCount(debouncedCpuCount || undefined)
+  }, [debouncedCpuCount, setCpuCount])
+
+  React.useEffect(() => {
+    setMemoryMB(debouncedMemoryMB || undefined)
+  }, [debouncedMemoryMB, setMemoryMB])
 
   return (
     <div className="w-80 p-4">
@@ -49,7 +49,7 @@ const ResourcesFilter = () => {
           <div className="flex items-center justify-between">
             <Label>CPU Cores</Label>
             <span className="text-xs text-accent">
-              {localCpuCount === 0 ? "Off" : `${localCpuCount} cores`}
+              {localCpuCount === 0 ? 'Off' : `${localCpuCount} cores`}
             </span>
           </div>
           <Slider
@@ -66,7 +66,7 @@ const ResourcesFilter = () => {
           <div className="flex items-center justify-between">
             <Label>Memory</Label>
             <span className="text-xs text-accent">
-              {localMemoryMB === 0 ? "Off" : `${localMemoryMB} MB`}
+              {localMemoryMB === 0 ? 'Off' : `${localMemoryMB} MB`}
             </span>
           </div>
           <Slider
@@ -79,10 +79,12 @@ const ResourcesFilter = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Main component
+
+ 
 export interface TemplatesTableFiltersProps
   extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -103,12 +105,12 @@ const TemplatesTableFilters = React.forwardRef<
     setIsPublic,
     setCreatedAfter,
     setCreatedBefore,
-  } = useTemplateTableStore();
+  } = useTemplateTableStore()
 
   return (
     <div
       ref={ref}
-      className={cn("flex items-center gap-2", className)}
+      className={cn('flex items-center gap-2', className)}
       {...props}
     >
       <DropdownMenu>
@@ -132,19 +134,19 @@ const TemplatesTableFilters = React.forwardRef<
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem
-                  className={isPublic === true ? "text-accent" : undefined}
+                  className={isPublic === true ? 'text-accent' : undefined}
                   onClick={(e) => {
-                    e.preventDefault();
-                    setIsPublic(isPublic === true ? undefined : true);
+                    e.preventDefault()
+                    setIsPublic(isPublic === true ? undefined : true)
                   }}
                 >
                   Public
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className={isPublic === false ? "text-accent" : undefined}
+                  className={isPublic === false ? 'text-accent' : undefined}
                   onClick={(e) => {
-                    e.preventDefault();
-                    setIsPublic(isPublic === false ? undefined : false);
+                    e.preventDefault()
+                    setIsPublic(isPublic === false ? undefined : false)
                   }}
                 >
                   Private
@@ -160,7 +162,7 @@ const TemplatesTableFilters = React.forwardRef<
         <TableFilterButton
           label="Search"
           value={globalFilter}
-          onClick={() => setGlobalFilter("")}
+          onClick={() => setGlobalFilter('')}
         />
       )}
       {cpuCount && (
@@ -180,7 +182,7 @@ const TemplatesTableFilters = React.forwardRef<
       {isPublic !== undefined && (
         <TableFilterButton
           label="Visibility"
-          value={isPublic ? "Public" : "Private"}
+          value={isPublic ? 'Public' : 'Private'}
           onClick={() => setIsPublic(undefined)}
         />
       )}
@@ -189,15 +191,15 @@ const TemplatesTableFilters = React.forwardRef<
           label="Date Range"
           value="Active"
           onClick={() => {
-            setCreatedAfter(undefined);
-            setCreatedBefore(undefined);
+            setCreatedAfter(undefined)
+            setCreatedBefore(undefined)
           }}
         />
       )}
     </div>
-  );
-});
+  )
+})
 
-TemplatesTableFilters.displayName = "TemplatesTableFilters";
+TemplatesTableFilters.displayName = 'TemplatesTableFilters'
 
-export default TemplatesTableFilters;
+export default TemplatesTableFilters

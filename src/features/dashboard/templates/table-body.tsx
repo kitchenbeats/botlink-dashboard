@@ -1,16 +1,16 @@
-import { Table } from "@tanstack/react-table";
-import { Template } from "@/types/api";
-import { DataTableBody, DataTableRow, DataTableCell } from "@/ui/data-table";
-import { flexRender } from "@tanstack/react-table";
-import Empty from "@/ui/empty";
-import { Button } from "@/ui/primitives/button";
-import { useTemplateTableStore } from "./stores/table-store";
-import { useMemo } from "react";
+import { Table } from '@tanstack/react-table'
+import { Template } from '@/types/api'
+import { DataTableBody, DataTableRow, DataTableCell } from '@/ui/data-table'
+import { flexRender } from '@tanstack/react-table'
+import Empty from '@/ui/empty'
+import { Button } from '@/ui/primitives/button'
+import { useTemplateTableStore } from './stores/table-store'
+import { useMemo } from 'react'
 
 interface TableBodyProps {
-  templates: Template[] | undefined;
-  table: Table<Template>;
-  visualRowsCount: number;
+  templates: Template[] | undefined
+  table: Table<Template>
+  visualRowsCount: number
 }
 
 export function TableBody({
@@ -18,17 +18,17 @@ export function TableBody({
   table,
   visualRowsCount,
 }: TableBodyProps) {
-  "use no memo";
+  'use no memo'
 
-  const resetFilters = useTemplateTableStore((state) => state.resetFilters);
+  const resetFilters = useTemplateTableStore((state) => state.resetFilters)
 
-  const centerRows = table.getCenterRows();
+  const centerRows = table.getCenterRows()
 
   const visualRows = useMemo(() => {
-    return centerRows.slice(0, visualRowsCount);
-  }, [centerRows, visualRowsCount]);
+    return centerRows.slice(0, visualRowsCount)
+  }, [centerRows, visualRowsCount])
 
-  const isEmpty = templates && visualRows?.length === 0;
+  const isEmpty = templates && visualRows?.length === 0
 
   if (isEmpty) {
     return (
@@ -36,7 +36,7 @@ export function TableBody({
         title="No Templates Found"
         description={
           <>
-            Create a new template to get started or{" "}
+            Create a new template to get started or{' '}
             <Button
               variant="link"
               size="sm"
@@ -50,7 +50,7 @@ export function TableBody({
         }
         className="h-[70%] max-md:w-screen"
       />
-    );
+    )
   }
 
   return (
@@ -69,5 +69,5 @@ export function TableBody({
         </DataTableRow>
       ))}
     </DataTableBody>
-  );
+  )
 }

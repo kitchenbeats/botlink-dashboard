@@ -1,56 +1,56 @@
-"use client";
+'use client'
 
-import { signOutAction } from "@/server/auth/auth-actions";
-import { deleteAccountAction } from "@/server/user/user-actions";
-import { AuthFormMessage } from "@/features/auth/form-message";
-import { AlertDialog } from "@/ui/alert-dialog";
+import { signOutAction } from '@/server/auth/auth-actions'
+import { deleteAccountAction } from '@/server/user/user-actions'
+import { AuthFormMessage } from '@/features/auth/form-message'
+import { AlertDialog } from '@/ui/alert-dialog'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/ui/primitives/card";
-import { Button } from "@/ui/primitives/button";
-import { Input } from "@/ui/primitives/input";
-import { useToast } from "@/lib/hooks/use-toast";
-import { useTimeoutMessage } from "@/lib/hooks/use-timeout-message";
-import { useState } from "react";
-import { AnimatePresence } from "motion/react";
-import { useMutation } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
+} from '@/ui/primitives/card'
+import { Button } from '@/ui/primitives/button'
+import { Input } from '@/ui/primitives/input'
+import { useToast } from '@/lib/hooks/use-toast'
+import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
+import { useState } from 'react'
+import { AnimatePresence } from 'motion/react'
+import { useMutation } from '@tanstack/react-query'
+import { cn } from '@/lib/utils'
 
 interface DangerZoneProps {
-  className?: string;
+  className?: string
 }
 
 export function DangerZone({ className }: DangerZoneProps) {
-  const { toast } = useToast();
-  const [deleteConfirmation, setDeleteConfirmation] = useState<string>("");
-  const [message, setMessage] = useTimeoutMessage();
+  const { toast } = useToast()
+  const [deleteConfirmation, setDeleteConfirmation] = useState<string>('')
+  const [message, setMessage] = useTimeoutMessage()
 
   const { mutate: deleteAccount, isPending } = useMutation({
     mutationFn: async () => {
-      const response = await deleteAccountAction();
+      const response = await deleteAccountAction()
 
-      if (response.type === "error") {
-        throw new Error(response.message);
+      if (response.type === 'error') {
+        throw new Error(response.message)
       }
 
-      return response;
+      return response
     },
     onSuccess: async () => {
       toast({
-        title: "Account deleted",
-        description: "You have been signed out",
-      });
+        title: 'Account deleted',
+        description: 'You have been signed out',
+      })
 
-      await signOutAction();
+      await signOutAction()
     },
     onError: (error: Error) => {
-      setMessage({ error: error.message });
+      setMessage({ error: error.message })
     },
-  });
+  })
 
   return (
     <Card variant="slate" className={cn(className)}>
@@ -74,13 +74,13 @@ export function DangerZone({ className }: DangerZoneProps) {
           confirm="Delete Account"
           onConfirm={() => deleteAccount()}
           confirmProps={{
-            disabled: deleteConfirmation !== "delete my account",
+            disabled: deleteConfirmation !== 'delete my account',
             loading: isPending,
           }}
         >
           <>
             <p className="mb-4 text-fg-500">
-              Please type{" "}
+              Please type{' '}
               <span className="font-medium text-fg">delete my account</span> to
               confirm:
             </p>
@@ -96,5 +96,5 @@ export function DangerZone({ className }: DangerZoneProps) {
         </AnimatePresence>
       </CardContent>
     </Card>
-  );
+  )
 }

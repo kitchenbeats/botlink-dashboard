@@ -1,55 +1,55 @@
-"use client";
+'use client'
 
-import { signInAction } from "@/server/auth/auth-actions";
-import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
-import { OAuthProviders } from "@/features/auth/oauth-provider-buttons";
-import TextSeparator from "@/ui/text-separator";
-import { Button } from "@/ui/primitives/button";
-import { Input } from "@/ui/primitives/input";
-import { Label } from "@/ui/primitives/label";
-import { AUTH_URLS } from "@/configs/urls";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useRef, useEffect, Suspense } from "react";
+import { signInAction } from '@/server/auth/auth-actions'
+import { AuthFormMessage, AuthMessage } from '@/features/auth/form-message'
+import { OAuthProviders } from '@/features/auth/oauth-provider-buttons'
+import TextSeparator from '@/ui/text-separator'
+import { Button } from '@/ui/primitives/button'
+import { Input } from '@/ui/primitives/input'
+import { Label } from '@/ui/primitives/label'
+import { AUTH_URLS } from '@/configs/urls'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { useRef, useEffect, Suspense } from 'react'
 
 export default function Login() {
-  const searchParams = useSearchParams();
-  const formRef = useRef<HTMLFormElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams()
+  const formRef = useRef<HTMLFormElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
 
   // Handle email prefill from forgot password flow
   useEffect(() => {
-    const email = searchParams.get("email");
+    const email = searchParams.get('email')
     if (email && emailRef.current) {
-      emailRef.current.value = email;
+      emailRef.current.value = email
       // Focus password field if email is prefilled
-      passwordRef.current?.focus();
+      passwordRef.current?.focus()
     } else {
       // Focus email field if no prefill
-      emailRef.current?.focus();
+      emailRef.current?.focus()
     }
-  }, [searchParams]);
+  }, [searchParams])
 
   // Get returnTo URL from search params
-  const returnTo = searchParams.get("returnTo");
+  const returnTo = searchParams.get('returnTo')
 
   const handleForgotPassword = () => {
-    const email = emailRef.current?.value;
-    const searchParams = new URLSearchParams();
-    if (email) searchParams.set("email", email);
-    if (returnTo) searchParams.set("returnTo", returnTo);
-    window.location.href = `${AUTH_URLS.FORGOT_PASSWORD}?${searchParams.toString()}`;
-  };
+    const email = emailRef.current?.value
+    const searchParams = new URLSearchParams()
+    if (email) searchParams.set('email', email)
+    if (returnTo) searchParams.set('returnTo', returnTo)
+    window.location.href = `${AUTH_URLS.FORGOT_PASSWORD}?${searchParams.toString()}`
+  }
 
   // Parse search params into AuthMessage
   const message: AuthMessage | undefined = (() => {
-    const error = searchParams.get("error");
-    const success = searchParams.get("success");
-    if (error) return { error: decodeURIComponent(error) };
-    if (success) return { success: decodeURIComponent(success) };
-    return undefined;
-  })();
+    const error = searchParams.get('error')
+    const success = searchParams.get('success')
+    if (error) return { error: decodeURIComponent(error) }
+    if (success) return { success: decodeURIComponent(success) }
+    return undefined
+  })()
 
   return (
     <div className="flex w-full flex-col">
@@ -62,7 +62,7 @@ export default function Login() {
       <TextSeparator text="or" />
 
       <form ref={formRef} className="flex flex-col gap-2 [&>input]:mb-3">
-        <input type="hidden" name="returnTo" value={returnTo || ""} />
+        <input type="hidden" name="returnTo" value={returnTo || ''} />
         <Label htmlFor="email">Email</Label>
         <Input
           ref={emailRef}
@@ -95,7 +95,7 @@ export default function Login() {
       </form>
 
       <p className="mt-3 text-sm leading-6 text-fg-300">
-        Don&apos;t have an account?{" "}
+        Don&apos;t have an account?{' '}
         <Link
           className="font-medium text-fg underline"
           href={AUTH_URLS.SIGN_UP}
@@ -106,5 +106,5 @@ export default function Login() {
 
       {message && <AuthFormMessage className="mt-4" message={message} />}
     </div>
-  );
+  )
 }

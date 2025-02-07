@@ -1,20 +1,20 @@
-import { bailOutFromPPR } from "@/lib/utils/server";
-import { getTeam } from "@/server/team/get-team";
-import { UnknownError } from "@/types/errors";
-import { AlertDialog } from "@/ui/alert-dialog";
-import ErrorBoundary from "@/ui/error";
-import { Alert } from "@/ui/primitives/alert";
-import { Button } from "@/ui/primitives/button";
+import { bailOutFromPPR } from '@/lib/utils/server'
+import { getTeam } from '@/server/team/get-team'
+import { UnknownError } from '@/types/errors'
+import { AlertDialog } from '@/ui/alert-dialog'
+import ErrorBoundary from '@/ui/error'
+import { Alert } from '@/ui/primitives/alert'
+import { Button } from '@/ui/primitives/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/ui/primitives/card";
+} from '@/ui/primitives/card'
 
 interface DangerZoneProps {
-  teamId: string;
+  teamId: string
 }
 
 export function DangerZone({ teamId }: DangerZoneProps) {
@@ -30,27 +30,27 @@ export function DangerZone({ teamId }: DangerZoneProps) {
         <DangerZoneContent teamId={teamId} />
       </CardContent>
     </Card>
-  );
+  )
 }
 
 async function DangerZoneContent({ teamId }: { teamId: string }) {
-  const res = await getTeam({ teamId });
+  const res = await getTeam({ teamId })
 
-  if (res.type === "error") {
+  if (res.type === 'error') {
     return (
       <ErrorBoundary
         error={
           {
-            name: "Team Error",
+            name: 'Team Error',
             message: res.message,
           } satisfies Error
         }
-        description={"Could not load team"}
+        description={'Could not load team'}
       />
-    );
+    )
   }
 
-  const team = res.data;
+  const team = res.data
 
   return (
     <>
@@ -85,5 +85,5 @@ async function DangerZoneContent({ teamId }: { teamId: string }) {
         <Button variant="error">Delete Team</Button>
       </div>
     </>
-  );
+  )
 }

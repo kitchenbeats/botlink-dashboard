@@ -1,10 +1,10 @@
-import { Column } from "@tanstack/react-table";
-import { DataTableRow } from "./data-table";
-import { Skeleton } from "./primitives/skeleton";
+import { Column } from '@tanstack/react-table'
+import { DataTableRow } from './data-table'
+import { Skeleton } from './primitives/skeleton'
 
 interface TableSkeletonProps {
-  rows?: number;
-  columns: Column<any, any>[];
+  rows?: number
+  columns: Column<unknown, unknown>[]
 }
 
 export function TableSkeleton({ rows = 30, columns }: TableSkeletonProps) {
@@ -26,5 +26,5 @@ export function TableSkeleton({ rows = 30, columns }: TableSkeletonProps) {
         </DataTableRow>
       ))}
     </>
-  );
+  )
 }

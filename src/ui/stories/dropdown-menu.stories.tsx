@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,20 +11,20 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuShortcut,
-} from "../primitives/dropdown-menu";
-import { Button } from "../primitives/button";
+} from '../primitives/dropdown-menu'
+import { Button } from '../primitives/button'
 
 const meta = {
-  title: "UI/DropdownMenu",
+  title: 'UI/DropdownMenu',
   component: DropdownMenu,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof DropdownMenu>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof DropdownMenu>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   render: () => (
@@ -48,7 +48,7 @@ export const Default: Story = {
       </DropdownMenuContent>
     </DropdownMenu>
   ),
-};
+}
 
 export const WithCheckboxItems: Story = {
   render: () => (
@@ -64,7 +64,7 @@ export const WithCheckboxItems: Story = {
       </DropdownMenuContent>
     </DropdownMenu>
   ),
-};
+}
 
 export const WithRadioItems: Story = {
   render: () => (
@@ -83,4 +83,4 @@ export const WithRadioItems: Story = {
       </DropdownMenuContent>
     </DropdownMenu>
   ),
-};
+}

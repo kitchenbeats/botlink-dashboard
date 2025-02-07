@@ -1,19 +1,19 @@
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { DataTableBody, DataTableCell, DataTableRow } from "@/ui/data-table";
-import { AssemblyLoader } from "@/ui/loader";
-import { Table } from "@tanstack/react-table";
-import { flexRender } from "@tanstack/react-table";
-import { SandboxWithMetrics } from "./table-config";
-import { useMemo } from "react";
-import Empty from "@/ui/empty";
-import { Button } from "@/ui/primitives/button";
-import { useTemplateTableStore } from "../templates/stores/table-store";
-import { useSandboxTableStore } from "./stores/table-store";
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
+import { DataTableBody, DataTableCell, DataTableRow } from '@/ui/data-table'
+import { AssemblyLoader } from '@/ui/loader'
+import { Table } from '@tanstack/react-table'
+import { flexRender } from '@tanstack/react-table'
+import { SandboxWithMetrics } from './table-config'
+import { useMemo } from 'react'
+import Empty from '@/ui/empty'
+import { Button } from '@/ui/primitives/button'
+import { useTemplateTableStore } from '../templates/stores/table-store'
+import { useSandboxTableStore } from './stores/table-store'
 
 interface TableBodyProps {
-  sandboxes: SandboxWithMetrics[] | undefined;
-  table: Table<SandboxWithMetrics>;
-  visualRowsCount: number;
+  sandboxes: SandboxWithMetrics[] | undefined
+  table: Table<SandboxWithMetrics>
+  visualRowsCount: number
 }
 
 export function TableBody({
@@ -21,17 +21,17 @@ export function TableBody({
   table,
   visualRowsCount,
 }: TableBodyProps) {
-  "use no memo";
+  'use no memo'
 
-  const resetFilters = useSandboxTableStore((state) => state.resetFilters);
+  const resetFilters = useSandboxTableStore((state) => state.resetFilters)
 
-  const centerRows = table.getCenterRows();
+  const centerRows = table.getCenterRows()
 
   const visualRows = useMemo(() => {
-    return centerRows.slice(0, visualRowsCount);
-  }, [centerRows, visualRowsCount]);
+    return centerRows.slice(0, visualRowsCount)
+  }, [centerRows, visualRowsCount])
 
-  const isEmpty = sandboxes && visualRows?.length === 0;
+  const isEmpty = sandboxes && visualRows?.length === 0
 
   if (isEmpty) {
     return (
@@ -39,7 +39,7 @@ export function TableBody({
         title="No Sandboxes Found"
         description={
           <>
-            Create a new sandbox to get started or{" "}
+            Create a new sandbox to get started or{' '}
             <Button
               variant="link"
               size="sm"
@@ -53,7 +53,7 @@ export function TableBody({
         }
         className="h-[70%] max-md:w-screen"
       />
-    );
+    )
   }
 
   return (
@@ -72,5 +72,5 @@ export function TableBody({
         </DataTableRow>
       ))}
     </DataTableBody>
-  );
+  )
 }

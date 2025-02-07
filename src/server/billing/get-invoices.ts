@@ -1,18 +1,18 @@
-import "server-only";
+import 'server-only'
 
-import { Invoice } from "@/types/billing";
-import { checkAuthenticated, getTeamApiKey, guard } from "@/lib/utils/server";
-import { z } from "zod";
-import { TEAM_API_KEY_HEADER } from "@/configs/constants";
+import { Invoice } from '@/types/billing'
+import { checkAuthenticated, getTeamApiKey, guard } from '@/lib/utils/server'
+import { z } from 'zod'
+import { TEAM_API_KEY_HEADER } from '@/configs/constants'
 
 const GetInvoicesParamsSchema = z.object({
   teamId: z.string().uuid(),
-});
+})
 
 export const getInvoices = guard(GetInvoicesParamsSchema, async (params) => {
-  const { user } = await checkAuthenticated();
+  const { user } = await checkAuthenticated()
 
-  const apiKey = await getTeamApiKey(user.id, params.teamId);
+  const apiKey = await getTeamApiKey(user.id, params.teamId)
 
   const res = await fetch(
     `${process.env.BILLING_API_URL}/teams/${params.teamId}/invoices`,
@@ -20,19 +20,19 @@ export const getInvoices = guard(GetInvoicesParamsSchema, async (params) => {
       headers: {
         [TEAM_API_KEY_HEADER]: apiKey,
       },
-    },
-  );
+    }
+  )
 
   if (!res.ok) {
-    const text = await res.text();
+    const text = await res.text()
 
     throw new Error(
       text ??
-        `Failed to fetch billing endpoint: /teams/${params.teamId}/invoices`,
-    );
+        `Failed to fetch billing endpoint: /teams/${params.teamId}/invoices`
+    )
   }
 
-  const invoices = (await res.json()) as Invoice[];
+  const invoices = (await res.json()) as Invoice[]
 
-  return invoices;
-});
+  return invoices
+})

@@ -1,16 +1,16 @@
-"use client";
+'use client'
 
-import useIsMounted from "@/lib/hooks/use-is-mounted";
-import { AnimatePresence, motion } from "motion/react";
+import useIsMounted from '@/lib/hooks/use-is-mounted'
+import { AnimatePresence, motion } from 'motion/react'
 
 export default function ClientOnly({
   children,
   className,
 }: {
-  children: React.ReactNode;
-  className?: string;
+  children: React.ReactNode
+  className?: string
 }) {
-  const isMounted = useIsMounted();
+  const isMounted = useIsMounted()
 
   return (
     <AnimatePresence>
@@ -25,5 +25,5 @@ export default function ClientOnly({
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  )
 }

@@ -1,53 +1,53 @@
-import { Suspense } from "react";
-import { redirect } from "next/navigation";
-import { CloudIcon, LaptopIcon, Link2Icon } from "lucide-react";
-import { createClient } from "@/lib/clients/supabase/server";
-import { logger } from "@/lib/clients/logger";
-import { ERROR_CODES } from "@/configs/logs";
-import { AUTH_URLS, PROTECTED_URLS } from "@/configs/urls";
+import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
+import { CloudIcon, LaptopIcon, Link2Icon } from 'lucide-react'
+import { createClient } from '@/lib/clients/supabase/server'
+import { logger } from '@/lib/clients/logger'
+import { ERROR_CODES } from '@/configs/logs'
+import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import {
   bailOutFromPPR,
   getTeamApiKey,
   getUserAccessToken,
-} from "@/lib/utils/server";
-import { encodedRedirect } from "@/lib/utils/auth";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { getDefaultTeamRelation } from "@/server/auth/get-default-team";
+} from '@/lib/utils/server'
+import { encodedRedirect } from '@/lib/utils/auth'
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
+import { getDefaultTeamRelation } from '@/server/auth/get-default-team'
 
 // Mark route as dynamic to prevent static optimization
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
 // Types
 type CLISearchParams = Promise<{
-  next?: string;
-  state?: string;
-  error?: string;
-}>;
+  next?: string
+  state?: string
+  error?: string
+}>
 
 // Server Actions
 
 async function handleCLIAuth(next: string, userId: string, userEmail: string) {
-  if (!next?.startsWith("http://localhost")) {
-    throw new Error("Invalid redirect URL");
+  if (!next?.startsWith('http://localhost')) {
+    throw new Error('Invalid redirect URL')
   }
 
   try {
-    const defaultTeam = await getDefaultTeamRelation(userId);
+    const defaultTeam = await getDefaultTeamRelation(userId)
     const [apiKey, accessToken] = await Promise.all([
       getTeamApiKey(userId, defaultTeam.team_id),
       getUserAccessToken(userId),
-    ]);
+    ])
 
     const searchParams = new URLSearchParams({
       email: userEmail,
       defaultTeamApiKey: apiKey,
       accessToken,
       defaultTeamId: defaultTeam.team_id,
-    });
+    })
 
-    return redirect(`${next}?${searchParams.toString()}`);
+    return redirect(`${next}?${searchParams.toString()}`)
   } catch (err) {
-    throw err;
+    throw err
   }
 }
 
@@ -65,7 +65,7 @@ function CLIIcons() {
         <CloudIcon size={50} />
       </span>
     </p>
-  );
+  )
 }
 
 function ErrorAlert({ message }: { message: string }) {
@@ -74,7 +74,7 @@ function ErrorAlert({ message }: { message: string }) {
       <AlertTitle>Error</AlertTitle>
       <AlertDescription>{message}</AlertDescription>
     </Alert>
-  );
+  )
 }
 
 function SuccessState() {
@@ -83,56 +83,56 @@ function SuccessState() {
       <h2 className="text-brand-400 font-bold">Successfully linked</h2>
       <div>You can close this page and start using CLI.</div>
     </>
-  );
+  )
 }
 
 // Main Component
 export default async function CLIAuthPage({
   searchParams,
 }: {
-  searchParams: CLISearchParams;
+  searchParams: CLISearchParams
 }) {
-  bailOutFromPPR();
+  bailOutFromPPR()
 
-  const { next, state, error } = await searchParams;
-  const supabase = await createClient();
+  const { next, state, error } = await searchParams
+  const supabase = await createClient()
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser()
 
-  if (state === "success") {
-    return <SuccessState />;
+  if (state === 'success') {
+    return <SuccessState />
   }
 
   // Validate redirect URL
-  if (!next?.startsWith("http://localhost")) {
-    logger.error(ERROR_CODES.CLI_AUTH, "Invalid redirect URL");
-    redirect(PROTECTED_URLS.DASHBOARD);
+  if (!next?.startsWith('http://localhost')) {
+    logger.error(ERROR_CODES.CLI_AUTH, 'Invalid redirect URL')
+    redirect(PROTECTED_URLS.DASHBOARD)
   }
 
   // If user is not authenticated, redirect to sign in with return URL
   if (!user) {
     const searchParams = new URLSearchParams({
       returnTo: `${AUTH_URLS.CLI}?${new URLSearchParams({ next }).toString()}`,
-    });
-    redirect(`${AUTH_URLS.SIGN_IN}?${searchParams.toString()}`);
+    })
+    redirect(`${AUTH_URLS.SIGN_IN}?${searchParams.toString()}`)
   }
 
   // Handle CLI callback if authenticated
   if (!error && next && user) {
     try {
-      return await handleCLIAuth(next, user.id, user.email!);
+      return await handleCLIAuth(next, user.id, user.email!)
     } catch (err) {
-      if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
-        throw err;
+      if (err instanceof Error && err.message.includes('NEXT_REDIRECT')) {
+        throw err
       }
 
-      logger.error(ERROR_CODES.CLI_AUTH, err);
+      logger.error(ERROR_CODES.CLI_AUTH, err)
 
-      return encodedRedirect("error", "/auth/cli", (err as Error).message, {
+      return encodedRedirect('error', '/auth/cli', (err as Error).message, {
         next,
-      });
+      })
     }
   }
 
@@ -152,5 +152,5 @@ export default async function CLIAuthPage({
         </Suspense>
       </div>
     </div>
-  );
+  )
 }

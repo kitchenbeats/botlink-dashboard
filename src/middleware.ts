@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
     if (rewriteResponse) return rewriteResponse
 
     // 2. Setup response and Supabase client
-    let response = NextResponse.next({
+    const response = NextResponse.next({
       request,
     })
 

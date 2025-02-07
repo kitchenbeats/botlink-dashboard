@@ -1,5 +1,5 @@
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { Loader } from "@/ui/loader";
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
+import { Loader } from '@/ui/loader'
 import {
   Table,
   TableBody,
@@ -7,21 +7,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/ui/primitives/table";
-import { FC } from "react";
-import TableBodyContent from "./table-body";
-import { Suspense } from "react";
-import { cn } from "@/lib/utils";
+} from '@/ui/primitives/table'
+import { FC } from 'react'
+import TableBodyContent from './table-body'
+import { Suspense } from 'react'
+import { cn } from '@/lib/utils'
 
 interface ApiKeysTableProps {
-  teamId: string;
-  className?: string;
+  teamId: string
+  className?: string
 }
 
 const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId, className }) => {
   return (
     <>
-      <Table className={cn("w-full animate-in fade-in", className)}>
+      <Table className={cn('w-full animate-in fade-in', className)}>
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Key</TableHead>
@@ -51,7 +51,7 @@ const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId, className }) => {
         </TableBody>
       </Table>
     </>
-  );
-};
+  )
+}
 
-export default ApiKeysTable;
+export default ApiKeysTable

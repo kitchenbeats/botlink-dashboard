@@ -1,15 +1,15 @@
-import { Separator } from "./primitives/separator";
+import { Separator } from './primitives/separator'
 
 interface TextSeparatorProps {
-  text: string;
+  text: string
 }
 
 export default function TextSeparator({ text }: TextSeparatorProps) {
   return (
     <div className="my-6 flex items-center gap-2">
-      <Separator className="bg-border-200 w-auto flex-grow" />
-      <span className="text-fg px-2 font-mono">{text}</span>
-      <Separator className="bg-border-200 w-auto flex-grow" />
+      <Separator className="w-auto flex-grow bg-border-200" />
+      <span className="px-2 font-mono text-fg">{text}</span>
+      <Separator className="w-auto flex-grow bg-border-200" />
     </div>
-  );
+  )
 }

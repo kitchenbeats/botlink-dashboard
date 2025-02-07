@@ -1,18 +1,18 @@
-import { Badge } from "@/ui/primitives/badge";
-import { Circle } from "lucide-react";
-import { Table } from "@tanstack/react-table";
-import { SearchInput } from "./table-search";
-import SandboxesTableFilters from "./table-filters";
-import { SandboxWithMetrics } from "./table-config";
-import { PollingButton } from "@/ui/polling-button";
-import { useSandboxTableStore } from "./stores/table-store";
-import { Template } from "@/types/api";
-import { useRouter } from "next/navigation";
+import { Badge } from '@/ui/primitives/badge'
+import { Circle } from 'lucide-react'
+import { Table } from '@tanstack/react-table'
+import { SearchInput } from './table-search'
+import SandboxesTableFilters from './table-filters'
+import { SandboxWithMetrics } from './table-config'
+import { PollingButton } from '@/ui/polling-button'
+import { useSandboxTableStore } from './stores/table-store'
+import { Template } from '@/types/api'
+import { useRouter } from 'next/navigation'
 
 interface SandboxesHeaderProps {
-  searchInputRef: React.RefObject<HTMLInputElement | null>;
-  templates: Template[];
-  table: Table<SandboxWithMetrics>;
+  searchInputRef: React.RefObject<HTMLInputElement | null>
+  templates: Template[]
+  table: Table<SandboxWithMetrics>
 }
 
 export function SandboxesHeader({
@@ -20,10 +20,10 @@ export function SandboxesHeader({
   templates,
   table,
 }: SandboxesHeaderProps) {
-  "use no memo";
+  'use no memo'
 
-  const { pollingInterval, setPollingInterval } = useSandboxTableStore();
-  const router = useRouter();
+  const { pollingInterval, setPollingInterval } = useSandboxTableStore()
+  const router = useRouter()
 
   return (
     <header className="mx-3 flex flex-col gap-4">
@@ -49,7 +49,7 @@ export function SandboxesHeader({
               pollingInterval={pollingInterval}
               onIntervalChange={setPollingInterval}
               onRefresh={() => {
-                router.refresh();
+                router.refresh()
               }}
             />
             <Badge
@@ -65,7 +65,7 @@ export function SandboxesHeader({
               pollingInterval={pollingInterval}
               onIntervalChange={setPollingInterval}
               onRefresh={() => {
-                router.refresh();
+                router.refresh()
               }}
             />
           </div>
@@ -76,5 +76,5 @@ export function SandboxesHeader({
       </div>
       <SandboxesTableFilters templates={templates} />
     </header>
-  );
+  )
 }

@@ -4,14 +4,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/ui/primitives/card";
-import { Loader } from "@/ui/loader";
-import { Suspense } from "react";
-import BillingCreditsContent from "../billing/credits-content";
+} from '@/ui/primitives/card'
+import { Loader } from '@/ui/loader'
+import { Suspense } from 'react'
+import BillingCreditsContent from '../billing/credits-content'
 
 interface CreditsCardProps {
-  teamId: string;
-  className?: string;
+  teamId: string
+  className?: string
 }
 
 export default function CreditsCard({ teamId, className }: CreditsCardProps) {
@@ -30,5 +30,5 @@ export default function CreditsCard({ teamId, className }: CreditsCardProps) {
         </Suspense>
       </CardContent>
     </Card>
-  );
+  )
 }

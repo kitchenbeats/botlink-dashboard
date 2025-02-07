@@ -64,10 +64,10 @@ export default function MemberTableRow({
           description: 'The member has been removed from the team',
         })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Could not remove member',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'error',
       })
     } finally {

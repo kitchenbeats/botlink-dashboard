@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react'
 import {
   Select,
   SelectContent,
@@ -8,19 +8,19 @@ import {
   SelectTrigger,
   SelectValue,
   SelectSeparator,
-} from "../primitives/select";
+} from '../primitives/select'
 
 const meta = {
-  title: "UI/Select",
+  title: 'UI/Select',
   component: Select,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Select>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Select>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   render: () => (
@@ -38,7 +38,7 @@ export const Default: Story = {
       </SelectContent>
     </Select>
   ),
-};
+}
 
 export const WithGroups: Story = {
   render: () => (
@@ -59,7 +59,7 @@ export const WithGroups: Story = {
       </SelectContent>
     </Select>
   ),
-};
+}
 
 export const Disabled: Story = {
   render: () => (
@@ -75,7 +75,7 @@ export const Disabled: Story = {
       </SelectContent>
     </Select>
   ),
-};
+}
 
 export const WithDisabledOptions: Story = {
   render: () => (
@@ -94,4 +94,4 @@ export const WithDisabledOptions: Story = {
       </SelectContent>
     </Select>
   ),
-};
+}

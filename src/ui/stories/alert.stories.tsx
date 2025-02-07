@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Alert, AlertDescription, AlertTitle } from "../primitives/alert";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Alert, AlertDescription, AlertTitle } from '../primitives/alert'
 import {
   TerminalIcon,
   AlertCircleIcon,
@@ -7,20 +7,20 @@ import {
   InfoIcon,
   ZapIcon,
   FlaskConicalIcon,
-} from "lucide-react";
+} from 'lucide-react'
 
 const meta = {
-  title: "UI/Alert",
+  title: 'UI/Alert',
   component: Alert,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Alert>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Alert>
 
-export default meta;
+export default meta
 
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   render: () => (
@@ -32,7 +32,7 @@ export const Default: Story = {
       </AlertDescription>
     </Alert>
   ),
-};
+}
 
 export const Contrast1: Story = {
   render: () => (
@@ -44,7 +44,7 @@ export const Contrast1: Story = {
       </AlertDescription>
     </Alert>
   ),
-};
+}
 
 export const Contrast2: Story = {
   render: () => (
@@ -56,7 +56,7 @@ export const Contrast2: Story = {
       </AlertDescription>
     </Alert>
   ),
-};
+}
 
 export const Error: Story = {
   render: () => (
@@ -68,7 +68,7 @@ export const Error: Story = {
       </AlertDescription>
     </Alert>
   ),
-};
+}
 
 export const WithoutTitle: Story = {
   render: () => (
@@ -79,7 +79,7 @@ export const WithoutTitle: Story = {
       </AlertDescription>
     </Alert>
   ),
-};
+}
 
 export const WithoutIcon: Story = {
   render: () => (
@@ -90,7 +90,7 @@ export const WithoutIcon: Story = {
       </AlertDescription>
     </Alert>
   ),
-};
+}
 
 export const AllVariants: Story = {
   render: () => (
@@ -120,7 +120,7 @@ export const AllVariants: Story = {
       </Alert>
     </div>
   ),
-};
+}
 
 export const WithCustomStyles: Story = {
   render: () => (
@@ -132,4 +132,4 @@ export const WithCustomStyles: Story = {
       </AlertDescription>
     </Alert>
   ),
-};
+}

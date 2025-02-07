@@ -3,7 +3,7 @@ interface Sandbox {
   clientID: string
   cpuCount: number
   memoryMB: number
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   sandboxID: string
   startedAt: string
   endAt: string

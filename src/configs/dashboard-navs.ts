@@ -4,11 +4,12 @@ import {
   CreditCard,
   DollarSign,
   Key,
+  LucideProps,
   LucideSheet,
   User,
   Users,
 } from 'lucide-react'
-import { ForwardRefExoticComponent } from 'react'
+import { ForwardRefExoticComponent, RefAttributes } from 'react'
 
 type DashboardNavLinkArgs = {
   teamIdOrSlug?: string
@@ -17,7 +18,9 @@ type DashboardNavLinkArgs = {
 export type DashboardNavLink = {
   label: string
   href: (args: DashboardNavLinkArgs) => string
-  icon: ForwardRefExoticComponent<any>
+  icon: ForwardRefExoticComponent<
+    Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>
+  >
   group?: string
   goesDeeper?: boolean
 }

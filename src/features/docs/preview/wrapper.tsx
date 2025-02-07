@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import type { HTMLAttributes } from "react";
+import { cn } from '@/lib/utils'
+import type { HTMLAttributes } from 'react'
 
 export function Wrapper(
   props: HTMLAttributes<HTMLDivElement>
@@ -8,11 +8,11 @@ export function Wrapper(
     <div
       {...props}
       className={cn(
-        "rounded-xl bg-gradient-to-br from-pink-500 to-blue-500 p-4 prose-no-margin",
+        'prose-no-margin rounded-xl bg-gradient-to-br from-pink-500 to-blue-500 p-4',
         props.className
       )}
     >
       {props.children}
     </div>
-  );
+  )
 }

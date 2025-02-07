@@ -1,22 +1,22 @@
-"use client";
+'use client'
 
-import { signInWithOAuth } from "@/server/auth/auth-actions";
-import { Button } from "@/ui/primitives/button";
-import { useSearchParams } from "next/navigation";
+import { signInWithOAuth } from '@/server/auth/auth-actions'
+import { Button } from '@/ui/primitives/button'
+import { useSearchParams } from 'next/navigation'
 
 export function OAuthProviders() {
-  const searchParams = useSearchParams();
-  const returnTo = searchParams.get("returnTo");
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get('returnTo')
 
-  const handleOAuthSignIn = (provider: "google" | "github") => {
-    signInWithOAuth(provider, returnTo || undefined);
-  };
+  const handleOAuthSignIn = (provider: 'google' | 'github') => {
+    signInWithOAuth(provider, returnTo || undefined)
+  }
 
   return (
     <div className="mt-4 flex flex-col gap-2">
       <Button
         variant="muted"
-        onClick={() => handleOAuthSignIn("google")}
+        onClick={() => handleOAuthSignIn('google')}
         className="flex items-center gap-2"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5">
@@ -42,7 +42,7 @@ export function OAuthProviders() {
 
       <Button
         variant="muted"
-        onClick={() => handleOAuthSignIn("github")}
+        onClick={() => handleOAuthSignIn('github')}
         className="flex items-center gap-2"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5">
@@ -54,5 +54,5 @@ export function OAuthProviders() {
         Continue with GitHub
       </Button>
     </div>
-  );
+  )
 }

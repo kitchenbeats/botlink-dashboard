@@ -1,16 +1,16 @@
-import { DialogProps } from "@radix-ui/react-dialog";
+import { DialogProps } from '@radix-ui/react-dialog'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/ui/primitives/dialog";
-import { Button, buttonVariants } from "@/ui/primitives/button";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from '@/ui/primitives/dialog'
+import { Button, buttonVariants } from '@/ui/primitives/button'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Form,
   FormControl,
@@ -19,27 +19,27 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/ui/primitives/form";
-import { Input } from "@/ui/primitives/input";
-import { AnimatePresence, motion } from "motion/react";
-import { cn } from "@/lib/utils";
-import { useTimeoutMessage } from "@/lib/hooks/use-timeout-message";
-import { AuthFormMessage } from "@/features/auth/form-message";
+} from '@/ui/primitives/form'
+import { Input } from '@/ui/primitives/input'
+import { AnimatePresence, motion } from 'motion/react'
+import { cn } from '@/lib/utils'
+import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
+import { AuthFormMessage } from '@/features/auth/form-message'
 
 const formSchema = z.object({
   domain: z
     .string()
-    .min(1, "Domain is required")
+    .min(1, 'Domain is required')
     .regex(
       /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/,
-      "Please enter a valid domain (e.g. e2b.dev)",
+      'Please enter a valid domain (e.g. e2b.dev)'
     ),
-});
+})
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>
 
 interface DeveloperSettingsDialogProps extends DialogProps {
-  apiDomain?: string;
+  apiDomain?: string
 }
 
 export default function DeveloperSettingsDialog({
@@ -51,76 +51,76 @@ export default function DeveloperSettingsDialog({
     defaultValues: {
       domain: apiDomain ?? process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN,
     },
-  });
+  })
 
   useEffect(() => {
     form.reset({
       domain: apiDomain ?? process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN,
-    });
-  }, [apiDomain, form]);
+    })
+  }, [apiDomain, form])
 
-  const [message, setMessage] = useTimeoutMessage(5000);
+  const [message, setMessage] = useTimeoutMessage(5000)
 
   const onSubmit = async (values: FormValues) => {
     try {
       // delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150))
 
-      const response = await fetch(`https://api.${values.domain}/health`);
+      const response = await fetch(`https://api.${values.domain}/health`)
 
       if (!response.ok) {
-        throw new Error("Failed to verify API domain");
+        throw new Error('Failed to verify API domain')
       }
 
       const res = await fetch(`/api/developer/domain`, {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({ domain: values.domain }),
-      });
+      })
 
       if (!res.ok) {
-        throw new Error("Failed to update API domain");
+        throw new Error('Failed to update API domain')
       }
 
       setMessage({
-        success: "API domain verified and updated successfully",
-      });
+        success: 'API domain verified and updated successfully',
+      })
     } catch (error) {
       setMessage({
         error:
-          "Failed to verify API domain. Please check the URL and try again",
-      });
+          'Failed to verify API domain. Please check the URL and try again',
+      })
 
-      return;
+      return
     }
-  };
+  }
 
   const canResetToDefault =
-    form.watch("domain") !== process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN;
+    form.watch('domain') !== process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN
 
   const handleResetToDefault = async () => {
     const res = await fetch(`/api/developer/domain`, {
-      method: "DELETE",
-    });
+      method: 'DELETE',
+    })
 
     if (!res.ok) {
       setMessage({
-        error: "Failed to reset API domain",
-      });
+        error: 'Failed to reset API domain',
+      })
 
-      return;
+      return
     }
 
-    form.setValue("domain", process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN, {
+    form.setValue('domain', process.env.NEXT_PUBLIC_DEFAULT_API_DOMAIN, {
       shouldDirty: true,
-    });
+    })
 
     setMessage({
-      success: "API domain reset to default successfully",
-    });
-  };
+      success: 'API domain reset to default successfully',
+    })
+  }
 
   const isSaveDisabled =
-    form.watch("domain") === apiDomain || !form.formState.isValid;
+    form.watch('domain') === apiDomain || !form.formState.isValid
 
   return (
     <Dialog {...props}>
@@ -151,10 +151,10 @@ export default function DeveloperSettingsDialog({
                           }}
                           className={cn(
                             buttonVariants({
-                              variant: "muted",
-                              size: "sm",
+                              variant: 'muted',
+                              size: 'sm',
                             }),
-                            "h-5 text-xs text-accent",
+                            'h-5 text-xs text-accent'
                           )}
                           type="button"
                           onClick={handleResetToDefault}
@@ -178,8 +178,8 @@ export default function DeveloperSettingsDialog({
                       className="ml-2"
                     >
                       {form.formState.isSubmitting
-                        ? "Saving..."
-                        : "Save Domain"}
+                        ? 'Saving...'
+                        : 'Save Domain'}
                     </Button>
                   </div>
                   <FormMessage />
@@ -198,5 +198,5 @@ export default function DeveloperSettingsDialog({
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

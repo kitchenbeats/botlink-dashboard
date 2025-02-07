@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import { useSidebar } from "fumadocs-ui/provider";
-import { Button } from "@/ui/primitives/button";
-import { MenuIcon } from "lucide-react";
-import Link from "next/link";
-import { useCallback } from "react";
+import { useSidebar } from 'fumadocs-ui/provider'
+import { Button } from '@/ui/primitives/button'
+import { MenuIcon } from 'lucide-react'
+import Link from 'next/link'
+import { useCallback } from 'react'
 
 export default function DocsNavLinks() {
-  const { open, setOpen } = useSidebar();
+  const { open, setOpen } = useSidebar()
 
   const handleSidebarOpen = useCallback(() => {
-    setOpen(!open);
-  }, [open, setOpen]);
+    setOpen(!open)
+  }, [open, setOpen])
 
   return (
     <div className="flex items-center gap-2">
@@ -29,5 +29,5 @@ export default function DocsNavLinks() {
         </Link>
       </Button>
     </div>
-  );
+  )
 }

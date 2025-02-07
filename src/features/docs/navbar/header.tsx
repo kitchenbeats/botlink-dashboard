@@ -1,32 +1,32 @@
-import Link from "next/link";
-import { CookingPotIcon, FileIcon, LinkIcon } from "lucide-react";
-import { GradientBorder } from "@/ui/gradient-border";
-import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import Link from 'next/link'
+import { CookingPotIcon, FileIcon, LinkIcon } from 'lucide-react'
+import { GradientBorder } from '@/ui/gradient-border'
+import { cn } from '@/lib/utils'
+import { usePathname } from 'next/navigation'
 
 const tabs = [
   {
-    title: "Documentation",
-    description: "The E2B documentation",
-    url: "/docs",
+    title: 'Documentation',
+    description: 'The E2B documentation',
+    url: '/docs',
     icon: FileIcon,
   },
   {
-    title: "Reference",
-    description: "SDK & API Reference",
-    url: "/docs/reference",
+    title: 'Reference',
+    description: 'SDK & API Reference',
+    url: '/docs/reference',
     icon: LinkIcon,
   },
   {
-    title: "Examples",
-    description: "Latest from the E2B kitchen",
-    url: "/docs/examples",
+    title: 'Examples',
+    description: 'Latest from the E2B kitchen',
+    url: '/docs/examples',
     icon: CookingPotIcon,
   },
-];
+]
 
 export default function DocsNavHeader() {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   return (
     <div className="mb-4 mt-12 space-y-1">
@@ -38,8 +38,8 @@ export default function DocsNavHeader() {
         >
           <GradientBorder
             direction="bg-gradient-to-bl"
-            className={cn("p-2 group-hover:bg-fg group-hover:text-bg", {
-              "bg-fg text-bg": pathname.includes(tab.url),
+            className={cn('p-2 group-hover:bg-fg group-hover:text-bg', {
+              'bg-fg text-bg': pathname.includes(tab.url),
             })}
           >
             <tab.icon className="size-3.5" />
@@ -51,5 +51,5 @@ export default function DocsNavHeader() {
         </Link>
       ))}
     </div>
-  );
+  )
 }

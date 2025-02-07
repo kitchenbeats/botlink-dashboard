@@ -1,17 +1,17 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Avatar, AvatarFallback, AvatarImage } from "../primitives/avatar";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Avatar, AvatarFallback, AvatarImage } from '../primitives/avatar'
 
 const meta = {
-  title: "UI/Avatar",
+  title: 'UI/Avatar',
   component: Avatar,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Avatar>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Avatar>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const WithImage: Story = {
   render: () => (
@@ -20,7 +20,7 @@ export const WithImage: Story = {
       <AvatarFallback>CN</AvatarFallback>
     </Avatar>
   ),
-};
+}
 
 export const WithFallback: Story = {
   render: () => (
@@ -28,7 +28,7 @@ export const WithFallback: Story = {
       <AvatarFallback>JD</AvatarFallback>
     </Avatar>
   ),
-};
+}
 
 export const CustomSize: Story = {
   render: () => (
@@ -50,7 +50,7 @@ export const CustomSize: Story = {
       </Avatar>
     </div>
   ),
-};
+}
 
 export const WithCustomStyles: Story = {
   render: () => (
@@ -66,4 +66,4 @@ export const WithCustomStyles: Story = {
       </Avatar>
     </div>
   ),
-};
+}

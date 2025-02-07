@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound } from 'next/navigation'
 
-export const dynamic = "force-static";
+export const dynamic = 'force-static'
 
 /*
   This page is used to serve the storybook build.
@@ -12,10 +12,10 @@ export const dynamic = "force-static";
 export default function StorybookPage() {
   const shouldExposeStorybook =
     process.env.NEXT_PUBLIC_EXPOSE_STORYBOOK &&
-    process.env.NEXT_PUBLIC_EXPOSE_STORYBOOK === "1";
+    process.env.NEXT_PUBLIC_EXPOSE_STORYBOOK === '1'
 
   if (!shouldExposeStorybook) {
-    throw notFound();
+    throw notFound()
   }
 
   return (
@@ -24,5 +24,5 @@ export default function StorybookPage() {
       className="h-screen w-full border-0"
       title="Storybook"
     />
-  );
+  )
 }

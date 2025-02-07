@@ -1,11 +1,12 @@
-"use client";
+'use client'
 
-import * as React from "react";
+import * as React from 'react'
 
-import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { useEffect } from "react";
+import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { useEffect } from 'react'
 
+ 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
 
@@ -15,55 +16,55 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "flex h-8 w-full bg-bg px-3 py-2",
-          "font-mono text-xs tracking-wider",
+          'flex h-8 w-full bg-bg px-3 py-2',
+          'font-mono text-xs tracking-wider',
 
-          "rounded-md border",
+          'rounded-md border',
 
-          "placeholder:font-mono placeholder:text-fg-500",
-          "focus:outline-none focus:[border-bottom:1px_solid_hsl(var(--accent))]",
-          "disabled:cursor-not-allowed disabled:opacity-50",
+          'placeholder:font-mono placeholder:text-fg-500',
+          'focus:outline-none focus:[border-bottom:1px_solid_hsl(var(--accent))]',
+          'disabled:cursor-not-allowed disabled:opacity-50',
 
-          "file:border-0 file:bg-transparent",
-          "file:font-mono file:text-sm file:uppercase",
-          "file:mr-4 file:px-2 file:py-1",
-          "file:border-2 file:border-dashed",
-          "file:hover:bg-bg-300/80",
+          'file:border-0 file:bg-transparent',
+          'file:font-mono file:text-sm file:uppercase',
+          'file:mr-4 file:px-2 file:py-1',
+          'file:border-2 file:border-dashed',
+          'file:hover:bg-bg-300/80',
 
-          "autofill:border-solid autofill:border-accent-100/80 autofill:border-b-accent autofill:shadow-[inset_0_0_0px_1000px_hsl(var(--accent-100)/0.2)]",
-          "autofill:bg-accent-100/30 autofill:text-fg",
+          'autofill:border-solid autofill:border-accent-100/80 autofill:border-b-accent autofill:shadow-[inset_0_0_0px_1000px_hsl(var(--accent-100)/0.2)]',
+          'autofill:bg-accent-100/30 autofill:text-fg',
 
-          className,
+          className
         )}
         ref={ref}
         {...props}
       />
-    );
-  },
-);
-Input.displayName = "Input";
+    )
+  }
+)
+Input.displayName = 'Input'
 
 const DebouncedInput = React.forwardRef<
   HTMLInputElement,
   {
-    value: string | number;
-    onChange: (value: string | number) => void;
-    debounce?: number;
-  } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">
+    value: string | number
+    onChange: (value: string | number) => void
+    debounce?: number
+  } & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'>
 >(({ value: initialValue, onChange, debounce = 300, ...props }, ref) => {
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState(initialValue)
 
   useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
+    setValue(initialValue)
+  }, [initialValue])
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onChange(value);
-    }, debounce);
+      onChange(value)
+    }, debounce)
 
-    return () => clearTimeout(timeout);
-  }, [value, debounce, onChange]);
+    return () => clearTimeout(timeout)
+  }, [value, debounce, onChange])
 
   return (
     <Input
@@ -72,33 +73,33 @@ const DebouncedInput = React.forwardRef<
       value={value}
       onChange={(e) => setValue(e.target.value)}
     />
-  );
-});
-DebouncedInput.displayName = "DebouncedInput";
+  )
+})
+DebouncedInput.displayName = 'DebouncedInput'
 
 const AutosizeInput = React.forwardRef<
   HTMLInputElement,
   React.ComponentProps<typeof Input> & { autosize?: boolean }
 >((props, ref) => {
-  const { value, className, autosize = true, ...rest } = props;
-  const displayValue = value?.toString() || "";
+  const { value, className, autosize = true, ...rest } = props
+  const displayValue = value?.toString() || ''
 
   return (
     <Input
       {...rest}
       ref={ref}
       value={value}
-      className={cn(className, autosize && "w-[var(--width)]")}
+      className={cn(className, autosize && 'w-[var(--width)]')}
       style={
         autosize
           ? ({
-              "--width": `${Math.max(1, displayValue.length)}ch`,
+              '--width': `${Math.max(1, displayValue.length)}ch`,
             } as React.CSSProperties)
           : undefined
       }
     />
-  );
-});
-AutosizeInput.displayName = "AutosizeInput";
+  )
+})
+AutosizeInput.displayName = 'AutosizeInput'
 
-export { Input, DebouncedInput, AutosizeInput };
+export { Input, DebouncedInput, AutosizeInput }

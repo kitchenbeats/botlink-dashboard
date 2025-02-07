@@ -1,39 +1,39 @@
-import { DebouncedInput } from "@/ui/primitives/input";
-import { cn } from "@/lib/utils";
-import React, { useEffect } from "react";
-import { useSandboxTableStore } from "@/features/dashboard/sandboxes/stores/table-store";
-import { Kbd } from "@/ui/primitives/kbd";
+import { DebouncedInput } from '@/ui/primitives/input'
+import { cn } from '@/lib/utils'
+import React, { useEffect } from 'react'
+import { useSandboxTableStore } from '@/features/dashboard/sandboxes/stores/table-store'
+import { Kbd } from '@/ui/primitives/kbd'
 
 export const SearchInput = React.forwardRef<
   HTMLInputElement,
   {
-    className?: string;
+    className?: string
   }
 >(({ className }, ref) => {
-  const { setGlobalFilter, globalFilter } = useSandboxTableStore();
+  const { setGlobalFilter, globalFilter } = useSandboxTableStore()
 
   useEffect(() => {
-    const controller = new AbortController();
+    const controller = new AbortController()
 
     window.addEventListener(
-      "keydown",
+      'keydown',
       (e) => {
-        if (e.key === "/") {
-          e.preventDefault();
-          if (ref && "current" in ref) {
-            (ref as React.RefObject<HTMLInputElement>).current?.focus();
+        if (e.key === '/') {
+          e.preventDefault()
+          if (ref && 'current' in ref) {
+            ;(ref as React.RefObject<HTMLInputElement>).current?.focus()
           }
-          return true;
+          return true
         }
       },
-      { signal: controller.signal },
-    );
+      { signal: controller.signal }
+    )
 
-    return () => controller.abort();
-  }, [ref]);
+    return () => controller.abort()
+  }, [ref])
 
   return (
-    <div className={cn("relative w-full", className)}>
+    <div className={cn('relative w-full', className)}>
       <DebouncedInput
         value={globalFilter}
         onChange={(v) => setGlobalFilter(v as string)}
@@ -42,9 +42,9 @@ export const SearchInput = React.forwardRef<
         ref={ref}
         debounce={500}
       />
-      <Kbd keys={["/"]} className="absolute right-2 top-1/2 -translate-y-1/2" />
+      <Kbd keys={['/']} className="absolute right-2 top-1/2 -translate-y-1/2" />
     </div>
-  );
-});
+  )
+})
 
-SearchInput.displayName = "SearchInput";
+SearchInput.displayName = 'SearchInput'

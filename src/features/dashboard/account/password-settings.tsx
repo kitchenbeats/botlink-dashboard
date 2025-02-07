@@ -1,53 +1,53 @@
-"use client";
+'use client'
 
-import { forgotPasswordAction } from "@/server/auth/auth-actions";
-import { AuthFormMessage } from "@/features/auth/form-message";
+import { forgotPasswordAction } from '@/server/auth/auth-actions'
+import { AuthFormMessage } from '@/features/auth/form-message'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/ui/primitives/card";
-import { Button } from "@/ui/primitives/button";
-import { useTimeoutMessage } from "@/lib/hooks/use-timeout-message";
-import { useUser } from "@/lib/hooks/use-user";
-import { AnimatePresence } from "motion/react";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { cn } from "@/lib/utils";
+} from '@/ui/primitives/card'
+import { Button } from '@/ui/primitives/button'
+import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
+import { useUser } from '@/lib/hooks/use-user'
+import { AnimatePresence } from 'motion/react'
+import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
 interface PasswordSettingsProps {
-  className?: string;
+  className?: string
 }
 
 export function PasswordSettings({ className }: PasswordSettingsProps) {
-  const { user } = useUser();
-  const searchParams = useSearchParams();
-  const [message, setMessage] = useTimeoutMessage();
+  const { user } = useUser()
+  const searchParams = useSearchParams()
+  const [message, setMessage] = useTimeoutMessage()
 
   useEffect(() => {
     if (
-      !searchParams.has("success") &&
-      !searchParams.has("error") &&
-      !searchParams.has("type")
+      !searchParams.has('success') &&
+      !searchParams.has('error') &&
+      !searchParams.has('type')
     )
-      return;
+      return
 
-    if (searchParams.get("type") === "reset_password") {
+    if (searchParams.get('type') === 'reset_password') {
       setMessage(
-        searchParams.has("success")
+        searchParams.has('success')
           ? {
-              success: decodeURIComponent(searchParams.get("success")!),
+              success: decodeURIComponent(searchParams.get('success')!),
             }
           : {
-              error: decodeURIComponent(searchParams.get("error")!),
-            },
-      );
+              error: decodeURIComponent(searchParams.get('error')!),
+            }
+      )
     }
-  }, [searchParams]);
+  }, [searchParams])
 
-  if (!user) return null;
+  if (!user) return null
 
   return (
     <Card variant="slate" className={cn(className)}>
@@ -62,13 +62,13 @@ export function PasswordSettings({ className }: PasswordSettingsProps) {
         <Button
           variant="outline"
           onClick={() => {
-            if (!user?.email) return;
+            if (!user?.email) return
 
-            const formData = new FormData();
-            formData.set("email", user.email);
-            formData.set("callbackUrl", "/dashboard/account");
+            const formData = new FormData()
+            formData.set('email', user.email)
+            formData.set('callbackUrl', '/dashboard/account')
 
-            forgotPasswordAction(formData);
+            forgotPasswordAction(formData)
           }}
         >
           Change Password
@@ -78,5 +78,5 @@ export function PasswordSettings({ className }: PasswordSettingsProps) {
         </AnimatePresence>
       </CardContent>
     </Card>
-  );
+  )
 }

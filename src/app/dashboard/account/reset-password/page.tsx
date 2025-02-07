@@ -1,20 +1,20 @@
-import { resetPasswordAction } from "@/server/auth/auth-actions";
-import { AuthFormMessage, AuthMessage } from "@/features/auth/form-message";
-import { Button } from "@/ui/primitives/button";
-import { Input } from "@/ui/primitives/input";
-import { Label } from "@/ui/primitives/label";
-import DashboardPageLayout from "@/features/dashboard/page-layout";
+import { resetPasswordAction } from '@/server/auth/auth-actions'
+import { AuthFormMessage, AuthMessage } from '@/features/auth/form-message'
+import { Button } from '@/ui/primitives/button'
+import { Input } from '@/ui/primitives/input'
+import { Label } from '@/ui/primitives/label'
+import DashboardPageLayout from '@/features/dashboard/page-layout'
 
 export default async function ResetPassword(props: {
-  searchParams: Promise<AuthMessage>;
+  searchParams: Promise<AuthMessage>
 }) {
-  const searchParams = await props.searchParams;
+  const searchParams = await props.searchParams
 
   return (
     <DashboardPageLayout
       title="Reset password"
       className="p-6"
-      classNames={{ frameWrapper: "w-fit" }}
+      classNames={{ frameWrapper: 'w-fit' }}
     >
       <form className="flex w-full flex-col gap-2 [&>input]:mb-4">
         <div>
@@ -41,5 +41,5 @@ export default async function ResetPassword(props: {
       </form>
       <AuthFormMessage className="mt-4" message={searchParams} />
     </DashboardPageLayout>
-  );
+  )
 }

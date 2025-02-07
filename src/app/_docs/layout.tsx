@@ -1,16 +1,16 @@
-"use client";
+'use client'
 
-import "@/styles/docs.css";
+import '@/styles/docs.css'
 
-import { DocsLayout, type DocsLayoutProps } from "fumadocs-ui/layouts/docs";
-import type { ReactNode } from "react";
-import { baseOptions } from "@/app/layout.config";
+import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/docs'
+import type { ReactNode } from 'react'
+import { baseOptions } from '@/app/layout.config'
 /* import "fumadocs-twoslash/twoslash.css"; */
-import { source } from "@/app/source";
-import DocsNavItem from "@/features/docs/navbar/item";
-import DocsNavSeparator from "@/features/docs/navbar/separator";
-import DocsNavHeader from "@/features/docs/navbar/header";
-import { Nav } from "@/features/docs/navbar/navbar";
+import { source } from '@/app/source'
+import DocsNavItem from '@/features/docs/navbar/item'
+import DocsNavSeparator from '@/features/docs/navbar/separator'
+import DocsNavHeader from '@/features/docs/navbar/header'
+import { Nav } from '@/features/docs/navbar/navbar'
 /* import { Trigger } from "@/components/ai/search-ai"; */
 
 const docsOptions: DocsLayoutProps = {
@@ -27,7 +27,7 @@ const docsOptions: DocsLayoutProps = {
       Item: DocsNavItem,
     },
   },
-};
+}
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
@@ -37,5 +37,5 @@ export default function Layout({ children }: { children: ReactNode }) {
         <DocsLayout {...docsOptions}>{children}</DocsLayout>
       </div>
     </>
-  );
+  )
 }

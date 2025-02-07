@@ -6,7 +6,6 @@ import MemberTable from '@/features/dashboard/team/member-table'
 import { CardDescription } from '@/ui/primitives/card'
 import { CardTitle } from '@/ui/primitives/card'
 import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
-import ClientOnly from '@/ui/client-only'
 
 interface GeneralPageProps {
   params: Promise<{

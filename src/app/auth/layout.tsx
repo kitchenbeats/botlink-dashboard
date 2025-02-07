@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { GridPattern } from "@/ui/grid-pattern";
-import { GradientBorder } from "@/ui/gradient-border";
-import { cn } from "@/lib/utils";
-import dynamic from "next/dynamic";
+import { GridPattern } from '@/ui/grid-pattern'
+import { GradientBorder } from '@/ui/gradient-border'
+import { cn } from '@/lib/utils'
+import dynamic from 'next/dynamic'
 
-const NetworkStateBanner = dynamic(() => import("@/ui/network-state-banner"), {
+const NetworkStateBanner = dynamic(() => import('@/ui/network-state-banner'), {
   ssr: false,
-});
+})
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,9 +17,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         height={50}
         x={-1}
         y={-1}
-        strokeDasharray={"4 2"}
+        strokeDasharray={'4 2'}
         className={cn(
-          "[mask-image:radial-gradient(800px_400px_at_center,white,transparent)]",
+          '[mask-image:radial-gradient(800px_400px_at_center,white,transparent)]'
         )}
         gradientFrom="hsl(var(--accent-100))"
         gradientVia="hsl(var(--fg-100)/0.1)"
@@ -40,5 +40,5 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </GradientBorder>
       </div>
     </div>
-  );
+  )
 }

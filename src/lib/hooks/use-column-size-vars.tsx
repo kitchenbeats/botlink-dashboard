@@ -5,7 +5,7 @@ import { useMemo } from 'react'
  * Hook to gather all column sizes once and store them as CSS variables.
  * Note: header.id values cannot contain spaces as they are used in CSS variable names.
  */
-export function useColumnSizeVars(table: Table<any>) {
+export function useColumnSizeVars<T extends object>(table: Table<T>) {
   return useMemo(() => {
     const headers = table.getFlatHeaders()
     const colSizes: { [key: string]: string } = {}
@@ -17,5 +17,6 @@ export function useColumnSizeVars(table: Table<any>) {
     })
 
     return colSizes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table.getState().columnSizing, table.getState().columnSizingInfo])
 }

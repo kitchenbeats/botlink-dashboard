@@ -27,7 +27,7 @@ export function Logo(props: React.SVGProps<SVGSVGElement>) {
       <mask
         id="mask0_354_41876"
         style={{
-          maskType: "alpha",
+          maskType: 'alpha',
         }}
         maskUnits="userSpaceOnUse"
         x="1"
@@ -119,5 +119,5 @@ export function Logo(props: React.SVGProps<SVGSVGElement>) {
         </linearGradient>
       </defs>
     </svg>
-  );
+  )
 }

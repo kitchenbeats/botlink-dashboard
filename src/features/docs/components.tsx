@@ -1,22 +1,22 @@
-import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
-import { Tab, Tabs as FumaTabs, TabsProps } from "fumadocs-ui/components/tabs";
-import { TypeTable } from "fumadocs-ui/components/type-table";
-import defaultMdxComponents from "fumadocs-ui/mdx";
-import { MDXComponents } from "mdx/types";
-import { ComponentProps, forwardRef, Fragment } from "react";
-import { AlertCircle } from "lucide-react";
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion'
+import { Tab, Tabs as FumaTabs, TabsProps } from 'fumadocs-ui/components/tabs'
+import { TypeTable } from 'fumadocs-ui/components/type-table'
+import defaultMdxComponents from 'fumadocs-ui/mdx'
+import { MDXComponents } from 'mdx/types'
+import { ComponentProps, forwardRef, Fragment } from 'react'
+import { AlertCircle } from 'lucide-react'
 import {
   Pre,
   CodeBlock as FumaCodeBlock,
   CodeBlockProps,
-} from "fumadocs-ui/components/codeblock";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
+} from 'fumadocs-ui/components/codeblock'
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
 
 const Callout = forwardRef<
   HTMLDivElement,
-  ComponentProps<(typeof defaultMdxComponents)["Callout"]>
+  ComponentProps<(typeof defaultMdxComponents)['Callout']>
 >(({ title, type, icon, children, ...props }, ref) => {
-  const variant = type !== "info" ? (type ?? "contrast1") : "contrast1";
+  const variant = type !== 'info' ? (type ?? 'contrast1') : 'contrast1'
 
   return (
     <Alert ref={ref} variant={variant} className="ml-4 p-4">
@@ -26,12 +26,12 @@ const Callout = forwardRef<
       )}
       <AlertDescription>{children}</AlertDescription>
     </Alert>
-  );
-});
+  )
+})
 
-Callout.displayName = "Callout";
+Callout.displayName = 'Callout'
 
-const Blockquote = forwardRef<HTMLQuoteElement, ComponentProps<"blockquote">>(
+const Blockquote = forwardRef<HTMLQuoteElement, ComponentProps<'blockquote'>>(
   ({ children, ...props }, ref) => {
     return (
       <blockquote
@@ -41,11 +41,11 @@ const Blockquote = forwardRef<HTMLQuoteElement, ComponentProps<"blockquote">>(
       >
         {children}
       </blockquote>
-    );
-  },
-);
+    )
+  }
+)
 
-Blockquote.displayName = "Blockquote";
+Blockquote.displayName = 'Blockquote'
 
 const CodeBlock = forwardRef<HTMLPreElement, CodeBlockProps>(
   ({ children, ...props }, ref) => {
@@ -53,22 +53,22 @@ const CodeBlock = forwardRef<HTMLPreElement, CodeBlockProps>(
       <FumaCodeBlock ref={ref} {...props}>
         <Pre>{children}</Pre>
       </FumaCodeBlock>
-    );
-  },
-);
+    )
+  }
+)
 
-CodeBlock.displayName = "CodeBlock";
+CodeBlock.displayName = 'CodeBlock'
 
 const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   ({ children, ...props }, ref) => {
-    return <FumaTabs {...props}>{children}</FumaTabs>;
-  },
-);
+    return <FumaTabs {...props}>{children}</FumaTabs>
+  }
+)
 
-Tabs.displayName = "Tabs";
+Tabs.displayName = 'Tabs'
 
 interface Props {
-  slug: string[];
+  slug: string[]
 }
 
 const components = ({
@@ -84,9 +84,9 @@ const components = ({
     Callout,
     blockquote: Blockquote,
     pre: CodeBlock,
-    HeadlessOnly: slug[0] === "headless" ? Fragment : () => undefined,
-    UIOnly: slug[0] === "ui" ? Fragment : () => undefined,
-  };
-};
+    HeadlessOnly: slug[0] === 'headless' ? Fragment : () => undefined,
+    UIOnly: slug[0] === 'ui' ? Fragment : () => undefined,
+  }
+}
 
-export default components;
+export default components

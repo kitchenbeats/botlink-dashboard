@@ -1,27 +1,27 @@
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { TableCell, TableRow } from "@/ui/primitives/table";
-import MemberTableRow from "./member-table-row";
-import { getTeamMembers } from "@/server/team/get-team-members";
-import { bailOutFromPPR } from "@/lib/utils/server";
-import { ErrorIndicator } from "@/ui/error-indicator";
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
+import { TableCell, TableRow } from '@/ui/primitives/table'
+import MemberTableRow from './member-table-row'
+import { getTeamMembers } from '@/server/team/get-team-members'
+import { bailOutFromPPR } from '@/lib/utils/server'
+import { ErrorIndicator } from '@/ui/error-indicator'
 
 interface TableBodyContentProps {
-  teamId: string;
+  teamId: string
 }
 
 export default async function MemberTableBody({
   teamId,
 }: TableBodyContentProps) {
-  bailOutFromPPR();
+  bailOutFromPPR()
 
   try {
-    const result = await getTeamMembers({ teamId });
+    const result = await getTeamMembers({ teamId })
 
-    if (result.type === "error") {
-      throw new Error(result.message);
+    if (result.type === 'error') {
+      throw new Error(result.message)
     }
 
-    const members = result.data;
+    const members = result.data
 
     if (members.length === 0) {
       return (
@@ -33,7 +33,7 @@ export default async function MemberTableBody({
             </Alert>
           </TableCell>
         </TableRow>
-      );
+      )
     }
 
     return (
@@ -50,18 +50,18 @@ export default async function MemberTableBody({
           />
         ))}
       </>
-    );
+    )
   } catch (error) {
     return (
       <TableRow>
         <TableCell colSpan={5}>
           <ErrorIndicator
-            description={"Could not load team members"}
-            message={error instanceof Error ? error.message : "Unknown error"}
+            description={'Could not load team members'}
+            message={error instanceof Error ? error.message : 'Unknown error'}
             className="mt-2 w-full max-w-full bg-bg"
           />
         </TableCell>
       </TableRow>
-    );
+    )
   }
 }

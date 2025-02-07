@@ -1,27 +1,27 @@
-import { getTeamApiKeys } from "@/server/keys/get-api-keys";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { TableCell, TableRow } from "@/ui/primitives/table";
-import ApiKeyTableRow from "./table-row";
-import { bailOutFromPPR } from "@/lib/utils/server";
-import { ErrorIndicator } from "@/ui/error-indicator";
+import { getTeamApiKeys } from '@/server/keys/get-api-keys'
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
+import { TableCell, TableRow } from '@/ui/primitives/table'
+import ApiKeyTableRow from './table-row'
+import { bailOutFromPPR } from '@/lib/utils/server'
+import { ErrorIndicator } from '@/ui/error-indicator'
 
 interface TableBodyContentProps {
-  teamId: string;
+  teamId: string
 }
 
 export default async function TableBodyContent({
   teamId,
 }: TableBodyContentProps) {
-  bailOutFromPPR();
+  bailOutFromPPR()
 
   try {
-    const result = await getTeamApiKeys({ teamId });
+    const result = await getTeamApiKeys({ teamId })
 
-    if (result.type === "error") {
-      throw new Error(result.message);
+    if (result.type === 'error') {
+      throw new Error(result.message)
     }
 
-    const { apiKeys } = result.data;
+    const { apiKeys } = result.data
 
     if (apiKeys.length === 0) {
       return (
@@ -35,7 +35,7 @@ export default async function TableBodyContent({
             </Alert>
           </TableCell>
         </TableRow>
-      );
+      )
     }
 
     return (
@@ -44,18 +44,18 @@ export default async function TableBodyContent({
           <ApiKeyTableRow key={key.id} apiKey={key} index={index} />
         ))}
       </>
-    );
+    )
   } catch (error) {
     return (
       <TableRow>
         <TableCell colSpan={5}>
           <ErrorIndicator
-            description={"Could not load API keys"}
-            message={error instanceof Error ? error.message : "Unknown error"}
+            description={'Could not load API keys'}
+            message={error instanceof Error ? error.message : 'Unknown error'}
             className="mt-2 w-full max-w-full bg-bg"
           />
         </TableCell>
       </TableRow>
-    );
+    )
   }
 }

@@ -1,29 +1,29 @@
-import { Button } from "@/ui/primitives/button";
+import { Button } from '@/ui/primitives/button'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/primitives/select";
-import { RefreshCw } from "lucide-react";
-import { Separator } from "./primitives/separator";
-import { PollingInterval } from "@/types/dashboard";
-import { useRouter } from "next/navigation";
+} from '@/ui/primitives/select'
+import { RefreshCw } from 'lucide-react'
+import { Separator } from './primitives/separator'
+import { PollingInterval } from '@/types/dashboard'
+import { useRouter } from 'next/navigation'
 
 interface PollingButtonProps {
-  pollingInterval: PollingInterval;
-  onIntervalChange: (interval: PollingInterval) => void;
-  isLoading?: boolean;
-  onRefresh: () => void;
+  pollingInterval: PollingInterval
+  onIntervalChange: (interval: PollingInterval) => void
+  isLoading?: boolean
+  onRefresh: () => void
 }
 
 const intervals = [
-  { value: 0, label: "Off" },
-  { value: 15, label: "15s" },
-  { value: 30, label: "30s" },
-  { value: 60, label: "1m" },
-];
+  { value: 0, label: 'Off' },
+  { value: 15, label: '15s' },
+  { value: 30, label: '30s' },
+  { value: 60, label: '1m' },
+]
 
 export function PollingButton({
   pollingInterval,
@@ -41,7 +41,7 @@ export function PollingButton({
         disabled={isLoading}
       >
         <RefreshCw
-          className={`size-3.5 ${isLoading ? "animate-spin duration-500 ease-in-out" : ""}`}
+          className={`size-3.5 ${isLoading ? 'animate-spin duration-500 ease-in-out' : ''}`}
         />
       </Button>
 
@@ -68,5 +68,5 @@ export function PollingButton({
         </SelectContent>
       </Select>
     </div>
-  );
+  )
 }

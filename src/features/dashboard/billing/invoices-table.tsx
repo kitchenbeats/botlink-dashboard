@@ -5,18 +5,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/ui/primitives/table";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { Loader } from "@/ui/loader";
-import { Button } from "@/ui/primitives/button";
-import { Suspense } from "react";
-import Link from "next/link";
-import { getInvoices } from "@/server/billing/get-invoices";
-import { bailOutFromPPR } from "@/lib/utils/server";
-import { ErrorIndicator } from "@/ui/error-indicator";
+} from '@/ui/primitives/table'
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
+import { Loader } from '@/ui/loader'
+import { Button } from '@/ui/primitives/button'
+import { Suspense } from 'react'
+import Link from 'next/link'
+import { getInvoices } from '@/server/billing/get-invoices'
+import { bailOutFromPPR } from '@/lib/utils/server'
+import { ErrorIndicator } from '@/ui/error-indicator'
 
 interface BillingInvoicesTableProps {
-  teamId: string;
+  teamId: string
 }
 
 function LoadingFallback() {
@@ -32,27 +32,27 @@ function LoadingFallback() {
         </Alert>
       </TableCell>
     </TableRow>
-  );
+  )
 }
 
 async function InvoicesTableContent({ teamId }: { teamId: string }) {
-  const res = await getInvoices({ teamId });
+  const res = await getInvoices({ teamId })
 
-  if (res.type === "error") {
+  if (res.type === 'error') {
     return (
       <TableRow>
         <TableCell colSpan={4}>
           <ErrorIndicator
-            description={"Could not load invoices"}
+            description={'Could not load invoices'}
             message={res.message}
             className="mt-2 w-full max-w-full bg-bg"
           />
         </TableCell>
       </TableRow>
-    );
+    )
   }
 
-  const invoices = res.data;
+  const invoices = res.data
 
   if (!invoices?.length) {
     return (
@@ -64,7 +64,7 @@ async function InvoicesTableContent({ teamId }: { teamId: string }) {
           </Alert>
         </TableCell>
       </TableRow>
-    );
+    )
   }
 
   return (
@@ -75,7 +75,7 @@ async function InvoicesTableContent({ teamId }: { teamId: string }) {
             {new Date(invoice.date_created).toLocaleDateString()}
           </TableCell>
           <TableCell>${invoice.cost.toFixed(2)}</TableCell>
-          <TableCell>{invoice.paid ? "Paid" : "Pending"}</TableCell>
+          <TableCell>{invoice.paid ? 'Paid' : 'Pending'}</TableCell>
           <TableCell className="text-right">
             <Button variant="muted" size="sm" asChild>
               <Link href={invoice.url} target="_blank">
@@ -86,7 +86,7 @@ async function InvoicesTableContent({ teamId }: { teamId: string }) {
         </TableRow>
       ))}
     </>
-  );
+  )
 }
 
 export default function BillingInvoicesTable({
@@ -108,5 +108,5 @@ export default function BillingInvoicesTable({
         </Suspense>
       </TableBody>
     </Table>
-  );
+  )
 }

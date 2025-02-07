@@ -1,7 +1,8 @@
-import { Suspense } from "react";
-import TemplatesTableFilters from "./table-filters";
-import { SearchInput } from "./table-search";
+import { Suspense } from 'react'
+import TemplatesTableFilters from './table-filters'
+import { SearchInput } from './table-search'
 
+ 
 interface TemplatesHeaderProps {}
 
 export default function TemplatesHeader({}: TemplatesHeaderProps) {
@@ -14,5 +15,5 @@ export default function TemplatesHeader({}: TemplatesHeaderProps) {
         </Suspense>
       </div>
     </div>
-  );
+  )
 }
