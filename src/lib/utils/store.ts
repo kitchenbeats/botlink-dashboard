@@ -4,7 +4,7 @@ export const createHashStorage = <T extends object>(
   initialState: T
 ): StateStorage => ({
   getItem: (key): string => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1))
+    const searchParams = new URLSearchParams(window.location.search)
     const storedValue = searchParams.get(key)
     if (!storedValue) {
       return JSON.stringify({
@@ -15,7 +15,7 @@ export const createHashStorage = <T extends object>(
     return storedValue
   },
   setItem: (key, newValue): void => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1))
+    const searchParams = new URLSearchParams(window.location.search)
     const persistedData = JSON.parse(newValue)
     const stateValue = persistedData.state as T
 
@@ -38,11 +38,19 @@ export const createHashStorage = <T extends object>(
       searchParams.delete(key)
     }
 
-    window.location.hash = searchParams.toString()
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}?${searchParams.toString()}`
+    )
   },
   removeItem: (key): void => {
-    const searchParams = new URLSearchParams(window.location.hash.slice(1))
+    const searchParams = new URLSearchParams(window.location.search)
     searchParams.delete(key)
-    window.location.hash = searchParams.toString()
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}?${searchParams.toString()}`
+    )
   },
 })

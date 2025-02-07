@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+
 'use client'
 
 import { ArrowUpRight, Cpu, PinIcon, X } from 'lucide-react'
@@ -21,6 +23,9 @@ import { CgSmartphoneRam } from 'react-icons/cg'
 import { cn } from '@/lib/utils'
 import { useMemo } from 'react'
 import { Button } from '@/ui/primitives/button'
+import { useRouter } from 'next/navigation'
+import { useTemplateTableStore } from '../templates/stores/table-store'
+import { useServerContext } from '@/lib/hooks/use-server-context'
 
 export type SandboxWithMetrics = Sandbox & { metrics: SandboxMetrics[] }
 
@@ -127,20 +132,28 @@ export const useColumns = (deps: unknown[]) => {
         id: 'template',
         header: 'TEMPLATE',
         cell: ({ getValue, table }) => {
-          // @ts-expect-error team is not a valid state
-          const team = table.getState().team
           const templateId = getValue() as string
 
-          if (!team) return null
+          const { selectedTeamSlug, selectedTeamId } = useServerContext()
+
+          const router = useRouter()
+
+          if (!selectedTeamSlug || !selectedTeamId) return null
 
           return (
-            <Link
-              href={PROTECTED_URLS.TEMPLATES(team.id)}
-              className="flex items-center gap-1 font-mono hover:text-accent hover:underline"
+            <Button
+              variant="link"
+              className="h-auto p-0 text-xs text-fg"
+              onClick={() => {
+                useTemplateTableStore.getState().setGlobalFilter(templateId)
+                router.push(
+                  PROTECTED_URLS.TEMPLATES(selectedTeamSlug ?? selectedTeamId)
+                )
+              }}
             >
               {templateId}
               <ArrowUpRight className="size-3" />
-            </Link>
+            </Button>
           )
         },
         size: 250,

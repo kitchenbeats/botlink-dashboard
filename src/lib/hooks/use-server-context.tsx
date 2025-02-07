@@ -4,6 +4,7 @@ import { createContext, useContext, ReactNode } from 'react'
 
 interface ServerContextValue {
   selectedTeamId: string | null
+  selectedTeamSlug: string | null
 }
 
 const ServerContext = createContext<ServerContextValue | undefined>(undefined)
@@ -11,14 +12,17 @@ const ServerContext = createContext<ServerContextValue | undefined>(undefined)
 interface ServerContextProviderProps {
   children: ReactNode
   teamId?: string | null
+  teamSlug?: string | null
 }
 
 export function ServerContextProvider({
   children,
   teamId = null,
+  teamSlug = null,
 }: ServerContextProviderProps) {
   const value = {
     selectedTeamId: teamId,
+    selectedTeamSlug: teamSlug,
   }
 
   return (

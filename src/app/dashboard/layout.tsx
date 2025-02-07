@@ -3,7 +3,10 @@ import NetworkStateBanner from '@/ui/network-state-banner'
 import { DashboardTitleProvider } from '@/features/dashboard/dashboard-title-provider'
 import { Suspense } from 'react'
 import { ServerContextProvider } from '@/lib/hooks/use-server-context'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
+import {
+  resolveTeamIdInServerComponent,
+  resolveTeamSlugInServerComponent,
+} from '@/lib/utils/server'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -18,9 +21,10 @@ export default async function DashboardLayout({
 }: DashboardLayoutProps) {
   const { teamIdOrSlug } = await params
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
+  const teamSlug = await resolveTeamSlugInServerComponent()
 
   return (
-    <ServerContextProvider teamId={teamId}>
+    <ServerContextProvider teamId={teamId} teamSlug={teamSlug}>
       <div className="mx-auto flex h-svh max-h-full w-full flex-col">
         <NetworkStateBanner />
         <div className="flex h-full max-h-full w-full overflow-hidden">

@@ -395,3 +395,15 @@ export async function resolveTeamIdInServerComponent(identifier: string) {
   }
   return teamId
 }
+
+/**
+ * Resolves a team slug from cookies.
+ * If no slug is found, it returns null.
+ *
+ *
+ */
+export async function resolveTeamSlugInServerComponent() {
+  const cookiesStore = await cookies()
+
+  return cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
+}
