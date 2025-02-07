@@ -316,7 +316,7 @@ export const useColumns = (deps: unknown[]) => {
         cell: ({ getValue }) => (
           <Badge
             variant={getValue() ? 'success' : 'muted'}
-            className="ml-3 whitespace-nowrap font-mono"
+            className="whitespace-nowrap font-mono"
           >
             {getValue() ? 'true' : 'false'}
           </Badge>

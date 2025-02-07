@@ -1,3 +1,5 @@
+'use client'
+
 import { DialogProps } from '@radix-ui/react-dialog'
 import {
   Dialog,
@@ -5,6 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/ui/primitives/dialog'
 import { Button, buttonVariants } from '@/ui/primitives/button'
 import { useEffect } from 'react'
@@ -40,10 +43,12 @@ type FormValues = z.infer<typeof formSchema>
 
 interface DeveloperSettingsDialogProps extends DialogProps {
   apiDomain?: string
+  children: React.ReactNode
 }
 
 export default function DeveloperSettingsDialog({
   apiDomain,
+  children,
   ...props
 }: DeveloperSettingsDialogProps) {
   const form = useForm<FormValues>({
@@ -124,6 +129,7 @@ export default function DeveloperSettingsDialog({
 
   return (
     <Dialog {...props}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Developer Settings</DialogTitle>

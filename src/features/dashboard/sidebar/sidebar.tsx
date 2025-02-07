@@ -5,16 +5,25 @@ import DashboardNavbar from '../navbar/navbar'
 import TeamSelector from './team-selector'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/primitives/button'
-import { Book, Github } from 'lucide-react'
+import {
+  ArrowBigRight,
+  ArrowBigRightDash,
+  Book,
+  ChevronRight,
+  Cog,
+  Construction,
+  Github,
+  MoveRight,
+  Settings2,
+  SidebarOpenIcon,
+} from 'lucide-react'
 import Link from 'next/link'
 import ExternalIcon from '@/ui/external-icon'
 import { GITHUB_URL } from '@/configs/socials'
-import { cookies } from 'next/headers'
-import { COOKIE_KEYS } from '@/configs/keys'
-import { createClient } from '@/lib/clients/supabase/server'
 import { PROTECTED_URLS } from '@/configs/urls'
 import UserDetailsTile from '@/features/auth/user-details-tile'
-import { Separator } from '@/ui/primitives/separator'
+import { getSessionInsecure } from '@/server/auth/get-session'
+import DeveloperSettingsDialog from '../developer-settings/settings-dialog'
 
 interface SidebarProps {
   className?: string
@@ -68,6 +77,17 @@ export default function Sidebar({ className }: SidebarProps) {
           Documentation
           <ExternalIcon className="ml-auto size-4" />
         </Link>
+        <Suspense>
+          <DeveloperSettingsDialog>
+            <Button
+              variant="ghost"
+              className="flex w-full items-center justify-start gap-2 rounded-none border-t p-2 font-sans text-sm normal-case text-fg-300 hover:text-fg"
+            >
+              <Construction className="size-4 text-fg-500" />
+              Developer Settings
+            </Button>
+          </DeveloperSettingsDialog>
+        </Suspense>
         <Suspense fallback={null}>
           <UserMenuWrapper />
         </Suspense>
@@ -77,24 +97,10 @@ export default function Sidebar({ className }: SidebarProps) {
 }
 
 async function UserMenuWrapper() {
-  const supabase = await createClient()
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const session = await getSessionInsecure()
 
   // TODO: Add Developer Settings
   /*   const apiDomain = (await cookies()).get(COOKIE_KEYS.API_DOMAIN)?.value */
 
-  return (
-    <Button
-      variant="ghost"
-      asChild
-      className="h-auto w-full justify-start border-t p-3"
-    >
-      <Link href={PROTECTED_URLS.ACCOUNT_SETTINGS}>
-        <UserDetailsTile user={session!.user} className="w-full" />
-      </Link>
-    </Button>
-  )
+  return <UserDetailsTile user={session!.user} className="w-full border-t" />
 }

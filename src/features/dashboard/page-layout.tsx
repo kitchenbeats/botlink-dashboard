@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils'
 import { Suspense } from 'react'
 import SidebarMobile from './sidebar/sidebar-mobile'
 import Frame from '@/ui/frame'
-import DashboardSearch from './sidebar/search'
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode

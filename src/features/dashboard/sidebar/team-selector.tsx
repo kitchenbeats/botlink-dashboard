@@ -18,6 +18,7 @@ import Dotted from '@/ui/dotted'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { cn } from '@/lib/utils'
 import { GradientBorder } from '@/ui/gradient-border'
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 
 interface TeamSelectorProps {
   className?: string
@@ -55,9 +56,12 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
         )}
       >
         <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden text-ellipsis">
-          <div className="relative size-9 min-w-9 rounded-md border bg-bg-200">
-            <Dotted />
-          </div>
+          <Avatar className="size-9 shadow-lg">
+            <AvatarImage src={selectedTeam?.profile_picture_url || undefined} />
+            <AvatarFallback className="bg-bg-100">
+              {selectedTeam?.name?.charAt(0).toUpperCase() || '?'}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-col items-start truncate pb-px">
             <span className="-mb-1 truncate text-[0.65rem] text-accent-200">
               TEAM

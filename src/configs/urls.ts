@@ -12,7 +12,7 @@ export const PROTECTED_URLS = {
   ACCOUNT_SETTINGS: '/dashboard/account',
   NEW_TEAM: '/dashboard/teams/new',
   TEAMS: '/dashboard/teams',
-  TEAM: (teamId: string) => `/dashboard/${teamId}`,
+  TEAM: (teamId: string) => `/dashboard/${teamId}/team`,
   SANDBOXES: (teamId: string) => `/dashboard/${teamId}/sandboxes`,
   TEMPLATES: (teamId: string) => `/dashboard/${teamId}/templates`,
   USAGE: (teamId: string) => `/dashboard/${teamId}/usage`,

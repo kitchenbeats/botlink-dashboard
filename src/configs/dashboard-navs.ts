@@ -1,4 +1,5 @@
 import {
+  Activity,
   BarChart,
   Blocks,
   CreditCard,
@@ -39,12 +40,12 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
   {
     label: 'Usage',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/usage`,
-    icon: BarChart,
+    icon: Activity,
   },
 
   {
-    label: 'General',
-    href: (args) => `/dashboard/${args.teamIdOrSlug}/general`,
+    label: 'Team',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/team`,
     icon: Users,
     group: 'manage',
   },
