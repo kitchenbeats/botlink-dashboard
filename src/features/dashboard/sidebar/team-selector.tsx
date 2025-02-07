@@ -6,6 +6,7 @@ import {
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/ui/primitives/select'
@@ -61,17 +62,18 @@ export default function TeamSelector() {
           </div>
         </div>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="p-0">
         {defaultTeam && (
-          <SelectGroup>
+          <SelectGroup className="px-2 pb-1 first:pt-2">
             <SelectLabel>Personal</SelectLabel>
             <SelectItem key={defaultTeam.id} value={defaultTeam.id}>
               {defaultTeam.name}
             </SelectItem>
           </SelectGroup>
         )}
+        <SelectSeparator />
         {teams.length > 0 && (
-          <SelectGroup>
+          <SelectGroup className="px-2 pt-1 last:pb-2">
             <SelectLabel>Teams</SelectLabel>
             {teams.map((team) => (
               <SelectItem key={team.id} value={team.id}>

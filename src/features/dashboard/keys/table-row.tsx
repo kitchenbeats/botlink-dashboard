@@ -45,7 +45,7 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
         toast({
           title: 'Success',
           description: 'API key deleted successfully',
-          variant: 'default',
+          variant: 'success',
         })
       } catch (error) {
         toast({

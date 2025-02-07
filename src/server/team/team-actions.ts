@@ -16,6 +16,7 @@ import {
 } from '@/types/errors'
 import { kv } from '@vercel/kv'
 import { KV_KEYS } from '@/configs/keys'
+import { revalidatePath } from 'next/cache'
 
 // Update team name
 
@@ -108,7 +109,9 @@ export const addTeamMemberAction = guard(
       throw insertError
     }
 
-    kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+
+    await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
 )
 
@@ -169,6 +172,8 @@ export const removeTeamMemberAction = guard(
       throw removeError
     }
 
-    kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+
+    await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
 )

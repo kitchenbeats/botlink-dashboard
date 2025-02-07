@@ -62,7 +62,6 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
       return response
     },
     onSuccess: () => {
-      mutate(QUERY_KEYS.TEAM_MEMBERS(selectedTeam!.id))
       toast({
         title: 'Member added to team',
         description: 'The member has been added to the team.',

@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { Template } from '@/types/api'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/use-toast'
 import { mutate } from 'swr'
 import { QUERY_KEYS } from '@/configs/keys'
@@ -22,16 +22,19 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/ui/primitives/dropdown-menu'
 import {
   deleteTemplateAction,
   updateTemplateAction,
 } from '@/server/templates/templates-actions'
-import { useMemo } from 'react'
+import { useMemo, useState, startTransition } from 'react'
 import { Badge } from '@/ui/primitives/badge'
 import { CgSmartphoneRam } from 'react-icons/cg'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { Loader } from '@/ui/loader'
+import { AlertDialog } from '@/ui/alert-dialog'
 
 // FILTERS
 export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
@@ -71,36 +74,47 @@ export const useColumns = (deps: any[]) => {
           const template = row.original
           const selectedTeam = useSelectedTeam()
           const { toast } = useToast()
+          const [isUpdating, setIsUpdating] = useState(false)
+          const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+          const [isDeleting, setIsDeleting] = useState(false)
+
+          const router = useRouter()
 
           const togglePublish = async () => {
             if (!selectedTeam) {
               return
             }
 
-            try {
-              const response = await updateTemplateAction({
-                templateId: template.templateID,
-                props: {
-                  isPublic: !template.public,
-                },
-              })
+            setIsUpdating(true)
+            startTransition(async () => {
+              try {
+                const response = await updateTemplateAction({
+                  templateId: template.templateID,
+                  props: {
+                    Public: !template.public,
+                  },
+                })
 
-              if (response.type === 'error') {
-                throw new Error(response.message)
+                if (response.type === 'error') {
+                  throw new Error(response.message)
+                }
+
+                router.refresh()
+                toast({
+                  title: 'Success',
+                  description: `Template ${template.public ? 'Unpublished' : 'Published'} Successfully`,
+                  variant: 'success',
+                })
+              } catch (error: any) {
+                toast({
+                  title: 'Failed to update template visibility',
+                  description: error.message,
+                  variant: 'error',
+                })
+              } finally {
+                setIsUpdating(false)
               }
-
-              await mutate(QUERY_KEYS.TEAM_TEMPLATES(selectedTeam!.id))
-              toast({
-                title: 'Success',
-                description: `Template ${template.public ? 'unpublished' : 'published'} successfully`,
-              })
-            } catch (error: any) {
-              toast({
-                title: 'Failed to update template visibility',
-                description: error.message,
-                variant: 'error',
-              })
-            }
+            })
           }
 
           const deleteTemplate = async () => {
@@ -108,66 +122,102 @@ export const useColumns = (deps: any[]) => {
               return
             }
 
-            try {
-              const response = await deleteTemplateAction({
-                templateId: template.templateID,
-              })
+            setIsDeleting(true)
+            startTransition(async () => {
+              try {
+                const response = await deleteTemplateAction({
+                  templateId: template.templateID,
+                })
 
-              if (response.type === 'error') {
-                throw new Error(response.message)
+                if (response.type === 'error') {
+                  throw new Error(response.message)
+                }
+
+                router.refresh()
+                toast({
+                  title: 'Success',
+                  description: 'Template deleted successfully',
+                  variant: 'success',
+                })
+              } catch (error: any) {
+                toast({
+                  title: 'Failed to delete template',
+                  description: error.message,
+                  variant: 'error',
+                })
+              } finally {
+                setIsDeleting(false)
+                setIsDeleteDialogOpen(false)
               }
-
-              await mutate(QUERY_KEYS.TEAM_TEMPLATES(selectedTeam!.id))
-              toast({
-                title: 'Success',
-                description: 'Template deleted successfully',
-              })
-            } catch (error: any) {
-              toast({
-                title: 'Failed to delete template',
-                description: error.message,
-                variant: 'error',
-              })
-            }
+            })
           }
 
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-5 text-fg-500"
-                >
-                  <MoreVertical className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>General</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={togglePublish}>
-                    {template.public ? (
-                      <>
-                        <Lock className="!size-3" />
-                        Unpublish
-                      </>
-                    ) : (
-                      <>
-                        <LockOpen className="!size-3" />
-                        Publish
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
+            <>
+              <AlertDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                title="Delete Template"
+                description="Are you sure you want to delete this template? This action cannot be undone."
+                confirm="Delete"
+                onConfirm={() => deleteTemplate()}
+                confirmProps={{
+                  disabled: isDeleting,
+                  loading: isDeleting,
+                }}
+              />
 
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>Danger Zone</DropdownMenuLabel>
-                  <DropdownMenuItem variant="error" onClick={deleteTemplate}>
-                    X Delete
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-5 text-fg-500"
+                    disabled={isUpdating || isDeleting}
+                  >
+                    {isUpdating ? (
+                      <Loader variant="line" className="size-4" />
+                    ) : (
+                      <MoreVertical className="size-4" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>General</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={togglePublish}
+                      disabled={isUpdating || isDeleting}
+                    >
+                      {template.public ? (
+                        <>
+                          <Lock className="!size-3" />
+                          Unpublish
+                        </>
+                      ) : (
+                        <>
+                          <LockOpen className="!size-3" />
+                          Publish
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Danger Zone</DropdownMenuLabel>
+                    <DropdownMenuItem
+                      variant="error"
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      disabled={isUpdating || isDeleting}
+                    >
+                      X Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           )
         },
       },
@@ -226,7 +276,8 @@ export const useColumns = (deps: any[]) => {
       {
         accessorFn: (row) => new Date(row.createdAt).toUTCString(),
         enableGlobalFilter: true,
-        header: 'Created',
+        id: 'createdAt',
+        header: 'Created At',
         size: 250,
         minSize: 140,
         cell: ({ getValue }) => (
@@ -237,7 +288,8 @@ export const useColumns = (deps: any[]) => {
       },
       {
         accessorFn: (row) => new Date(row.updatedAt).toUTCString(),
-        header: 'Last Updated',
+        id: 'updatedAt',
+        header: 'Updated At',
         size: 250,
         minSize: 140,
         enableGlobalFilter: true,

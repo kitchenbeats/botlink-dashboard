@@ -59,7 +59,6 @@ export default function MemberTableRow({
           title: 'You have left the team',
         })
       } else {
-        await mutate(QUERY_KEYS.TEAM_MEMBERS(selectedTeam.id))
         toast({
           title: 'Member removed',
           description: 'The member has been removed from the team',

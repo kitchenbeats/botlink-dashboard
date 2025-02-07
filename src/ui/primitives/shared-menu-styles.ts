@@ -41,8 +41,8 @@ export const menuContentStyles = cn(
 export const menuLabelStyles = cn('font-mono text-xs uppercase', 'text-fg-500')
 
 export const menuSeparatorStyles = cn(
-  '-mx-1 my-2',
-  'border-t border-dashed border-fg-300/20'
+  '-mx-2 my-2',
+  'border-t border-dashed border-border-200'
 )
 
 export const menuViewportStyles = cn('p-1')
