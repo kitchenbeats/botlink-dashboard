@@ -24,6 +24,8 @@ import { PROTECTED_URLS } from '@/configs/urls'
 import UserDetailsTile from '@/features/auth/user-details-tile'
 import { getSessionInsecure } from '@/server/auth/get-session'
 import DeveloperSettingsDialog from '../developer-settings/settings-dialog'
+import { cookies } from 'next/headers'
+import { COOKIE_KEYS } from '@/configs/keys'
 
 interface SidebarProps {
   className?: string
@@ -77,30 +79,31 @@ export default function Sidebar({ className }: SidebarProps) {
           Documentation
           <ExternalIcon className="ml-auto size-4" />
         </Link>
-        <Suspense>
-          <DeveloperSettingsDialog>
-            <Button
-              variant="ghost"
-              className="flex w-full items-center justify-start gap-2 rounded-none border-t p-2 font-sans text-sm normal-case text-fg-300 hover:text-fg"
-            >
-              <Construction className="size-4 text-fg-500" />
-              Developer Settings
-            </Button>
-          </DeveloperSettingsDialog>
-        </Suspense>
         <Suspense fallback={null}>
-          <UserMenuWrapper />
+          <ClientComponentWrapper />
         </Suspense>
       </footer>
     </aside>
   )
 }
 
-async function UserMenuWrapper() {
+async function ClientComponentWrapper() {
   const session = await getSessionInsecure()
 
-  // TODO: Add Developer Settings
-  /*   const apiDomain = (await cookies()).get(COOKIE_KEYS.API_DOMAIN)?.value */
+  const apiDomain = (await cookies()).get(COOKIE_KEYS.API_DOMAIN)?.value
 
-  return <UserDetailsTile user={session!.user} className="w-full border-t" />
+  return (
+    <>
+      <DeveloperSettingsDialog apiDomain={apiDomain}>
+        <Button
+          variant="ghost"
+          className="flex w-full items-center justify-start gap-2 rounded-none border-t p-2 font-sans text-sm normal-case text-fg-300 hover:text-fg"
+        >
+          <Construction className="size-4 text-fg-500" />
+          Developer Settings
+        </Button>
+      </DeveloperSettingsDialog>
+      <UserDetailsTile user={session!.user} className="w-full border-t" />
+    </>
+  )
 }
