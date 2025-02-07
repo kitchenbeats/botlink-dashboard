@@ -28,7 +28,7 @@ export default function Sidebar({ className }: SidebarProps) {
         className
       )}
     >
-      <header className="flex w-full flex-col items-center justify-between">
+      <header className="mb-2 flex w-full flex-col items-center justify-between border-b border-dashed">
         <div className="flex h-[var(--protected-nav-height)] w-full justify-center border-b">
           <LogoWithoutText className="size-12" />
         </div>
@@ -39,8 +39,6 @@ export default function Sidebar({ className }: SidebarProps) {
           </Suspense>
         </div>
       </header>
-
-      <Separator className="mb-2" />
 
       <DashboardNavbar className="flex-1 p-2 pb-8 pt-0" />
 
