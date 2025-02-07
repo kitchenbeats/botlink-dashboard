@@ -29,6 +29,10 @@ export default async function BillingPage({
           </CardDescription>
         </div>
 
+        <Suspense fallback={null}>
+          <CustomerPortalLink className="mt-2 w-fit shadow-md" />
+        </Suspense>
+
         <div className="mt-3 flex flex-col gap-12 overflow-x-auto max-lg:mb-6 lg:flex-row">
           {TIERS.map((tier) => (
             <BillingTierCard
@@ -39,10 +43,6 @@ export default async function BillingPage({
             />
           ))}
         </div>
-
-        <Suspense fallback={null}>
-          <CustomerPortalLink className="mx-auto shadow-lg" />
-        </Suspense>
       </section>
 
       {/* Billing History Section */}

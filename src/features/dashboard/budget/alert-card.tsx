@@ -1,19 +1,19 @@
-"use client";
+'use client'
 
-import { useSelectedTeam } from "@/lib/hooks/use-teams";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/primitives/card";
-import LimitForm from "./limit-form";
-import { BillingLimit } from "@/types/billing";
+import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card'
+import LimitForm from './limit-form'
+import { BillingLimit } from '@/types/billing'
 
 interface AlertCardProps {
-  className?: string;
-  value: BillingLimit["alert_amount_gte"];
+  className?: string
+  value: BillingLimit['alert_amount_gte']
 }
 
 export default function AlertCard({ className, value }: AlertCardProps) {
-  const team = useSelectedTeam();
+  const team = useSelectedTeam()
 
-  if (!team) return null;
+  if (!team) return null
 
   return (
     <Card className={className}>
@@ -28,10 +28,11 @@ export default function AlertCard({ className, value }: AlertCardProps) {
           type="alert"
         />
         <p>
-          If your team exceeds this threshold in a given billing period,
-          you&apos;ll receive an alert notification to <b>{team.email}</b>.
+          If your team exceeds this threshold in a given month, you&apos;ll
+          receive an alert notification to <b>ben.fornefeld@gmail.com</b>. This
+          will not result in any interruptions to your service.
         </p>
       </CardContent>
     </Card>
-  );
+  )
 }

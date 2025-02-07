@@ -40,5 +40,8 @@ next-env.d.ts
 *storybook.log
 public/storybook
 
+# fuma-docs
+/.source
+
 # tooling
 /template

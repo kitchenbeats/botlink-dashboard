@@ -49,6 +49,6 @@ ul li {
   padding-left: 0.5rem;
 }
 ul li::marker {
-  color: hsl(var(--contrast-2));
-  content: '-';
+  color: hsl(var(--accent-200));
+  content: '▪';
 }
