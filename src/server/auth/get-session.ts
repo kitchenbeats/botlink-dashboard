@@ -57,14 +57,9 @@ export async function getSessionInsecure() {
     }
   }
 
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    return session
-  } finally {
-    // Restore original console functions
-    console.warn = originalWarn
-    console.log = originalLog
-  }
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  return session
 }

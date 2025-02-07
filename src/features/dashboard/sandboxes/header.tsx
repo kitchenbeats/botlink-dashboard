@@ -8,22 +8,33 @@ import { PollingButton } from '@/ui/polling-button'
 import { useSandboxTableStore } from './stores/table-store'
 import { Template } from '@/types/api'
 import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
 
 interface SandboxesHeaderProps {
   searchInputRef: React.RefObject<HTMLInputElement | null>
   templates: Template[]
   table: Table<SandboxWithMetrics>
+  isPolling: boolean
 }
 
 export function SandboxesHeader({
   searchInputRef,
   templates,
   table,
+  isPolling,
 }: SandboxesHeaderProps) {
   'use no memo'
 
   const { pollingInterval, setPollingInterval } = useSandboxTableStore()
+  const [isRefreshing, startRefreshTransition] = useTransition()
+
   const router = useRouter()
+
+  const handleRefresh = () => {
+    startRefreshTransition(() => {
+      router.refresh()
+    })
+  }
 
   return (
     <header className="mx-3 flex flex-col gap-4">
@@ -48,9 +59,8 @@ export function SandboxesHeader({
             <PollingButton
               pollingInterval={pollingInterval}
               onIntervalChange={setPollingInterval}
-              onRefresh={() => {
-                router.refresh()
-              }}
+              onRefresh={handleRefresh}
+              isPolling={isPolling || isRefreshing}
             />
             <Badge
               variant="success"
@@ -64,9 +74,8 @@ export function SandboxesHeader({
             <PollingButton
               pollingInterval={pollingInterval}
               onIntervalChange={setPollingInterval}
-              onRefresh={() => {
-                router.refresh()
-              }}
+              onRefresh={handleRefresh}
+              isPolling={isPolling || isRefreshing}
             />
           </div>
           <Badge className="hidden h-min w-fit gap-2 font-bold uppercase lg:block">

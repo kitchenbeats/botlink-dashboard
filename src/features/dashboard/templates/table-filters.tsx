@@ -3,6 +3,7 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuPortal,
@@ -84,7 +85,6 @@ const ResourcesFilter = () => {
 
 // Main component
 
- 
 export interface TemplatesTableFiltersProps
   extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -115,45 +115,47 @@ const TemplatesTableFilters = React.forwardRef<
     >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="iconSm" variant="outline">
-            <FilterIcon className="size-4 text-fg-300" />
+          <Button variant="outline" size="sm" className="text-xs normal-case">
+            <FilterIcon className="size-4 text-fg-500" /> Filters{' '}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuLabel>Filters</DropdownMenuLabel>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Resources</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <ResourcesFilter />
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Visibility</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  className={isPublic === true ? 'text-accent' : undefined}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setIsPublic(isPublic === true ? undefined : true)
-                  }}
-                >
-                  Public
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className={isPublic === false ? 'text-accent' : undefined}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setIsPublic(isPublic === false ? undefined : false)
-                  }}
-                >
-                  Private
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Filters</DropdownMenuLabel>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Resources</DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <ResourcesFilter />
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Visibility</DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem
+                    className={isPublic === true ? 'text-accent' : undefined}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsPublic(isPublic === true ? undefined : true)
+                    }}
+                  >
+                    Public
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={isPublic === false ? 'text-accent' : undefined}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsPublic(isPublic === false ? undefined : false)
+                    }}
+                  >
+                    Private
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 

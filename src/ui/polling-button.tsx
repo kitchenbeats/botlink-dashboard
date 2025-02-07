@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation'
 interface PollingButtonProps {
   pollingInterval: PollingInterval
   onIntervalChange: (interval: PollingInterval) => void
-  isLoading?: boolean
+  isPolling?: boolean
   onRefresh: () => void
 }
 
@@ -28,7 +28,7 @@ const intervals = [
 export function PollingButton({
   pollingInterval,
   onIntervalChange,
-  isLoading,
+  isPolling,
   onRefresh,
 }: PollingButtonProps) {
   return (
@@ -38,10 +38,10 @@ export function PollingButton({
         size="sm"
         onClick={onRefresh}
         className="h-6 text-fg-500"
-        disabled={isLoading}
+        disabled={isPolling}
       >
         <RefreshCw
-          className={`size-3.5 ${isLoading ? 'animate-spin duration-500 ease-in-out' : ''}`}
+          className={`size-3.5 ${isPolling ? 'animate-spin duration-500 ease-in-out' : ''}`}
         />
       </Button>
 

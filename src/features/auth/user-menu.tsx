@@ -13,7 +13,6 @@ import { signOutAction } from '@/server/auth/auth-actions'
 import Link from 'next/link'
 import { PROTECTED_URLS } from '@/configs/urls'
 import UserDetailsTile from './user-details-tile'
-import DeveloperSettingsDialog from '@/features/dashboard/developer-settings/settings-dialog'
 import { useState } from 'react'
 import { User } from '@supabase/supabase-js'
 
@@ -66,11 +65,6 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <DeveloperSettingsDialog
-        open={developerSettingsOpen}
-        onOpenChange={setDeveloperSettingsOpen}
-        apiDomain={apiDomain}
-      />
     </>
   )
 }

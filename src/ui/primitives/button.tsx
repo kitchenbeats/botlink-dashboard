@@ -9,7 +9,7 @@ const buttonVariants = cva(
     'inline-flex items-center gap-2 rounded-md justify-center whitespace-nowrap',
     'font-mono uppercase tracking-wider text-sm',
     'transition-colors duration-150',
-    'focus-visible:outline-none focus:bg-bg-100',
+    'focus-visible:outline-none ',
     'disabled:pointer-events-none disabled:opacity-50',
   ].join(' '),
   {
@@ -17,37 +17,38 @@ const buttonVariants = cva(
       variant: {
         default: [
           'bg-fg text-bg',
-          'hover:bg-fg-100',
+          'hover:bg-fg-100 focus:bg-fg-100',
           'active:translate-y-[1px] active:shadow-none',
         ].join(' '),
         accent: [
-          'bg-accent text-accent-fg',
-          'hover:bg-accent/90',
+          'bg-accent/10 text-accent-fg',
+          'hover:bg-accent/20 focus:bg-accent/20',
           'active:translate-y-[1px] active:shadow-none',
         ].join(' '),
         ghost: [
           'bg-transparent',
+          'hover:bg-transparent focus:bg-transparent',
           'active:translate-y-[1px] active:shadow-none',
         ].join(' '),
         muted: [
           'border border-border-200 bg-bg-200 text-fg-300 hover:text-fg',
-          'hover:bg-bg-200/90',
+          'hover:bg-bg-200/90 focus:bg-bg-200/90',
           'active:translate-y-[1px] active:shadow-none',
         ].join(' '),
         error: [
           'bg-error/10 text-error',
-          'hover:bg-error/20',
+          'hover:bg-error/20 focus:bg-error/20',
           'active:translate-y-[1px] active:shadow-none',
         ].join(' '),
         outline: [
           'border border-border bg-transparent',
-          'hover:bg-bg-300/80',
+          'hover:bg-bg-300/80 focus:bg-bg-300/80',
           'active:translate-y-[1px] active:shadow-none',
         ].join(' '),
         link: [
           'text-accent underline-offset-4',
           'hover:underline hover:bg-transparent',
-          'focus:ring-0 focus:underline',
+          'focus:ring-0 focus:underline focus:bg-transparent',
           'shadow-none',
         ].join(' '),
       },
