@@ -63,7 +63,7 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start truncate pb-px">
-            <span className="-mb-1 truncate text-[0.65rem] text-accent-200">
+            <span className="-mb-1 truncate text-[0.65rem] text-accent">
               TEAM
             </span>
             {selectedTeam ? (

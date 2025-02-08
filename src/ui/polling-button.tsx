@@ -9,7 +9,7 @@ import {
 import { RefreshCw } from 'lucide-react'
 import { Separator } from './primitives/separator'
 import { PollingInterval } from '@/types/dashboard'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface PollingButtonProps {
   pollingInterval: PollingInterval
@@ -31,12 +31,51 @@ export function PollingButton({
   isPolling,
   onRefresh,
 }: PollingButtonProps) {
+  const [remainingTime, setRemainingTime] = useState(pollingInterval)
+
+  useEffect(() => {
+    setRemainingTime(pollingInterval)
+  }, [pollingInterval])
+
+  useEffect(() => {
+    if (pollingInterval === 0) return
+
+    const timer = setInterval(() => {
+      setRemainingTime((prev) => {
+        if (prev <= 1) {
+          onRefresh()
+          return pollingInterval
+        }
+        const newTime = prev - 1
+        return newTime as PollingInterval
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [pollingInterval, onRefresh])
+
+  const formatTime = (seconds: number) => {
+    if (seconds >= 60) {
+      return `${Math.floor(seconds / 60)}M`
+    }
+    return `${seconds}S`
+  }
+
+  const handleIntervalChange = (value: string) => {
+    const newInterval = Number(value) as PollingInterval
+    onIntervalChange(newInterval)
+    setRemainingTime(newInterval) // Reset timer when interval changes
+  }
+
   return (
     <div className="flex h-6 items-center gap-1 px-0">
       <Button
         variant="ghost"
         size="sm"
-        onClick={onRefresh}
+        onClick={() => {
+          onRefresh()
+          setRemainingTime(pollingInterval) // Reset timer on manual refresh
+        }}
         className="h-6 text-fg-500"
         disabled={isPolling}
       >
@@ -48,15 +87,13 @@ export function PollingButton({
       <Separator orientation="vertical" className="h-5" />
 
       <Select
-        defaultValue={pollingInterval.toString()}
-        onValueChange={(value) =>
-          onIntervalChange(Number(value) as PollingInterval)
-        }
+        value={pollingInterval.toString()}
+        onValueChange={handleIntervalChange}
       >
         <SelectTrigger className="h-6 w-fit gap-1 whitespace-nowrap border-none bg-transparent pl-2 text-fg-300">
           Auto-refresh
           <span className="ml-1 text-accent">
-            <SelectValue />
+            {pollingInterval === 0 ? 'Off' : formatTime(remainingTime)}
           </span>
         </SelectTrigger>
         <SelectContent>

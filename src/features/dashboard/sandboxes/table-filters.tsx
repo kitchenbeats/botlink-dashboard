@@ -18,7 +18,7 @@ import { Separator } from '@/ui/primitives/separator'
 import { useDebounceValue } from 'usehooks-ts'
 import { useSandboxTableStore } from '@/features/dashboard/sandboxes/stores/table-store'
 import { Button } from '@/ui/primitives/button'
-import { FilterIcon } from 'lucide-react'
+import { FilterIcon, ListFilter } from 'lucide-react'
 import { TableFilterButton } from '@/ui/table-filter-button'
 import { Template } from '@/types/api'
 import {
@@ -216,7 +216,7 @@ const SandboxesTableFilters = React.forwardRef<
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="text-xs normal-case">
-            <FilterIcon className="size-4 text-fg-500" /> Filters{' '}
+            <ListFilter className="size-4 text-fg-500" /> Filters{' '}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>

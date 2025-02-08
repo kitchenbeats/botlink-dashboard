@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/ui/primitives/dropdown-menu'
 import { Button } from '@/ui/primitives/button'
-import { FilterIcon } from 'lucide-react'
+import { FilterIcon, ListFilter } from 'lucide-react'
 import { TableFilterButton } from '@/ui/table-filter-button'
 import { Slider } from '@/ui/primitives/slider'
 import { Label } from '@/ui/primitives/label'
@@ -116,7 +116,7 @@ const TemplatesTableFilters = React.forwardRef<
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="text-xs normal-case">
-            <FilterIcon className="size-4 text-fg-500" /> Filters{' '}
+            <ListFilter className="size-4 text-fg-500" /> Filters{' '}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>

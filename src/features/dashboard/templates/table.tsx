@@ -121,7 +121,7 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
 
   return (
     <ClientOnly className="flex h-full flex-col pt-3">
-      <TemplatesHeader />
+      <TemplatesHeader table={table} />
 
       <div className="mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
         <DataTable

@@ -146,22 +146,6 @@ export default function SandboxesTable({
     resetScroll()
   }, [sorting, globalFilter])
 
-  // effect hook for polling
-  const router = useRouter()
-  const [isPolling, startRefreshTransition] = useTransition()
-
-  React.useEffect(() => {
-    if (pollingInterval > 0) {
-      const interval = setInterval(() => {
-        startRefreshTransition(() => {
-          router.refresh()
-        })
-      }, pollingInterval * 1000)
-
-      return () => clearInterval(interval)
-    }
-  }, [pollingInterval, router])
-
   // table definitions
   const columns = useColumns([])
 
@@ -200,7 +184,6 @@ export default function SandboxesTable({
         searchInputRef={searchInputRef}
         templates={templates}
         table={table}
-        isPolling={isPolling}
       />
 
       <div className="mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
