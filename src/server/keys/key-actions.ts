@@ -9,6 +9,7 @@ import {
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import { InvalidParametersError, UnauthorizedError } from '@/types/errors'
 
 // Create API Key
 
@@ -37,7 +38,8 @@ export const createApiKeyAction = guard(
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
-    if (!isAuthorized) throw new Error('Not authorized to create team api keys')
+    if (!isAuthorized)
+      throw UnauthorizedError('Not authorized to create team api keys')
 
     const apiKeyValue = generateTeamApiKey()
 
@@ -77,7 +79,21 @@ export const deleteApiKeyAction = guard(
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
-    if (!isAuthorized) throw new Error('Not authorized to delete team api keys')
+    if (!isAuthorized)
+      throw UnauthorizedError('Not authorized to delete team api keys')
+
+    const { data: apiKeys, error: fetchError } = await supabaseAdmin
+      .from('team_api_keys')
+      .select('id')
+      .eq('team_id', teamId)
+
+    if (fetchError) throw fetchError
+
+    if (apiKeys.length === 1) {
+      throw InvalidParametersError(
+        'A team must have at least one API key. Please create a new API key before deleting this one.'
+      )
+    }
 
     const { error } = await supabaseAdmin
       .from('team_api_keys')

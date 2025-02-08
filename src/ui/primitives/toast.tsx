@@ -33,10 +33,8 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: 'border bg-bg/40 text-fg backdrop-blur-lg',
-        error:
-          'group border-error/40 bg-error/10 text-error-fg backdrop-blur-lg',
-        success:
-          'group border-success/40 bg-success/10 text-success-fg backdrop-blur-lg',
+        error: 'group border-error/40 bg-error/10 backdrop-blur-lg',
+        success: 'group border-success/40 bg-success/10 backdrop-blur-lg',
       },
     },
     defaultVariants: {

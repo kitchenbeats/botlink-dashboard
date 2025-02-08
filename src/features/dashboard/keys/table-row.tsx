@@ -37,10 +37,14 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
     setIsDeleting(true)
     startTransition(async () => {
       try {
-        await deleteApiKeyAction({
+        const res = await deleteApiKeyAction({
           teamId: selectedTeam.id,
           apiKeyId,
         })
+
+        if (res.type === 'error') {
+          throw new Error(res.message)
+        }
 
         toast({
           title: 'Success',
@@ -50,7 +54,7 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'Failed to delete API key',
+          description: error instanceof Error ? error.message : 'Unknown error',
           variant: 'error',
         })
       } finally {
