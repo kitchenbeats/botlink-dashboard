@@ -2,7 +2,11 @@
 
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { User } from '@supabase/supabase-js'
-import { checkAuthenticated, guard } from '@/lib/utils/server'
+import {
+  checkAuthenticated,
+  getUserAccessToken,
+  guard,
+} from '@/lib/utils/server'
 import { z } from 'zod'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
@@ -59,5 +63,15 @@ export const deleteAccountAction = guard(async () => {
 
   if (error) {
     throw error
+  }
+})
+
+export const getUserAccessTokenAction = guard(async () => {
+  const { user } = await checkAuthenticated()
+
+  const accessToken = await getUserAccessToken(user.id)
+
+  return {
+    accessToken,
   }
 })

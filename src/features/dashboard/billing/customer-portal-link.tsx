@@ -17,7 +17,7 @@ export default function CustomerPortalLink({
   if (!team) return null
 
   return (
-    <Button asChild variant="muted" size="lg" className={className}>
+    <Button asChild variant="outline" size="lg" className={className}>
       <Link
         href={`${process.env.NEXT_PUBLIC_STRIPE_BILLING_URL}?prefilled_email=${team?.email}`}
       >

@@ -54,6 +54,7 @@ export default function LimitForm({
           type === 'limit'
             ? 'Limit saved successfully'
             : 'Alert saved successfully',
+        variant: 'success',
       })
       setIsEditing(false)
     },
@@ -85,6 +86,7 @@ export default function LimitForm({
           type === 'limit'
             ? 'Limit cleared successfully'
             : 'Alert cleared successfully',
+        variant: 'success',
       })
       setIsEditing(false)
       setValue(null)

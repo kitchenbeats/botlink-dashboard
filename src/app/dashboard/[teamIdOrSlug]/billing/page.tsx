@@ -30,7 +30,7 @@ export default async function BillingPage({
         </div>
 
         <Suspense fallback={null}>
-          <CustomerPortalLink className="mt-2 w-fit shadow-md" />
+          <CustomerPortalLink className="mt-2 w-fit" />
         </Suspense>
 
         <div className="mt-3 flex flex-col gap-12 overflow-x-auto max-lg:mb-6 lg:flex-row">
