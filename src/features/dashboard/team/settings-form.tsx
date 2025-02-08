@@ -82,6 +82,7 @@ export function TeamSettingsForm() {
               loading={isPending}
               disabled={teamName === team?.name}
               type="submit"
+              variant="outline"
             >
               Save
             </Button>

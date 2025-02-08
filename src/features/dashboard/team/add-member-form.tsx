@@ -101,6 +101,7 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
                   loading={isPending}
                   type="submit"
                   disabled={!form.formState.isValid}
+                  variant="outline"
                 >
                   Add Member
                 </Button>

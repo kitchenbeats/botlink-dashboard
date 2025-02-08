@@ -90,6 +90,7 @@ export function NameSettings({ className }: NameSettingsProps) {
               )}
             />
             <Button
+              variant="outline"
               loading={isPending}
               disabled={form.watch('name') === user?.user_metadata?.name}
               type="submit"

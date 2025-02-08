@@ -133,6 +133,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
               loading={isPending}
               disabled={form.watch('email') === user?.email}
               type="submit"
+              variant="outline"
             >
               Save
             </Button>
