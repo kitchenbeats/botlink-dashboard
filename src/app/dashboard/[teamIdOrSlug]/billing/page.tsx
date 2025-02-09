@@ -18,7 +18,7 @@ export default async function BillingPage({
   return (
     <DashboardPageLayout
       title="Billing"
-      className="grid w-full gap-4 p-4 sm:gap-6 sm:p-6"
+      className="grid h-full w-full gap-4 self-start p-4 sm:gap-6 sm:p-6"
     >
       {/* Plan Section */}
       <section className="col-span-1 grid gap-4 xl:col-span-12">

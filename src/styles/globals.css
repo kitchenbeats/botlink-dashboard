@@ -15,7 +15,6 @@
     @apply bg-bg tracking-wide text-fg antialiased;
 
     text-rendering: optimizeLegibility;
-    overscroll-behavior-y: none;
   }
 
   h1,

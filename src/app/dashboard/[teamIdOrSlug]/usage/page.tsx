@@ -15,7 +15,7 @@ export default async function UsagePage({
   return (
     <DashboardPageLayout
       title="Usage"
-      className="grid max-h-full w-full grid-cols-1 self-end lg:grid-cols-12"
+      className="grid max-h-full w-full grid-cols-1 self-start lg:grid-cols-12"
     >
       <CostCard
         teamId={teamId}
