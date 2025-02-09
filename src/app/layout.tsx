@@ -11,6 +11,8 @@ import Script from 'next/script'
 import { Suspense } from 'react'
 import { GeneralAnalyticsCollector } from '@/features/general-analytics-collector'
 import { Toaster } from '@/ui/primitives/toaster'
+import Head from 'next/head'
+import { GTMHead } from '@/features/google-tag-manager'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -36,9 +38,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      {process.env.NEXT_PUBLIC_SCAN && process.env.NEXT_PUBLIC_SCAN === '1' && (
-        <Script src="https://unpkg.com/react-scan/dist/auto.global.js" async />
-      )}
+      <Head>
+        <GTMHead />
+      </Head>
       <Body>
         <ClientProviders>
           {children}

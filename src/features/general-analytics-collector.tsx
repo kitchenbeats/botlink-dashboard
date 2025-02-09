@@ -19,7 +19,7 @@ export function GeneralAnalyticsCollector() {
       if (searchParams?.toString()) url = url + `?${searchParams.toString()}`
       posthog?.capture('$pageview', { $current_url: url })
     }
-  }, [pathname, searchParams])
+  }, [pathname, searchParams, posthog])
 
   useEffect(() => {
     if (user) {
@@ -31,7 +31,7 @@ export function GeneralAnalyticsCollector() {
         name: selectedTeam.name,
       }); */
     }
-  }, [user])
+  }, [user, posthog])
 
   return null
 }
