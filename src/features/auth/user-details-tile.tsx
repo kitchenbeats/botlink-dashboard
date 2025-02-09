@@ -29,7 +29,7 @@ export default function UserDetailsTile({
   }
 
   return (
-    <div className={cn('flex items-center', className)}>
+    <div className={cn('flex h-14 items-center', className)}>
       <Button
         variant="ghost"
         asChild
@@ -56,7 +56,7 @@ export default function UserDetailsTile({
       <Button
         variant="ghost"
         size="icon"
-        className="h-full w-36 rounded-none border-l text-error hover:border-error/20 hover:bg-error/10"
+        className="h-full w-16 rounded-none border-l text-error hover:border-error/20 hover:bg-error/10"
         onClick={handleSignOut}
         disabled={isSigningOut}
       >

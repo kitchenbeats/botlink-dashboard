@@ -4,6 +4,7 @@ export const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
   VERCEL_URL: z.string().optional(),
   BILLING_API_URL: z.string().url(),
+  DEVELOPMENT_INFRA_API_DOMAIN: z.string().optional(),
 })
 
 export const clientSchema = z.object({

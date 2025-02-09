@@ -149,7 +149,14 @@ export async function checkUserTeamAuthorization(
  *  This function fetches the API domain from the cookies and returns the domain and the API URL.
  *  If the domain is not found in the cookies, it returns the default domain.
  */
-export async function getApiUrl() {
+export async function getApiUrl(): Promise<{ domain: string; url: string }> {
+  if (process.env.DEVELOPMENT_INFRA_API_DOMAIN) {
+    return {
+      domain: process.env.DEVELOPMENT_INFRA_API_DOMAIN,
+      url: `http://${process.env.DEVELOPMENT_INFRA_API_DOMAIN}`,
+    }
+  }
+
   const cookieStore = await cookies()
 
   const domain =

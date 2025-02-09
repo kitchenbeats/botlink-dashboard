@@ -27,7 +27,7 @@ export default async function DashboardLayout({
     <ServerContextProvider teamId={teamId} teamSlug={teamSlug}>
       <div className="mx-auto flex h-svh max-h-full w-full flex-col">
         <NetworkStateBanner />
-        <div className="flex h-full max-h-full w-full overflow-hidden">
+        <div className="flex h-full max-h-full w-full flex-1 overflow-hidden">
           <Sidebar className="max-md:hidden" />
           <main className="flex-1">{children}</main>
           <Suspense fallback={null}>
