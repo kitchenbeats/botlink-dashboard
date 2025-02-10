@@ -29,8 +29,8 @@ export default function AlertCard({ className, value }: AlertCardProps) {
         />
         <p>
           If your team exceeds this threshold in a given month, you&apos;ll
-          receive an alert notification to <b>ben.fornefeld@gmail.com</b>. This
-          will not result in any interruptions to your service.
+          receive an alert notification to <b>{team.email}</b>. This will not
+          result in any interruptions to your service.
         </p>
       </CardContent>
     </Card>

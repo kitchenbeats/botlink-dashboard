@@ -39,10 +39,10 @@ export default function LimitCard({ className, value }: LimitCardProps) {
           </p>
           <br />
           <p className="text-error">
-            Caution: Enabling a Budget Limit may cause interruptions to your
-            service. Once your Budget Limit is reached, your team will not be
-            able to create new sandboxes in the given billing period unless the
-            limit is increased.
+            <b>Caution:</b> Enabling a budget limit may cause interruptions to
+            your service. Once your Budget Limit is reached, your team will not
+            be able to create new sandboxes in the given billing period unless
+            the limit is increased.
           </p>
         </div>
       </CardContent>
