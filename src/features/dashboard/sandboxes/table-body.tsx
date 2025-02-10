@@ -67,7 +67,7 @@ export function TableBody({
             <Button variant="default" asChild>
               <a href="/docs/quickstart" target="_blank" rel="noopener">
                 Create a Sandbox
-                <ExternalIcon />
+                <ExternalLink className="size-3.5" />
               </a>
             </Button>
           </div>

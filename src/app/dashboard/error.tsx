@@ -8,6 +8,7 @@ export default function DashboardError() {
     <ErrorBoundary
       error={UnknownError()}
       description={'An Unexpected Error Occurred'}
+      className="min-h-svh"
     />
   )
 }

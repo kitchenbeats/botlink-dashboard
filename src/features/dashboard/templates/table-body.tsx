@@ -6,7 +6,7 @@ import Empty from '@/ui/empty'
 import { Button } from '@/ui/primitives/button'
 import { useTemplateTableStore } from './stores/table-store'
 import { useMemo } from 'react'
-import { X } from 'lucide-react'
+import { ExternalLink, X } from 'lucide-react'
 import ExternalIcon from '@/ui/external-icon'
 
 interface TableBodyProps {
@@ -64,7 +64,7 @@ export function TableBody({
             <Button variant="default" asChild>
               <a href="/docs/sandbox-template" target="_blank" rel="noopener">
                 Create a Template
-                <ExternalIcon />
+                <ExternalLink className="size-3.5" />
               </a>
             </Button>
           </div>

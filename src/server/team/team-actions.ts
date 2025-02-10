@@ -5,6 +5,8 @@ import { Database } from '@/types/database.types'
 import {
   checkAuthenticated,
   checkUserTeamAuthorization,
+  getApiUrl,
+  getUserAccessToken,
   guard,
 } from '@/lib/utils/server'
 import { z } from 'zod'
@@ -177,3 +179,35 @@ export const removeTeamMemberAction = guard(
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
 )
+
+const CreateTeamSchema = z.object({
+  name: z.string().min(1),
+})
+
+export const createTeamAction = guard(CreateTeamSchema, async ({ name }) => {
+  const { user } = await checkAuthenticated()
+
+  const accessToken = await getUserAccessToken(user.id)
+
+  const response = await fetch(`${process.env.BILLING_API_URL}/teams`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-User-Access-Token': accessToken,
+    },
+    body: JSON.stringify({ name }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+
+    throw new Error(error?.message ?? 'Failed to create team')
+  }
+
+  revalidatePath('/dashboard', 'layout')
+
+  const data =
+    (await response.json()) as Database['public']['Tables']['teams']['Row']
+
+  return data
+})
