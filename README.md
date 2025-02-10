@@ -67,10 +67,7 @@ cp .env.example .env.local
 # Pull environment variables from Vercel (recommended)
 vercel env pull .env.local
 
-# Or manually configure the following required variables:
-# - KV_* (from Vercel KV setup)
-# - SUPABASE_* (from Supabase setup)
-# - NEXT_PUBLIC_SUPABASE_* (from Supabase setup)
+# Or manually configure the environment variables outlined in the .env.example file
 ```
 
 4. Start the development server
