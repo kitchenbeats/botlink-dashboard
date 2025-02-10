@@ -24,8 +24,8 @@ export default async function BillingCreditsContent({
 
   return (
     <span className="ml-2 text-2xl font-bold">
+      <span className="text-sm font-normal text-accent">$ </span>
       {usage.credits}
-      <span className="text-sm font-normal text-accent"> $</span>
     </span>
   )
 }

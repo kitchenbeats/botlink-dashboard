@@ -37,7 +37,7 @@ const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId, className }) => {
                 <TableCell colSpan={5} className="h-24 text-left">
                   <Alert className="w-full text-left" variant="contrast2">
                     <AlertTitle className="flex items-center gap-2">
-                      <Loader variant="compute" />
+                      <Loader />
                       Loading keys...
                     </AlertTitle>
                     <AlertDescription>This may take a moment.</AlertDescription>

@@ -30,7 +30,7 @@ const LOADER_VARIANTS = {
 } as const
 
 export const Loader = ({
-  variant = 'line',
+  variant = 'square',
   interval = 150,
   className,
 }: {

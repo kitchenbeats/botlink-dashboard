@@ -28,7 +28,7 @@ export function VCPUCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <Suspense fallback={<Loader variant="line" />}>
+        <Suspense fallback={<Loader />}>
           <VCPUCardContent teamId={teamId} />
         </Suspense>
       </CardContent>

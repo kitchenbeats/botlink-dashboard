@@ -6,6 +6,8 @@ import Empty from '@/ui/empty'
 import { Button } from '@/ui/primitives/button'
 import { useTemplateTableStore } from './stores/table-store'
 import { useMemo } from 'react'
+import { X } from 'lucide-react'
+import ExternalIcon from '@/ui/external-icon'
 
 interface TableBodyProps {
   templates: Template[] | undefined
@@ -30,23 +32,42 @@ export function TableBody({
 
   const isEmpty = templates && visualRows?.length === 0
 
+  const hasFilter =
+    Object.values(table.getState().columnFilters).some(
+      (filter) => filter.value !== undefined
+    ) || table.getState().globalFilter !== ''
+
   if (isEmpty) {
+    if (hasFilter) {
+      return (
+        <Empty
+          title="No Results Found"
+          description={
+            <div className="space-y-4">
+              <p>No templates match your current filters.</p>
+              <Button variant="default" onClick={resetFilters}>
+                Reset Filters <X className="size-4 text-accent" />
+              </Button>
+            </div>
+          }
+          className="h-[70%] max-md:w-screen"
+        />
+      )
+    }
+
     return (
       <Empty
-        title="No Templates Found"
+        title="No Templates Yet"
         description={
-          <>
-            Create a new template to get started or{' '}
-            <Button
-              variant="link"
-              size="sm"
-              className="normal-case"
-              onClick={resetFilters}
-            >
-              reset
+          <div className="space-y-4">
+            <p>Get started by creating your first template.</p>
+            <Button variant="default" asChild>
+              <a href="/docs/sandbox-template" target="_blank" rel="noopener">
+                Learn How to Create Templates
+                <ExternalIcon />
+              </a>
             </Button>
-            your filters
-          </>
+          </div>
         }
         className="h-[70%] max-md:w-screen"
       />

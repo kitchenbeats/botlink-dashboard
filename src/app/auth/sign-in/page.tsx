@@ -63,7 +63,7 @@ export default function Login() {
 
       <form ref={formRef} className="flex flex-col gap-2 [&>input]:mb-3">
         <input type="hidden" name="returnTo" value={returnTo || ''} />
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-Mail</Label>
         <Input
           ref={emailRef}
           id="email"

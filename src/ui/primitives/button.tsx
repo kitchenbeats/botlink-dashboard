@@ -91,7 +91,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {loading ? (
           <div className="flex items-center gap-2">
             {props.children}
-            <Loader variant="compute" />
+            <Loader />
           </div>
         ) : (
           props.children

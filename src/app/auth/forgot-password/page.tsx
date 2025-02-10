@@ -54,7 +54,7 @@ export default function ForgotPassword() {
       </p>
 
       <form ref={formRef} className="mt-5 flex flex-col gap-2 [&>input]:mb-1">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-Mail</Label>
         <Input
           ref={emailRef}
           id="email"

@@ -61,7 +61,7 @@ export default function UserDetailsTile({
         disabled={isSigningOut}
       >
         {isSigningOut ? (
-          <Loader variant="compute" className="size-4" />
+          <Loader className="size-4" />
         ) : (
           <LogOut className="size-4" />
         )}

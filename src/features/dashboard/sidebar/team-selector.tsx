@@ -13,12 +13,11 @@ import {
 import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
-import { Loader } from '@/ui/loader'
-import Dotted from '@/ui/dotted'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { cn } from '@/lib/utils'
-import { GradientBorder } from '@/ui/gradient-border'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
+import { Skeleton } from '@/ui/primitives/skeleton'
+import ClientOnly from '@/ui/client-only'
 
 interface TeamSelectorProps {
   className?: string
@@ -55,33 +54,36 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
           className
         )}
       >
-        <div className="flex max-w-full flex-1 items-center gap-3 overflow-hidden text-ellipsis">
-          <Avatar className="size-9 shadow-lg">
+        <div className="flex flex-1 items-center gap-3">
+          <Avatar className="size-9 shrink-0 shadow-lg">
             <AvatarImage src={selectedTeam?.profile_picture_url || undefined} />
             <AvatarFallback className="bg-bg-100">
               {selectedTeam?.name?.charAt(0).toUpperCase() || '?'}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col items-start truncate pb-px">
-            <span className="-mb-1 truncate text-[0.65rem] text-accent">
-              TEAM
-            </span>
-            {selectedTeam ? (
-              <SelectValue
-                placeholder="No team selected"
-                className="truncate"
-              />
-            ) : (
-              <Loader variant="dots" />
-            )}
-          </div>
+          <ClientOnly className="w-full">
+            <div className="flex max-w-[160px] flex-1 flex-col items-start overflow-hidden pb-px text-left [&>span]:max-w-full [&>span]:overflow-hidden [&>span]:text-ellipsis [&>span]:whitespace-nowrap">
+              <span className="-mb-1 w-full text-left text-[0.65rem] text-accent">
+                TEAM
+              </span>
+              {selectedTeam ? (
+                <SelectValue placeholder="No team selected" />
+              ) : (
+                <Skeleton className="h-4 w-full" />
+              )}
+            </div>
+          </ClientOnly>
         </div>
       </SelectTrigger>
       <SelectContent collisionPadding={0} className="p-0">
         {defaultTeam && (
           <SelectGroup className="w-full px-2 pb-1 first:pt-2">
             <SelectLabel>Personal</SelectLabel>
-            <SelectItem key={defaultTeam.id} value={defaultTeam.id}>
+            <SelectItem
+              key={defaultTeam.id}
+              value={defaultTeam.id}
+              className="max-w-[280px] [&>*]:truncate"
+            >
               {defaultTeam.name}
             </SelectItem>
           </SelectGroup>
@@ -91,7 +93,11 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
           <SelectGroup className="w-full px-2 pt-1 last:pb-2">
             <SelectLabel>Teams</SelectLabel>
             {teams.map((team) => (
-              <SelectItem key={team.id} value={team.id}>
+              <SelectItem
+                key={team.id}
+                value={team.id}
+                className="max-w-[280px] [&>*]:truncate"
+              >
                 {team.name}
               </SelectItem>
             ))}

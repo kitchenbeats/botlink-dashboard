@@ -5,6 +5,7 @@ export type E2BErrorCode =
   | 'UNAUTHORIZED'
   | 'INVALID_PARAMETERS'
   | 'INTERNAL_SERVER_ERROR'
+  | 'API_ERROR'
   | 'UNKNOWN'
   | string
 
@@ -31,6 +32,8 @@ export const InvalidApiKeyError = (message: string) =>
 
 export const InvalidParametersError = (message: string) =>
   new E2BError('INVALID_PARAMETERS', message)
+
+export const ApiError = (message: string) => new E2BError('API_ERROR', message)
 
 export const UnknownError = (message?: string) =>
   new E2BError(

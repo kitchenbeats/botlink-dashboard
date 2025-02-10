@@ -4,7 +4,7 @@ import { cva } from 'class-variance-authority'
 
 export const menuItemVariants = cva(
   [
-    'relative flex cursor-default rounded-sm select-none items-center gap-2',
+    'relative flex cursor-pointer rounded-sm select-none items-center gap-2',
     'px-2 py-1.5',
     'font-mono text-xs',
     'outline-none',

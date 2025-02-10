@@ -85,11 +85,14 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
-                name="name"
-                placeholder="my-secret-key"
+                name="key-name"
+                placeholder="e.g. development-key"
                 required
                 value={keyName}
                 onChange={(e) => setKeyName(e.target.value)}
+                autoComplete="off"
+                data-1p-ignore
+                data-form-type="other"
               />
             </div>
 

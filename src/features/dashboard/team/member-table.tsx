@@ -25,7 +25,7 @@ const MemberTable: FC<MemberTableProps> = ({ teamId, className }) => {
         <TableRow>
           <th className="w-[50px]"></th>
           <TableHead className="w-[200px]">Name</TableHead>
-          <TableHead className="w-[250px]">Email</TableHead>
+          <TableHead className="w-[250px]">E-Mail</TableHead>
           <TableHead className="w-[200px]">Added By</TableHead>
           <th className="w-[50px]"></th>
         </TableRow>
@@ -37,7 +37,7 @@ const MemberTable: FC<MemberTableProps> = ({ teamId, className }) => {
               <TableCell colSpan={5} className="h-24 text-left">
                 <Alert className="w-full text-left" variant="contrast2">
                   <AlertTitle className="flex items-center gap-2">
-                    <Loader variant="compute" />
+                    <Loader />
                     Loading members...
                   </AlertTitle>
                   <AlertDescription>This may take a moment.</AlertDescription>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useTransition } from 'react'
+import { useRef } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 import {
   ColumnFiltersState,
@@ -31,7 +31,6 @@ import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { cn } from '@/lib/utils'
 import { useColumnSizeVars } from '@/lib/hooks/use-column-size-vars'
 import { Template } from '@/types/api'
-import { useRouter } from 'next/navigation'
 import ClientOnly from '@/ui/client-only'
 
 const INITIAL_VISUAL_ROWS_COUNT = 50

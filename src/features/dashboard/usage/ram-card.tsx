@@ -28,7 +28,7 @@ export function RAMCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <Suspense fallback={<Loader variant="line" />}>
+        <Suspense fallback={<Loader />}>
           <RAMCardContent teamId={teamId} />
         </Suspense>
       </CardContent>

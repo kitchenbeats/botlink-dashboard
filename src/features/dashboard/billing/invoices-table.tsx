@@ -25,7 +25,7 @@ function LoadingFallback() {
       <TableCell colSpan={4} className="text-left">
         <Alert className="w-full text-left" variant="contrast2">
           <AlertTitle className="flex items-center gap-2">
-            <Loader variant="compute" />
+            <Loader />
             Loading invoices...
           </AlertTitle>
           <AlertDescription>This may take a moment.</AlertDescription>

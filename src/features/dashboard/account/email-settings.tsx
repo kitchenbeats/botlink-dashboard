@@ -104,7 +104,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
   return (
     <Card variant="slate" className={cn(className)}>
       <CardHeader>
-        <CardTitle>Email</CardTitle>
+        <CardTitle>E-Mail</CardTitle>
         <CardDescription>Update your email address.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
@@ -120,7 +120,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
                 <FormItem className="max-w-[17rem] flex-1">
                   <FormControl>
                     <Input
-                      placeholder="Email"
+                      placeholder="E-Mail"
                       className="md:max-w-[17rem]"
                       {...field}
                     />

@@ -71,7 +71,7 @@ export default function UserAccessToken({ className }: UserAccessTokenProps) {
           disabled={isPending}
         >
           {isPending ? (
-            <Loader variant="square" />
+            <Loader />
           ) : token ? (
             isVisible ? (
               <EyeOff className="size-4" />

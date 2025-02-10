@@ -278,7 +278,7 @@ export function guard<TInput, TOutput>(
         throw error
       }
 
-      logger.error(error)
+      logger.error(ERROR_CODES.GUARD, error)
 
       if (error instanceof E2BError) {
         return {

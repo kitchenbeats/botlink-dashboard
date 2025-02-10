@@ -57,7 +57,7 @@ export const signUpAction = async (formData: FormData) => {
     return encodedRedirect(
       'error',
       AUTH_URLS.SIGN_UP,
-      'Email and both passwords are required',
+      'E-Mail and both passwords are required',
       { returnTo }
     )
   }
@@ -124,7 +124,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       'error',
       AUTH_URLS.FORGOT_PASSWORD,
-      'Email is required'
+      'E-Mail is required'
     )
   }
 

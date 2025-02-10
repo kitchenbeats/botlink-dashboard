@@ -24,12 +24,12 @@ export async function GET(request: Request) {
   const { error } = await supabase.auth.exchangeCodeForSession(code!)
 
   if (error) {
-    encodedRedirect('error', next, 'Failed to update email', {
+    encodedRedirect('error', next, 'Failed to update E-Mail', {
       type: 'update_email',
     })
   }
 
-  encodedRedirect('success', next, 'Email changed successfully', {
+  encodedRedirect('success', next, 'E-Mail changed successfully', {
     new_email: newEmail || '',
     type: 'update_email',
   })

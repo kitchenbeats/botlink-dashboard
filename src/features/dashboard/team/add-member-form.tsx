@@ -92,7 +92,7 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem className="relative flex-1">
-              <FormLabel className="">E-Mail</FormLabel>
+              <FormLabel className="">E-mail</FormLabel>
               <div className="flex items-center gap-2">
                 <FormControl>
                   <Input placeholder="member@acme.com" {...field} />

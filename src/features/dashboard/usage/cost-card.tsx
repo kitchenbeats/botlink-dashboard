@@ -28,7 +28,7 @@ export function CostCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <Suspense fallback={<Loader variant="line" />}>
+        <Suspense fallback={<Loader />}>
           <CostCardContent teamId={teamId} />
         </Suspense>
       </CardContent>
@@ -52,7 +52,8 @@ export async function CostCardContent({ teamId }: { teamId: string }) {
       <>
         <div className="flex items-baseline gap-2">
           <p className="font-mono text-2xl">
-            ${latestCost?.toFixed(2) ?? '0.00'}
+            <span className="text-sm text-accent">$ </span>
+            {latestCost?.toFixed(2) ?? '0.00'}
           </p>
           <span className="text-xs text-fg-500">this period</span>
         </div>

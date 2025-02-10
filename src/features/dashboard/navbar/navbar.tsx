@@ -41,7 +41,7 @@ export default async function DashboardNavbar({
       {Object.entries(groupedNavLinks).map(([group, links]) => (
         <div key={group} className="mt-6 flex w-full flex-col gap-1 first:mt-0">
           {group !== 'ungrouped' && (
-            <span className="mb-2 ml-1 font-mono text-xs uppercase text-fg-500">
+            <span className="mb-2 ml-2 font-mono text-xs uppercase text-fg-500">
               {group}
             </span>
           )}

@@ -15,6 +15,7 @@ import { MAIN_DASHBOARD_LINKS } from '@/configs/dashboard-navs'
 import { useRouter } from 'next/navigation'
 import { Kbd } from '@/ui/primitives/kbd'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { Button } from '@/ui/primitives/button'
 
 interface SearchProps {
   className?: string
@@ -45,12 +46,16 @@ export default function Search({ className }: SearchProps) {
 
   return (
     <div className="relative">
-      <Input
-        className={cn('h-10 w-full border-none pr-12', className)}
-        placeholder="QUICK NAVIGATE"
+      <Button
+        variant="ghost"
+        className={cn(
+          'h-10 w-full justify-start text-xs text-fg-300',
+          className
+        )}
         onClick={() => setOpen(true)}
-        readOnly
-      />
+      >
+        QUICK NAVIGATE
+      </Button>
       <Kbd
         keys={['cmd', 'k']}
         className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"

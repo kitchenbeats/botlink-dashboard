@@ -5,22 +5,10 @@ import DashboardNavbar from '../navbar/navbar'
 import TeamSelector from './team-selector'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/primitives/button'
-import {
-  ArrowBigRight,
-  ArrowBigRightDash,
-  Book,
-  ChevronRight,
-  Cog,
-  Construction,
-  Github,
-  MoveRight,
-  Settings2,
-  SidebarOpenIcon,
-} from 'lucide-react'
+import { Book, Construction, Github } from 'lucide-react'
 import Link from 'next/link'
 import ExternalIcon from '@/ui/external-icon'
 import { GITHUB_URL } from '@/configs/socials'
-import { PROTECTED_URLS } from '@/configs/urls'
 import UserDetailsTile from '@/features/auth/user-details-tile'
 import { getSessionInsecure } from '@/server/auth/get-session'
 import DeveloperSettingsDialog from '../developer-settings/settings-dialog'
@@ -53,11 +41,9 @@ export default function Sidebar({ className }: SidebarProps) {
 
       <DashboardNavbar className="flex-1 p-2 pb-8 pt-0" />
 
-      <div className="w-full p-2">
-        <Suspense fallback={null}>
-          <DashboardSearch className="w-full" />
-        </Suspense>
-      </div>
+      <Suspense fallback={null}>
+        <DashboardSearch className="w-full" />
+      </Suspense>
       <footer className="mt-auto flex flex-col bg-bg-100">
         <a
           href={GITHUB_URL}

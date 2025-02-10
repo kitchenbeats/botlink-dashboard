@@ -162,13 +162,9 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      'relative flex cursor-default select-none items-center gap-2',
-      'py-1.5 pl-2 pr-10',
-      'font-mono text-xs',
-      'outline-none',
-      'focus:bg-accent/10 focus:text-accent',
-      'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      menuItemVariants({ variant: 'default' }),
       '[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+      'pr-10',
       className
     )}
     {...props}

@@ -20,12 +20,12 @@ export default function CreditsCard({ teamId, className }: CreditsCardProps) {
       <CardHeader>
         <CardTitle className="font-mono">Credits</CardTitle>
         <CardDescription>
-          Your current credits balance.
-          <br /> Your usage costs are deducted from your credits.
+          Your current credits balance
+          <br /> Usage costs are deducted from your credits
         </CardDescription>
       </CardHeader>
       <CardContent className="max-w-[500px] text-xs">
-        <Suspense fallback={<Loader className="text-xl" variant="line" />}>
+        <Suspense fallback={<Loader className="text-xl" />}>
           <BillingCreditsContent teamId={teamId} />
         </Suspense>
       </CardContent>

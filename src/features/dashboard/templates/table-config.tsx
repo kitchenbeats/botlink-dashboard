@@ -185,7 +185,7 @@ export const useColumns = (deps: unknown[]) => {
                     disabled={isUpdating || isDeleting}
                   >
                     {isUpdating ? (
-                      <Loader variant="line" className="size-4" />
+                      <Loader className="size-4" />
                     ) : (
                       <MoreVertical className="size-4" />
                     )}

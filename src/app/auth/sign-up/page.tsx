@@ -54,7 +54,7 @@ export default function Signup() {
 
       <form className="flex flex-col gap-2">
         <input type="hidden" name="returnTo" value={returnTo || ''} />
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">E-Mail</Label>
         <Input
           name="email"
           placeholder="you@example.com"
