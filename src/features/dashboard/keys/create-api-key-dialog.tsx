@@ -65,7 +65,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[500px]">
         <DialogHeader>
           <DialogTitle>New API Key</DialogTitle>
           <DialogDescription>

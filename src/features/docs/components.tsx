@@ -16,7 +16,8 @@ const Callout = forwardRef<
   HTMLDivElement,
   ComponentProps<(typeof defaultMdxComponents)['Callout']>
 >(({ title, type, icon, children, ...props }, ref) => {
-  const variant = type !== 'info' ? (type ?? 'contrast1') : 'contrast1'
+  const variant =
+    type !== 'info' ? (type === 'warn' ? 'warning' : 'contrast1') : 'contrast1'
 
   return (
     <Alert ref={ref} variant={variant} className="ml-4 p-4">
