@@ -209,7 +209,6 @@ export const handleUrlRewrites = async (
     landingPage: string
     landingPageFramer: string
     blogFramer: string
-    docsNext: string
   }
 ): Promise<NextResponse | null> => {
   logger.debug('Starting URL rewrite', {
@@ -241,7 +240,6 @@ export const handleUrlRewrites = async (
     '/changelog': hostnames.landingPage,
     '/blog': hostnames.landingPage,
     '/ai-agents': hostnames.landingPageFramer,
-    '/docs': hostnames.docsNext,
   }
 
   const matchingPath = Object.keys(hostnameMap).find(
