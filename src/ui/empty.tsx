@@ -32,7 +32,7 @@ export function EmptyIndicator({
       </CardHeader>
       {message && (
         <CardContent className="mx-auto max-w-md text-center text-fg-500">
-          <p>{message}</p>
+          {message}
         </CardContent>
       )}
     </Card>

@@ -42,13 +42,11 @@ export function TableBody({
       return (
         <Empty
           title="No Results Found"
-          description={
-            <div className="space-y-4">
-              <p>No templates match your current filters.</p>
-              <Button variant="default" onClick={resetFilters}>
-                Reset Filters <X className="size-4 text-accent" />
-              </Button>
-            </div>
+          description="No templates match your current filters"
+          message={
+            <Button variant="default" onClick={resetFilters}>
+              Reset Filters <X className="size-4 text-accent" />
+            </Button>
           }
           className="h-[70%] max-md:w-screen"
         />
@@ -58,16 +56,14 @@ export function TableBody({
     return (
       <Empty
         title="No Templates Yet"
-        description={
-          <div className="space-y-4">
-            <p>Your Templates can be managed here.</p>
-            <Button variant="default" asChild>
-              <a href="/docs/sandbox-template" target="_blank" rel="noopener">
-                Create a Template
-                <ExternalLink className="size-3.5" />
-              </a>
-            </Button>
-          </div>
+        description="Your Templates can be managed here"
+        message={
+          <Button variant="default" asChild>
+            <a href="/docs/sandbox-template" target="_blank" rel="noopener">
+              Create a Template
+              <ExternalLink className="size-3.5" />
+            </a>
+          </Button>
         }
         className="h-[70%] max-md:w-screen"
       />

@@ -1,8 +1,8 @@
 export const AUTH_URLS = {
-  FORGOT_PASSWORD: '/auth/forgot-password',
+  FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/dashboard/account/reset-password',
-  SIGN_IN: '/auth/sign-in',
-  SIGN_UP: '/auth/sign-up',
+  SIGN_IN: '/sign-in',
+  SIGN_UP: '/sign-up',
   CALLBACK: '/api/auth/callback',
   CLI: '/auth/cli',
 }

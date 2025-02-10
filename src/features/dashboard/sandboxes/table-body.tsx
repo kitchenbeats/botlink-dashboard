@@ -45,13 +45,11 @@ export function TableBody({
       return (
         <Empty
           title="No Results Found"
-          description={
-            <div className="space-y-4">
-              <p>No sandboxes match your current filters.</p>
-              <Button variant="default" onClick={resetFilters}>
-                Reset Filters <X className="size-4 text-accent" />
-              </Button>
-            </div>
+          description="No sandboxes match your current filters"
+          message={
+            <Button variant="default" onClick={resetFilters}>
+              Reset Filters <X className="size-4 text-accent" />
+            </Button>
           }
           className="h-[70%] max-md:w-screen"
         />
@@ -61,16 +59,14 @@ export function TableBody({
     return (
       <Empty
         title="No Sandboxes Yet"
-        description={
-          <div className="space-y-4">
-            <p>Running Sandboxes can be observed here.</p>
-            <Button variant="default" asChild>
-              <a href="/docs/quickstart" target="_blank" rel="noopener">
-                Create a Sandbox
-                <ExternalLink className="size-3.5" />
-              </a>
-            </Button>
-          </div>
+        description="Running Sandboxes can be observed here"
+        message={
+          <Button variant="default" asChild>
+            <a href="/docs/quickstart" target="_blank" rel="noopener">
+              Create a Sandbox
+              <ExternalLink className="size-3.5" />
+            </a>
+          </Button>
         }
         className="h-[70%] max-md:w-screen"
       />
