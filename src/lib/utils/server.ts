@@ -17,7 +17,6 @@ import { logger } from '../clients/logger'
 import { kv } from '@/lib/clients/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { ERROR_CODES, INFO_CODES } from '@/configs/logs'
-import { getDefaultTeamRelation } from '@/server/auth/get-default-team'
 
 /*
  *  This function checks if the user is authenticated and returns the user and the supabase client.
@@ -234,7 +233,7 @@ export function guard<TInput, TOutput>(
           throw error
         }
 
-        logger.error(error)
+        console.error(ERROR_CODES.GUARD, error)
 
         if (error instanceof E2BError) {
           return {
@@ -278,7 +277,7 @@ export function guard<TInput, TOutput>(
         throw error
       }
 
-      logger.error(ERROR_CODES.GUARD, error)
+      console.error(ERROR_CODES.GUARD, error)
 
       if (error instanceof E2BError) {
         return {

@@ -10,8 +10,8 @@ const badgeVariants = cva(
       variant: {
         default: 'border-transparent bg-fg text-bg hover:bg-fg-200',
         muted: 'bg-bg-200 text-fg-500',
-        success: 'bg-success text-success-fg',
-        warning: 'bg-warning text-warning-fg',
+        success: 'bg-success/20 text-success',
+        warning: 'bg-warning/20 text-warning',
         error: 'bg-error/20 text-error',
         accent: 'bg-accent/15 text-accent',
         'contrast-1': 'bg-contrast-1/20 text-contrast-1',

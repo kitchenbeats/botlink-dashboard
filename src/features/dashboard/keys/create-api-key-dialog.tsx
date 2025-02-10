@@ -115,11 +115,11 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
                   }}
                 />
               </div>
-              <Alert variant="contrast2" className="mt-4">
-                <AlertTitle>Important!</AlertTitle>
-                <AlertDescription className="text-contrast-2">
-                  Make sure to copy your API key now. You won't be able to see
-                  it again!
+              <Alert variant="warning" className="mt-4">
+                <AlertTitle>Important</AlertTitle>
+                <AlertDescription>
+                  Make sure to copy your API key now.
+                  <br /> You won't be able to see it again!
                 </AlertDescription>
               </Alert>
             </div>

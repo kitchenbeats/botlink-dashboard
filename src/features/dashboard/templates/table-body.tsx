@@ -60,10 +60,10 @@ export function TableBody({
         title="No Templates Yet"
         description={
           <div className="space-y-4">
-            <p>Get started by creating your first template.</p>
+            <p>Your Templates can be managed here.</p>
             <Button variant="default" asChild>
               <a href="/docs/sandbox-template" target="_blank" rel="noopener">
-                Learn How to Create Templates
+                Create a Template
                 <ExternalIcon />
               </a>
             </Button>

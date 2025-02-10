@@ -63,10 +63,10 @@ export function TableBody({
         title="No Sandboxes Yet"
         description={
           <div className="space-y-4">
-            <p>Get started by creating your first sandbox.</p>
+            <p>Running Sandboxes can be observed here.</p>
             <Button variant="default" asChild>
               <a href="/docs/quickstart" target="_blank" rel="noopener">
-                Learn How to Create Sandboxes
+                Create a Sandbox
                 <ExternalIcon />
               </a>
             </Button>

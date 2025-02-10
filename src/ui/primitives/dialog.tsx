@@ -44,7 +44,7 @@ const DialogContent = React.forwardRef<
         'fixed left-[50%] top-[50%] z-50',
         'w-full max-w-lg translate-x-[-50%] translate-y-[-50%]',
         'bg-bg p-6',
-        'text-fg outline-ring',
+        'text-fg outline-none',
         className
       )}
       {...props}

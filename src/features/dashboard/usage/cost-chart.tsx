@@ -37,7 +37,6 @@ export function CostChart({ data }: { data: ChartData }) {
               <ChartTooltipContent
                 formatter={(value) => [
                   <span key="value">${Number(value).toFixed(2)}</span>,
-                  'Cost',
                 ]}
                 payload={payload}
                 active={active}

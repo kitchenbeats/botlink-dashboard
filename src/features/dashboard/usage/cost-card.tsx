@@ -52,8 +52,7 @@ export async function CostCardContent({ teamId }: { teamId: string }) {
       <>
         <div className="flex items-baseline gap-2">
           <p className="font-mono text-2xl">
-            <span className="text-sm text-accent">$ </span>
-            {latestCost?.toFixed(2) ?? '0.00'}
+            ${latestCost?.toFixed(2) ?? '0.00'}
           </p>
           <span className="text-xs text-fg-500">this period</span>
         </div>
