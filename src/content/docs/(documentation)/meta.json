@@ -4,23 +4,8 @@
   "root": true,
   "defaultOpen": true,
   "pages": [
-    "---[ Intro ]---",
-    "./getting-started/index",
-    "...getting-started",
-    "--- ---",
-
-    "---[ Sandbox ]---",
-    "./sandbox/index",
-    "...sandbox",
-    "--- ---",
-
-    "---[ Code Interpreting ]---",
-    "./code-interpreting/index",
-    "...code-interpreting",
-    "--- ---",
-
-    "---[ CLI ]---",
-    "./cli/index",
-    "...cli"
+    "---Home---",
+    "quickstart",
+    "--- ---"
   ]
 }

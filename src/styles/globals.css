@@ -3,6 +3,9 @@
 @import './variables.css';
 @import './theme.css';
 
+/* path of `fumadocs-ui` relative to the CSS file */
+@source '../../node_modules/fumadocs-ui/dist/**/*.js';
+
 @layer theme, base, components, utilities;
 
 @layer base {

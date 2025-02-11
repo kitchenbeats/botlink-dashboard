@@ -1,5 +1,0 @@
-{
-  "title": "Code Interpreting",
-  "description": "E2B Code Interpreting Documentation",
-  "pages": ["overview", "supported-languages", "streaming", "best-practices"]
-}

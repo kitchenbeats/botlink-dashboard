@@ -33,7 +33,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <Nav />
-      <div className="container mx-auto w-full max-w-[1200px]">
+      <div className="container mx-auto w-full max-w-[1400px]">
         <DocsLayout {...docsOptions}>{children}</DocsLayout>
       </div>
     </>

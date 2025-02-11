@@ -1,6 +1,0 @@
-{
-  "title": "CLI & Tools",
-  "description": "E2B CLI and Tools Documentation",
-  "pages": ["cli-reference", "commands", "configuration"],
-  "defaultOpen": true
-}

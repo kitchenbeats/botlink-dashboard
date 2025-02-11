@@ -17,19 +17,13 @@ const tabs = [
     url: '/docs/reference',
     icon: LinkIcon,
   },
-  {
-    title: 'Examples',
-    description: 'Latest from the E2B kitchen',
-    url: '/docs/examples',
-    icon: CookingPotIcon,
-  },
 ]
 
 export default function DocsNavHeader() {
   const pathname = usePathname()
 
   return (
-    <div className="mb-4 mt-12 space-y-1">
+    <div className="mt-12 mb-4 space-y-1">
       {tabs.map((tab) => (
         <Link
           key={tab.url}
@@ -38,15 +32,15 @@ export default function DocsNavHeader() {
         >
           <GradientBorder
             direction="bg-gradient-to-bl"
-            className={cn('p-2 group-hover:bg-fg group-hover:text-bg', {
+            className={cn('group-hover:bg-fg group-hover:text-bg p-2', {
               'bg-fg text-bg': pathname.includes(tab.url),
             })}
           >
             <tab.icon className="size-3.5" />
           </GradientBorder>
           <div>
-            <span className="font-mono text-fg-100">{tab.title}</span>
-            <p className="text-[0.65rem] text-fg-500">{tab.description}</p>
+            <span className="text-fg-100 font-mono">{tab.title}</span>
+            <p className="text-fg-500 text-[0.65rem]">{tab.description}</p>
           </div>
         </Link>
       ))}
