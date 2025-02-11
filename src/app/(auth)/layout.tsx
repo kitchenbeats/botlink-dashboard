@@ -11,7 +11,7 @@ const NetworkStateBanner = dynamic(() => import('@/ui/network-state-banner'), {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex h-[100dvh] flex-col">
+    <div className="relative flex h-[100svh] flex-col">
       <GridPattern
         width={50}
         height={50}
@@ -19,15 +19,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         y={-1}
         strokeDasharray={'4 2'}
         className={cn(
-          '[mask-image:radial-gradient(800px_400px_at_center,white,transparent)]'
+          '[mask-image:radial-gradient(800px_400px_at_center,white,transparent)]',
+          'z-10'
         )}
-        gradientFrom="hsl(var(--accent-100))"
-        gradientVia="hsl(var(--fg-100)/0.1)"
-        gradientTo="hsl(var(--accent-100))"
+        gradientFrom="var(--accent-100)"
+        gradientVia="hsl(from var(--fg-100) h s l / 0.1)"
+        gradientTo="var(--accent-100)"
         gradientDegrees={90}
       />
       <NetworkStateBanner />
-      <div className="flex h-full w-full items-center justify-center px-4">
+      <div className="z-10 flex h-full w-full items-center justify-center px-4">
         <GradientBorder
           direction="bg-gradient-to-b"
           gradientFrom="from-border-400"

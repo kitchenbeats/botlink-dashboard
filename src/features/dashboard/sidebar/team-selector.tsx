@@ -55,7 +55,7 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
       >
         <SelectTrigger
           className={cn(
-            'h-auto w-full rounded-sm border-0 px-2 py-1 pr-4 hover:bg-bg-100',
+            'hover:bg-bg-100 h-auto w-full rounded-sm border-0 px-2 py-1 pr-4',
             className
           )}
         >
@@ -70,7 +70,7 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
             </Avatar>
             <ClientOnly className="w-full">
               <div className="flex max-w-[160px] flex-1 flex-col items-start overflow-hidden pb-px text-left [&>span]:max-w-full [&>span]:overflow-hidden [&>span]:text-ellipsis [&>span]:whitespace-nowrap">
-                <span className="-mb-1 w-full text-left text-[0.65rem] text-accent">
+                <span className="text-accent -mb-1 w-full text-left text-[0.65rem]">
                   TEAM
                 </span>
                 {selectedTeam ? (
@@ -97,7 +97,7 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
           )}
           {teams.length > 0 && (
             <>
-              <SelectGroup className="w-full px-2 pb-2 pt-1">
+              <SelectGroup className="w-full px-2 pt-1 pb-2">
                 <SelectLabel>Teams</SelectLabel>
                 {teams.map((team) => (
                   <SelectItem

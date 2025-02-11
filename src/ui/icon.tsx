@@ -8,12 +8,12 @@ export function IconContainer({
   ...props
 }: HTMLAttributes<HTMLDivElement> & {
   icon?: LucideIcon
-}): React.ReactElement {
+}): React.ReactElement<unknown> {
   return (
     <div
       {...props}
       className={cn(
-        '[a[data-active=true]_&]:text-accent-fg rounded-md border bg-gradient-to-b from-bg to-bg-100 p-2 [a[data-active=true]_&]:from-accent/60 [a[data-active=true]_&]:to-accent',
+        '[a[data-active=true]_&]:text-accent-fg from-bg to-bg-100 [a[data-active=true]_&]:from-accent/60 [a[data-active=true]_&]:to-accent rounded-md border bg-gradient-to-b p-2',
         props.className
       )}
     >

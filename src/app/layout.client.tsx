@@ -10,7 +10,7 @@ export function Body({
   children,
 }: {
   children: ReactNode
-}): React.ReactElement {
+}): React.ReactElement<unknown> {
   const mode = useMode()
 
   return (

@@ -21,7 +21,7 @@ export const SearchInput = React.forwardRef<
         if (e.key === '/') {
           e.preventDefault()
           if (ref && 'current' in ref) {
-            ;(ref as React.RefObject<HTMLInputElement>).current?.focus()
+            ;(ref as React.RefObject<HTMLInputElement | null>).current?.focus()
           }
           return true
         }

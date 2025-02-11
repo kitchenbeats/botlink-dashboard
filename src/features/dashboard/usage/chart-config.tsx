@@ -2,22 +2,22 @@ export const chartConfig = {
   cost: {
     label: 'Cost',
     theme: {
-      light: 'hsl(var(--accent))',
-      dark: 'hsl(var(--accent))',
+      light: 'var(--accent)',
+      dark: 'var(--accent)',
     },
   },
   vcpu: {
     label: 'vCPU Hours',
     theme: {
-      light: 'hsl(var(--fg))',
-      dark: 'hsl(var(--fg))',
+      light: 'var(--fg)',
+      dark: 'var(--fg)',
     },
   },
   ram: {
     label: 'RAM Hours',
     theme: {
-      light: 'hsl(var(--fg))',
-      dark: 'hsl(var(--fg))',
+      light: 'var(--fg)',
+      dark: 'var(--fg)',
     },
   },
 }

@@ -3,7 +3,7 @@ import type { HTMLAttributes } from 'react'
 
 export function Wrapper(
   props: HTMLAttributes<HTMLDivElement>
-): React.ReactElement {
+): React.ReactElement<unknown> {
   return (
     <div
       {...props}

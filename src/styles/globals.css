@@ -1,10 +1,9 @@
+@import 'tailwindcss';
 @import 'fumadocs-ui/css/preset.css';
-@import './theme.css';
 @import './variables.css';
+@import './theme.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer theme, base, components, utilities;
 
 @layer base {
   * {
@@ -33,11 +32,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--accent-200));
+  background-color: var(--accent-200);
 }
 
 *::selection {
-  background-color: hsl(var(--accent) / 0.3);
+  background-color: hsl(from var(--accent) h s l / 0.3);
 }
 
 .lucide {
@@ -48,6 +47,6 @@ ul li {
   padding-left: 0.5rem;
 }
 ul li::marker {
-  color: hsl(var(--accent-200));
+  color: var(--accent-200);
   content: '▪';
 }

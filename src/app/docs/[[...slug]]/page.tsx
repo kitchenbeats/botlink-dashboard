@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils'
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>
-}): Promise<ReactElement> {
+}): Promise<React.ReactElement<unknown>> {
   const params = await props.params
 
   const page = source.getPage(params.slug)
