@@ -7,7 +7,6 @@ import {
   DocsCategory,
 } from 'fumadocs-ui/page'
 import { notFound } from 'next/navigation'
-import { type ReactElement } from 'react'
 /* import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui"; */
 /* import * as Preview from "@/components/preview"; */
 import { source } from '@/app/source'

@@ -6,6 +6,10 @@
   "pages": [
     "---Home---",
     "quickstart",
-    "--- ---"
+    "quickstart/migrating-from-v0",
+    "--- ---",
+    "---Code Interpreting---",
+    "code-interpreting/analyze-data-with-ai",
+    "code-interpreting/create-charts-visualizations"
   ]
 }

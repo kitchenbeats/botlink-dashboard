@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import Dotted from '@/ui/dotted'
 
 interface NavbarItemProps {
-  label: string
+  label: React.ReactNode
   href: string
   icon: React.ReactNode
 }
@@ -20,17 +20,17 @@ export function NavbarItem({ label, href, icon }: NavbarItemProps) {
       href={href}
       suppressHydrationWarning
       className={cn(
-        'group relative w-full ring-border transition-all duration-150 hover:no-underline hover:ring-1'
+        'group ring-border relative w-full transition-all duration-150 hover:no-underline hover:ring-1'
       )}
     >
       <Dotted className="z-0" />
       <div
         className={cn(
-          'relative z-10 bg-bg ring-border transition-all duration-150',
-          'group-hover:-translate-y-[4px] group-hover:scale-[1.005] group-hover:shadow-sm group-hover:ring-1 dark:group-hover:shadow-md'
+          'bg-bg ring-border relative z-10 transition-all duration-150',
+          'group-hover:-translate-y-[4px] group-hover:scale-[1.005] group-hover:ring-1 group-hover:shadow-sm dark:group-hover:shadow-md'
         )}
       >
-        <div className="flex w-full items-center bg-bg font-mono text-sm">
+        <div className="bg-bg flex w-full items-center font-mono text-sm">
           <div
             className={cn(
               'flex w-full items-center gap-1 px-2 py-1',

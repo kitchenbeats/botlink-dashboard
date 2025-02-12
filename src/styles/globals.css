@@ -1,10 +1,12 @@
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/preset.css';
-@import './variables.css';
-@import './theme.css';
 
 /* path of `fumadocs-ui` relative to the CSS file */
 @source '../../node_modules/fumadocs-ui/dist/**/*.js';
+
+@import './variables.css';
+@import './theme.css';
+
 
 @layer theme, base, components, utilities;
 
