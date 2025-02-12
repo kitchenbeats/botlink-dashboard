@@ -3,8 +3,6 @@ import { AUTH_URLS, PROTECTED_URLS } from './configs/urls'
 import { createServerClient } from '@supabase/ssr'
 import { handleUrlRewrites, resolveTeamForDashboard } from './server/middleware'
 import { COOKIE_KEYS } from './configs/keys'
-import { logger } from './lib/clients/logger'
-import { INFO_CODES } from './configs/logs'
 import {
   LANDING_PAGE_DOMAIN,
   LANDING_PAGE_FRAMER_DOMAIN,
@@ -59,10 +57,6 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith(PROTECTED_URLS.DASHBOARD) &&
       error
     ) {
-      logger.debug(INFO_CODES.AUTH_REDIRECT, 'Redirecting to sign in', {
-        url: request.url,
-        error: error.message,
-      })
       return NextResponse.redirect(new URL(AUTH_URLS.SIGN_IN, request.url))
     }
 
@@ -134,17 +128,6 @@ export async function middleware(request: NextRequest) {
     }
     return response
   } catch (error) {
-    logger.error('Middleware error', {
-      error,
-      stack: error instanceof Error ? error.stack : undefined,
-      url: request.url,
-      pathname: request.nextUrl.pathname,
-      cookies: Object.fromEntries(
-        request.cookies.getAll().map((cookie) => [cookie.name, cookie.value])
-      ),
-      headers: Object.fromEntries(request.headers.entries()),
-    })
-
     // Return a basic response to avoid infinite loops
     return NextResponse.next({
       request,

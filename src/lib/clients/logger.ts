@@ -1,2 +1,2 @@
-// next-logger transformes console.log to pino
+// logger is registered through next-logger
 export const logger = console
