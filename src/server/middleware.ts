@@ -5,10 +5,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { replaceUrls } from '@/configs/domains'
 import { COOKIE_KEYS } from '@/configs/keys'
 import { PROTECTED_URLS } from '@/configs/urls'
-import { INFO_CODES, ERROR_CODES } from '@/configs/logs'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { z } from 'zod'
-import { cookies } from 'next/headers'
 
 /**
  * Core function to resolve team ID and ensure access for dashboard routes.
