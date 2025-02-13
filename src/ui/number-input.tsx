@@ -116,7 +116,7 @@ export function NumberInput({
           variant="outline"
           size="icon"
           className={cn(
-            'h-[1.125rem] rounded-none rounded-bl-md border-r-0 border-t-0 px-2',
+            'h-[1.125rem] rounded-none rounded-bl-md border-t-0 border-r-0 px-2',
             buttonClassName
           )}
           onClick={decrement}
@@ -136,7 +136,7 @@ export function NumberInput({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={cn('h-9 rounded-l-none', inputClassName)}
-        style={{ 'field-sizing': 'content' } as React.CSSProperties}
+        style={{ fieldSizing: 'content' } as React.CSSProperties}
       />
     </div>
   )

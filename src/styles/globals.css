@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
 @import 'fumadocs-ui/css/preset.css';
 
 /* path of `fumadocs-ui` relative to the CSS file */
@@ -6,7 +8,6 @@
 
 @import './variables.css';
 @import './theme.css';
-
 
 @layer theme, base, components, utilities;
 
@@ -55,3 +56,4 @@ ul li::marker {
   color: var(--accent-200);
   content: '▪';
 }
+

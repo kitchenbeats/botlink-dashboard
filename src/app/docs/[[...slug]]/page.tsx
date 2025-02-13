@@ -63,7 +63,7 @@ export default async function Page(props: {
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody>
+      <DocsBody className="text-sm">
         {/*         {preview ? <PreviewRenderer preview={preview} /> : null} */}
         <Mdx components={components({ slug: params.slug || [] })} />
         {page.data.index ? <DocsCategory page={page} from={source} /> : null}

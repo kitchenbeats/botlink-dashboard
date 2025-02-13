@@ -1,19 +1,28 @@
 import Link from 'next/link'
 import DocsNavLinks from './links'
 import LogoWithoutText from '@/ui/logo-without-text'
+import { ThemeSwitcher } from '@/ui/theme-switcher'
+import { cn } from '@/lib/utils'
 
-export function Nav() {
+interface NavProps {
+  className?: string
+}
+
+export function Nav({ className }: NavProps) {
   return (
-    <>
-      <div className="min-h-[var(--fd-nav-height)]" />
-      <nav className="border-border bg-bg/70 fixed top-0 z-50 h-[var(--fd-nav-height)] w-full border-b backdrop-blur-sm">
-        <div className="flex h-full w-full items-center justify-between px-4 text-sm">
-          <Link href={'/'}>
-            <LogoWithoutText className="size-12" />
-          </Link>
-          <DocsNavLinks />
-        </div>
-      </nav>
-    </>
+    <nav
+      className={cn(
+        'border-border bg-bg/70 z-50 h-[var(--fd-nav-height)] w-full border-b backdrop-blur-sm',
+        className
+      )}
+    >
+      <div className="flex h-full w-full items-center gap-2 px-4">
+        <Link href={'/'}>
+          <LogoWithoutText className="size-12" />
+        </Link>
+        <ThemeSwitcher className="ml-auto" />
+        <DocsNavLinks />
+      </div>
+    </nav>
   )
 }
