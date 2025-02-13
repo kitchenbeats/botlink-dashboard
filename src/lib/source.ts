@@ -1,12 +1,9 @@
-import { createMDXSource } from 'fumadocs-mdx'
 import type { InferMetaType, InferPageType } from 'fumadocs-core/source'
 import { loader } from 'fumadocs-core/source'
 import { icons } from 'lucide-react'
 import { createElement } from 'react'
-import { meta, docs } from '@/../.source'
 import { IconContainer } from '@/ui/icon'
-
-/* import { attachFile, createOpenAPI } from "fumadocs-openapi/server"; */
+import { docs } from '@/../.source'
 
 export const source = loader({
   baseUrl: '/docs',
@@ -16,20 +13,8 @@ export const source = loader({
         icon: icons[icon as keyof typeof icons],
       })
   },
-  source: createMDXSource(docs, meta),
-  /*   pageTree: {
-    attachFile,
-  }, */
+  source: docs.toFumadocsSource(),
 })
-
-/* export const openapi = createOpenAPI({
-  shikiOptions: {
-    themes: {
-      dark: "vesper",
-      light: "vitesse-light",
-    },
-  },
-}); */
 
 export type Page = InferPageType<typeof source>
 export type Meta = InferMetaType<typeof source>

@@ -9,7 +9,7 @@ import {
 import { notFound } from 'next/navigation'
 /* import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui"; */
 /* import * as Preview from "@/components/preview"; */
-import { source } from '@/app/source'
+import { source } from '@/lib/source'
 import { createMetadata, metadataImage } from '@/configs/metadata'
 import { METADATA } from '@/configs/metadata'
 import components from '@/features/docs/components'
@@ -35,8 +35,7 @@ export default async function Page(props: {
   if (!page) notFound()
 
   const path = `src/content/docs/${page.file.path}`
-  /*   const preview = page.data.preview */
-  const { body: Mdx, toc, lastModified } = await page.data.load()
+  const { body: Mdx, toc, lastModified } = page.data
 
   return (
     <DocsPage

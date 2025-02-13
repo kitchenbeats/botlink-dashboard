@@ -1,5 +1,5 @@
 {
-  "name": "@e2b/dashboard",
+  "name": "dashboard",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -20,9 +20,10 @@
     "storybook": "storybook dev -p 6006",
     "shad": "bunx shadcn@canary",
     "prebuild": "bun scripts/check-env.ts && bun scripts/build-storybook.ts",
-    "_postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@fumadocs/mdx-remote": "^1.2.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-avatar": "^1.1.3",
     "@radix-ui/react-checkbox": "^1.1.4",
@@ -38,6 +39,10 @@
     "@radix-ui/react-tabs": "^1.1.3",
     "@radix-ui/react-toast": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.1.8",
+    "@shikijs/core": "2.3.2",
+    "@shikijs/rehype": "^2.3.2",
+    "@shikijs/themes": "2.3.2",
+    "@shikijs/twoslash": "^2.3.2",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
     "@tanstack/match-sorter-utils": "^8.19.4",
@@ -52,19 +57,16 @@
     "cmdk": "^1.0.4",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.39.0",
-    "drizzle-zod": "^0.7.0",
     "fast-xml-parser": "^4.5.1",
     "fumadocs-core": "^15.0.6",
-    "fumadocs-docgen": "^1.3.5",
-    "fumadocs-mdx": "^11.3.2",
+    "fumadocs-mdx": "^11.5.3",
     "fumadocs-ui": "^15.0.6",
     "geist": "^1.3.1",
     "immer": "^10.1.1",
     "lucide-react": "^0.474.0",
     "motion": "^12.0.6",
     "nanoid": "^5.0.9",
-    "next": "^15.2.0-canary.28",
+    "next": "^15.2.0-canary.56",
     "next-logger": "^5.0.1",
     "next-themes": "^0.4.4",
     "pg": "^8.13.1",
@@ -83,6 +85,7 @@
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
     "remark-mermaid": "^0.2.0",
+    "shiki": "2.3.2",
     "swr": "^2.3.0",
     "tailwind-merge": "^2.6.0",
     "usehooks-ts": "^3.1.0",
@@ -127,7 +130,12 @@
     "typescript": "5.7.3"
   },
   "resolutions": {
-    "whatwg-url": "^13"
+    "whatwg-url": "^13",
+    "@shikijs/themes": "2.3.2",
+    "shiki": "2.3.2",
+    "@shikijs/core": "2.3.2",
+    "@nodelib/fs.scandir": "2.1.5",
+    "@nodelib/fs.stat": "2.0.5"
   },
   "packageManager": "bun@1.2.0"
 }

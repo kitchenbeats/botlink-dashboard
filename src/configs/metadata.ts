@@ -1,6 +1,6 @@
 import type { Metadata } from 'next/types'
 import { createMetadataImage } from 'fumadocs-core/server'
-import { source } from '@/app/source'
+import { source } from '@/lib/source'
 
 export const METADATA = {
   title: 'E2B - Code Interpreting for AI apps',

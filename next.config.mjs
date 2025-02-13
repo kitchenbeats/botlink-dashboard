@@ -4,7 +4,7 @@ const withMDX = createMDX()
 
 /** @type {import('next').NextConfig} */
 const config = {
-  reactStrictMode: false,
+  reactStrictMode: true,
   experimental: {
     reactCompiler: true,
     reactOwnerStack: true,
@@ -14,7 +14,10 @@ const config = {
       static: 180,
     },
   },
-  serverExternalPackages: ['pino', 'pino-pretty'],
+  serverExternalPackages: [
+    'pino',
+    'pino-pretty',
+  ],
   logging: {
     fetches: {
       fullUrl: true,

@@ -23,7 +23,7 @@ export default function ErrorBoundary({
 
   return (
     <div className={cn('flex h-full items-center justify-center', className)}>
-      <Frame classNames={{ frame: 'scale-[1.03]', wrapper: 'pb-2.5' }}>
+      <Frame>
         <ErrorIndicator description={description} message={error.message} />
       </Frame>
     </div>

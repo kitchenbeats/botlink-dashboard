@@ -1,4 +1,3 @@
-import { rehypeCodeDefaultOptions } from 'fumadocs-core/mdx-plugins'
 import {
   defineConfig,
   defineDocs,
@@ -6,22 +5,12 @@ import {
   metaSchema,
 } from 'fumadocs-mdx/config'
 import { z } from 'zod'
-import remarkMath from 'remark-math'
-import { fileGenerator, remarkDocGen, remarkInstall } from 'fumadocs-docgen'
-import rehypeKatex from 'rehype-katex'
-import { remarkMermaid } from '@theguild/remark-mermaid'
 
-export const { docs, meta } = defineDocs({
+export const docs = defineDocs({
   dir: 'src/content/docs',
   docs: {
-    async: true,
     schema: frontmatterSchema.extend({
-      preview: z.string().optional(),
       index: z.boolean().default(false),
-      /**
-       * API routes only
-       */
-      method: z.string().optional(),
     }),
   },
   meta: {
@@ -33,12 +22,23 @@ export const { docs, meta } = defineDocs({
 
 export default defineConfig({
   lastModifiedTime: 'git',
+})
+
+/* export default defineConfig({
+  lastModifiedTime: 'git',
   mdxOptions: {
     rehypeCodeOptions: {
+      lazy: true,
+      experimentalJSEngine: true,
+      langs: ['ts', 'js', 'html', 'tsx', 'mdx'],
       inline: 'tailing-curly-colon',
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
       transformers: [
         ...(rehypeCodeDefaultOptions.transformers ?? []),
-        /*         transformerTwoslash(), */
+        transformerTwoslash(),
         {
           name: 'transformers:remove-notation-escape',
           code(hast) {
@@ -63,7 +63,8 @@ export default defineConfig({
       remarkMath,
       [remarkInstall, { persist: { id: 'package-manager' } }],
       [remarkDocGen, { generators: [fileGenerator()] }],
+      remarkTypeScriptToJavaScript,
     ],
     rehypePlugins: (v) => [rehypeKatex, ...v],
   },
-})
+}) */
