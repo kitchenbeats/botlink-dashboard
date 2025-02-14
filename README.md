@@ -1,7 +1,8 @@
 <!-- <p align="center">
   <img width="100" src="/readme-assets/logo-circle.png" alt="e2b logo">
 </p> -->
-![Dashboard Preview](/readme-assets/dashboard-preview-light.png)
+![Dashboard Preview Dark](/readme-assets/dashboard-preview-dark.png#gh-dark-mode-only)
+![Dashboard Preview Light](/readme-assets/dashboard-preview-light.png#gh-light-mode-only)
 
 # E2B Dashboard
 
