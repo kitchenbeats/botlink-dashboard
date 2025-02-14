@@ -38,9 +38,11 @@ const ScrollBar = React.forwardRef<
     )}
     {...props}
   >
-    <ScrollAreaPrimitive.ScrollAreaThumb className="bg-accent-200 relative flex-1" />
+    <ScrollAreaPrimitive.ScrollAreaThumb className="bg-accent/80 relative flex-1" />
   </ScrollAreaPrimitive.ScrollAreaScrollbar>
 ))
 ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
 
-export { ScrollArea, ScrollBar }
+const ScrollViewport = ScrollAreaPrimitive.ScrollAreaViewport
+
+export { ScrollArea, ScrollBar, ScrollViewport }

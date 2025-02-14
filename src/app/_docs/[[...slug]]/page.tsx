@@ -9,12 +9,13 @@ import {
 import { notFound } from 'next/navigation'
 /* import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui"; */
 /* import * as Preview from "@/components/preview"; */
-import { source } from '@/app/source'
+import { source } from '@/lib/source'
 import { createMetadata, metadataImage } from '@/configs/metadata'
 import { METADATA } from '@/configs/metadata'
 import components from '@/features/docs/components'
 import { buttonVariants } from '@/ui/primitives/button'
 import { cn } from '@/lib/utils'
+import Footer from '@/features/docs/footer/footer'
 
 /* function PreviewRenderer({ preview }: { preview: string }): ReactNode {
   if (preview && preview in Preview) {
@@ -35,8 +36,7 @@ export default async function Page(props: {
   if (!page) notFound()
 
   const path = `src/content/docs/${page.file.path}`
-  /*   const preview = page.data.preview */
-  const { body: Mdx, toc, lastModified } = await page.data.load()
+  const { body: Mdx, toc, lastModified } = page.data
 
   return (
     <DocsPage
@@ -54,11 +54,14 @@ export default async function Page(props: {
         path,
         className: cn(
           buttonVariants({ variant: 'outline' }),
-          'rounded-none text-xs'
+          'text-xs text-fg'
         ),
       }}
+      footer={{
+        component: <Footer />,
+      }}
       article={{
-        className: 'max-sm:pb-16 mt-2 xl:pt-10',
+        className: 'pb-16 xl:pt-10 max-w-3xl xl:ml-0',
       }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>

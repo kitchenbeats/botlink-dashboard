@@ -59,7 +59,7 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
             className
           )}
         >
-          <div className="flex flex-1 items-center gap-3">
+          <div className="flex flex-1 items-center gap-2">
             <Avatar className="size-9 shrink-0 shadow-lg">
               <AvatarImage
                 src={selectedTeam?.profile_picture_url || undefined}
@@ -68,8 +68,8 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
                 {selectedTeam?.name?.charAt(0).toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
-            <ClientOnly className="w-full">
-              <div className="flex max-w-[160px] flex-1 flex-col items-start overflow-hidden pb-px text-left [&>span]:max-w-full [&>span]:overflow-hidden [&>span]:text-ellipsis [&>span]:whitespace-nowrap">
+            <ClientOnly className="h-full w-full">
+              <div className="flex max-w-[160px] flex-1 flex-col items-start gap-1 overflow-hidden pb-px text-left [&>span]:max-w-full [&>span]:overflow-hidden [&>span]:text-ellipsis [&>span]:whitespace-nowrap">
                 <span className="text-accent -mb-1 w-full text-left text-[0.65rem]">
                   TEAM
                 </span>

@@ -12,7 +12,11 @@ import {
 import { Laptop, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
-const ThemeSwitcher = () => {
+interface ThemeSwitcherProps {
+  className?: string
+}
+
+const ThemeSwitcher = ({ className }: ThemeSwitcherProps) => {
   const { theme, setTheme, resolvedTheme } = useTheme()
   const isMounted = useIsMounted()
 
@@ -24,7 +28,7 @@ const ThemeSwitcher = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger className={className} asChild>
         <Button variant="ghost" size={'iconSm'}>
           {resolvedTheme === 'light' ? (
             <Sun key="light" size={ICON_SIZE} className={'text-fg-300'} />
@@ -42,21 +46,21 @@ const ThemeSwitcher = () => {
             className="flex items-center gap-2"
             value="light"
           >
-            <Sun className="size-3.5 text-fg-300" />
+            <Sun className="text-fg-300 size-3.5" />
             <span>Light</span>
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
             className="flex items-center gap-2"
             value="dark"
           >
-            <Moon className="size-3.5 text-fg-300" />
+            <Moon className="text-fg-300 size-3.5" />
             <span>Dark</span>
           </DropdownMenuRadioItem>
           <DropdownMenuRadioItem
             className="flex items-center gap-2"
             value="system"
           >
-            <Laptop className="size-3.5 text-fg-300" />
+            <Laptop className="text-fg-300 size-3.5" />
             <span>System</span>
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>

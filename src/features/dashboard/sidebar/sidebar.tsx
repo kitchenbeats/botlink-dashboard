@@ -34,24 +34,24 @@ export default function Sidebar({ className }: SidebarProps) {
 
         <div className="w-full p-2">
           <Suspense fallback={null}>
-            <TeamSelector className="pl-1 pr-2" />
+            <TeamSelector className="pr-2 pl-1" />
           </Suspense>
         </div>
       </header>
 
-      <DashboardNavbar className="flex-1 p-2 pb-8 pt-0" />
+      <DashboardNavbar className="flex-1 p-2 pt-0 pb-8" />
 
       <Suspense fallback={null}>
         <DashboardSearch className="w-full" />
       </Suspense>
-      <footer className="mt-auto flex flex-col bg-bg-100">
+      <footer className="bg-bg-100 mt-auto flex flex-col">
         <a
           href={GITHUB_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex w-full items-center gap-2 border-t p-2 text-sm text-fg-300 hover:text-fg"
+          className="text-fg-300 hover:text-fg flex w-full items-center gap-2 border-t p-2 text-sm"
         >
-          <Github className="size-4 text-fg-500" />
+          <Github className="text-fg-500 size-4" />
           GitHub
           <ExternalIcon className="ml-auto size-4" />
         </a>
@@ -59,9 +59,9 @@ export default function Sidebar({ className }: SidebarProps) {
           prefetch={false}
           href="/docs"
           target="_blank"
-          className="flex w-full items-center gap-2 border-t p-2 text-sm text-fg-300 hover:text-fg"
+          className="text-fg-300 hover:text-fg flex w-full items-center gap-2 border-t p-2 text-sm"
         >
-          <Book className="size-4 text-fg-500" />
+          <Book className="text-fg-500 size-4" />
           Documentation
           <ExternalIcon className="ml-auto size-4" />
         </Link>
@@ -83,9 +83,9 @@ async function ClientComponentWrapper() {
       <DeveloperSettingsDialog apiDomain={apiDomain}>
         <Button
           variant="ghost"
-          className="flex w-full items-center justify-start gap-2 rounded-none border-t p-2 font-sans text-sm normal-case text-fg-300 hover:text-fg"
+          className="text-fg-300 hover:text-fg flex w-full items-center justify-start gap-2 rounded-none border-t p-2 font-sans text-sm normal-case"
         >
-          <Construction className="size-4 text-fg-500" />
+          <Construction className="text-fg-500 size-4" />
           Developer Settings
         </Button>
       </DeveloperSettingsDialog>

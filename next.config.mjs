@@ -4,7 +4,7 @@ const withMDX = createMDX()
 
 /** @type {import('next').NextConfig} */
 const config = {
-  reactStrictMode: false,
+  reactStrictMode: true,
   experimental: {
     reactCompiler: true,
     reactOwnerStack: true,

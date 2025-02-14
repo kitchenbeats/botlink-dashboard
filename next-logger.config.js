@@ -1,6 +1,6 @@
 import pino from 'pino'
 
-export const logger = defaultConfig =>
+export const logger = (defaultConfig) =>
   pino({
     level:
       process.env.LOG_LEVEL || process.env.NODE_ENV === 'development'
@@ -16,7 +16,7 @@ export const logger = defaultConfig =>
       },
     },
     formatters: {
-      level: label => {
+      level: (label) => {
         return { level: label }
       },
     },

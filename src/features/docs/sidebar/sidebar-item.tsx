@@ -8,7 +8,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
-import { Button } from '@/ui/primitives/button'
+import { Button, buttonVariants } from '@/ui/primitives/button'
+import { Separator } from '@/ui/primitives/separator'
 
 const variants = {
   container: {
@@ -25,20 +26,29 @@ const variants = {
     show: {
       opacity: 1,
       height: 'auto',
+      marginTop: '0.3rem',
       marginBottom: '0.3rem',
       transition: {
         height: {
           duration: 0.15,
         },
-        staggerChildren: 0.07,
+        staggerChildren: 0.05,
         ease: exponentialSmoothing(5),
       },
     },
   } satisfies Variants,
 
   item: {
-    hidden: { opacity: 0, x: -4 },
-    show: { opacity: 1, x: 0 },
+    hidden: {
+      opacity: 0,
+      x: -4,
+      transition: { duration: 0.1, ease: exponentialSmoothing(5) },
+    },
+    show: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.1, ease: exponentialSmoothing(5) },
+    },
   } satisfies Variants,
 }
 
@@ -53,7 +63,7 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
 
   if (item.type === 'separator') {
     return (
-      <p className="mt-8 mb-2 font-mono text-[0.65rem] uppercase first:mt-0">
+      <p className="text-fg mt-8 mb-2 font-mono text-[0.65rem] uppercase first:mt-0">
         {item.name}
       </p>
     )
@@ -63,27 +73,32 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
     const active = item.index?.url && pathname.startsWith(item.index?.url)
 
     return (
-      <div className="bg-bg-100 mb-2 flex flex-col border">
+      <div className="mb-3 flex flex-col">
         <Button
           variant="ghost"
           onClick={() => setIsOpen(!isOpen)}
-          className="flex w-full items-center justify-start gap-1"
+          size="slate"
+          className="flex w-full cursor-pointer items-center justify-start gap-1 p-0 normal-case"
         >
-          <motion.div
-            animate={{ rotate: isOpen ? 90 : 0 }}
-            transition={{ duration: 0.2 }}
-            className="text-fg-300"
-          >
-            <ChevronRight className="text-fg-500 size-4" />
-          </motion.div>
           <span
             className={cn(
-              'truncate text-xs font-medium',
+              'text-fg-500 truncate font-sans',
               active && 'text-accent'
             )}
           >
             {item.name}
           </span>
+          <motion.div
+            animate={{ rotate: isOpen ? 90 : 0 }}
+            transition={{
+              type: 'spring',
+              stiffness: 350,
+              damping: 15,
+            }}
+            className="text-fg-300 ml-auto"
+          >
+            <ChevronRight className="text-fg-500 size-4" />
+          </motion.div>
         </Button>
         <AnimatePresence initial={false}>
           {isOpen && (
@@ -92,13 +107,16 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
               initial="hidden"
               animate="show"
               exit="hidden"
-              className="flex flex-col overflow-hidden border-t pl-2"
+              className="flex overflow-hidden pl-1"
             >
-              {item.children?.map((child, index) => (
-                <motion.div variants={variants.item} key={index}>
-                  <SidebarItem item={child} level={level + 1} />
-                </motion.div>
-              ))}
+              <Separator orientation="vertical" className="mr-2 h-[inherit]" />
+              <div className="flex flex-col gap-1">
+                {item.children?.map((child, index) => (
+                  <motion.div variants={variants.item} key={index}>
+                    <SidebarItem item={child} level={level + 1} />
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -113,14 +131,13 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
     <Link
       href={item.url}
       className={cn(
-        'group text-fg-500 hover:text-fg flex w-full items-center pl-1 font-mono text-xs hover:no-underline',
-        active && 'text-fg'
+        buttonVariants({ variant: 'ghost', size: 'slate' }),
+        'group text-fg-500 hover:text-fg w-full justify-start pr-6 font-sans text-sm normal-case',
+        active && 'text-accent hover:text-accent'
       )}
     >
-      <div className="flex w-full items-center gap-1 py-1">
-        {item.icon}
-        <span className="shrink-0">{item.name}</span>
-      </div>
+      {item.icon}
+      <span className="truncate">{item.name}</span>
     </Link>
   )
 }

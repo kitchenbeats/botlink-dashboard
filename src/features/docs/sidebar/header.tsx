@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { FileIcon, LinkIcon } from 'lucide-react'
-import { usePathname } from 'next/navigation'
 import { Button } from '@/ui/primitives/button'
 import { Avatar, AvatarFallback } from '@/ui/primitives/avatar'
 
@@ -11,19 +10,11 @@ const tabs = [
     url: '/docs',
     icon: FileIcon,
   },
-  {
-    title: 'Reference',
-    description: 'SDK & API Reference',
-    url: '/docs/reference',
-    icon: LinkIcon,
-  },
 ]
 
 export default function Header() {
-  const pathname = usePathname()
-
   return (
-    <div className="mt-12 mb-4 space-y-1">
+    <div className="mt-12 mb-4 flex flex-col gap-2">
       {tabs.map((tab) => (
         <Button key={tab.url} variant="ghost" className="h-auto p-0" asChild>
           <Link
@@ -31,8 +22,8 @@ export default function Header() {
             href={tab.url}
             className="group flex w-full items-center justify-start gap-2"
           >
-            <Avatar className="size-8">
-              <AvatarFallback className="bg-fg-100 text-bg">
+            <Avatar className="size-9">
+              <AvatarFallback className="bg-bg-100 text-fg">
                 <tab.icon className="size-4" />
               </AvatarFallback>
             </Avatar>

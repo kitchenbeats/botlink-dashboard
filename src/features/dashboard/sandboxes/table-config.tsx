@@ -14,7 +14,6 @@ import {
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { Sandbox, SandboxMetrics } from '@/types/api'
 import { Badge, badgeVariants } from '@/ui/primitives/badge'
-import Link from 'next/link'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { DateRange } from 'react-day-picker'
 import { isWithinInterval } from 'date-fns'
@@ -99,7 +98,7 @@ export const useColumns = (deps: unknown[]) => {
           <Button
             variant="ghost"
             size="icon"
-            className="size-5 text-fg-500"
+            className="text-fg-500 size-5"
             onClick={() => row.pin(row.getIsPinned() ? false : 'top')}
           >
             {row.getIsPinned() ? (
@@ -117,7 +116,7 @@ export const useColumns = (deps: unknown[]) => {
         accessorKey: 'sandboxID',
         header: 'ID',
         cell: ({ row }) => (
-          <div className="truncate font-mono text-xs text-fg-500">
+          <div className="text-fg-500 truncate font-mono text-xs">
             {row.getValue('sandboxID')}
           </div>
         ),
@@ -143,7 +142,7 @@ export const useColumns = (deps: unknown[]) => {
           return (
             <Button
               variant="link"
-              className="h-auto p-0 text-xs text-fg"
+              className="text-fg h-auto p-0 text-xs"
               onClick={() => {
                 useTemplateTableStore.getState().setGlobalFilter(templateId)
                 router.push(
@@ -178,7 +177,7 @@ export const useColumns = (deps: unknown[]) => {
           return (
             <Badge
               variant={getVariant(cpu)}
-              className="whitespace-nowrap font-mono"
+              className="font-mono whitespace-nowrap"
             >
               <Cpu className="size-2" /> {cpu.toFixed(0)}% ·{' '}
               {row.original.cpuCount} core{row.original.cpuCount > 1 ? 's' : ''}
@@ -221,7 +220,7 @@ export const useColumns = (deps: unknown[]) => {
           return (
             <Badge
               variant={getVariant(ramPercentage)}
-              className="whitespace-nowrap font-mono"
+              className="font-mono whitespace-nowrap"
             >
               <CgSmartphoneRam className="size-2" />{' '}
               {usedRamMB.toLocaleString()}/{totalRamMB.toLocaleString()} MB
@@ -241,7 +240,7 @@ export const useColumns = (deps: unknown[]) => {
           return (
             <div
               className={cn(
-                'h-full truncate font-mono text-xs text-fg-500 hover:text-fg'
+                'text-fg-500 hover:text-fg h-full truncate font-mono text-xs'
               )}
             >
               {getValue() as string}

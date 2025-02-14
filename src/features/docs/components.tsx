@@ -1,5 +1,5 @@
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion'
-import { Tab, Tabs as FumaTabs, TabsProps } from 'fumadocs-ui/components/tabs'
+import { Tab, Tabs as DocsTabs, TabsProps } from '@/ui/docs-tabs'
 import { TypeTable } from 'fumadocs-ui/components/type-table'
 import defaultMdxComponents from 'fumadocs-ui/mdx'
 import { MDXComponents } from 'mdx/types'
@@ -7,9 +7,9 @@ import { ComponentProps, forwardRef, Fragment } from 'react'
 import { AlertCircle } from 'lucide-react'
 import {
   Pre,
-  CodeBlock as FumaCodeBlock,
+  CodeBlock as DocsCodeBlock,
   CodeBlockProps,
-} from 'fumadocs-ui/components/codeblock'
+} from '@/ui/docs-code-block'
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
 
 const Callout = forwardRef<
@@ -37,7 +37,7 @@ const Blockquote = forwardRef<HTMLQuoteElement, ComponentProps<'blockquote'>>(
     return (
       <blockquote
         ref={ref}
-        className="ml-4 border-l-[3px] border-contrast-2"
+        className="border-contrast-2 ml-4 border-l-[3px]"
         {...props}
       >
         {children}
@@ -51,9 +51,9 @@ Blockquote.displayName = 'Blockquote'
 const CodeBlock = forwardRef<HTMLPreElement, CodeBlockProps>(
   ({ children, ...props }, ref) => {
     return (
-      <FumaCodeBlock ref={ref} {...props}>
+      <DocsCodeBlock ref={ref} {...props}>
         <Pre>{children}</Pre>
-      </FumaCodeBlock>
+      </DocsCodeBlock>
     )
   }
 )
@@ -62,7 +62,7 @@ CodeBlock.displayName = 'CodeBlock'
 
 const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   ({ children, ...props }, ref) => {
-    return <FumaTabs {...props}>{children}</FumaTabs>
+    return <DocsTabs {...props}>{children}</DocsTabs>
   }
 )
 
