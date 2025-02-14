@@ -1,3 +1,5 @@
+![Dashboard Preview](/readme-assets/dashboard-preview-light.png)
+
 <p align="center">
   <img width="100" src="/readme-assets/logo-circle.png" alt="e2b logo">
 </p>
@@ -119,7 +121,7 @@ src/
 ├── lib/          # Utility functions and shared logic
 ├── styles/       # Global styles and Tailwind config
 └── types/        # TypeScript type definitions
-└── server/       # Server only logic & actions 
+└── server/       # Server only logic & actions
 ```
 
 ## Contributing
