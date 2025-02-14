@@ -14,15 +14,6 @@ const config = {
       static: 180,
     },
   },
-  serverExternalPackages: [
-    'pino',
-    'pino-pretty',
-  ],
-  logging: {
-    fetches: {
-      fullUrl: true,
-    },
-  },
   trailingSlash: false,
   headers: async () => [
     {

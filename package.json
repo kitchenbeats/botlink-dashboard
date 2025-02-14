@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "# Next.js": "",
-    "dev": "bun prebuild && next dev --turbo | pino-pretty",
+    "dev": "bun prebuild && next dev --turbo",
     "build": "next build",
-    "start": "next start | pino-pretty",
+    "start": "next start",
     "preview": "bun run build && bun start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
