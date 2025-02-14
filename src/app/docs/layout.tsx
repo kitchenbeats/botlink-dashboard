@@ -9,6 +9,7 @@ import { baseOptions } from '@/app/layout.config'
 import { source } from '@/lib/source'
 import { Nav } from '@/features/docs/navbar/navbar'
 import Sidebar from '@/features/docs/sidebar/sidebar'
+import { ScrollArea, ScrollBar } from '@/ui/primitives/scroll-area'
 /* import { Trigger } from "@/components/ai/search-ai"; */
 
 const docsOptions: DocsLayoutProps = {
@@ -23,11 +24,12 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-0 flex flex-col">
       <Nav className="fixed inset-x-0 top-0" />
-      <div className="max-h-full flex-1 overflow-y-auto pt-[var(--fd-nav-height)]">
+      <ScrollArea className="flex-1 pt-[var(--fd-nav-height)]">
         <div className="container mx-auto w-full">
           <DocsLayout {...docsOptions}>{children}</DocsLayout>
         </div>
-      </div>
+        <ScrollBar />
+      </ScrollArea>
     </div>
   )
 }

@@ -17,10 +17,10 @@ export function Nav({ className }: NavProps) {
       )}
     >
       <div className="flex h-full w-full items-center gap-2 px-4">
-        <Link href={'/'}>
+        <Link href={'/'} className="mr-auto">
           <LogoWithoutText className="size-12" />
         </Link>
-        <ThemeSwitcher className="ml-auto" />
+        <ThemeSwitcher />
         <DocsNavLinks />
       </div>
     </nav>

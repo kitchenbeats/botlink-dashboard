@@ -16,15 +16,15 @@ export default function DocsNavLinks() {
   return (
     <div className="flex items-center gap-2">
       <Button
-        variant="muted"
-        size="iconSm"
+        variant="ghost"
+        size="icon"
         className="md:hidden"
         onClick={handleSidebarOpen}
       >
         <MenuIcon className="h-4 w-4" />
       </Button>
       <Button size="sm" asChild>
-        <Link shallow href="/dashboard">
+        <Link prefetch={true} href="/dashboard">
           Dashboard
         </Link>
       </Button>

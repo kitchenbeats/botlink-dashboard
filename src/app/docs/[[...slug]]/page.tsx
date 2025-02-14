@@ -15,6 +15,7 @@ import { METADATA } from '@/configs/metadata'
 import components from '@/features/docs/components'
 import { buttonVariants } from '@/ui/primitives/button'
 import { cn } from '@/lib/utils'
+import Footer from '@/features/docs/footer/footer'
 
 /* function PreviewRenderer({ preview }: { preview: string }): ReactNode {
   if (preview && preview in Preview) {
@@ -53,16 +54,19 @@ export default async function Page(props: {
         path,
         className: cn(
           buttonVariants({ variant: 'outline' }),
-          'rounded-none text-xs'
+          'text-xs text-fg'
         ),
       }}
+      footer={{
+        component: <Footer />,
+      }}
       article={{
-        className: 'max-sm:pb-16 mt-2 xl:pt-10',
+        className: 'pb-16 xl:pt-10 max-w-3xl xl:ml-0',
       }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody className="text-sm">
+      <DocsBody>
         {/*         {preview ? <PreviewRenderer preview={preview} /> : null} */}
         <Mdx components={components({ slug: params.slug || [] })} />
         {page.data.index ? <DocsCategory page={page} from={source} /> : null}
