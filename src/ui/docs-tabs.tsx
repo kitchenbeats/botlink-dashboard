@@ -138,7 +138,7 @@ export function Tabs({
           setValue(v)
         }
       }}
-      className={cn('my-4', props.className)}
+      className={cn('my-8', props.className)}
       {...props}
     >
       <Primitive.TabsList

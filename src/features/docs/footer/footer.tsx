@@ -13,10 +13,13 @@ export default function Footer() {
 
   const neighbours = findNeighbour(tree.root, path)
 
+  const className =
+    'max-w-[45%] whitespace-break-spaces py-2 h-min font-sans normal-case gap-3'
+
   return (
-    <footer className="flex flex-row items-center justify-between">
+    <footer className="flex flex-row justify-between">
       {neighbours.previous && (
-        <Button variant="outline" size="lg" asChild>
+        <Button variant="outline" className={className} size="lg" asChild>
           <Link href={neighbours.previous.url}>
             <MoveLeft className="text-fg-300 size-4" />
             {neighbours.previous.name}
@@ -24,7 +27,7 @@ export default function Footer() {
         </Button>
       )}
       {neighbours.next && (
-        <Button variant="outline" size="lg" asChild>
+        <Button variant="outline" className={className} size="lg" asChild>
           <Link href={neighbours.next.url}>
             {neighbours.next.name}
             <MoveRight className="text-fg-300 size-4" />
