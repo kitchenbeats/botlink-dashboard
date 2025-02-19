@@ -57,7 +57,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
     "fast-xml-parser": "^4.5.1",
     "fumadocs-core": "^15.0.6",
     "fumadocs-mdx": "^11.5.3",
