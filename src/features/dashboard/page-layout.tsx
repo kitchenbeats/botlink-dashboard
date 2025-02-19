@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { Suspense } from 'react'
 import SidebarMobile from './sidebar/sidebar-mobile'
 import Frame from '@/ui/frame'
+import { DashboardSurveyPopover } from './navbar/dashboard-survey-popover'
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode
@@ -34,6 +35,7 @@ export default async function DashboardPageLayout({
           <Suspense fallback={null}>
             <ThemeSwitcher />
           </Suspense>
+          <DashboardSurveyPopover />
         </div>
       </div>
 

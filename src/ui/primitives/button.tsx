@@ -58,6 +58,7 @@ const buttonVariants = cva(
         lg: 'h-10 px-4',
         icon: 'h-8 w-8',
         iconSm: 'h-7 w-7',
+        iconLg: 'h-10 w-10 text-xl',
         slate: 'h-auto px-0 py-0',
       },
     },
