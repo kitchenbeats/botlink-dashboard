@@ -68,7 +68,11 @@ export function DashboardSurveyPopover() {
           Feedback
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px]">
+      <PopoverContent
+        className="w-[400px]"
+        collisionPadding={20}
+        sideOffset={25}
+      >
         <SurveyContent
           survey={survey}
           isLoading={isLoading}

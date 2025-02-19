@@ -40,7 +40,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      'flex select-none items-center gap-2',
+      'flex items-center gap-2 select-none',
       'px-2 py-1.5 font-mono',
       'text-xs tracking-wider',
       'cursor-default outline-none',
@@ -65,7 +65,7 @@ const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      'z-50 mx-1 min-w-[8rem] overflow-hidden rounded-md',
+      'z-50 mx-1 min-w-[8rem] overflow-hidden rounded-sm',
       cardVariants({ variant: 'layer' }),
       'shadow-sm',
       'data-[state=open]:animate-in data-[state=closed]:animate-out',
@@ -94,7 +94,7 @@ const DropdownMenuContent = React.forwardRef<
       collisionPadding={collisionPadding}
       className={cn(
         menuContentStyles,
-        'duration-100 animate-in fade-in-0 slide-in-from-bottom-1',
+        'animate-in fade-in-0 slide-in-from-bottom-1 duration-100',
         className
       )}
       {...props}
@@ -132,8 +132,8 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      'relative flex cursor-default select-none items-center gap-2',
-      'py-1.5 pl-8 pr-2',
+      'relative flex cursor-default items-center gap-2 select-none',
+      'py-1.5 pr-2 pl-8',
       'font-mono text-xs',
       'outline-none',
       'focus:bg-accent/10 focus:text-accent',
@@ -217,7 +217,7 @@ const DropdownMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn('ml-auto text-xs tracking-widest text-fg-500', className)}
+      className={cn('text-fg-500 ml-auto text-xs tracking-widest', className)}
       {...props}
     />
   )

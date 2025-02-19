@@ -37,10 +37,10 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-10 w-full items-center justify-between rounded-md',
-      'border border-dashed bg-bg px-3 py-2',
-      'font-mono text-sm uppercase tracking-wider',
-      'outline-none transition-colors',
+      'flex h-10 w-full items-center justify-between rounded-sm',
+      'bg-bg border border-dashed px-3 py-2',
+      'font-mono text-sm tracking-wider uppercase',
+      'transition-colors outline-none',
       'focus:bg-bg-100 active:translate-y-[1px]',
       'disabled:cursor-not-allowed disabled:opacity-50',
       '[&>span]:line-clamp-1',
@@ -50,7 +50,7 @@ const SelectTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronsUpDown className="ml-2 size-3.5 text-fg-300" />
+    <ChevronsUpDown className="text-fg-300 ml-2 size-3.5" />
   </SelectPrimitive.Trigger>
 ))
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
@@ -99,7 +99,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         menuContentStyles,
-        'duration-100 animate-in fade-in-0 slide-in-from-bottom-1',
+        'animate-in fade-in-0 slide-in-from-bottom-1 duration-100',
         className
       )}
       position={position}
@@ -153,7 +153,7 @@ const SelectItem = React.forwardRef<
     className={cn(menuItemVariants({ variant }), 'pr-8', className)}
     {...props}
   >
-    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center text-accent">
+    <span className="text-accent absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>{'<<'}</SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

@@ -26,7 +26,7 @@ export const menuItemVariants = cva(
 )
 
 export const menuContentStyles = cn(
-  'z-50 min-w-[8rem] overflow-hidden rounded-md p-2',
+  'z-50 min-w-[8rem] overflow-hidden rounded-sm p-2',
   cardVariants({ variant: 'layer' }),
   'shadow-sm',
   'data-[state=open]:animate-in data-[state=closed]:animate-out',

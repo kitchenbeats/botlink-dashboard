@@ -17,6 +17,8 @@ import { deleteApiKeyAction } from '@/server/keys/key-actions'
 import { AlertDialog } from '@/ui/alert-dialog'
 import { useState, startTransition } from 'react'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { AnimatePresence, motion } from 'motion/react'
+import { exponentialSmoothing } from '@/lib/utils'
 
 interface TableRowProps {
   apiKey: ObscuredApiKey
@@ -28,6 +30,8 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
   const selectedTeam = useSelectedTeam()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(-1)
+  const [dropDownOpen, setDropDownOpen] = useState(false)
 
   const deleteKey = async (apiKeyId: string) => {
     if (!selectedTeam) {
@@ -79,24 +83,40 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
         }}
       />
 
-      <TableRow key={`${apiKey.name}-${index}`}>
+      <TableRow
+        key={`${apiKey.name}-${index}`}
+        onMouseEnter={() => setHoveredRowIndex(index)}
+        onMouseLeave={() => setHoveredRowIndex(-1)}
+      >
         <TableCell className="flex flex-col gap-1 text-left font-mono">
           {apiKey.name}
-          <span className="pl-1 text-fg-500">{apiKey.maskedKey}</span>
+          <span className="text-fg-500 pl-1">{apiKey.maskedKey}</span>
         </TableCell>
-        <TableCell className="max-w-36 overflow-hidden truncate text-fg-500">
+        <TableCell className="text-fg-500 max-w-36 truncate overflow-hidden">
           <span className="max-w-full truncate">{apiKey.createdBy}</span>
         </TableCell>
-        <TableCell className="text-right text-fg-300">
+        <TableCell className="text-fg-300 text-right">
           {apiKey.createdAt
             ? new Date(apiKey.createdAt).toLocaleDateString()
             : '-'}
         </TableCell>
         <TableCell className="text-right">
-          <DropdownMenu>
+          <DropdownMenu onOpenChange={setDropDownOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs">
-                <MoreHorizontal className="size-4" />
+              <Button variant="ghost" size="sm" className="text-xs" asChild>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    opacity: hoveredRowIndex === index || dropDownOpen ? 1 : 0,
+                  }}
+                  transition={{
+                    duration: 0.2,
+                    ease: exponentialSmoothing(5),
+                  }}
+                >
+                  <MoreHorizontal className="size-4" />
+                </motion.button>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>

@@ -1,15 +1,15 @@
-import * as React from "react"
+import * as React from 'react'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
-function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+function Textarea({ className, ...props }: React.ComponentProps<'textarea'>) {
   return (
     <textarea
       data-slot="textarea"
       className={cn(
         'bg-bg flex w-full px-3 py-2',
         'font-mono text-xs tracking-wider',
-        'min-h-16 rounded-md border',
+        'min-h-16 rounded-sm border',
 
         'placeholder:text-fg-500 placeholder:font-mono',
         'focus:[border-bottom:1px_solid_var(--accent)] focus:outline-none',
@@ -21,7 +21,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         'dark:aria-invalid:ring-destructive/40',
 
         'transition-[color,box-shadow]',
-        
+
         className
       )}
       {...props}
