@@ -5,34 +5,34 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  cardVariants,
 } from '@/ui/primitives/card'
 import { Button } from '@/ui/primitives/button'
 import { Textarea } from '@/ui/primitives/textarea'
 import { Loader } from '@/ui/loader'
 import {
-  PiSmileyXEyesFill,
+  PiSmileyAngryFill,
   PiSmileyMehFill,
-  PiSmileyBlankFill,
   PiSmileyFill,
   PiSmileyMeltingFill,
+  PiSmileySadFill,
 } from 'react-icons/pi'
 import { cn } from '@/lib/utils'
+import { PiSmileyHeartEyesFill } from './icons'
 
-const EMOJI_SIZE = '32px'
+const EMOJI_SIZE = '38px'
 
 const EMOJIS_3 = [
-  <PiSmileyXEyesFill size={EMOJI_SIZE} key="emoji-icon-0" />,
+  <PiSmileySadFill size={EMOJI_SIZE} key="emoji-icon-1" />,
   <PiSmileyMehFill size={EMOJI_SIZE} key="emoji-icon-1" />,
-  <PiSmileyMeltingFill size={EMOJI_SIZE} key="emoji-icon-2" />,
+  <PiSmileyFill size={EMOJI_SIZE} key="emoji-icon-3" />,
 ]
 
 const EMOJIS_5 = [
-  <PiSmileyXEyesFill size={EMOJI_SIZE} key="emoji-icon-0" />,
-  <PiSmileyBlankFill size={EMOJI_SIZE} key="emoji-icon-1" />,
+  <PiSmileyAngryFill size={EMOJI_SIZE} key="emoji-icon-0" />,
+  <PiSmileySadFill size={EMOJI_SIZE} key="emoji-icon-1" />,
   <PiSmileyMehFill size={EMOJI_SIZE} key="emoji-icon-2" />,
   <PiSmileyFill size={EMOJI_SIZE} key="emoji-icon-3" />,
-  <PiSmileyMeltingFill size={EMOJI_SIZE} key="emoji-icon-4" />,
+  <PiSmileyHeartEyesFill size={EMOJI_SIZE} key="emoji-icon-4" />,
 ]
 
 interface SurveyContentProps {
@@ -68,7 +68,7 @@ export function SurveyContent({
     switch (question.type) {
       case 'rating':
         return (
-          <div className="flex justify-center gap-3">
+          <div className="flex justify-between">
             {question.display === 'emoji'
               ? // Emoji ratings
                 (question.scale === 3 ? EMOJIS_3 : EMOJIS_5).map(
@@ -78,10 +78,13 @@ export function SurveyContent({
                       type="button"
                       variant={'ghost'}
                       size="iconLg"
-                      className={cn('text-fg-500 size-12', {
-                        'bg-bg-300 border-border-200 text-fg rounded-xl border':
-                          responses[index] === String(emojiIndex + 1),
-                      })}
+                      className={cn(
+                        'text-fg-500 hover:text-fg-300 size-14 hover:scale-[1.03]',
+                        {
+                          'bg-bg-300 border-border-200 text-fg rounded-xl border':
+                            responses[index] === String(emojiIndex + 1),
+                        }
+                      )}
                       onClick={() =>
                         setResponses((prev) => ({
                           ...prev,
@@ -122,6 +125,7 @@ export function SurveyContent({
           <Textarea
             placeholder={survey?.appearance?.placeholder}
             value={responses[index] || ''}
+            className="min-h-28"
             onChange={(e) =>
               setResponses((prev) => ({
                 ...prev,
@@ -156,9 +160,11 @@ export function SurveyContent({
         <CardTitle className="font-sans text-xl normal-case">
           {currentQuestion?.question}
         </CardTitle>
-        <CardDescription className="text-md">
-          {currentQuestion?.description}
-        </CardDescription>
+        {currentQuestion?.description && (
+          <CardDescription className="text-md">
+            {currentQuestion?.description}
+          </CardDescription>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
