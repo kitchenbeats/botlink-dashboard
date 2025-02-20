@@ -63,7 +63,7 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
 
   if (item.type === 'separator') {
     return (
-      <p className="text-fg mt-8 mb-2 font-mono text-[0.65rem] uppercase first:mt-0">
+      <p className="text-fg-500 mt-8 mb-2 font-mono text-[0.65rem] uppercase first:mt-0">
         {item.name}
       </p>
     )
@@ -82,7 +82,7 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
         >
           <span
             className={cn(
-              'text-fg-500 truncate font-sans',
+              'text-fg-300 truncate font-sans',
               active && 'text-accent'
             )}
           >
@@ -95,9 +95,9 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
               stiffness: 350,
               damping: 15,
             }}
-            className="text-fg-300 ml-auto"
+            className="ml-auto"
           >
-            <ChevronRight className="text-fg-500 size-4" />
+            <ChevronRight className="text-fg size-4" />
           </motion.div>
         </Button>
         <AnimatePresence initial={false}>
@@ -132,7 +132,7 @@ export default function SidebarItem({ item, level = 0 }: SidebarItemProps) {
       href={item.url}
       className={cn(
         buttonVariants({ variant: 'ghost', size: 'slate' }),
-        'group text-fg-500 hover:text-fg w-full justify-start pr-6 font-sans text-sm normal-case',
+        'group text-fg-300 hover:text-fg w-full justify-start pr-6 font-sans text-sm normal-case',
         active && 'text-accent hover:text-accent'
       )}
     >

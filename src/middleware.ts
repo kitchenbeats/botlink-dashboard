@@ -7,7 +7,6 @@ import {
   LANDING_PAGE_DOMAIN,
   LANDING_PAGE_FRAMER_DOMAIN,
   BLOG_FRAMER_DOMAIN,
-  DOCS_NEXT_DOMAIN,
 } from '@/configs/domains'
 
 const COOKIE_OPTIONS = {
@@ -24,7 +23,6 @@ export async function middleware(request: NextRequest) {
       landingPage: LANDING_PAGE_DOMAIN,
       landingPageFramer: LANDING_PAGE_FRAMER_DOMAIN,
       blogFramer: BLOG_FRAMER_DOMAIN,
-      docsNext: DOCS_NEXT_DOMAIN,
     })
 
     if (rewriteResponse) return rewriteResponse
