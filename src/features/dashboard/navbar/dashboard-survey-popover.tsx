@@ -63,7 +63,7 @@ export function DashboardSurveyPopover() {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button size="sm" className="load-dashboard-survey gap-2">
+        <Button size="sm" className="gap-2">
           <MessageSquarePlus className="h-4 w-4" />
           Feedback
         </Button>
