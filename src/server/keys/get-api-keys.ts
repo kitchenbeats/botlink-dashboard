@@ -23,8 +23,6 @@ export const getTeamApiKeys = guard(
   async ({
     teamId,
   }: z.infer<typeof GetApiKeysSchema>): Promise<GetTeamApiKeysResponse> => {
-    throw new Error('Not implemented')
-
     const { user } = await checkAuthenticated()
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
