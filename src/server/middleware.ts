@@ -128,7 +128,7 @@ async function checkUserTeamAccess(
 }
 
 /**
- * Handles URL rewrites for static pages and content modifications
+ * Handles URL rewrites for static pages and content modifications.
  */
 export const handleUrlRewrites = async (
   request: NextRequest,
@@ -145,31 +145,47 @@ export const handleUrlRewrites = async (
 
   const url = new URL(request.nextUrl.toString())
 
+  // Helper function to update the URL for rewrite.
+  const updateUrlHostname = (
+    newHostname: string,
+    extraInfo?: Record<string, unknown>
+  ) => {
+    url.hostname = newHostname
+    url.port = ''
+    url.protocol = 'https'
+  }
+
+  // 1. Rewrite the root path to the landing page.
   if (url.pathname === '' || url.pathname === '/') {
-    url.hostname = hostnames.landingPage
-    url.port = ''
-    url.protocol = 'https'
+    updateUrlHostname(hostnames.landingPage)
   }
-
-  const hostnameMap = {
-    '/terms': hostnames.landingPage,
-    '/privacy': hostnames.landingPage,
-    '/pricing': hostnames.landingPage,
-    '/cookbook': hostnames.landingPage,
-    '/changelog': hostnames.landingPage,
-    '/blog': hostnames.landingPage,
-    '/ai-agents': hostnames.landingPageFramer,
-    '/docs': hostnames.docsNext,
+  // 2. Special case: /blog/category/xy -> landingPage with "/blog" prefix removed.
+  else if (url.pathname.startsWith('/blog/category')) {
+    const originalPath = url.pathname
+    // Remove the /blog prefix so that '/blog/category/xy' becomes '/category/xy'
+    url.pathname = url.pathname.replace(/^\/blog/, '')
+    updateUrlHostname(hostnames.landingPage)
   }
+  // 3. Static page mappings.
+  else {
+    const hostnameMap: Record<string, string> = {
+      '/terms': hostnames.landingPage,
+      '/privacy': hostnames.landingPage,
+      '/pricing': hostnames.landingPage,
+      '/cookbook': hostnames.landingPage,
+      '/changelog': hostnames.landingPage,
+      '/blog': hostnames.landingPage,
+      '/ai-agents': hostnames.landingPageFramer,
+      '/docs': hostnames.docsNext,
+    }
 
-  const matchingPath = Object.keys(hostnameMap).find(
-    (path) => url.pathname === path || url.pathname.startsWith(path + '/')
-  )
+    const matchingPath = Object.keys(hostnameMap).find(
+      (path) => url.pathname === path || url.pathname.startsWith(path + '/')
+    )
 
-  if (matchingPath) {
-    url.hostname = hostnameMap[matchingPath as keyof typeof hostnameMap]
-    url.port = ''
-    url.protocol = 'https'
+    if (matchingPath) {
+      updateUrlHostname(hostnameMap[matchingPath])
+    }
   }
 
   if (url.hostname === request.nextUrl.hostname) {
