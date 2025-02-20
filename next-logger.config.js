@@ -6,15 +6,18 @@ export const logger = (defaultConfig) =>
       process.env.LOG_LEVEL || process.env.NODE_ENV === 'development'
         ? 'debug'
         : 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss.l',
-        ignore: 'pid,hostname',
-        messageFormat: '{msg}',
-      },
-    },
+    transport:
+      process.env.NODE_ENV === 'development'
+        ? {
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'HH:MM:ss.l',
+              ignore: 'pid,hostname',
+              messageFormat: '{msg}',
+            },
+          }
+        : undefined,
     formatters: {
       level: (label) => {
         return { level: label }

@@ -27,7 +27,7 @@ export default async function GeneralPage({ params }: GeneralPageProps) {
         <section className="grid gap-4">
           <div className="flex flex-col gap-1">
             <CardTitle>Members</CardTitle>
-            <CardDescription>Manage your organization members</CardDescription>
+            <CardDescription>Manage your Team members</CardDescription>
           </div>
 
           <div className="grid gap-8">
