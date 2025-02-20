@@ -61,7 +61,7 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
       <ErrorBoundary
         error={
           {
-            name: 'Templates Error',
+            name: 'Sandboxes Error',
             message: templatesRes.message,
           } satisfies Error
         }

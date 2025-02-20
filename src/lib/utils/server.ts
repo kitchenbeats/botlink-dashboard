@@ -17,7 +17,6 @@ import { logger } from '../clients/logger'
 import { kv } from '@/lib/clients/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { ERROR_CODES, INFO_CODES } from '@/configs/logs'
-import { getDefaultTeamRelation } from '@/server/auth/get-default-team'
 
 /*
  *  This function checks if the user is authenticated and returns the user and the supabase client.
@@ -149,7 +148,14 @@ export async function checkUserTeamAuthorization(
  *  This function fetches the API domain from the cookies and returns the domain and the API URL.
  *  If the domain is not found in the cookies, it returns the default domain.
  */
-export async function getApiUrl() {
+export async function getApiUrl(): Promise<{ domain: string; url: string }> {
+  if (process.env.DEVELOPMENT_INFRA_API_DOMAIN) {
+    return {
+      domain: process.env.DEVELOPMENT_INFRA_API_DOMAIN,
+      url: `http://${process.env.DEVELOPMENT_INFRA_API_DOMAIN}`,
+    }
+  }
+
   const cookieStore = await cookies()
 
   const domain =
@@ -227,7 +233,7 @@ export function guard<TInput, TOutput>(
           throw error
         }
 
-        logger.error(error)
+        console.error(ERROR_CODES.GUARD, error)
 
         if (error instanceof E2BError) {
           return {
@@ -271,7 +277,7 @@ export function guard<TInput, TOutput>(
         throw error
       }
 
-      logger.error(error)
+      console.error(ERROR_CODES.GUARD, error)
 
       if (error instanceof E2BError) {
         return {
@@ -394,4 +400,16 @@ export async function resolveTeamIdInServerComponent(identifier: string) {
     )
   }
   return teamId
+}
+
+/**
+ * Resolves a team slug from cookies.
+ * If no slug is found, it returns null.
+ *
+ *
+ */
+export async function resolveTeamSlugInServerComponent() {
+  const cookiesStore = await cookies()
+
+  return cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
 }

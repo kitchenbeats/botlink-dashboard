@@ -1,25 +1,25 @@
-"use client";
+'use client'
 
-import { useToast } from "@/lib/hooks/use-toast";
-import { TableCell, TableRow } from "@/ui/primitives/table";
-import { Button } from "@/ui/primitives/button";
-import { AlertDialog } from "@/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/primitives/avatar";
-import { removeTeamMemberAction } from "@/server/team/team-actions";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTeams } from "@/lib/hooks/use-teams";
-import { useUser } from "@/lib/hooks/use-user";
-import { PROTECTED_URLS } from "@/configs/urls";
-import { QUERY_KEYS } from "@/configs/keys";
-import { mutate } from "swr";
-import { TeamMember } from "@/server/team/types";
+import { useToast } from '@/lib/hooks/use-toast'
+import { TableCell, TableRow } from '@/ui/primitives/table'
+import { Button } from '@/ui/primitives/button'
+import { AlertDialog } from '@/ui/alert-dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
+import { removeTeamMemberAction } from '@/server/team/team-actions'
+import { useParams } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
+import { useUser } from '@/lib/hooks/use-user'
+import { PROTECTED_URLS } from '@/configs/urls'
+import { QUERY_KEYS } from '@/configs/keys'
+import { mutate } from 'swr'
+import { TeamMember } from '@/server/team/types'
 
 interface TableRowProps {
-  member: TeamMember;
-  addedByEmail?: string;
-  index: number;
+  member: TeamMember
+  addedByEmail?: string
+  index: number
 }
 
 export default function MemberTableRow({
@@ -27,50 +27,54 @@ export default function MemberTableRow({
   addedByEmail,
   index,
 }: TableRowProps) {
-  const { toast } = useToast();
-  const { teamId } = useParams();
-  const router = useRouter();
-  const { refetch: refetchTeams } = useTeams();
-  const { user } = useUser();
-  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
+  const { toast } = useToast()
+  const selectedTeam = useSelectedTeam()
+  const router = useRouter()
+  const { refetch: refetchTeams } = useTeams()
+  const { user } = useUser()
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
+  const [isRemoving, setIsRemoving] = useState(false)
 
   const handleRemoveMember = async (userId: string) => {
-    setIsRemoving(true);
+    if (!selectedTeam) {
+      return
+    }
+
+    setIsRemoving(true)
+
     try {
       const res = await removeTeamMemberAction({
-        teamId: teamId as string,
+        teamId: selectedTeam.id,
         userId,
-      });
+      })
 
-      if (res.type === "error") {
-        throw new Error(res.message);
+      if (res.type === 'error') {
+        throw new Error(res.message)
       }
 
       if (userId === user?.id) {
-        refetchTeams();
-        router.push(PROTECTED_URLS.DASHBOARD);
+        refetchTeams()
+        router.push(PROTECTED_URLS.DASHBOARD)
         toast({
-          title: "You have left the team",
-        });
+          title: 'You have left the team',
+        })
       } else {
-        await mutate(QUERY_KEYS.TEAM_MEMBERS(teamId as string));
         toast({
-          title: "Member removed",
-          description: "The member has been removed from the team",
-        });
+          title: 'Member removed',
+          description: 'The member has been removed from the team',
+        })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Could not remove member",
-        description: error.message,
-        variant: "error",
-      });
+        title: 'Could not remove member',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'error',
+      })
     } finally {
-      setIsRemoving(false);
-      setRemoveDialogOpen(false);
+      setIsRemoving(false)
+      setRemoveDialogOpen(false)
     }
-  };
+  }
 
   return (
     <TableRow key={`${member.info.id}-${index}`}>
@@ -78,18 +82,18 @@ export default function MemberTableRow({
         <Avatar className="size-8">
           <AvatarImage src={member.info?.avatar_url} />
           <AvatarFallback>
-            {member.info?.email?.charAt(0).toUpperCase() || "?"}
+            {member.info?.email?.charAt(0).toUpperCase() || '?'}
           </AvatarFallback>
         </Avatar>
       </TableCell>
       <TableCell className="min-w-36">
         {member.info.id === user?.id
-          ? "You"
-          : (member.info.name ?? "Anonymous")}
+          ? 'You'
+          : (member.info.name ?? 'Anonymous')}
       </TableCell>
       <TableCell className="text-fg-500">{member.info.email}</TableCell>
       <TableCell className="text-fg-300">
-        {member.relation.added_by === user?.id ? "You" : (addedByEmail ?? "")}
+        {member.relation.added_by === user?.id ? 'You' : (addedByEmail ?? '')}
       </TableCell>
       <TableCell className="text-end">
         {!member.relation.is_default && user?.id !== member.info.id && (
@@ -112,5 +116,5 @@ export default function MemberTableRow({
         )}
       </TableCell>
     </TableRow>
-  );
+  )
 }

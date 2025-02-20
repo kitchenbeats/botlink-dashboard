@@ -18,16 +18,20 @@ export default async function BillingPage({
   return (
     <DashboardPageLayout
       title="Billing"
-      className="grid w-full gap-4 p-4 sm:gap-6 sm:p-6"
+      className="grid h-full w-full gap-4 self-start p-4 sm:gap-6 sm:p-6"
     >
       {/* Plan Section */}
       <section className="col-span-1 grid gap-4 xl:col-span-12">
         <div className="flex flex-col gap-1">
           <CardTitle>Plan</CardTitle>
           <CardDescription>
-            Manage your current plan and subscription details.
+            Manage your current plan and subscription details
           </CardDescription>
         </div>
+
+        <Suspense fallback={null}>
+          <CustomerPortalLink className="mt-2 w-fit" />
+        </Suspense>
 
         <div className="mt-3 flex flex-col gap-12 overflow-x-auto max-lg:mb-6 lg:flex-row">
           {TIERS.map((tier) => (
@@ -39,10 +43,6 @@ export default async function BillingPage({
             />
           ))}
         </div>
-
-        <Suspense fallback={null}>
-          <CustomerPortalLink className="mx-auto shadow-lg" />
-        </Suspense>
       </section>
 
       {/* Billing History Section */}
@@ -50,7 +50,7 @@ export default async function BillingPage({
         <div className="flex flex-col gap-1">
           <CardTitle>Billing History</CardTitle>
           <CardDescription>
-            View your team's billing history and invoices.
+            View your team's billing history and invoices
           </CardDescription>
         </div>
 

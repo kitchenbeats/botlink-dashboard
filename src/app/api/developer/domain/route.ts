@@ -1,30 +1,35 @@
-import { COOKIE_KEYS } from "@/configs/keys";
-import { NextRequest, NextResponse } from "next/server";
+import { COOKIE_KEYS } from '@/configs/keys'
+import { revalidatePath } from 'next/cache'
+import { NextRequest, NextResponse } from 'next/server'
 
-const COOKIE_NAME = COOKIE_KEYS.API_DOMAIN;
+const COOKIE_NAME = COOKIE_KEYS.API_DOMAIN
 const COOKIE_OPTIONS = {
   expires: 8640000000, // ~100 years in seconds
   maxAge: 8640000000, // ~100 years in seconds
-  secure: false,
-  path: "/",
-  sameSite: "lax",
+  secure: process.env.NODE_ENV === 'production',
+  path: '/',
+  sameSite: 'lax',
   httpOnly: true,
-} as const;
+} as const
 
 export async function POST(req: NextRequest) {
-  const { domain } = await req.json();
+  const { domain } = await req.json()
 
-  const response = new NextResponse(null, { status: 200 });
+  const response = new NextResponse(null, { status: 200 })
 
-  response.cookies.set(COOKIE_NAME, domain, COOKIE_OPTIONS);
+  response.cookies.set(COOKIE_NAME, domain, COOKIE_OPTIONS)
 
-  return response;
+  revalidatePath('/dashboard', 'layout')
+
+  return response
 }
 
 export async function DELETE() {
-  const response = new NextResponse(null, { status: 200 });
+  const response = new NextResponse(null, { status: 200 })
 
-  response.cookies.delete(COOKIE_NAME);
+  response.cookies.delete(COOKIE_NAME)
 
-  return response;
+  revalidatePath('/dashboard', 'layout')
+
+  return response
 }

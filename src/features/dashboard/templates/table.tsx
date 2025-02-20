@@ -1,86 +1,86 @@
-"use client";
+'use client'
 
 import {
   ColumnFiltersState,
   flexRender,
   TableOptions,
   useReactTable,
-} from "@tanstack/react-table";
-import { Template } from "@/types/api";
-import { DataTableHead, DataTableRow, DataTableHeader } from "@/ui/data-table";
-import { useEffect, useState, useRef } from "react";
-import { ColumnSizingState } from "@tanstack/react-table";
-import { DataTable } from "@/ui/data-table";
-import { fallbackData, templatesTableConfig, useColumns } from "./table-config";
-import { useTemplateTableStore } from "./stores/table-store";
-import { useLocalStorage } from "usehooks-ts";
-import { useColumnSizeVars } from "@/lib/hooks/use-column-size-vars";
-import { TableBody } from "./table-body";
-import TemplatesHeader from "./header";
-import ClientOnly from "@/ui/client-only";
+} from '@tanstack/react-table'
+import { Template } from '@/types/api'
+import { DataTableHead, DataTableRow, DataTableHeader } from '@/ui/data-table'
+import { useEffect, useState, useRef } from 'react'
+import { ColumnSizingState } from '@tanstack/react-table'
+import { DataTable } from '@/ui/data-table'
+import { fallbackData, templatesTableConfig, useColumns } from './table-config'
+import { useTemplateTableStore } from './stores/table-store'
+import { useLocalStorage } from 'usehooks-ts'
+import { useColumnSizeVars } from '@/lib/hooks/use-column-size-vars'
+import { TableBody } from './table-body'
+import TemplatesHeader from './header'
+import ClientOnly from '@/ui/client-only'
 
 interface TemplatesTableProps {
-  templates: Template[];
+  templates: Template[]
 }
 
-const INITIAL_VISUAL_ROWS_COUNT = 50;
+const INITIAL_VISUAL_ROWS_COUNT = 50
 
 export default function TemplatesTable({ templates }: TemplatesTableProps) {
-  "use no memo";
+  'use no memo'
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [visualRowsCount, setVisualRowsCount] = useState(
-    INITIAL_VISUAL_ROWS_COUNT,
-  );
+    INITIAL_VISUAL_ROWS_COUNT
+  )
 
   const { sorting, setSorting, globalFilter, setGlobalFilter } =
-    useTemplateTableStore();
+    useTemplateTableStore()
 
   const [columnSizing, setColumnSizing] = useLocalStorage<ColumnSizingState>(
-    "templates:columnSizing",
+    'templates:columnSizing',
     {},
     {
       deserializer: (value) => JSON.parse(value),
       serializer: (value) => JSON.stringify(value),
-    },
-  );
+    }
+  )
 
-  const { cpuCount, memoryMB, isPublic } = useTemplateTableStore();
+  const { cpuCount, memoryMB, isPublic } = useTemplateTableStore()
 
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   // Effect hooks for filters
   useEffect(() => {
-    let newFilters = [...columnFilters];
+    let newFilters = [...columnFilters]
 
     // Handle CPU filter
     if (!cpuCount) {
-      newFilters = newFilters.filter((f) => f.id !== "cpuCount");
+      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== "cpuCount");
-      newFilters.push({ id: "cpuCount", value: cpuCount });
+      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
+      newFilters.push({ id: 'cpuCount', value: cpuCount })
     }
 
     // Handle memory filter
     if (!memoryMB) {
-      newFilters = newFilters.filter((f) => f.id !== "memoryMB");
+      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== "memoryMB");
-      newFilters.push({ id: "memoryMB", value: memoryMB });
+      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
+      newFilters.push({ id: 'memoryMB', value: memoryMB })
     }
 
     // Handle public filter
     if (isPublic === undefined) {
-      newFilters = newFilters.filter((f) => f.id !== "public");
+      newFilters = newFilters.filter((f) => f.id !== 'public')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== "public");
-      newFilters.push({ id: "public", value: isPublic });
+      newFilters = newFilters.filter((f) => f.id !== 'public')
+      newFilters.push({ id: 'public', value: isPublic })
     }
 
-    setColumnFilters(newFilters);
-  }, [cpuCount, memoryMB, isPublic]);
+    setColumnFilters(newFilters)
+  }, [cpuCount, memoryMB, isPublic])
 
-  const columns = useColumns([]);
+  const columns = useColumns([])
 
   const table = useReactTable<Template>({
     ...templatesTableConfig,
@@ -96,32 +96,32 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
     onSortingChange: setSorting,
     onColumnSizingChange: setColumnSizing,
     onColumnFiltersChange: setColumnFilters,
-  } as TableOptions<Template>);
+  } as TableOptions<Template>)
 
-  const columnSizeVars = useColumnSizeVars(table);
+  const columnSizeVars = useColumnSizeVars(table)
 
   const resetScroll = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = 0;
+      scrollRef.current.scrollTop = 0
     }
-    setVisualRowsCount(INITIAL_VISUAL_ROWS_COUNT);
-  };
+    setVisualRowsCount(INITIAL_VISUAL_ROWS_COUNT)
+  }
 
   // Add effect hook for scrolling to top when sorting or global filter changes
   useEffect(() => {
-    resetScroll();
-  }, [sorting, globalFilter]);
+    resetScroll()
+  }, [sorting, globalFilter])
 
   const handleBottomReached = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
     if (scrollTop + clientHeight >= scrollHeight) {
-      setVisualRowsCount((state) => state + INITIAL_VISUAL_ROWS_COUNT);
+      setVisualRowsCount((state) => state + INITIAL_VISUAL_ROWS_COUNT)
     }
-  };
+  }
 
   return (
     <ClientOnly className="flex h-full flex-col pt-3">
-      <TemplatesHeader />
+      <TemplatesHeader table={table} />
 
       <div className="mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
         <DataTable
@@ -146,7 +146,7 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )}
                   </DataTableHead>
                 ))}
@@ -161,5 +161,5 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
         </DataTable>
       </div>
     </ClientOnly>
-  );
+  )
 }

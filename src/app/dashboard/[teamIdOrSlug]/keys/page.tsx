@@ -26,7 +26,7 @@ export default async function KeysPage({ params }: KeysPageClientProps) {
               <CardTitle>Manage Organization Keys</CardTitle>
               <CardDescription className="max-w-[400px]">
                 Organization keys are used to authenticate API requests from
-                your organization's applications.
+                your organization's applications
               </CardDescription>
             </div>
 

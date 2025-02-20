@@ -1,29 +1,28 @@
-"use client";
+'use client'
 
-import { Button } from "@/ui/primitives/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/primitives/avatar";
+import { Button } from '@/ui/primitives/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/ui/primitives/dropdown-menu";
-import { signOutAction } from "@/server/auth/auth-actions";
-import Link from "next/link";
-import { PROTECTED_URLS } from "@/configs/urls";
-import UserDetailsTile from "./user-details-tile";
-import DeveloperSettingsDialog from "@/features/dashboard/developer-settings/settings-dialog";
-import { useState } from "react";
-import { User } from "@supabase/supabase-js";
+} from '@/ui/primitives/dropdown-menu'
+import { signOutAction } from '@/server/auth/auth-actions'
+import Link from 'next/link'
+import { PROTECTED_URLS } from '@/configs/urls'
+import UserDetailsTile from './user-details-tile'
+import { useState } from 'react'
+import { User } from '@supabase/supabase-js'
 
 interface UserMenuProps {
-  user: User;
-  apiDomain?: string;
+  user: User
+  apiDomain?: string
 }
 
 export default function UserMenu({ user, apiDomain }: UserMenuProps) {
-  const [developerSettingsOpen, setDeveloperSettingsOpen] = useState(false);
+  const [developerSettingsOpen, setDeveloperSettingsOpen] = useState(false)
 
   return (
     <>
@@ -31,14 +30,14 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
         <DropdownMenuTrigger asChild>
           <Button
             size="iconSm"
-            className="min-h-8 min-w-8 cursor-pointer"
+            className="min-h-8 min-w-8 cursor-pointer before:absolute before:inset-0 before:z-10 before:bg-black/30 before:content-['']"
             variant="ghost"
             asChild
           >
             <Avatar>
               <AvatarImage src={user?.user_metadata.avatar_url} />
               <AvatarFallback>
-                {user?.email?.charAt(0).toUpperCase() || "?"}
+                {user?.email?.charAt(0).toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -66,11 +65,6 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <DeveloperSettingsDialog
-        open={developerSettingsOpen}
-        onOpenChange={setDeveloperSettingsOpen}
-        apiDomain={apiDomain}
-      />
     </>
-  );
+  )
 }

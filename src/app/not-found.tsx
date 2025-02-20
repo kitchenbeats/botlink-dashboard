@@ -1,5 +1,5 @@
-import NotFound from "@/ui/not-found";
+import NotFound from '@/ui/not-found'
 
 export default function RootNotFound() {
-  return <NotFound />;
+  return <NotFound />
 }

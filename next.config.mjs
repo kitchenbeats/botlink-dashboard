@@ -4,7 +4,7 @@ const withMDX = createMDX()
 
 /** @type {import('next').NextConfig} */
 const config = {
-  reactStrictMode: false,
+  reactStrictMode: true,
   experimental: {
     reactCompiler: true,
     reactOwnerStack: true,
@@ -12,12 +12,6 @@ const config = {
     staleTimes: {
       dynamic: 180,
       static: 180,
-    },
-  },
-  serverExternalPackages: ['pino', 'pino-pretty'],
-  logging: {
-    fetches: {
-      fullUrl: true,
     },
   },
   trailingSlash: false,
@@ -33,6 +27,21 @@ const config = {
       ],
     },
   ],
+  rewrites: async () => [
+    {
+      source: '/ingest/static/:path*',
+      destination: 'https://us-assets.i.posthog.com/static/:path*',
+    },
+    {
+      source: '/ingest/:path*',
+      destination: 'https://us.i.posthog.com/:path*',
+    },
+    {
+      source: '/ingest/decide',
+      destination: 'https://us.i.posthog.com/decide',
+    },
+  ],
+  skipTrailingSlashRedirect: true,
 }
 
 export default withMDX(config)

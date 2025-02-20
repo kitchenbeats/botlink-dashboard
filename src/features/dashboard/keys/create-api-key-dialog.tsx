@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { createApiKeyAction } from "@/server/keys/key-actions";
-import { Alert, AlertDescription, AlertTitle } from "@/ui/primitives/alert";
-import { Button } from "@/ui/primitives/button";
+import { createApiKeyAction } from '@/server/keys/key-actions'
+import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
+import { Button } from '@/ui/primitives/button'
 import {
   Dialog,
   DialogClose,
@@ -12,27 +12,27 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/ui/primitives/dialog";
-import { Input } from "@/ui/primitives/input";
-import { Label } from "@/ui/primitives/label";
-import { QUERY_KEYS } from "@/configs/keys";
-import { useMutation } from "@tanstack/react-query";
-import { FC, ReactNode, useState } from "react";
-import { mutate } from "swr";
-import CopyButton from "@/ui/copy-button";
-import { usePostHog } from "posthog-js/react";
+} from '@/ui/primitives/dialog'
+import { Input } from '@/ui/primitives/input'
+import { Label } from '@/ui/primitives/label'
+import { QUERY_KEYS } from '@/configs/keys'
+import { useMutation } from '@tanstack/react-query'
+import { FC, ReactNode, useState } from 'react'
+import { mutate } from 'swr'
+import CopyButton from '@/ui/copy-button'
+import { usePostHog } from 'posthog-js/react'
 
 interface CreateApiKeyDialogProps {
-  teamId: string;
-  children?: ReactNode;
+  teamId: string
+  children?: ReactNode
 }
 
 const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
   teamId,
   children,
 }) => {
-  const [keyName, setKeyName] = useState("");
-  const posthog = usePostHog();
+  const [keyName, setKeyName] = useState('')
+  const posthog = usePostHog()
 
   // mutations
   const {
@@ -42,33 +42,30 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
     reset: resetCreateApiKeyMutation,
   } = useMutation({
     mutationFn: async (name: string) => {
-      const response = await createApiKeyAction({ teamId, name });
+      const response = await createApiKeyAction({ teamId, name })
 
-      if (response.type === "error") {
-        throw new Error(response.message);
+      if (response.type === 'error') {
+        throw new Error(response.message)
       }
 
-      return response.data.createdApiKey;
-    },
-    onSuccess: () => {
-      mutate(QUERY_KEYS.TEAM_API_KEYS(teamId));
+      return response.data.createdApiKey
     },
     onError: (error) => {
-      console.error("createApiKeyAction error:", error.message);
+      console.error('createApiKeyAction error:', error.message)
     },
-  });
+  })
 
   return (
     <Dialog
       onOpenChange={(value) => {
-        if (value) return;
+        if (value) return
 
-        setKeyName("");
-        resetCreateApiKeyMutation();
+        setKeyName('')
+        resetCreateApiKeyMutation()
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-[500px]">
         <DialogHeader>
           <DialogTitle>New API Key</DialogTitle>
           <DialogDescription>
@@ -80,19 +77,22 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
           <form
             key="create-form"
             onSubmit={(e) => {
-              e.preventDefault();
-              createApiKey(keyName);
+              e.preventDefault()
+              createApiKey(keyName)
             }}
           >
             <div className="flex flex-col gap-3 px-2 py-6">
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
-                name="name"
-                placeholder="my-secret-key"
+                name="key-name"
+                placeholder="e.g. development-key"
                 required
                 value={keyName}
                 onChange={(e) => setKeyName(e.target.value)}
+                autoComplete="off"
+                data-1p-ignore
+                data-form-type="other"
               />
             </div>
 
@@ -111,15 +111,15 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
                 <CopyButton
                   value={createdApiKey}
                   onCopy={() => {
-                    posthog.capture("copied API key");
+                    posthog.capture('copied API key')
                   }}
                 />
               </div>
-              <Alert variant="contrast2" className="mt-4">
-                <AlertTitle>Important!</AlertTitle>
-                <AlertDescription className="text-contrast-2">
-                  Make sure to copy your API key now. You won't be able to see
-                  it again!
+              <Alert variant="warning" className="mt-4">
+                <AlertTitle>Important</AlertTitle>
+                <AlertDescription>
+                  Make sure to copy your API key now.
+                  <br /> You won't be able to see it again!
                 </AlertDescription>
               </Alert>
             </div>
@@ -133,7 +133,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
         )}
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default CreateApiKeyDialog;
+export default CreateApiKeyDialog

@@ -1,52 +1,52 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "../primitives/button";
-import { Terminal, Trash2, Settings2 } from "lucide-react";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Button } from '../primitives/button'
+import { Terminal, Trash2, Settings2 } from 'lucide-react'
 
 const meta = {
-  title: "UI/Button",
+  title: 'UI/Button',
   component: Button,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Button>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Button>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    children: "Execute",
+    children: 'Execute',
   },
-};
+}
 
 export const Accent: Story = {
   args: {
-    children: "Deploy",
-    variant: "accent",
+    children: 'Deploy',
+    variant: 'accent',
   },
-};
+}
 
 export const Error: Story = {
   args: {
-    children: "Delete",
-    variant: "error",
+    children: 'Delete',
+    variant: 'error',
   },
-};
+}
 
 export const Outline: Story = {
   args: {
-    children: "Cancel",
-    variant: "outline",
+    children: 'Cancel',
+    variant: 'outline',
   },
-};
+}
 
 export const Link: Story = {
   args: {
-    children: "View Docs",
-    variant: "link",
+    children: 'View Docs',
+    variant: 'link',
   },
-};
+}
 
 export const WithIcon: Story = {
   render: () => (
@@ -61,7 +61,7 @@ export const WithIcon: Story = {
       </Button>
     </div>
   ),
-};
+}
 
 export const IconOnly: Story = {
   render: () => (
@@ -74,7 +74,7 @@ export const IconOnly: Story = {
       </Button>
     </div>
   ),
-};
+}
 
 export const Loading: Story = {
   render: () => (
@@ -82,7 +82,7 @@ export const Loading: Story = {
       [....]
     </Button>
   ),
-};
+}
 
 export const Sizes: Story = {
   render: () => (
@@ -92,4 +92,4 @@ export const Sizes: Story = {
       <Button size="lg">Large</Button>
     </div>
   ),
-};
+}

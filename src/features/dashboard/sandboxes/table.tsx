@@ -1,66 +1,65 @@
-"use client";
+'use client'
 
-import { useRef } from "react";
-import { useLocalStorage } from "usehooks-ts";
+import { useRef } from 'react'
+import { useLocalStorage } from 'usehooks-ts'
 import {
   ColumnFiltersState,
   ColumnSizingState,
   useReactTable,
-} from "@tanstack/react-table";
+} from '@tanstack/react-table'
 import {
   DataTable,
   DataTableHeader,
   DataTableRow,
   DataTableHead,
   DataTableCell,
-} from "@/ui/data-table";
-import useIsMounted from "@/lib/hooks/use-is-mounted";
+} from '@/ui/data-table'
+import useIsMounted from '@/lib/hooks/use-is-mounted'
 import {
   fallbackData,
   sandboxesTableConfig,
   SandboxWithMetrics,
   useColumns,
-} from "./table-config";
-import React from "react";
-import { useSandboxTableStore } from "@/features/dashboard/sandboxes/stores/table-store";
-import { SandboxesHeader } from "./header";
-import { TableBody } from "./table-body";
-import { flexRender } from "@tanstack/react-table";
-import { subHours } from "date-fns";
-import { useSelectedTeam } from "@/lib/hooks/use-teams";
-import { cn } from "@/lib/utils";
-import { useColumnSizeVars } from "@/lib/hooks/use-column-size-vars";
-import { Template } from "@/types/api";
-import { useRouter } from "next/navigation";
-import ClientOnly from "@/ui/client-only";
+} from './table-config'
+import React from 'react'
+import { useSandboxTableStore } from '@/features/dashboard/sandboxes/stores/table-store'
+import { SandboxesHeader } from './header'
+import { TableBody } from './table-body'
+import { flexRender } from '@tanstack/react-table'
+import { subHours } from 'date-fns'
+import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { cn } from '@/lib/utils'
+import { useColumnSizeVars } from '@/lib/hooks/use-column-size-vars'
+import { Template } from '@/types/api'
+import ClientOnly from '@/ui/client-only'
 
-const INITIAL_VISUAL_ROWS_COUNT = 50;
+const INITIAL_VISUAL_ROWS_COUNT = 50
 
 interface SandboxesTableProps {
-  sandboxes: SandboxWithMetrics[];
-  templates: Template[];
+  sandboxes: SandboxWithMetrics[]
+  templates: Template[]
 }
 
 export default function SandboxesTable({
   sandboxes,
   templates,
 }: SandboxesTableProps) {
-  "use no memo";
+  'use no memo'
 
-  const isMounted = useIsMounted();
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const team = useSelectedTeam();
+  const isMounted = useIsMounted()
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const team = useSelectedTeam()
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const [columnSizing, setColumnSizing] = useLocalStorage<ColumnSizingState>(
-    "sandboxes:columnSizing",
+    'sandboxes:columnSizing',
     {},
     {
       deserializer: (value) => JSON.parse(value),
       serializer: (value) => JSON.stringify(value),
-    },
-  );
+    }
+  )
 
   const {
     startedAtFilter,
@@ -74,93 +73,80 @@ export default function SandboxesTable({
     setSorting,
     setGlobalFilter,
     setRowPinning,
-  } = useSandboxTableStore();
+  } = useSandboxTableStore()
 
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  );
+    []
+  )
 
   const [visualRowsCount, setVisualRowsCount] = React.useState(
-    INITIAL_VISUAL_ROWS_COUNT,
-  );
+    INITIAL_VISUAL_ROWS_COUNT
+  )
 
   const resetScroll = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = 0;
+      scrollRef.current.scrollTop = 0
     }
-    setVisualRowsCount(INITIAL_VISUAL_ROWS_COUNT);
-  };
+    setVisualRowsCount(INITIAL_VISUAL_ROWS_COUNT)
+  }
 
   // Effect hooks for filters
   React.useEffect(() => {
-    let newFilters = [...columnFilters];
+    let newFilters = [...columnFilters]
 
     // Handle startedAt filter
     if (!startedAtFilter) {
-      newFilters = newFilters.filter((f) => f.id !== "startedAt");
+      newFilters = newFilters.filter((f) => f.id !== 'startedAt')
     } else {
-      const now = new Date();
+      const now = new Date()
       const from =
-        startedAtFilter === "1h ago"
+        startedAtFilter === '1h ago'
           ? subHours(now, 1)
-          : startedAtFilter === "6h ago"
+          : startedAtFilter === '6h ago'
             ? subHours(now, 6)
-            : startedAtFilter === "12h ago"
+            : startedAtFilter === '12h ago'
               ? subHours(now, 12)
-              : undefined;
+              : undefined
 
-      newFilters = newFilters.filter((f) => f.id !== "startedAt");
-      newFilters.push({ id: "startedAt", value: { from, to: now } });
+      newFilters = newFilters.filter((f) => f.id !== 'startedAt')
+      newFilters.push({ id: 'startedAt', value: { from, to: now } })
     }
 
     // Handle template filter
     if (templateIds.length === 0) {
-      newFilters = newFilters.filter((f) => f.id !== "template");
+      newFilters = newFilters.filter((f) => f.id !== 'template')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== "template");
-      newFilters.push({ id: "template", value: templateIds });
+      newFilters = newFilters.filter((f) => f.id !== 'template')
+      newFilters.push({ id: 'template', value: templateIds })
     }
 
     // Handle CPU filter
     if (!cpuCount) {
-      newFilters = newFilters.filter((f) => f.id !== "cpuUsage");
+      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== "cpuUsage");
-      newFilters.push({ id: "cpuUsage", value: cpuCount });
+      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
+      newFilters.push({ id: 'cpuUsage', value: cpuCount })
     }
 
     // Handle memory filter
     if (!memoryMB) {
-      newFilters = newFilters.filter((f) => f.id !== "ramUsage");
+      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== "ramUsage");
-      newFilters.push({ id: "ramUsage", value: memoryMB });
+      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
+      newFilters.push({ id: 'ramUsage', value: memoryMB })
     }
 
-    resetScroll();
-    setColumnFilters(newFilters);
-  }, [startedAtFilter, templateIds, cpuCount, memoryMB]);
+    resetScroll()
+    setColumnFilters(newFilters)
+  }, [startedAtFilter, templateIds, cpuCount, memoryMB])
 
   // effect hook for scrolling to top when sorting or global filter changes
   React.useEffect(() => {
-    resetScroll();
-  }, [sorting, globalFilter]);
-
-  // effect hook for polling
-  const router = useRouter();
-
-  React.useEffect(() => {
-    if (pollingInterval > 0) {
-      const interval = setInterval(() => {
-        router.refresh();
-      }, pollingInterval * 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [pollingInterval]);
+    resetScroll()
+  }, [sorting, globalFilter])
 
   // table definitions
-  const columns = useColumns([]);
+  const columns = useColumns([])
 
   const table = useReactTable<SandboxWithMetrics>({
     ...sandboxesTableConfig,
@@ -180,16 +166,16 @@ export default function SandboxesTable({
     onColumnFiltersChange: setColumnFilters,
     onColumnSizingChange: setColumnSizing,
     onRowPinningChange: setRowPinning,
-  });
+  })
 
-  const columnSizeVars = useColumnSizeVars(table);
+  const columnSizeVars = useColumnSizeVars(table)
 
   const handleBottomReached = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
     if (scrollTop + clientHeight >= scrollHeight) {
-      setVisualRowsCount((state) => state + INITIAL_VISUAL_ROWS_COUNT);
+      setVisualRowsCount((state) => state + INITIAL_VISUAL_ROWS_COUNT)
     }
-  };
+  }
 
   return (
     <ClientOnly className="flex h-full flex-col pt-3">
@@ -209,8 +195,8 @@ export default function SandboxesTable({
           >
             <DataTableHeader
               className={cn(
-                "sticky top-0 shadow-sm",
-                table.getTopRows()?.length > 0 && "mb-3",
+                'sticky top-0 shadow-sm',
+                table.getTopRows()?.length > 0 && 'mb-3'
               )}
             >
               {table.getHeaderGroups().map((headerGroup) => (
@@ -228,7 +214,7 @@ export default function SandboxesTable({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                     </DataTableHead>
                   ))}
@@ -240,15 +226,15 @@ export default function SandboxesTable({
                   <DataTableRow
                     key={row.id}
                     className={cn(
-                      "bg-bg-100 hover:bg-bg-100",
-                      index === 0 && "border-t",
+                      'bg-bg-100 hover:bg-bg-100',
+                      index === 0 && 'border-t'
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <DataTableCell cell={cell} key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext(),
+                          cell.getContext()
                         )}
                       </DataTableCell>
                     ))}
@@ -265,5 +251,5 @@ export default function SandboxesTable({
         )}
       </div>
     </ClientOnly>
-  );
+  )
 }

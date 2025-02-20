@@ -1,11 +1,11 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from 'react'
 
 export default function useIsMounted() {
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false)
 
   useLayoutEffect(() => {
-    setIsMounted(true);
-  }, []);
+    setIsMounted(true)
+  }, [])
 
-  return isMounted;
+  return isMounted
 }

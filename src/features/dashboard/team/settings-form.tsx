@@ -60,7 +60,7 @@ export function TeamSettingsForm() {
       <div className="mb-6 flex flex-col gap-1">
         <CardTitle>Team Name</CardTitle>
         <CardDescription>
-          Change your team name to display on your invoices and receipts.
+          Change your team name to display on your invoices and receipts
         </CardDescription>
       </div>
       <div>
@@ -82,6 +82,7 @@ export function TeamSettingsForm() {
               loading={isPending}
               disabled={teamName === team?.name}
               type="submit"
+              variant="outline"
             >
               Save
             </Button>

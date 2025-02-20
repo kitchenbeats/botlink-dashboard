@@ -1,10 +1,10 @@
-import { cn } from "@/lib/utils";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/ui/primitives/drawer";
-import { Sidebar as SidebarIcon } from "lucide-react";
-import Sidebar from "./sidebar";
+import { cn } from '@/lib/utils'
+import { Drawer, DrawerContent, DrawerTrigger } from '@/ui/primitives/drawer'
+import { Sidebar as SidebarIcon } from 'lucide-react'
+import Sidebar from './sidebar'
 
 interface SidebarMobileProps {
-  className?: string;
+  className?: string
 }
 
 export default function SidebarMobile({ className }: SidebarMobileProps) {
@@ -17,5 +17,5 @@ export default function SidebarMobile({ className }: SidebarMobileProps) {
         <Sidebar className="h-full w-full" />
       </DrawerContent>
     </Drawer>
-  );
+  )
 }

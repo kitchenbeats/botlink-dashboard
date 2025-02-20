@@ -1,1 +1,1 @@
-export { kv } from "@vercel/kv";
+export { kv } from '@vercel/kv'

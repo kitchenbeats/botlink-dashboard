@@ -1,30 +1,30 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Input } from "../primitives/input";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Input } from '../primitives/input'
 
 const meta = {
-  title: "UI/Input",
+  title: 'UI/Input',
   component: Input,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Input>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Input>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    placeholder: "Enter command...",
+    placeholder: 'Enter command...',
   },
-};
+}
 
 export const WithValue: Story = {
   args: {
-    value: "E2B_API_KEY",
+    value: 'E2B_API_KEY',
     readOnly: true,
   },
-};
+}
 
 export const WithLabel: Story = {
   render: () => (
@@ -38,29 +38,29 @@ export const WithLabel: Story = {
       <Input type="email" id="email" placeholder="user@domain.com" />
     </div>
   ),
-};
+}
 
 export const File: Story = {
   args: {
-    type: "file",
-    className: "cursor-pointer",
+    type: 'file',
+    className: 'cursor-pointer',
   },
-};
+}
 
 export const Password: Story = {
   args: {
-    type: "password",
-    placeholder: "Enter password",
-    defaultValue: "secretpassword",
+    type: 'password',
+    placeholder: 'Enter password',
+    defaultValue: 'secretpassword',
   },
-};
+}
 
 export const Disabled: Story = {
   args: {
-    placeholder: "Disabled input",
+    placeholder: 'Disabled input',
     disabled: true,
   },
-};
+}
 
 export const WithPrefix: Story = {
   render: () => (
@@ -69,7 +69,7 @@ export const WithPrefix: Story = {
       <Input placeholder="npm install e2b" />
     </div>
   ),
-};
+}
 
 export const WithSuffix: Story = {
   render: () => (
@@ -78,4 +78,4 @@ export const WithSuffix: Story = {
       <span className="font-mono text-sm text-fg-300">[Enter]</span>
     </div>
   ),
-};
+}

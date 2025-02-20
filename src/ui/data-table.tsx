@@ -1,26 +1,26 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Cell, Header } from "@tanstack/react-table";
-import { Separator } from "@/ui/primitives/separator";
-import { Button } from "@/ui/primitives/button";
+import * as React from 'react'
+import { cn } from '@/lib/utils'
+import { Cell, Header } from '@tanstack/react-table'
+import { Separator } from '@/ui/primitives/separator'
+import { Button } from '@/ui/primitives/button'
 import {
   ArrowDownWideNarrow,
   ArrowUpDown,
   ArrowUpNarrowWide,
-} from "lucide-react";
+} from 'lucide-react'
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/ui/primitives/select";
+} from '@/ui/primitives/select'
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
-  header: Header<TData, TValue>;
-  canSort?: boolean;
-  sorting?: boolean;
+  header: Header<TData, TValue>
+  canSort?: boolean
+  sorting?: boolean
 }
 
 function DataTableHead<TData, TValue>({
@@ -33,14 +33,14 @@ function DataTableHead<TData, TValue>({
   return (
     <div
       className={cn(
-        "relative flex h-10 items-center p-2 text-left align-middle",
-        "font-mono uppercase tracking-wider",
-        "font-medium text-fg-300",
-        "[&:has([role=checkbox])]:pr-0",
+        'relative flex h-10 items-center p-2 text-left align-middle',
+        'font-mono uppercase tracking-wider',
+        'font-medium text-fg-300',
+        '[&:has([role=checkbox])]:pr-0',
         {
-          "pl-0": header.column.getCanSort(),
+          'pl-0': header.column.getCanSort(),
         },
-        className,
+        className
       )}
       style={{
         width: `calc(var(--header-${header.id}-size) * 1)`,
@@ -54,8 +54,8 @@ function DataTableHead<TData, TValue>({
             size="icon"
             onClick={() => header.column.toggleSorting(undefined, true)}
             className={cn(
-              "ml-2 size-5 min-w-5 text-fg-500",
-              sorting !== undefined && "text-accent",
+              'ml-2 size-5 min-w-5 text-fg-500',
+              sorting !== undefined && 'text-accent'
             )}
           >
             {sorting === undefined ? (
@@ -76,21 +76,21 @@ function DataTableHead<TData, TValue>({
           onTouchStart={header.getResizeHandler()}
           onMouseDown={header.getResizeHandler()}
           onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
+            e.stopPropagation()
+            e.preventDefault()
           }}
         >
           <Separator className="h-full" orientation="vertical" />
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface DataTableCellProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
-  cell: Cell<TData, TValue>;
-  children: React.ReactNode;
+  cell: Cell<TData, TValue>
+  children: React.ReactNode
 }
 
 function DataTableCell<TData, TValue>({
@@ -105,19 +105,19 @@ function DataTableCell<TData, TValue>({
         width: `calc(var(--col-${cell.column.id}-size) * 1)`,
       }}
       className={cn(
-        "p-1 px-2 align-middle font-sans text-xs [&:has([role=checkbox])]:pr-0",
-        "flex items-center",
-        className,
+        'p-1 px-2 align-middle font-sans text-xs [&:has([role=checkbox])]:pr-0',
+        'flex items-center',
+        className
       )}
       {...props}
     >
       {children}
     </div>
-  );
+  )
 }
 
 interface DataTableRowProps extends React.HTMLAttributes<HTMLDivElement> {
-  isSelected?: boolean;
+  isSelected?: boolean
 }
 
 const DataTableRow = React.forwardRef<HTMLDivElement, DataTableRowProps>(
@@ -126,25 +126,25 @@ const DataTableRow = React.forwardRef<HTMLDivElement, DataTableRowProps>(
       <div
         ref={ref}
         className={cn(
-          "bg-bg transition-colors data-[state=selected]:bg-bg-300 hover:bg-bg-100/80",
-          "flex w-full items-center",
+          'bg-bg transition-colors data-[state=selected]:bg-bg-300 hover:bg-bg-100/80',
+          'flex w-full items-center',
           {
-            "bg-bg-100": isSelected,
+            'bg-bg-100': isSelected,
           },
-          className,
+          className
         )}
         {...props}
       >
         {children}
       </div>
-    );
-  },
-);
+    )
+  }
+)
 
-DataTableRow.displayName = "DataTableRow";
+DataTableRow.displayName = 'DataTableRow'
 
 interface DataTableProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(
@@ -154,24 +154,24 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(
         ref={ref}
         className={cn(
           // Base table styles from table.tsx
-          "w-full caption-bottom border-t",
-          "font-mono text-sm",
+          'w-full caption-bottom border-t',
+          'font-mono text-sm',
           // Div table styles
-          "w-fit",
-          className,
+          'w-fit',
+          className
         )}
         {...props}
       >
         {children}
       </div>
-    );
-  },
-);
+    )
+  }
+)
 
-DataTable.displayName = "DataTable";
+DataTable.displayName = 'DataTable'
 
 interface DataTableHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 function DataTableHeader({
@@ -180,15 +180,15 @@ function DataTableHeader({
   ...props
 }: DataTableHeaderProps) {
   return (
-    <div className={cn("border-b", className)} {...props}>
+    <div className={cn('border-b', className)} {...props}>
       {children}
     </div>
-  );
+  )
 }
 
 interface DataTableBodyProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  virtualizedTotalHeight?: number;
+  children: React.ReactNode
+  virtualizedTotalHeight?: number
 }
 
 function DataTableBody({ className, children, ...props }: DataTableBodyProps) {
@@ -198,7 +198,7 @@ function DataTableBody({ className, children, ...props }: DataTableBodyProps) {
         props.virtualizedTotalHeight
           ? {
               height: `${props.virtualizedTotalHeight}px`,
-              position: "relative",
+              position: 'relative',
             }
           : {}
       }
@@ -207,16 +207,16 @@ function DataTableBody({ className, children, ...props }: DataTableBodyProps) {
     >
       {children}
     </div>
-  );
+  )
 }
 
 interface DataTablePaginationProps {
-  className?: string;
-  pageSize: number;
-  pageIndex: number;
-  pageCount: number;
-  onPageSizeChange: (pageSize: number) => void;
-  onPageChange: (pageIndex: number) => void;
+  className?: string
+  pageSize: number
+  pageIndex: number
+  pageCount: number
+  onPageSizeChange: (pageSize: number) => void
+  onPageChange: (pageIndex: number) => void
 }
 
 function DataTablePagination({
@@ -228,7 +228,7 @@ function DataTablePagination({
   onPageChange,
 }: DataTablePaginationProps) {
   return (
-    <div className={cn("flex items-center gap-8 border-t p-2 px-3", className)}>
+    <div className={cn('flex items-center gap-8 border-t p-2 px-3', className)}>
       <div className="flex items-center gap-2 text-xs">
         <div className="text-fg-300">
           Page {pageIndex + 1} of {pageCount}
@@ -288,7 +288,7 @@ function DataTablePagination({
         <span>rows per page</span>
       </div>
     </div>
-  );
+  )
 }
 
 export {
@@ -299,4 +299,4 @@ export {
   DataTableHeader,
   DataTableBody,
   DataTablePagination,
-};
+}

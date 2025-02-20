@@ -1,29 +1,29 @@
-import { cn } from "@/lib/utils";
-import { Inbox } from "lucide-react";
+import { cn } from '@/lib/utils'
+import { Inbox } from 'lucide-react'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./primitives/card";
-import { ReactNode } from "react";
+} from './primitives/card'
+import { ReactNode } from 'react'
 
 interface EmptyIndicatorProps {
-  title?: ReactNode;
-  description?: ReactNode;
-  message?: ReactNode;
-  className?: string;
+  title?: ReactNode
+  description?: ReactNode
+  message?: ReactNode
+  className?: string
 }
 
 export function EmptyIndicator({
-  title = "No Data",
-  description = "Nothing to show here yet",
+  title = 'No Data',
+  description = 'Nothing to show here yet',
   message,
   className,
 }: EmptyIndicatorProps) {
   return (
-    <Card variant="slate" className={cn("w-full max-w-md", className)}>
+    <Card variant="slate" className={cn('w-full max-w-md', className)}>
       <CardHeader className="text-center">
         <CardTitle className="text-xl font-light">{title}</CardTitle>
         <CardDescription className="text-md mt-2 font-thin">
@@ -32,18 +32,18 @@ export function EmptyIndicator({
       </CardHeader>
       {message && (
         <CardContent className="mx-auto max-w-md text-center text-fg-500">
-          <p>{message}</p>
+          {message}
         </CardContent>
       )}
     </Card>
-  );
+  )
 }
 
 interface EmptyProps {
-  className?: string;
-  title?: ReactNode;
-  description?: ReactNode;
-  message?: ReactNode;
+  className?: string
+  title?: ReactNode
+  description?: ReactNode
+  message?: ReactNode
 }
 
 export default function Empty({
@@ -55,8 +55,8 @@ export default function Empty({
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center justify-center",
-        className,
+        'flex h-full w-full items-center justify-center',
+        className
       )}
     >
       <EmptyIndicator
@@ -65,5 +65,5 @@ export default function Empty({
         message={message}
       />
     </div>
-  );
+  )
 }

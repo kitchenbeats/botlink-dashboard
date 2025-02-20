@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "../primitives/button";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Button } from '../primitives/button'
 import {
   Dialog,
   DialogContent,
@@ -8,19 +8,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../primitives/dialog";
+} from '../primitives/dialog'
 
 const meta = {
-  title: "UI/Dialog",
+  title: 'UI/Dialog',
   component: Dialog,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Dialog>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Dialog>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   render: () => (
@@ -47,7 +47,7 @@ export const Default: Story = {
       </DialogContent>
     </Dialog>
   ),
-};
+}
 
 export const WithForm: Story = {
   render: () => (
@@ -89,7 +89,7 @@ export const WithForm: Story = {
       </DialogContent>
     </Dialog>
   ),
-};
+}
 
 export const Danger: Story = {
   render: () => (
@@ -112,4 +112,4 @@ export const Danger: Story = {
       </DialogContent>
     </Dialog>
   ),
-};
+}

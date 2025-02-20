@@ -1,10 +1,15 @@
-@import "fumadocs-ui/css/preset.css";
-@import "./theme.css";
-@import "./variables.css";
+@import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@custom-variant dark (&:is(.dark *));
+@import 'fumadocs-ui/css/preset.css';
+
+/* path of `fumadocs-ui` relative to the CSS file */
+@source '../../node_modules/fumadocs-ui/dist/**/*.js';
+
+@import './variables.css';
+@import './theme.css';
+
+@layer theme, base, components, utilities;
 
 @layer base {
   * {
@@ -12,10 +17,9 @@
   }
 
   body {
-    @apply bg-bg tracking-wide text-fg antialiased;
+    @apply bg-bg text-fg tracking-wide antialiased;
 
     text-rendering: optimizeLegibility;
-    overscroll-behavior-y: none;
   }
 
   h1,
@@ -34,11 +38,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--accent-200));
+  background-color: var(--accent-200);
 }
 
 *::selection {
-  background-color: hsl(var(--accent) / 0.3);
+  background-color: hsl(from var(--accent) h s l / 0.3);
 }
 
 .lucide {
@@ -49,6 +53,6 @@ ul li {
   padding-left: 0.5rem;
 }
 ul li::marker {
-  color: hsl(var(--contrast-2));
-  content: "-";
+  color: var(--accent-200);
+  content: '▪';
 }

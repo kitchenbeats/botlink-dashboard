@@ -5,6 +5,8 @@ import { Database } from '@/types/database.types'
 import {
   checkAuthenticated,
   checkUserTeamAuthorization,
+  getApiUrl,
+  getUserAccessToken,
   guard,
 } from '@/lib/utils/server'
 import { z } from 'zod'
@@ -16,6 +18,7 @@ import {
 } from '@/types/errors'
 import { kv } from '@vercel/kv'
 import { KV_KEYS } from '@/configs/keys'
+import { revalidatePath } from 'next/cache'
 
 // Update team name
 
@@ -108,7 +111,9 @@ export const addTeamMemberAction = guard(
       throw insertError
     }
 
-    kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+
+    await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
 )
 
@@ -169,6 +174,40 @@ export const removeTeamMemberAction = guard(
       throw removeError
     }
 
-    kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+
+    await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
 )
+
+const CreateTeamSchema = z.object({
+  name: z.string().min(1),
+})
+
+export const createTeamAction = guard(CreateTeamSchema, async ({ name }) => {
+  const { user } = await checkAuthenticated()
+
+  const accessToken = await getUserAccessToken(user.id)
+
+  const response = await fetch(`${process.env.BILLING_API_URL}/teams`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-User-Access-Token': accessToken,
+    },
+    body: JSON.stringify({ name }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+
+    throw new Error(error?.message ?? 'Failed to create team')
+  }
+
+  revalidatePath('/dashboard', 'layout')
+
+  const data =
+    (await response.json()) as Database['public']['Tables']['teams']['Row']
+
+  return data
+})

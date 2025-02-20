@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+
 'use client'
 
 import { ArrowUpRight, Cpu, PinIcon, X } from 'lucide-react'
@@ -12,7 +14,6 @@ import {
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { Sandbox, SandboxMetrics } from '@/types/api'
 import { Badge, badgeVariants } from '@/ui/primitives/badge'
-import Link from 'next/link'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { DateRange } from 'react-day-picker'
 import { isWithinInterval } from 'date-fns'
@@ -21,12 +22,20 @@ import { CgSmartphoneRam } from 'react-icons/cg'
 import { cn } from '@/lib/utils'
 import { useMemo } from 'react'
 import { Button } from '@/ui/primitives/button'
+import { useRouter } from 'next/navigation'
+import { useTemplateTableStore } from '../templates/stores/table-store'
+import { useServerContext } from '@/lib/hooks/use-server-context'
 
 export type SandboxWithMetrics = Sandbox & { metrics: SandboxMetrics[] }
 
 // FILTERS
 
-export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+export const fuzzyFilter: FilterFn<unknown> = (
+  row,
+  columnId,
+  value,
+  addMeta
+) => {
   const itemRank = rankItem(row.getValue(columnId), value)
 
   addMeta({
@@ -80,7 +89,7 @@ export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
 
 export const fallbackData: SandboxWithMetrics[] = []
 
-export const useColumns = (deps: any[]) => {
+export const useColumns = (deps: unknown[]) => {
   return useMemo<ColumnDef<SandboxWithMetrics>[]>(
     () => [
       {
@@ -89,7 +98,7 @@ export const useColumns = (deps: any[]) => {
           <Button
             variant="ghost"
             size="icon"
-            className="size-5 text-fg-500"
+            className="text-fg-500 size-5"
             onClick={() => row.pin(row.getIsPinned() ? false : 'top')}
           >
             {row.getIsPinned() ? (
@@ -107,7 +116,7 @@ export const useColumns = (deps: any[]) => {
         accessorKey: 'sandboxID',
         header: 'ID',
         cell: ({ row }) => (
-          <div className="truncate font-mono text-xs text-fg-500">
+          <div className="text-fg-500 truncate font-mono text-xs">
             {row.getValue('sandboxID')}
           </div>
         ),
@@ -122,20 +131,28 @@ export const useColumns = (deps: any[]) => {
         id: 'template',
         header: 'TEMPLATE',
         cell: ({ getValue, table }) => {
-          // @ts-expect-error team is not a valid state
-          const team = table.getState().team
           const templateId = getValue() as string
 
-          if (!team) return null
+          const { selectedTeamSlug, selectedTeamId } = useServerContext()
+
+          const router = useRouter()
+
+          if (!selectedTeamSlug || !selectedTeamId) return null
 
           return (
-            <Link
-              href={PROTECTED_URLS.TEMPLATES(team.id)}
-              className="flex items-center gap-1 font-mono hover:text-accent hover:underline"
+            <Button
+              variant="link"
+              className="text-fg h-auto p-0 text-xs"
+              onClick={() => {
+                useTemplateTableStore.getState().setGlobalFilter(templateId)
+                router.push(
+                  PROTECTED_URLS.TEMPLATES(selectedTeamSlug ?? selectedTeamId)
+                )
+              }}
             >
               {templateId}
               <ArrowUpRight className="size-3" />
-            </Link>
+            </Button>
           )
         },
         size: 250,
@@ -160,7 +177,7 @@ export const useColumns = (deps: any[]) => {
           return (
             <Badge
               variant={getVariant(cpu)}
-              className="whitespace-nowrap font-mono"
+              className="font-mono whitespace-nowrap"
             >
               <Cpu className="size-2" /> {cpu.toFixed(0)}% ·{' '}
               {row.original.cpuCount} core{row.original.cpuCount > 1 ? 's' : ''}
@@ -203,7 +220,7 @@ export const useColumns = (deps: any[]) => {
           return (
             <Badge
               variant={getVariant(ramPercentage)}
-              className="whitespace-nowrap font-mono"
+              className="font-mono whitespace-nowrap"
             >
               <CgSmartphoneRam className="size-2" />{' '}
               {usedRamMB.toLocaleString()}/{totalRamMB.toLocaleString()} MB
@@ -223,7 +240,7 @@ export const useColumns = (deps: any[]) => {
           return (
             <div
               className={cn(
-                'h-full truncate font-mono text-xs text-fg-500 hover:text-fg'
+                'text-fg-500 hover:text-fg h-full truncate font-mono text-xs'
               )}
             >
               {getValue() as string}

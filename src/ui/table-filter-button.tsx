@@ -1,12 +1,12 @@
-import { X } from "lucide-react";
-import { Button } from "./primitives/button";
-import React from "react";
-import { Separator } from "./primitives/separator";
+import { X } from 'lucide-react'
+import { Button } from './primitives/button'
+import React from 'react'
+import { Separator } from './primitives/separator'
 
 interface TableFilterButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  label: string;
-  value: string;
+  label: string
+  value: string
 }
 
 export const TableFilterButton = React.forwardRef<
@@ -22,16 +22,16 @@ export const TableFilterButton = React.forwardRef<
       suppressHydrationWarning
       {...props}
     >
-      <X className={"size-3.5"} />
+      <X className={'size-3.5'} />
       {label}
       {value && (
         <>
           <Separator orientation="vertical" className="h-4" />
-          <span className="truncate text-accent">{value}</span>
+          <span className="truncate text-contrast-1">{value}</span>
         </>
       )}
     </Button>
-  );
-});
+  )
+})
 
-TableFilterButton.displayName = "TableFilterButton";
+TableFilterButton.displayName = 'TableFilterButton'

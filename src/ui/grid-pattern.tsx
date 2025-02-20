@@ -1,20 +1,20 @@
-import { useId } from "react";
+import { useId } from 'react'
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils'
 
 interface GridPatternProps {
-  width?: number;
-  height?: number;
-  x?: number;
-  y?: number;
-  squares?: Array<[x: number, y: number]>;
-  strokeDasharray?: string;
-  className?: string;
-  gradientFrom?: string;
-  gradientVia?: string;
-  gradientTo?: string;
-  gradientDegrees?: number;
-  [key: string]: unknown;
+  width?: number
+  height?: number
+  x?: number
+  y?: number
+  squares?: Array<[x: number, y: number]>
+  strokeDasharray?: string
+  className?: string
+  gradientFrom?: string
+  gradientVia?: string
+  gradientTo?: string
+  gradientDegrees?: number
+  [key: string]: unknown
 }
 
 export function GridPattern({
@@ -22,24 +22,24 @@ export function GridPattern({
   height = 50,
   x = -1,
   y = -1,
-  strokeDasharray = "0",
+  strokeDasharray = '0',
   squares,
   className,
-  gradientFrom = "rgba(255,255,255,0.3)",
-  gradientVia = "rgba(255,255,255,0.15)",
-  gradientTo = "rgba(255,255,255,0)",
+  gradientFrom = 'rgba(255,255,255,0.3)',
+  gradientVia = 'rgba(255,255,255,0.15)',
+  gradientTo = 'rgba(255,255,255,0)',
   gradientDegrees = 180,
   ...props
 }: GridPatternProps) {
-  const id = useId();
-  const gradientId = `gradient-${id}`;
-  const maskId = `mask-${id}`;
+  const id = useId()
+  const gradientId = `gradient-${id}`
+  const maskId = `mask-${id}`
 
   return (
     <svg
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute inset-0 h-full w-full",
+        'pointer-events-none absolute inset-0 h-full w-full',
         className
       )}
       {...props}
@@ -96,7 +96,7 @@ export function GridPattern({
         mask={`url(#${maskId})`}
       />
     </svg>
-  );
+  )
 }
 
-export default GridPattern;
+export default GridPattern

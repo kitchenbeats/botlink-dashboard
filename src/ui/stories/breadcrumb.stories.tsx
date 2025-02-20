@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react'
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -7,16 +7,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   BreadcrumbEllipsis,
-} from "@/ui/primitives/breadcrumb";
+} from '@/ui/primitives/breadcrumb'
 
 const meta: Meta<typeof Breadcrumb> = {
-  title: "UI/Breadcrumb",
+  title: 'UI/Breadcrumb',
   component: Breadcrumb,
-  tags: ["autodocs"],
-};
+  tags: ['autodocs'],
+}
 
-export default meta;
-type Story = StoryObj<typeof Breadcrumb>;
+export default meta
+type Story = StoryObj<typeof Breadcrumb>
 
 export const Default: Story = {
   render: () => (
@@ -36,7 +36,7 @@ export const Default: Story = {
       </BreadcrumbList>
     </Breadcrumb>
   ),
-};
+}
 
 export const WithEllipsis: Story = {
   render: () => (
@@ -60,7 +60,7 @@ export const WithEllipsis: Story = {
       </BreadcrumbList>
     </Breadcrumb>
   ),
-};
+}
 
 export const CustomSeparator: Story = {
   render: () => (
@@ -69,18 +69,18 @@ export const CustomSeparator: Story = {
         <BreadcrumbItem>
           <BreadcrumbLink href="/">[root]</BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator>{"=>"}</BreadcrumbSeparator>
+        <BreadcrumbSeparator>{'=>'}</BreadcrumbSeparator>
         <BreadcrumbItem>
           <BreadcrumbLink href="/products">/products</BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator>{"=>"}</BreadcrumbSeparator>
+        <BreadcrumbSeparator>{'=>'}</BreadcrumbSeparator>
         <BreadcrumbItem>
           <BreadcrumbPage>/category</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   ),
-};
+}
 
 export const FileSystemStyle: Story = {
   render: () => (
@@ -104,4 +104,4 @@ export const FileSystemStyle: Story = {
       </BreadcrumbList>
     </Breadcrumb>
   ),
-};
+}

@@ -1,44 +1,44 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { Badge } from "../primitives/badge";
+import type { Meta, StoryObj } from '@storybook/react'
+import { Badge } from '../primitives/badge'
 
 const meta = {
-  title: "UI/Badge",
+  title: 'UI/Badge',
   component: Badge,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Badge>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Badge>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: {
-    children: "Badge",
+    children: 'Badge',
   },
-};
+}
 
 export const Muted: Story = {
   args: {
-    children: "Muted",
-    variant: "muted",
+    children: 'Muted',
+    variant: 'muted',
   },
-};
+}
 
 export const Destructive: Story = {
   args: {
-    children: "Error",
-    variant: "error",
+    children: 'Error',
+    variant: 'error',
   },
-};
+}
 
 export const Outline: Story = {
   args: {
-    children: "Success",
-    variant: "success",
+    children: 'Success',
+    variant: 'success',
   },
-};
+}
 
 export const AllVariants: Story = {
   render: () => (
@@ -49,11 +49,11 @@ export const AllVariants: Story = {
       <Badge variant="success">Success</Badge>
     </div>
   ),
-};
+}
 
 export const WithCustomClass: Story = {
   args: {
-    children: "Custom",
-    className: "bg-purple-500 text-white",
+    children: 'Custom',
+    className: 'bg-purple-500 text-white',
   },
-};
+}

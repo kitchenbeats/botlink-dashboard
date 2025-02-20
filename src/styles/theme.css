@@ -1,78 +1,83 @@
-/* Preparation for tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
+@theme inline {
   /* Border Radius */
   --radius: 0.375rem;
 
   /* Colors */
-  --color-border-100: hsl(0 0% 85%);
-  --color-border-200: hsl(0 0% 80%);
-  --color-border-300: hsl(0 0% 75%);
-  --color-border-400: hsl(0 0% 70%);
-  --color-border-500: hsl(0 0% 65%);
-  --color-border: hsl(0 0% 90%);
+  --color-border: var(--border);
+  --color-border-100: var(--border-100);
+  --color-border-200: var(--border-200);
+  --color-border-300: var(--border-300);
+  --color-border-400: var(--border-400);
+  --color-border-500: var(--border-500);
 
-  --color-bg-100: hsl(0 0% 95%);
-  --color-bg-200: hsl(0 0% 90%);
-  --color-bg-300: hsl(0 0% 85%);
-  --color-bg-400: hsl(0 0% 80%);
-  --color-bg-500: hsl(0 0% 75%);
-  --color-bg: hsl(0 0% 97%);
+  --color-bg: var(--bg);
+  --color-bg-100: var(--bg-100);
+  --color-bg-200: var(--bg-200);
+  --color-bg-300: var(--bg-300);
+  --color-bg-400: var(--bg-400);
+  --color-bg-500: var(--bg-500);
 
-  --color-fg-100: hsl(0 0% 10%);
-  --color-fg-200: hsl(0 0% 20%);
-  --color-fg-300: hsl(0 0% 30%);
-  --color-fg-400: hsl(0 0% 40%);
-  --color-fg-500: hsl(0 0% 50%);
-  --color-fg: hsl(0 0% 0%);
+  --color-fg: var(--fg);
+  --color-fg-100: var(--fg-100);
+  --color-fg-200: var(--fg-200);
+  --color-fg-300: var(--fg-300);
+  --color-fg-400: var(--fg-400);
+  --color-fg-500: var(--fg-500);
 
-  --color-accent-100: hsl(32 95% 55%);
-  --color-accent-200: hsl(32 90% 60%);
-  --color-accent-300: hsl(32 85% 65%);
-  --color-accent-400: hsl(32 80% 70%);
-  --color-accent-500: hsl(32 75% 75%);
-  --color-accent: hsl(32 100% 50%);
+  --color-accent: var(--accent);
+  --color-accent-100: var(--accent-100);
+  --color-accent-200: var(--accent-200);
+  --color-accent-300: var(--accent-300);
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
 
-  --color-error-100: hsl(0 84.2% 65%);
-  --color-error-200: hsl(0 84.2% 70%);
-  --color-error-300: hsl(0 84.2% 75%);
-  --color-error-400: hsl(0 84.2% 80%);
-  --color-error-500: hsl(0 84.2% 85%);
-  --color-error: hsl(0 84.2% 60.2%);
+  --color-error: var(--error);
+  --color-error-100: var(--error-100);
+  --color-error-200: var(--error-200);
+  --color-error-300: var(--error-300);
+  --color-error-400: var(--error-400);
+  --color-error-500: var(--error-500);
 
-  --color-success: hsl(176 38% 90%);
-  --color-success-fg: hsl(160 100% 40%);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
 
-  --color-warning: hsl(55 90% 45% / 0.2);
-  --color-warning-fg: hsl(55 90% 45%);
+  --color-ring: var(--ring);
 
-  --color-ring: hsl(32 100% 50%);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
-  --color-chart-1: hsl(32 85% 55%);
-  --color-chart-2: hsl(212 85% 55%);
-  --color-chart-3: hsl(152 85% 55%);
-  --color-chart-4: hsl(272 85% 55%);
-  --color-chart-5: hsl(332 85% 55%);
+  --color-contrast-1: var(--contrast-1);
+  --color-contrast-2: var(--contrast-2);
 
-  --color-contrast-1: hsl(200 85% 65%);
-  --color-contrast-2: hsl(235 86% 75%);
+  --shadow-xs: 0 1px 2px hsl(from var(--shadow) h s l / var(--shadow-strength)), 0 1px 1px hsl(from var(--shadow) h s l / var(--shadow-strength));
+  --shadow-sm: 0 1px 3px hsl(from var(--shadow) h s l / var(--shadow-strength)), 0 1px 2px hsl(from var(--shadow) h s l / var(--shadow-strength));
+  --shadow-md: 0 4px 6px hsl(from var(--shadow) h s l / var(--shadow-strength)), 0 2px 4px hsl(from var(--shadow) h s l / var(--shadow-strength));
+  --shadow-lg: 0 10px 15px hsl(from var(--shadow) h s l / var(--shadow-strength)), 0 4px 6px hsl(from var(--shadow) h s l / var(--shadow-strength));
+  --shadow-xl: 0 20px 25px hsl(from var(--shadow) h s l / var(--shadow-strength)), 0 8px 10px hsl(from var(--shadow) h s l / var(--shadow-strength));
+  --shadow-2xl: 0 25px 50px hsl(from var(--shadow) h s l / var(--shadow-strength));
+  --shadow-inner: inset 0 2px 4px hsl(from var(--shadow) h s l / var(--shadow-strength));
 
-  --color-fd-background: hsl(var(--color-bg));
-  --color-fd-foreground: hsl(var(--color-fg));
-  --color-fd-muted: hsl(var(--color-bg-100));
-  --color-fd-muted-foreground: hsl(var(--color-fg-300));
-  --color-fd-popover: hsl(var(--color-bg));
-  --color-fd-popover-foreground: hsl(var(--color-fg));
-  --color-fd-card: hsl(var(--color-bg));
-  --color-fd-card-foreground: hsl(var(--color-fg));
-  --color-fd-border: hsl(var(--color-border));
-  --color-fd-primary: hsl(var(--color-accent));
-  --color-fd-primary-foreground: hsl(var(--color-accent-fg));
-  --color-fd-secondary: hsl(var(--color-bg-100));
-  --color-fd-secondary-foreground: hsl(var(--color-fg));
-  --color-fd-accent: hsl(var(--color-bg-100));
-  --color-fd-accent-foreground: hsl(var(--color-fg));
-  --color-fd-ring: hsl(var(--color-ring));
+  --color-fd-background: var(--bg);
+  --color-fd-foreground: var(--fg);
+  --color-fd-muted: var(--bg-100);
+  --color-fd-muted-foreground: var(--fg-300);
+  --color-fd-popover: var(--bg);
+  --color-fd-popover-foreground: var(--fg);
+  --color-fd-card: var(--bg);
+  --color-fd-card-foreground: var(--fg);
+  --color-fd-border: var(--border);
+  --color-fd-primary: var(--accent);
+  --color-fd-primary-foreground: var(--accent-fg);
+  --color-fd-secondary: var(--bg-100);
+  --color-fd-secondary-foreground: var(--fg);
+  --color-fd-accent: var(--bg-100);
+  --color-fd-accent-foreground: var(--fg);
+  --color-fd-ring: var(--ring);
 
   /* Fonts */
   --font-sans: "IBM Plex Sans", sans-serif;
@@ -131,56 +136,8 @@
   --animation-wave: wave 2s linear infinite;
 }
 
-.dark {
-  --color-border-100: hsl(0 0% 15%);
-  --color-border-200: hsl(0 0% 20%);
-  --color-border-300: hsl(0 0% 25%);
-  --color-border-400: hsl(0 0% 30%);
-  --color-border-500: hsl(0 0% 35%);
-  --color-border: hsl(0 0% 10%);
-
-  --color-bg-100: hsl(0 0% 5%);
-  --color-bg-200: hsl(0 0% 10%);
-  --color-bg-300: hsl(0 0% 15%);
-  --color-bg-400: hsl(0 0% 20%);
-  --color-bg-500: hsl(0 0% 25%);
-  --color-bg: hsl(0 0% 3%);
-
-  --color-fg-100: hsl(0 0% 88%);
-  --color-fg-200: hsl(0 0% 79%);
-  --color-fg-300: hsl(0 0% 70%);
-  --color-fg-400: hsl(0 0% 60%);
-  --color-fg-500: hsl(0 0% 50%);
-  --color-fg: hsl(0 0% 98%);
-
-  --color-accent-100: hsl(32 100% 40%);
-  --color-accent-200: hsl(32 100% 30%);
-  --color-accent-300: hsl(32 100% 20%);
-  --color-accent-400: hsl(32 100% 10%);
-  --color-accent-500: hsl(32 100% 5%);
-  --color-accent: hsl(32 100% 45%);
-
-  --color-error-100: hsl(0 90% 60%);
-  --color-error-200: hsl(0 85% 55%);
-  --color-error-300: hsl(0 80% 50%);
-  --color-error-400: hsl(0 75% 45%);
-  --color-error-500: hsl(0 70% 40%);
-  --color-error: hsl(0 100% 65%);
-
-  --color-success: hsl(176 32% 10%);
-  --color-success-fg: hsl(160 100% 43%);
-
-  --color-warning: hsl(60 100% 50% / 0.2);
-  --color-warning-fg: hsl(60 100% 50%);
-
-  --color-ring: hsl(32 100% 50%);
-
-  --color-chart-1: hsl(220 70% 50%);
-  --color-chart-2: hsl(160 60% 45%);
-  --color-chart-3: hsl(30 80% 55%);
-  --color-chart-4: hsl(280 65% 60%);
-  --color-chart-5: hsl(340 75% 55%);
-
-  --color-contrast-1: hsl(200 85% 65%);
-  --color-contrast-2: hsl(235 86% 75%);
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  max-width: 1400px;
 }

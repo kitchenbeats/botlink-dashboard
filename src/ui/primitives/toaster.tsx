@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { useToast } from "@/lib/hooks/use-toast";
+import { useToast } from '@/lib/hooks/use-toast'
 import {
   Toast,
   ToastClose,
@@ -8,10 +8,10 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from "@/ui/primitives/toast";
+} from '@/ui/primitives/toast'
 
 export function Toaster() {
-  const { toasts } = useToast();
+  const { toasts } = useToast()
 
   return (
     <ToastProvider swipeDirection="down">
@@ -27,9 +27,9 @@ export function Toaster() {
             {action}
             <ToastClose />
           </Toast>
-        );
+        )
       })}
       <ToastViewport />
     </ToastProvider>
-  );
+  )
 }

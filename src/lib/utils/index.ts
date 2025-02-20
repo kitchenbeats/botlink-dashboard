@@ -1,10 +1,10 @@
-import { ClassValue } from "class-variance-authority/types";
+import { ClassValue } from 'class-variance-authority/types'
 
-import { twMerge } from "tailwind-merge";
-import { clsx } from "clsx";
+import { twMerge } from 'tailwind-merge'
+import { clsx } from 'clsx'
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
 /**
@@ -19,5 +19,5 @@ export const exponentialSmoothing =
   (t: number): number => {
     // For Framer Motion, we want to map t from [0,1] to a smoothed value
     // Using exponential smoothing formula: 1 - exp(-speed * t)
-    return 1 - Math.exp(-speed * t);
-  };
+    return 1 - Math.exp(-speed * t)
+  }

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react'
 import {
   Card,
   CardContent,
@@ -6,20 +6,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../primitives/card";
-import { Button } from "../primitives/button";
+} from '../primitives/card'
+import { Button } from '../primitives/button'
 
 const meta = {
-  title: "UI/Card",
+  title: 'UI/Card',
   component: Card,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
-} satisfies Meta<typeof Card>;
+  tags: ['autodocs'],
+} satisfies Meta<typeof Card>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   render: () => (
@@ -54,7 +54,7 @@ export const Default: Story = {
       </CardFooter>
     </Card>
   ),
-};
+}
 
 export const Terminal: Story = {
   render: () => (
@@ -80,7 +80,7 @@ export const Terminal: Story = {
       </CardFooter>
     </Card>
   ),
-};
+}
 
 export const Error: Story = {
   render: () => (
@@ -108,7 +108,7 @@ export const Error: Story = {
       </CardFooter>
     </Card>
   ),
-};
+}
 
 export const Interactive: Story = {
   render: () => (
@@ -141,4 +141,4 @@ export const Interactive: Story = {
       </CardFooter>
     </Card>
   ),
-};
+}

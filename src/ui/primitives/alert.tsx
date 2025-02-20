@@ -1,31 +1,31 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
+import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 
 const alertVariants = cva(
-  "relative w-full border-solid p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-fg",
+  'relative w-full border-solid p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-fg',
   {
     variants: {
       variant: {
-        default: "bg-bg border-border text-fg",
-        contrast1: "border-contrast-1 [&>svg]:text-contrast-1 text-fg",
-        contrast2: "border-contrast-2 [&>svg]:text-contrast-2 text-fg",
-        warn: "text-fg border-orange-500 [&>svg]:text-orange-500",
-        error: "text-fg border-error [&>svg]:text-error",
+        default: 'bg-bg border-border text-fg',
+        contrast1: 'border-contrast-1 [&>svg]:text-contrast-1 text-fg',
+        contrast2: 'border-contrast-2 [&>svg]:text-contrast-2 text-fg',
+        warning: 'text-warning-fg border-warning-fg [&>svg]:text-warning-fg',
+        error: 'text-error-fg border-error [&>svg]:text-error-fg',
       },
       border: {
-        left: "border-l-[3px]",
-        right: "border-r-[3px]",
-        top: "border-t-[3px]",
-        bottom: "border-b-[3px]",
+        left: 'border-l-[3px]',
+        right: 'border-r-[3px]',
+        top: 'border-t-[3px]',
+        bottom: 'border-b-[3px]',
       },
     },
     defaultVariants: {
-      variant: "default",
-      border: "left",
+      variant: 'default',
+      border: 'left',
     },
-  },
-);
+  }
+)
 
 const Alert = React.forwardRef<
   HTMLDivElement,
@@ -37,8 +37,8 @@ const Alert = React.forwardRef<
     className={cn(alertVariants({ variant }), className)}
     {...props}
   />
-));
-Alert.displayName = "Alert";
+))
+Alert.displayName = 'Alert'
 
 const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
@@ -46,11 +46,11 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn("mb-2 font-medium leading-none tracking-tight", className)}
+    className={cn('mb-2 leading-none font-medium tracking-tight', className)}
     {...props}
   />
-));
-AlertTitle.displayName = "AlertTitle";
+))
+AlertTitle.displayName = 'AlertTitle'
 
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -58,10 +58,10 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm text-fg-500 [&_p]:leading-relaxed", className)}
+    className={cn('text-fg-500 text-sm [&_p]:leading-relaxed', className)}
     {...props}
   />
-));
-AlertDescription.displayName = "AlertDescription";
+))
+AlertDescription.displayName = 'AlertDescription'
 
-export { Alert, AlertTitle, AlertDescription };
+export { Alert, AlertTitle, AlertDescription }

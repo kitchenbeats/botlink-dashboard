@@ -1,14 +1,16 @@
 import {
+  Activity,
   BarChart,
   Blocks,
   CreditCard,
   DollarSign,
   Key,
+  LucideProps,
   LucideSheet,
   User,
   Users,
 } from 'lucide-react'
-import { ForwardRefExoticComponent } from 'react'
+import { ForwardRefExoticComponent, RefAttributes } from 'react'
 
 type DashboardNavLinkArgs = {
   teamIdOrSlug?: string
@@ -17,7 +19,9 @@ type DashboardNavLinkArgs = {
 export type DashboardNavLink = {
   label: string
   href: (args: DashboardNavLinkArgs) => string
-  icon: ForwardRefExoticComponent<any>
+  icon: ForwardRefExoticComponent<
+    Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>
+  >
   group?: string
   goesDeeper?: boolean
 }
@@ -36,38 +40,31 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
   {
     label: 'Usage',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/usage`,
-    icon: BarChart,
+    icon: Activity,
   },
 
   {
-    label: 'General',
-    href: (args) => `/dashboard/${args.teamIdOrSlug}/general`,
+    label: 'Team',
+    href: (args) => `/dashboard/${args.teamIdOrSlug}/team`,
     icon: Users,
-    group: 'team',
+    group: 'manage',
   },
   {
     label: 'API Keys',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/keys`,
     icon: Key,
-    group: 'team',
+    group: 'manage',
   },
   {
     label: 'Billing',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/billing`,
     icon: CreditCard,
-    group: 'team',
+    group: 'expenses',
   },
   {
     label: 'Budget',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/budget`,
+    group: 'expenses',
     icon: DollarSign,
-    group: 'team',
-  },
-
-  {
-    label: 'Account',
-    href: () => `/dashboard/account`,
-    icon: User,
-    group: 'personal',
   },
 ]

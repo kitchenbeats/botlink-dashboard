@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react'
 import {
   Toast,
   ToastTitle,
@@ -7,13 +7,13 @@ import {
   ToastClose,
   ToastProvider,
   ToastViewport,
-} from "../primitives/toast";
+} from '../primitives/toast'
 
 const meta = {
-  title: "UI/Toast",
+  title: 'UI/Toast',
   component: Toast,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
   decorators: [
     (Story) => (
@@ -25,10 +25,10 @@ const meta = {
       </ToastProvider>
     ),
   ],
-} satisfies Meta<typeof Toast>;
+} satisfies Meta<typeof Toast>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   render: () => (
@@ -42,7 +42,7 @@ export const Default: Story = {
       <ToastClose />
     </Toast>
   ),
-};
+}
 
 export const Destructive: Story = {
   render: () => (
@@ -54,11 +54,11 @@ export const Destructive: Story = {
       <ToastClose />
     </Toast>
   ),
-};
+}
 
 export const Success: Story = {
   render: () => (
-    <Toast className="bg-green-500 text-white">
+    <Toast variant="success">
       <div className="grid gap-1">
         <ToastTitle>Success!</ToastTitle>
         <ToastDescription>Your changes have been saved.</ToastDescription>
@@ -66,7 +66,7 @@ export const Success: Story = {
       <ToastClose />
     </Toast>
   ),
-};
+}
 
 export const WithAction: Story = {
   render: () => (
@@ -79,4 +79,4 @@ export const WithAction: Story = {
       <ToastClose />
     </Toast>
   ),
-};
+}

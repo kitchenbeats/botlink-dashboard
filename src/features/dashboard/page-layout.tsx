@@ -1,13 +1,9 @@
 import { ThemeSwitcher } from '@/ui/theme-switcher'
 import { cn } from '@/lib/utils'
-import UserMenu from '@/features/auth/user-menu'
 import { Suspense } from 'react'
-import { createClient } from '@/lib/clients/supabase/server'
-import { cookies } from 'next/headers'
-import { COOKIE_KEYS } from '@/configs/keys'
-import { Skeleton } from '@/ui/primitives/skeleton'
 import SidebarMobile from './sidebar/sidebar-mobile'
 import Frame from '@/ui/frame'
+import { DashboardSurveyPopover } from './navbar/dashboard-survey-popover'
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode
@@ -27,8 +23,8 @@ export default async function DashboardPageLayout({
   fullscreen = false,
 }: DashboardPageLayoutProps) {
   return (
-    <div className={cn('relative flex h-svh')}>
-      <div className="absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b bg-bg pr-3 md:pl-3">
+    <div className={cn('relative flex h-svh pt-[var(--protected-nav-height)]')}>
+      <div className="bg-bg absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b pr-3 md:pl-3">
         <div className="flex w-full items-center gap-2">
           <Suspense fallback={null}>
             <SidebarMobile className="h-full border-r px-3 md:hidden" />
@@ -39,9 +35,7 @@ export default async function DashboardPageLayout({
           <Suspense fallback={null}>
             <ThemeSwitcher />
           </Suspense>
-          <Suspense fallback={<Skeleton className="size-8" />}>
-            <UserMenuWrapper />
-          </Suspense>
+          <DashboardSurveyPopover />
         </div>
       </div>
 
@@ -75,7 +69,7 @@ function DesktopContent({
   return (
     <div
       className={cn(
-        'relative z-0 mt-[var(--protected-nav-height)] flex-1 max-md:hidden',
+        'relative z-0 flex-1 max-md:hidden',
         fullscreen
           ? 'overflow-hidden'
           : 'flex justify-center overflow-y-auto p-4 xl:py-[min(6%,200px)]'
@@ -87,7 +81,7 @@ function DesktopContent({
         <Frame
           classNames={{
             wrapper: cn(
-              'relative flex h-fit w-full max-w-[1200px]',
+              'relative flex h-fit w-full max-w-[1200px] pb-2',
               classNames?.frameWrapper
             ),
             frame: className,
@@ -103,24 +97,9 @@ function DesktopContent({
 function MobileContent({ children, className }: ContentProps) {
   return (
     <div
-      className={cn(
-        'relative z-0 mt-[var(--protected-nav-height)] flex-1 md:hidden',
-        className
-      )}
+      className={cn('relative z-0 flex-1 overflow-y-auto md:hidden', className)}
     >
       {children}
     </div>
   )
-}
-
-async function UserMenuWrapper() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const apiDomain = (await cookies()).get(COOKIE_KEYS.API_DOMAIN)?.value
-
-  return <UserMenu user={user!} apiDomain={apiDomain} />
 }

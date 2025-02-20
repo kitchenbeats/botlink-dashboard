@@ -9,7 +9,9 @@ import { z } from 'zod'
 import { guard } from '@/lib/utils/server'
 import { Template } from '@/types/api'
 import { MOCK_TEMPLATES_DATA } from '@/configs/mock-data'
-import { InvalidApiKeyError } from '@/types/errors'
+import { ApiError, InvalidApiKeyError } from '@/types/errors'
+import { logger } from '@/lib/clients/logger'
+import { ERROR_CODES } from '@/configs/logs'
 
 const GetTeamTemplatesParamsSchema = z.object({
   teamId: z.string().uuid(),
@@ -36,17 +38,11 @@ export const getTeamTemplates = guard(
     })
 
     if (!res.ok) {
-      const text = await res.text()
+      logger.error(ERROR_CODES.INFRA, '/templates', res)
 
-      if (res.status === 401) {
-        // this case should never happen for the described reason, hence we assume the user defined the wrong infra domain
-        throw InvalidApiKeyError(
-          "Authorization failed. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
-        )
-      }
-
-      throw new Error(
-        text ?? `Failed to fetch api endpoint: /templates?teamID=${teamId}`
+      // this case should never happen for the described reason, hence we assume the user defined the wrong infra domain
+      throw ApiError(
+        "Something went wrong when contacting the API. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
       )
     }
 

@@ -1,6 +1,5 @@
 import 'server-only'
 
-import { Sandbox, SandboxMetrics } from '@/types/api'
 import {
   checkAuthenticated,
   getApiUrl,
@@ -9,7 +8,7 @@ import {
 } from '@/lib/utils/server'
 import { z } from 'zod'
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from '@/configs/mock-data'
-import { E2BError, InvalidApiKeyError } from '@/types/errors'
+import { ApiError } from '@/types/errors'
 import { logger } from '@/lib/clients/logger'
 import { ERROR_CODES } from '@/configs/logs'
 import { SandboxWithMetrics } from '@/features/dashboard/sandboxes/table-config'
@@ -50,16 +49,9 @@ export const getTeamSandboxes = guard(
 
       logger.error(ERROR_CODES.INFRA, '/sandboxes/metrics', json)
 
-      if (res.status === 401) {
-        // this case should never happen for the original reason, hence we assume the user defined the wrong infra domain
-        throw InvalidApiKeyError(
-          "Authorization failed. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
-        )
-      }
-
-      throw new E2BError(
-        'UNKNOWN',
-        json.message ?? `Failed to fetch api endpoint: /sandboxes`
+      // this case should never happen for the original reason, hence we assume the user defined the wrong infra domain
+      throw ApiError(
+        "Something went wrong when contacting the API. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
       )
     }
 

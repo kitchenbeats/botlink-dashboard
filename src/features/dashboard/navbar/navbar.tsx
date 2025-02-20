@@ -3,8 +3,7 @@ import { MAIN_DASHBOARD_LINKS } from '@/configs/dashboard-navs'
 import { cn } from '@/lib/utils'
 import { NavbarItem } from './navbar-item'
 import { cookies } from 'next/headers'
-import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
-import { kv } from '@vercel/kv'
+import { COOKIE_KEYS } from '@/configs/keys'
 
 type GroupedLinks = {
   [key: string]: DashboardNavLink[]
@@ -41,7 +40,7 @@ export default async function DashboardNavbar({
       {Object.entries(groupedNavLinks).map(([group, links]) => (
         <div key={group} className="mt-6 flex w-full flex-col gap-1 first:mt-0">
           {group !== 'ungrouped' && (
-            <span className="mb-2 ml-1 font-mono text-xs uppercase text-fg-300">
+            <span className="text-fg-500 mb-2 ml-2 font-mono text-xs uppercase">
               {group}
             </span>
           )}
@@ -55,7 +54,7 @@ export default async function DashboardNavbar({
                 key={item.label}
                 label={item.label}
                 href={href}
-                icon={<item.icon className={cn('mr-2 w-4 text-fg-500')} />}
+                icon={<item.icon className={cn('text-fg-500 mr-2 w-4')} />}
               />
             )
           })}

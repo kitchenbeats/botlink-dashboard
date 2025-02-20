@@ -1,21 +1,21 @@
-import "server-only";
+import 'server-only'
 
-import { z } from "zod";
-import { guard } from "@/lib/utils/server";
-import { supabaseAdmin } from "@/lib/clients/supabase/admin";
-import { maskApiKey } from "@/lib/utils/server";
+import { z } from 'zod'
+import { guard } from '@/lib/utils/server'
+import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { maskApiKey } from '@/lib/utils/server'
 import {
   checkAuthenticated,
   checkUserTeamAuthorization,
-} from "@/lib/utils/server";
-import { ObscuredApiKey } from "./types";
+} from '@/lib/utils/server'
+import { ObscuredApiKey } from './types'
 
 const GetApiKeysSchema = z.object({
-  teamId: z.string({ required_error: "Team ID is required" }).uuid(),
-});
+  teamId: z.string({ required_error: 'Team ID is required' }).uuid(),
+})
 
 interface GetTeamApiKeysResponse {
-  apiKeys: ObscuredApiKey[];
+  apiKeys: ObscuredApiKey[]
 }
 
 export const getTeamApiKeys = guard(
@@ -23,33 +23,33 @@ export const getTeamApiKeys = guard(
   async ({
     teamId,
   }: z.infer<typeof GetApiKeysSchema>): Promise<GetTeamApiKeysResponse> => {
-    const { user } = await checkAuthenticated();
+    const { user } = await checkAuthenticated()
 
-    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId);
+    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
-    if (!isAuthorized) throw new Error("Not authorized to edit team api keys");
+    if (!isAuthorized) throw new Error('Not authorized to edit team api keys')
 
     const { data, error } = await supabaseAdmin
-      .from("team_api_keys")
-      .select("*")
-      .eq("team_id", teamId)
-      .order("created_at", { ascending: false });
+      .from('team_api_keys')
+      .select('*')
+      .eq('team_id', teamId)
+      .order('created_at', { ascending: false })
 
-    if (error) throw error;
+    if (error) throw error
 
-    const resultApiKeys: ObscuredApiKey[] = [];
+    const resultApiKeys: ObscuredApiKey[] = []
 
     for (const apiKey of data) {
-      let userEmail: string | null = null;
+      let userEmail: string | null = null
 
       if (apiKey.created_by) {
         const { data: keyUserData } = await supabaseAdmin
-          .from("auth_users")
-          .select("email")
-          .eq("id", apiKey.created_by);
+          .from('auth_users')
+          .select('email')
+          .eq('id', apiKey.created_by)
 
         if (keyUserData && keyUserData[0]) {
-          userEmail = keyUserData[0].email;
+          userEmail = keyUserData[0].email
         }
       }
 
@@ -59,9 +59,9 @@ export const getTeamApiKeys = guard(
         maskedKey: maskApiKey(apiKey),
         createdAt: apiKey.created_at,
         createdBy: userEmail,
-      });
+      })
     }
 
-    return { apiKeys: resultApiKeys };
-  },
-);
+    return { apiKeys: resultApiKeys }
+  }
+)
