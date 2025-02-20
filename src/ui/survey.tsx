@@ -13,11 +13,10 @@ import {
   PiSmileyAngryFill,
   PiSmileyMehFill,
   PiSmileyFill,
-  PiSmileyMeltingFill,
   PiSmileySadFill,
 } from 'react-icons/pi'
 import { cn } from '@/lib/utils'
-import { PiSmileyHeartEyesFill } from './icons'
+import { PiSmileyHeartEyesFill, PiSmileyStarEyesFill } from './icons'
 
 const EMOJI_SIZE = '38px'
 
@@ -32,7 +31,7 @@ const EMOJIS_5 = [
   <PiSmileySadFill size={EMOJI_SIZE} key="emoji-icon-1" />,
   <PiSmileyMehFill size={EMOJI_SIZE} key="emoji-icon-2" />,
   <PiSmileyFill size={EMOJI_SIZE} key="emoji-icon-3" />,
-  <PiSmileyHeartEyesFill size={EMOJI_SIZE} key="emoji-icon-4" />,
+  <PiSmileyStarEyesFill size={EMOJI_SIZE} key="emoji-icon-4" />,
 ]
 
 interface SurveyContentProps {
@@ -79,9 +78,9 @@ export function SurveyContent({
                       variant={'ghost'}
                       size="iconLg"
                       className={cn(
-                        'text-fg-500 hover:text-fg-300 size-14 hover:scale-[1.03]',
+                        'text-fg-500 hover:text-fg-300 size-14 rounded-xl hover:scale-[1.03]',
                         {
-                          'bg-bg-300 border-border-200 text-fg rounded-xl border':
+                          'bg-bg-300 border-border-200 text-fg border':
                             responses[index] === String(emojiIndex + 1),
                         }
                       )}
