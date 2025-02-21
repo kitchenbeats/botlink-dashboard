@@ -10,6 +10,11 @@
     "--- ---",
     "---Code Interpreting---",
     "code-interpreting/analyze-data-with-ai",
-    "code-interpreting/create-charts-visualizations"
+    "code-interpreting/create-charts-visualizations",
+    "code-interpreting/supported-languages",
+    "code-interpreting/streaming",
+    "--- ---",
+    "---Sandbox---",
+    "...sandbox"
   ]
 }

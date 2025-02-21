@@ -1,0 +1,25 @@
+---
+title: Run Bash Code
+description: Learn how to execute Bash code inside E2B Sandbox
+---
+
+Use the `runCode`/`run_code` method to run bash code inside the sandbox.
+You'll need to pass the `language` parameter with value `bash`.
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+import { Sandbox } from '@e2b/code-interpreter'
+
+const sbx = await Sandbox.create()
+const execution = await sbx.runCode('echo "Hello, world!"', { language: 'bash' })
+console.log(execution)
+```
+
+```python tab
+from e2b_code_interpreter import Sandbox
+
+sbx = Sandbox()
+execution = sbx.run_code("echo 'Hello, world!'", language="bash")
+print(execution)
+```
+</Tabs>

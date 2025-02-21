@@ -1,0 +1,144 @@
+---
+title: Streaming
+description: Learn how to stream output and results when executing code in the E2B Sandbox
+---
+
+Use E2B SDK to stream the output and results when executing code in the sandbox.
+
+## Stream `stdout` and `stderr`
+When using the `runCode()` method in JavaScript or `run_code()` in Python you can pass `onStdout`/`on_stdout` and `onStderr`/`on_stderr` callbacks to handle the output.
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+import { Sandbox } from '@e2b/code-interpreter'
+
+const codeToRun = `
+  import time
+  import sys
+  print("This goes first to stdout")
+  time.sleep(3)
+  print("This goes later to stderr", file=sys.stderr)
+  time.sleep(3)
+  print("This goes last")
+`
+const sandbox = await Sandbox.create()
+sandbox.runCode(codeToRun, {
+  // Use `onError` to handle runtime code errors
+  onError: error => console.error('error:', error),
+  onStdout: data => console.log('stdout:', data),
+  onStderr: data => console.error('stderr:', data),
+})
+```
+
+```python tab
+from e2b_code_interpreter import Sandbox
+
+code_to_run = """
+  import time
+  import sys
+  print("This goes first to stdout")
+  time.sleep(3)
+  print("This goes later to stderr", file=sys.stderr)
+  time.sleep(3)
+  print("This goes last")
+"""
+
+sandbox = Sandbox()
+sandbox.run_code(
+  code_to_run,
+  # Use `on_error` to handle runtime code errors
+  on_error=lambda error: print('error:', error),
+  on_stdout=lambda data: print('stdout:', data),
+  on_stderr=lambda data: print('stderr:', data),
+)
+```
+</Tabs>
+
+The code above will print the following:
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+stdout: {
+  error: false,
+  line: "This goes first to stdout\n",
+  timestamp: 1729049666861000,
+}
+stderr: {
+  error: true,
+  line: "This goes later to stderr\n",
+  timestamp: 1729049669924000,
+}
+stdout: {
+  error: false,
+  line: "This goes last\n",
+  timestamp: 1729049672664000,
+}
+```
+
+```bash tab
+stdout: This goes first to stdout
+
+stderr: This goes later to stderr
+
+stdout: This goes last
+```
+</Tabs>
+
+## Stream `results`
+
+When using the `runCode()` method in JavaScript or `run_code()` in Python you can pass `onResults`/`on_results` callback
+to receive results from the sandbox like charts, tables, text, and more.
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+const codeToRun = `
+import matplotlib.pyplot as plt
+
+# Prepare data
+categories = ['Category A', 'Category B', 'Category C', 'Category D']
+values = [10, 20, 15, 25]
+
+# Create and customize the bar chart
+plt.figure(figsize=(10, 6))
+plt.bar(categories, values, color='green')
+plt.xlabel('Categories')
+plt.ylabel('Values')
+plt.title('Values by Category')
+
+# Display the chart
+plt.show()
+`
+const sandbox = await Sandbox.create()
+await sandbox.runCode(codeToRun, {
+  onResult: result => console.log('result:', result),
+})
+```
+
+```python tab
+from e2b_code_interpreter import Sandbox
+
+code_to_run = """
+import matplotlib.pyplot as plt
+
+# Prepare data
+categories = ['Category A', 'Category B', 'Category C', 'Category D']
+values = [10, 20, 15, 25]
+
+# Create and customize the bar chart
+plt.figure(figsize=(10, 6))
+plt.bar(categories, values, color='green')
+plt.xlabel('Categories')
+plt.ylabel('Values')
+plt.title('Values by Category')
+
+# Display the chart
+plt.show()
+"""
+
+sandbox = Sandbox()
+sandbox.run_code(
+  code_to_run,
+  on_result=lambda result: print('result:', result),
+)
+```
+</Tabs>

@@ -1,0 +1,113 @@
+---
+title: Environment Variables
+description: Learn how to set and use environment variables in E2B Sandboxes
+---
+
+This page covers how to set and use environment variables in a sandbox, and default environment variables inside the sandbox.
+
+## Default environment variables
+### Knowing if you are inside a sandbox
+
+Sometimes it's useful to know if the code is running inside a sandbox. Upon creating a sandbox, an environment variable `E2B_SANDBOX` is automatically set to `true`.
+You can try it out by running the following code in the sandbox:
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+const sandbox = await Sandbox.create()
+const result = await sandbox.commands.run('echo $E2B_SANDBOX')
+```
+
+```python tab
+sandbox = Sandbox()
+result = sandbox.commands.run("echo $E2B_SANDBOX")
+```
+</Tabs>
+
+---
+
+## Setting environment variables
+There are 3 ways to set environment variables in a sandbox:
+1. [Global environment variables when creating the sandbox](#1-global-environment-variables).
+2. [When running code in the sandbox](#2-setting-environment-variables-when-running-code).
+3. [When running commands in the sandbox](#3-setting-environment-variables-when-running-commands).
+
+### 1. Global environment variables
+You can set global environment variables when creating a sandbox.
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+import { Sandbox } from '@e2b/code-interpreter'
+
+const sandbox = await Sandbox.create({
+  env: {
+    MY_VAR: 'my_value',
+  },
+})
+```
+
+```python tab
+from e2b_code_interpreter import Sandbox
+
+sandbox = Sandbox(
+  env={
+    'MY_VAR': 'my_value',
+  },
+)
+```
+</Tabs>
+
+### 2. Setting environment variables when running code
+You can set environment variables for specific code execution call in the sandbox.
+
+<Callout type="info">
+If you had a global environment variable with the same name, it will be overridden.
+</Callout>
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+const sandbox = await Sandbox.create()
+const result = await sandbox.runCode('import os; print(os.environ.get("MY_VAR"))', {
+  envs: {
+    MY_VAR: 'my_value',
+  },
+})
+```
+
+```python tab
+sandbox = Sandbox()
+result = sandbox.run_code(
+    'import os; print(os.environ.get("MY_VAR"))',
+    envs={
+        'MY_VAR': 'my_value'
+    }
+)
+```
+</Tabs>
+
+### 3. Setting environment variables when running commands
+You can set environment variables for specific command execution in the sandbox.
+
+<Callout type="info">
+If you had a global environment variable with the same name, it will be overridden.
+</Callout>
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+const sandbox = await Sandbox.create()
+sandbox.commands.run('echo $MY_VAR', {
+  envs: {
+    MY_VAR: '123',
+  },
+})
+```
+
+```python tab
+sandbox = Sandbox()
+sandbox.commands.run(
+    'echo $MY_VAR',
+    envs={
+        'MY_VAR': '123'
+    }
+)
+```
+</Tabs>

@@ -1,0 +1,13 @@
+{
+  "title": "Sandbox",
+  "pages": [
+    "index",
+    "connect",
+    "internet-access",
+    "persistence",
+    "metadata",
+    "environment-variables",
+    "list",
+    "metrics"
+  ]
+}

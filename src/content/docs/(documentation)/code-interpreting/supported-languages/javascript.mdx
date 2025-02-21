@@ -1,0 +1,25 @@
+---
+title: Run JavaScript Code
+description: Learn how to execute JavaScript code inside E2B Sandbox
+---
+
+Use the `runCode`/`run_code` method to run JavaScript code inside the sandbox.
+You'll need to pass the `language` parameter with value `javascript` or `js`.
+
+<Tabs items={["JavaScript", "Python"]}>
+```js tab
+import { Sandbox } from '@e2b/code-interpreter'
+
+const sbx = await Sandbox.create()
+const execution = await sbx.runCode('console.log("Hello, world!")', { language: 'js' })
+console.log(execution)
+```
+
+```python tab
+from e2b_code_interpreter import Sandbox
+
+sbx = Sandbox()
+execution = sbx.run_code('console.log("Hello, world!")', language="js")
+print(execution)
+```
+</Tabs>
