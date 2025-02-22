@@ -18,7 +18,7 @@ import { Separator } from '@/ui/primitives/separator'
 import { useDebounceValue } from 'usehooks-ts'
 import { useSandboxTableStore } from '@/features/dashboard/sandboxes/stores/table-store'
 import { Button } from '@/ui/primitives/button'
-import { FilterIcon, ListFilter } from 'lucide-react'
+import { ListFilter } from 'lucide-react'
 import { TableFilterButton } from '@/ui/table-filter-button'
 import { Template } from '@/types/api'
 import {
@@ -27,7 +27,6 @@ import {
   CommandItem,
   CommandList,
 } from '@/ui/primitives/command'
-import { Kbd } from '@/ui/primitives/kbd'
 
 export type StartedAtFilter = '1h ago' | '6h ago' | '12h ago' | undefined
 
@@ -135,7 +134,7 @@ const ResourcesFilter = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label>CPU Cores</Label>
-            <span className="text-xs text-accent">
+            <span className="text-accent text-xs">
               {localCpuCount === 0 ? 'Off' : `${localCpuCount} cores`}
             </span>
           </div>
@@ -145,9 +144,9 @@ const ResourcesFilter = () => {
               onValueChange={([value]) => setLocalCpuCount(value)}
               max={8}
               step={1}
-              className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+              className="[&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100 [&_.slider-range]:bg-transparent"
             />
-            <div className="mt-3 flex justify-between text-xs text-fg-500">
+            <div className="text-fg-500 mt-3 flex justify-between text-xs">
               <span>Off</span>
               <span>8</span>
             </div>
@@ -157,7 +156,7 @@ const ResourcesFilter = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label>Memory</Label>
-            <span className="text-xs text-accent">
+            <span className="text-accent text-xs">
               {localMemoryMB === 0
                 ? 'Off'
                 : localMemoryMB < 1024
@@ -171,9 +170,9 @@ const ResourcesFilter = () => {
               onValueChange={([value]) => setLocalMemoryMB(value)}
               max={8192}
               step={512}
-              className="[&_.slider-range]:bg-transparent [&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100"
+              className="[&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100 [&_.slider-range]:bg-transparent"
             />
-            <div className="mt-3 flex justify-between text-xs text-fg-500">
+            <div className="text-fg-500 mt-3 flex justify-between text-xs">
               <span>Off</span>
               <span>8GB</span>
             </div>
@@ -216,7 +215,7 @@ const SandboxesTableFilters = React.forwardRef<
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="text-xs normal-case">
-            <ListFilter className="size-4 text-fg-500" /> Filters{' '}
+            <ListFilter className="text-fg-500 size-4" /> Filters{' '}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
