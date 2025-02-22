@@ -80,12 +80,12 @@
 }
 
 .dark {
-  --bg: hsl(45 3% 6%);
-  --bg-100: hsl(45 3% 8%);
-  --bg-200: hsl(45 3% 11%);
-  --bg-300: hsl(45 3% 12%);
-  --bg-400: hsl(45 3% 14%);
-  --bg-500: hsl(45 3% 16%);
+  --bg: hsl(45 1% 4%);
+  --bg-100: hsl(45 1% 5%);
+  --bg-200: hsl(45 1% 7%);
+  --bg-300: hsl(45 1% 9%);
+  --bg-400: hsl(45 1% 11%);
+  --bg-500: hsl(45 1% 13%);
 
   --fg: hsl(45 5% 98%);
   --fg-100: hsl(45 5% 89%);
@@ -103,12 +103,12 @@
 
   --accent-fg: hsl(0 0% 100%);
 
-  --border: hsl(45 3% 11%);
-  --border-100: hsl(45 3% 13%);
-  --border-200: hsl(45 3% 15%);
-  --border-300: hsl(45 3% 17%);
-  --border-400: hsl(45 3% 19%);
-  --border-500: hsl(45 3% 21%);
+  --border: hsl(45 1% 9%);
+  --border-100: hsl(45 1% 11%);
+  --border-200: hsl(45 1% 13%);
+  --border-300: hsl(45 1% 15%);
+  --border-400: hsl(45 1% 17%);
+  --border-500: hsl(45 1% 19%);
 
   --ring: hsl(32 100% 50%);
 
@@ -133,6 +133,6 @@
   --contrast-1: hsl(200 85% 65%);
   --contrast-2: hsl(235 86% 75%);
 
-  --shadow: hsl(45 5% 3%);
+  --shadow: hsl(45 3% 3%);
   --shadow-strength: 0.2;
 }
