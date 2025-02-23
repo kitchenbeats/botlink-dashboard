@@ -38,6 +38,8 @@ const formSchema = z.object({
 })
 
 export function NameCard({ className }: NameCardProps) {
+  'use no memo'
+
   const { refetch: refetchTeams } = useTeams()
   const team = useSelectedTeam()
   const [isPending, startTransition] = useTransition()
@@ -143,7 +145,7 @@ export function NameCard({ className }: NameCardProps) {
             </form>
           </Form>
         ) : (
-          <Skeleton className="h-10 w-[17rem]" />
+          <Skeleton className="h-8 w-[17rem]" />
         )}
       </CardContent>
     </Card>
