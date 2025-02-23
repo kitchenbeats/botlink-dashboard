@@ -1,70 +1,45 @@
-import { randomBytes, createCipheriv, createDecipheriv } from 'crypto'
+import 'server-only'
+import * as jose from 'jose'
 import { cookies } from 'next/headers'
-
-/**
- * AES-GCM parameters
- * - 256-bit key
- * - 128-bit IV
- */
-const ALGORITHM = 'aes-256-gcm'
 
 // Cache parsed key
 let encryptionKey: Buffer | null = null
 
 /**
- * Get encryption key from environment
+ * Get encryption key from environment and convert to Uint8Array for jose
  * @throws {Error} If encryption key is not set
  */
-function getKey(): Buffer {
+function getKey(): Uint8Array {
   if (!encryptionKey) {
     const key = process.env.COOKIE_ENCRYPTION_KEY
     if (!key) throw new Error('COOKIE_ENCRYPTION_KEY must be set')
     encryptionKey = Buffer.from(key, 'base64')
   }
-  return encryptionKey
+  return new Uint8Array(encryptionKey)
 }
 
 /**
- * Encrypt a string using AES-256-GCM.
+ * Encrypt a string using jose's encryption
  */
-function encrypt(value: string, secretKey: Buffer): string {
-  const iv = randomBytes(16)
-  const cipher = createCipheriv(ALGORITHM, secretKey, iv)
+async function encrypt(value: string, secretKey: Uint8Array): Promise<string> {
+  const encoder = new TextEncoder()
+  const jwe = await new jose.CompactEncrypt(encoder.encode(value))
+    .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
+    .encrypt(secretKey)
 
-  const encrypted = Buffer.concat([
-    cipher.update(value, 'utf8'),
-    cipher.final(),
-  ])
-
-  const authTag = cipher.getAuthTag()
-
-  // Store iv, authTag, and encrypted data in a JSON string
-  return JSON.stringify({
-    iv: iv.toString('base64'),
-    tag: authTag.toString('base64'),
-    data: encrypted.toString('base64'),
-  })
+  return jwe
 }
 
 /**
- * Decrypt a previously encrypted string.
+ * Decrypt a previously encrypted string
  */
-function decrypt(encryptedJson: string, secretKey: Buffer): string {
-  const { iv, tag, data } = JSON.parse(encryptedJson)
-
-  const decipher = createDecipheriv(
-    ALGORITHM,
-    secretKey,
-    Buffer.from(iv, 'base64')
-  )
-  decipher.setAuthTag(Buffer.from(tag, 'base64'))
-
-  const decrypted = Buffer.concat([
-    decipher.update(Buffer.from(data, 'base64')),
-    decipher.final(),
-  ])
-
-  return decrypted.toString('utf8')
+async function decrypt(
+  encrypted: string,
+  secretKey: Uint8Array
+): Promise<string> {
+  const { plaintext } = await jose.compactDecrypt(encrypted, secretKey)
+  const decoder = new TextDecoder()
+  return decoder.decode(plaintext)
 }
 
 /**
@@ -98,24 +73,21 @@ function decrypt(encryptedJson: string, secretKey: Buffer): string {
 export async function setEncryptedCookie(
   cookieName: string,
   value: string,
-  options?: Partial<{
-    maxAge: number
-    httpOnly: boolean
-    secure: boolean
-    path: string
-    sameSite: boolean | 'strict' | 'lax' | 'none'
-  }>
-): Promise<void> {
-  const encryptedValue = encrypt(value, getKey())
-  const cookieStore = await cookies()
+  options?: Partial<unknown>
+): Promise<[string, string, Partial<unknown>]> {
+  const encryptedValue = await encrypt(value, getKey())
 
-  cookieStore.set(cookieName, encryptedValue, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
-    ...options,
-  })
+  return [
+    cookieName,
+    encryptedValue,
+    {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      ...options,
+    },
+  ]
 }
 
 /**
@@ -132,7 +104,8 @@ export async function getEncryptedCookie(
   if (!raw) return null
 
   try {
-    return decrypt(raw, getKey())
+    const decrypted = await decrypt(raw, getKey())
+    return decrypted.length > 0 ? decrypted : null
   } catch (error) {
     // If decryption fails (invalid or key changed), treat as invalid
     return null
