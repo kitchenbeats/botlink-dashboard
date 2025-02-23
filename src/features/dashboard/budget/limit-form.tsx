@@ -46,8 +46,11 @@ export default function LimitForm({
   originalValue,
   type,
 }: LimitFormProps) {
+  'use no memo'
+
   const [isEditing, setIsEditing] = useState(false)
-  const [isPending, startTransition] = useTransition()
+  const [isSaving, startSaveTransition] = useTransition()
+  const [isClearing, startClearTransition] = useTransition()
   const { toast } = useToast()
 
   const form = useForm<FormData>({
@@ -67,7 +70,7 @@ export default function LimitForm({
       return
     }
 
-    startTransition(async () => {
+    startSaveTransition(async () => {
       try {
         const res = await setLimitAction({
           type,
@@ -103,7 +106,7 @@ export default function LimitForm({
   }
 
   const handleClear = async () => {
-    startTransition(async () => {
+    startClearTransition(async () => {
       try {
         const res = await clearLimitAction({
           type,
@@ -187,8 +190,12 @@ export default function LimitForm({
               type="submit"
               variant="outline"
               className="h-9 px-4"
-              disabled={form.getValues('value') === originalValue || isPending}
-              loading={isPending}
+              disabled={
+                form.getValues('value') === originalValue ||
+                isSaving ||
+                isClearing
+              }
+              loading={isSaving}
             >
               Set
             </Button>
@@ -198,8 +205,8 @@ export default function LimitForm({
                 variant="error"
                 size="sm"
                 className="h-9 px-4"
-                disabled={isPending}
-                loading={isPending}
+                disabled={isSaving || isClearing}
+                loading={isClearing}
                 onClick={handleClear}
               >
                 Clear
@@ -232,8 +239,8 @@ export default function LimitForm({
         variant="error"
         size="sm"
         onClick={handleClear}
-        disabled={isPending}
-        loading={isPending}
+        disabled={isSaving || isClearing}
+        loading={isClearing}
       >
         Clear
       </Button>
