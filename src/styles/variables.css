@@ -103,12 +103,12 @@
 
   --accent-fg: hsl(0 0% 100%);
 
-  --border: hsl(45 1% 9%);
-  --border-100: hsl(45 1% 11%);
-  --border-200: hsl(45 1% 13%);
-  --border-300: hsl(45 1% 15%);
-  --border-400: hsl(45 1% 17%);
-  --border-500: hsl(45 1% 19%);
+  --border: hsl(45 2% 12%);
+  --border-100: hsl(45 2% 14%);
+  --border-200: hsl(45 2% 16%);
+  --border-300: hsl(45 2% 18%);
+  --border-400: hsl(45 2% 20%);
+  --border-500: hsl(45 2% 22%);
 
   --ring: hsl(32 100% 50%);
 
