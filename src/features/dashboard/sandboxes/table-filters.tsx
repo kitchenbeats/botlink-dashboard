@@ -27,20 +27,24 @@ import {
   CommandItem,
   CommandList,
 } from '@/ui/primitives/command'
+import { memo, useCallback } from 'react'
 
 export type StartedAtFilter = '1h ago' | '6h ago' | '12h ago' | undefined
 
 // Components
-const RunningSinceFilter = () => {
+const RunningSinceFilter = memo(function RunningSinceFilter() {
   const { startedAtFilter, setStartedAtFilter } = useSandboxTableStore()
 
-  const handleRunningSince = (value?: StartedAtFilter) => {
-    if (!value) {
-      setStartedAtFilter(undefined)
-    } else {
-      setStartedAtFilter(value)
-    }
-  }
+  const handleRunningSince = useCallback(
+    (value?: StartedAtFilter) => {
+      if (!value) {
+        setStartedAtFilter(undefined)
+      } else {
+        setStartedAtFilter(value)
+      }
+    },
+    [setStartedAtFilter]
+  )
 
   return (
     <div>
@@ -73,22 +77,27 @@ const RunningSinceFilter = () => {
       </DropdownMenuItem>
     </div>
   )
-}
+})
 
 interface TemplateFilterProps {
   templates: Template[]
 }
 
-const TemplateFilter = ({ templates }: TemplateFilterProps) => {
+const TemplateFilter = memo(function TemplateFilter({
+  templates,
+}: TemplateFilterProps) {
   const { templateIds, setTemplateIds } = useSandboxTableStore()
 
-  const handleSelect = (templateId: string) => {
-    if (templateIds.includes(templateId)) {
-      setTemplateIds(templateIds.filter((id) => id !== templateId))
-    } else {
-      setTemplateIds([...templateIds, templateId])
-    }
-  }
+  const handleSelect = useCallback(
+    (templateId: string) => {
+      if (templateIds.includes(templateId)) {
+        setTemplateIds(templateIds.filter((id) => id !== templateId))
+      } else {
+        setTemplateIds([...templateIds, templateId])
+      }
+    },
+    [templateIds, setTemplateIds]
+  )
 
   return (
     <Command>
@@ -108,25 +117,31 @@ const TemplateFilter = ({ templates }: TemplateFilterProps) => {
       </CommandList>
     </Command>
   )
-}
+})
 
-const ResourcesFilter = () => {
+const ResourcesFilter = memo(function ResourcesFilter() {
   const { cpuCount, setCpuCount, memoryMB, setMemoryMB } =
     useSandboxTableStore()
 
-  const [localCpuCount, setLocalCpuCount] = React.useState(cpuCount || 0)
-  const [localMemoryMB, setLocalMemoryMB] = React.useState(memoryMB || 0)
+  const [localValues, setLocalValues] = React.useState({
+    cpu: cpuCount || 0,
+    memory: memoryMB || 0,
+  })
 
-  const [debouncedCpuCount] = useDebounceValue(localCpuCount, 300)
-  const [debouncedMemoryMB] = useDebounceValue(localMemoryMB, 300)
-
-  React.useEffect(() => {
-    setCpuCount(debouncedCpuCount || undefined)
-  }, [debouncedCpuCount, setCpuCount])
+  const [debouncedValues] = useDebounceValue(localValues, 300)
 
   React.useEffect(() => {
-    setMemoryMB(debouncedMemoryMB || undefined)
-  }, [debouncedMemoryMB, setMemoryMB])
+    setCpuCount(debouncedValues.cpu || undefined)
+    setMemoryMB(debouncedValues.memory || undefined)
+  }, [debouncedValues, setCpuCount, setMemoryMB])
+
+  const handleCpuChange = useCallback((value: number[]) => {
+    setLocalValues((prev) => ({ ...prev, cpu: value[0] }))
+  }, [])
+
+  const handleMemoryChange = useCallback((value: number[]) => {
+    setLocalValues((prev) => ({ ...prev, memory: value[0] }))
+  }, [])
 
   return (
     <div className="w-80 p-4">
@@ -135,13 +150,13 @@ const ResourcesFilter = () => {
           <div className="flex items-center justify-between">
             <Label>CPU Cores</Label>
             <span className="text-accent text-xs">
-              {localCpuCount === 0 ? 'Off' : `${localCpuCount} cores`}
+              {localValues.cpu === 0 ? 'Off' : `${localValues.cpu} cores`}
             </span>
           </div>
           <div>
             <Slider
-              value={[localCpuCount]}
-              onValueChange={([value]) => setLocalCpuCount(value)}
+              value={[localValues.cpu]}
+              onValueChange={handleCpuChange}
               max={8}
               step={1}
               className="[&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100 [&_.slider-range]:bg-transparent"
@@ -157,17 +172,17 @@ const ResourcesFilter = () => {
           <div className="flex items-center justify-between">
             <Label>Memory</Label>
             <span className="text-accent text-xs">
-              {localMemoryMB === 0
+              {localValues.memory === 0
                 ? 'Off'
-                : localMemoryMB < 1024
-                  ? `${localMemoryMB} MB`
-                  : `${localMemoryMB / 1024} GB`}
+                : localValues.memory < 1024
+                  ? `${localValues.memory} MB`
+                  : `${localValues.memory / 1024} GB`}
             </span>
           </div>
           <div>
             <Slider
-              value={[localMemoryMB]}
-              onValueChange={([value]) => setLocalMemoryMB(value)}
+              value={[localValues.memory]}
+              onValueChange={handleMemoryChange}
               max={8192}
               step={512}
               className="[&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100 [&_.slider-range]:bg-transparent"
@@ -181,7 +196,7 @@ const ResourcesFilter = () => {
       </div>
     </div>
   )
-}
+})
 
 // Main component
 export interface SandboxesTableFiltersProps
@@ -189,10 +204,11 @@ export interface SandboxesTableFiltersProps
   templates: Template[]
 }
 
-const SandboxesTableFilters = React.forwardRef<
-  HTMLDivElement,
-  SandboxesTableFiltersProps
->(({ className, templates, ...props }, ref) => {
+const SandboxesTableFilters = memo(function SandboxesTableFilters({
+  className,
+  templates,
+  ...props
+}: SandboxesTableFiltersProps) {
   const {
     globalFilter,
     startedAtFilter,
@@ -206,9 +222,15 @@ const SandboxesTableFilters = React.forwardRef<
     setMemoryMB,
   } = useSandboxTableStore()
 
+  const handleTemplateFilterClick = useCallback(
+    (id: string) => {
+      setTemplateIds(templateIds.filter((t) => t !== id))
+    },
+    [templateIds, setTemplateIds]
+  )
+
   return (
     <div
-      ref={ref}
       className={cn('flex flex-wrap items-center gap-2', className)}
       {...props}
     >
@@ -269,7 +291,7 @@ const SandboxesTableFilters = React.forwardRef<
             key={id}
             label="Template"
             value={id}
-            onClick={() => setTemplateIds(templateIds.filter((t) => t !== id))}
+            onClick={() => handleTemplateFilterClick(id)}
           />
         ))}
       {cpuCount !== undefined && (

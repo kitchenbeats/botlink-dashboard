@@ -36,7 +36,7 @@ const PopoverContent = React.forwardRef<
         className={cn(
           'z-50 w-72 rounded-sm',
           cardVariants({ variant: 'layer' }),
-          'shadow-sm',
+          'shadow-sm focus:outline-none',
           className
         )}
         {...props}
