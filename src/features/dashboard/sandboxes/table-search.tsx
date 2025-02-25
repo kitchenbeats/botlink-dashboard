@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import React, { useEffect, useCallback } from 'react'
 import { useSandboxTableStore } from '@/features/dashboard/sandboxes/stores/table-store'
 import { Kbd } from '@/ui/primitives/kbd'
+import { trackTableInteraction } from './table-config'
 
 export const SearchInput = React.memo(
   React.forwardRef<
@@ -32,7 +33,9 @@ export const SearchInput = React.memo(
     }, [handleKeyDown])
 
     const handleChange = useCallback(
-      (value: string | number) => setGlobalFilter(value as string),
+      (value: string | number) => {
+        setGlobalFilter(value as string)
+      },
       [setGlobalFilter]
     )
 

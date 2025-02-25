@@ -89,13 +89,6 @@ export default function SandboxesTable({
   React.useEffect(() => {
     let newFilters = [...columnFilters]
 
-    if (!globalFilter) {
-      newFilters = newFilters.filter((f) => f.id !== 'metadata')
-    } else {
-      newFilters = newFilters.filter((f) => f.id !== 'metadata')
-      newFilters.push({ id: 'metadata', value: globalFilter })
-    }
-
     // Handle startedAt filter
     if (!startedAtFilter) {
       newFilters = newFilters.filter((f) => f.id !== 'startedAt')
@@ -140,7 +133,7 @@ export default function SandboxesTable({
 
     resetScroll()
     setColumnFilters(newFilters)
-  }, [startedAtFilter, templateIds, cpuCount, memoryMB, globalFilter])
+  }, [startedAtFilter, templateIds, cpuCount, memoryMB])
 
   // effect hook for scrolling to top when sorting or global filter changes
   React.useEffect(() => {

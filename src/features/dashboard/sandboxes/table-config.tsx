@@ -19,8 +19,19 @@ import { useRouter } from 'next/navigation'
 import { useTemplateTableStore } from '../templates/stores/table-store'
 import { useServerContext } from '@/lib/hooks/use-server-context'
 import { JsonPopover } from '@/ui/json-popover'
+import posthog from 'posthog-js'
 
 export type SandboxWithMetrics = Sandbox & { metrics: SandboxMetrics[] }
+
+export const trackTableInteraction = (
+  action: string,
+  properties: Record<string, unknown> = {}
+) => {
+  posthog.capture('sandbox table interacted', {
+    action,
+    ...properties,
+  })
+}
 
 // FILTERS
 
