@@ -37,6 +37,7 @@ const PopoverContent = React.forwardRef<
           'z-50 w-72 rounded-sm',
           cardVariants({ variant: 'layer' }),
           'shadow-sm focus:outline-none',
+          'animate-fade-slide-in',
           className
         )}
         {...props}

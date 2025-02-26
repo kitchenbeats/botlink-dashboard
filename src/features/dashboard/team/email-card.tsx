@@ -71,7 +71,12 @@ export function EmailCard({ className }: EmailCardProps) {
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <FormControl>
-                      <Input placeholder="info@acme.com" readOnly {...field} />
+                      <Input
+                        placeholder="info@acme.com"
+                        disabled
+                        readOnly
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
