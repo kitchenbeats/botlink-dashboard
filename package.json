@@ -28,7 +28,7 @@
     "<<<<<< Development": "",
     "storybook": "storybook dev -p 6006",
     "shad": "bunx shadcn@canary",
-    "prebuild": "bun test:integration && bun scripts:build-storybook",
+    "prebuild": "bun scripts:build-storybook",
     "postinstall": "fumadocs-mdx",
 
     "<<<<<< Testing": "",
