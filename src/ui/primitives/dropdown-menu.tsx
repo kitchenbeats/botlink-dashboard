@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 
 import { cn } from '@/lib/utils'
-import { cardVariants } from '@/ui/primitives/card'
 import { ChevronRight } from 'lucide-react'
 import {
   menuContentStyles,
@@ -63,11 +62,7 @@ const DropdownMenuSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.SubContent
     ref={ref}
-    className={cn(
-      menuContentStyles,
-      'animate-in fade-in-0 slide-in-from-bottom-1 duration-100',
-      className
-    )}
+    className={cn(menuContentStyles, 'animate-fade-slide-in', className)}
     {...props}
   />
 ))
@@ -83,11 +78,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       collisionPadding={collisionPadding}
-      className={cn(
-        menuContentStyles,
-        'animate-in fade-in-0 slide-in-from-bottom-1 duration-100',
-        className
-      )}
+      className={cn(menuContentStyles, 'animate-fade-slide-in', className)}
       {...props}
     >
       {props.children}

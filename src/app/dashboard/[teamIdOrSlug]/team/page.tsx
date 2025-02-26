@@ -26,12 +26,12 @@ export default async function GeneralPage({ params }: GeneralPageProps) {
               <ProfilePictureCard className="size-32" />
               <NameCard />
             </div>
-            <EmailCard className="col-span-12 xl:col-span-6" />
+            <EmailCard className="col-span-12 flex flex-col justify-between xl:col-span-6" />
           </>
         </Suspense>
 
         <section className="col-span-full border-t">
-          <div className="relative h-3 border-b">
+          <div className="relative h-2 border-b">
             <Scanline />
           </div>
           <MemberCard teamId={teamId} className="" />
