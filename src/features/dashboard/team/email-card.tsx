@@ -41,7 +41,6 @@ const formSchema = z.object({
 export function EmailCard({ className }: EmailCardProps) {
   const { refetch: refetchTeams } = useTeams()
   const team = useSelectedTeam()
-  const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
 
   // Initialize react-hook-form
@@ -52,65 +51,12 @@ export function EmailCard({ className }: EmailCardProps) {
     },
   })
 
-  const { control, handleSubmit, reset, getValues } = form
-
-  // Reset the form when team changes
-  useEffect(() => {
-    if (team) {
-      reset({ email: team.email })
-    }
-  }, [team, reset])
-
-  // Async submission using useTransition
-  const handleUpdate = async (values: FormData) => {
-    if (!team) return
-
-    startTransition(async () => {
-      try {
-        const response = await updateTeamNameAction({
-          teamId: team.id,
-          name: values.email,
-        })
-
-        if (response.type === 'error') {
-          toast({
-            title: 'Error updating team name',
-            description: response.message,
-            variant: 'error',
-          })
-          return
-        }
-
-        await refetchTeams()
-        toast({
-          title: 'Success',
-          description: 'Team name updated successfully',
-          variant: 'success',
-        })
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          toast({
-            title: 'Error updating team name',
-            description: error.message,
-            variant: 'error',
-          })
-        } else {
-          toast({
-            title: 'Error updating team name',
-            description: 'An unknown error occurred',
-            variant: 'error',
-          })
-        }
-      }
-    })
-  }
-
-  const canSubmit = getValues('email') !== team?.email
+  const { control, handleSubmit, reset } = form
 
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Team Email</CardTitle>
+        <CardTitle>Email</CardTitle>
         <CardDescription>
           The primary team email to receive notifications on
         </CardDescription>
@@ -118,10 +64,7 @@ export function EmailCard({ className }: EmailCardProps) {
       <CardContent>
         {team ? (
           <Form {...form}>
-            <form
-              onSubmit={handleSubmit(handleUpdate)}
-              className="flex max-w-xs items-center gap-2"
-            >
+            <form className="flex max-w-xs items-center gap-2">
               <FormField
                 control={control}
                 name="email"
