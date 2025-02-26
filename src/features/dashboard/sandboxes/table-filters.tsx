@@ -28,6 +28,7 @@ import {
   CommandList,
 } from '@/ui/primitives/command'
 import { memo, useCallback } from 'react'
+import { NumberInput } from '@/ui/number-input'
 
 export type StartedAtFilter = '1h ago' | '6h ago' | '12h ago' | undefined
 
@@ -135,13 +136,26 @@ const ResourcesFilter = memo(function ResourcesFilter() {
     setMemoryMB(debouncedValues.memory || undefined)
   }, [debouncedValues, setCpuCount, setMemoryMB])
 
-  const handleCpuChange = useCallback((value: number[]) => {
-    setLocalValues((prev) => ({ ...prev, cpu: value[0] }))
+  const handleCpuChange = useCallback((value: number) => {
+    setLocalValues((prev) => ({ ...prev, cpu: value }))
   }, [])
 
-  const handleMemoryChange = useCallback((value: number[]) => {
-    setLocalValues((prev) => ({ ...prev, memory: value[0] }))
+  const handleMemoryChange = useCallback((value: number) => {
+    setLocalValues((prev) => ({ ...prev, memory: value }))
   }, [])
+
+  const handleClearCpu = useCallback(() => {
+    setLocalValues((prev) => ({ ...prev, cpu: 0 }))
+  }, [])
+
+  const handleClearMemory = useCallback(() => {
+    setLocalValues((prev) => ({ ...prev, memory: 0 }))
+  }, [])
+
+  const formatMemoryDisplay = (memoryValue: number) => {
+    if (memoryValue === 0) return 'Unfiltered'
+    return memoryValue < 1024 ? `${memoryValue} MB` : `${memoryValue / 1024} GB`
+  }
 
   return (
     <div className="w-80 p-4">
@@ -150,21 +164,30 @@ const ResourcesFilter = memo(function ResourcesFilter() {
           <div className="flex items-center justify-between">
             <Label>CPU Cores</Label>
             <span className="text-accent text-xs">
-              {localValues.cpu === 0 ? 'Off' : `${localValues.cpu} cores`}
+              {localValues.cpu === 0
+                ? 'Unfiltered'
+                : `${localValues.cpu} core${localValues.cpu === 1 ? '' : 's'}`}
             </span>
           </div>
-          <div>
-            <Slider
-              value={[localValues.cpu]}
-              onValueChange={handleCpuChange}
+          <div className="flex items-center gap-2">
+            <NumberInput
+              value={localValues.cpu}
+              onChange={handleCpuChange}
+              min={0}
               max={8}
               step={1}
-              className="[&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100 [&_.slider-range]:bg-transparent"
+              className="w-full"
             />
-            <div className="text-fg-500 mt-3 flex justify-between text-xs">
-              <span>Off</span>
-              <span>8</span>
-            </div>
+            {localValues.cpu > 0 && (
+              <Button
+                variant="error"
+                size="sm"
+                onClick={handleClearCpu}
+                className="h-9 text-xs"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </div>
         <Separator />
@@ -172,25 +195,28 @@ const ResourcesFilter = memo(function ResourcesFilter() {
           <div className="flex items-center justify-between">
             <Label>Memory</Label>
             <span className="text-accent text-xs">
-              {localValues.memory === 0
-                ? 'Off'
-                : localValues.memory < 1024
-                  ? `${localValues.memory} MB`
-                  : `${localValues.memory / 1024} GB`}
+              {formatMemoryDisplay(localValues.memory)}
             </span>
           </div>
-          <div>
-            <Slider
-              value={[localValues.memory]}
-              onValueChange={handleMemoryChange}
+          <div className="flex items-center gap-2">
+            <NumberInput
+              value={localValues.memory}
+              onChange={handleMemoryChange}
+              min={0}
               max={8192}
               step={512}
-              className="[&_.slider-thumb]:border-fg-500 [&_.slider-thumb]:bg-bg [&_.slider-track]:bg-fg-100 [&_.slider-range]:bg-transparent"
+              className="w-full"
             />
-            <div className="text-fg-500 mt-3 flex justify-between text-xs">
-              <span>Off</span>
-              <span>8GB</span>
-            </div>
+            {localValues.memory > 0 && (
+              <Button
+                variant="error"
+                size="sm"
+                onClick={handleClearMemory}
+                className="h-9 text-xs"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </div>
       </div>
