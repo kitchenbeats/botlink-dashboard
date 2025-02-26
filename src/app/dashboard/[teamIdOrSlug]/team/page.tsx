@@ -4,6 +4,8 @@ import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { NameCard } from '@/features/dashboard/team/name-card'
 import { EmailCard } from '@/features/dashboard/team/email-card'
 import { MemberCard } from '@/features/dashboard/team/member-card'
+import { ProfilePictureCard } from '@/features/dashboard/team/profile-picture-card'
+import Scanline from '@/ui/scanline'
 
 interface GeneralPageProps {
   params: Promise<{
@@ -20,12 +22,18 @@ export default async function GeneralPage({ params }: GeneralPageProps) {
       <div className="grid w-full grid-cols-12">
         <Suspense>
           <>
-            <NameCard className="col-span-12 max-md:border-b md:col-span-6 md:border-r" />
-            <EmailCard className="col-span-12 md:col-span-6" />
+            <div className="col-span-12 flex items-center gap-3 pl-6 max-xl:border-b xl:col-span-6 xl:border-r">
+              <ProfilePictureCard className="size-32" />
+              <NameCard />
+            </div>
+            <EmailCard className="col-span-12 xl:col-span-6" />
           </>
         </Suspense>
 
         <section className="col-span-full border-t">
+          <div className="relative h-3 border-b">
+            <Scanline />
+          </div>
           <MemberCard teamId={teamId} className="" />
         </section>
       </div>
