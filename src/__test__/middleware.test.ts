@@ -9,7 +9,9 @@ import { PROTECTED_URLS } from '@/configs/urls'
 import { createServerClient } from '@supabase/ssr'
 import { AUTH_URLS } from '@/configs/urls'
 
-// Mock dependencies
+// MOCKS SETUP
+// These mocks replace actual implementations with test doubles
+// to isolate the middleware functionality from external dependencies
 vi.mock('@/lib/utils/server', () => ({
   checkUserTeamAuthorization: vi.fn(),
   resolveTeamId: vi.fn((id) => Promise.resolve(id)),
@@ -36,7 +38,7 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }))
 
-// Mock NextResponse
+// Mock NextResponse to track redirects and response modifications
 vi.mock('next/server', async () => {
   const actual =
     await vi.importActual<typeof import('next/server')>('next/server')
@@ -49,7 +51,6 @@ vi.mock('next/server', async () => {
       },
     })
 
-    // Add cookies property
     Object.defineProperty(response, 'cookies', {
       value: {
         set: vi.fn(),
@@ -64,7 +65,6 @@ vi.mock('next/server', async () => {
   const mockNext = vi.fn(() => {
     const response = new actual.NextResponse()
 
-    // Add cookies property
     Object.defineProperty(response, 'cookies', {
       value: {
         set: vi.fn(),
@@ -85,7 +85,10 @@ vi.mock('next/server', async () => {
   }
 })
 
-// Helper to create mock requests
+/**
+ * Helper function to create mock requests with configurable properties
+ * This simplifies test setup and makes tests more readable
+ */
 function createMockRequest({
   url = 'https://app.e2b.dev',
   path = '/',
@@ -99,12 +102,10 @@ function createMockRequest({
 } = {}): NextRequest {
   const fullUrl = `${url}${path}`
 
-  // Create request with cookies
   const req = new NextRequest(fullUrl, {
     headers: new Headers(headers),
   })
 
-  // Add cookies
   Object.entries(cookies).forEach(([key, value]) => {
     vi.spyOn(req.cookies, 'get').mockImplementation((name) => {
       if (name === key) {
@@ -121,7 +122,7 @@ describe('Middleware Integration Tests', () => {
   beforeEach(() => {
     vi.resetAllMocks()
 
-    // Default mocks
+    // Default mock: authenticated user with ID 'user-123'
     vi.mocked(createServerClient).mockImplementation(
       () =>
         ({
@@ -140,8 +141,13 @@ describe('Middleware Integration Tests', () => {
   })
 
   describe('Authentication Flow', () => {
+    /**
+     * SECURITY TEST: Verifies that unauthenticated users are redirected to sign-in
+     * This is a critical security test to ensure protected routes are not accessible
+     * without authentication
+     */
     it('redirects unauthenticated users to sign in', async () => {
-      // Mock unauthenticated user
+      // Setup: Create an unauthenticated user scenario
       vi.mocked(createServerClient).mockImplementation(
         () =>
           ({
@@ -158,25 +164,29 @@ describe('Middleware Integration Tests', () => {
         path: PROTECTED_URLS.DASHBOARD,
       })
 
+      // Execute: Run the middleware with the unauthenticated request
       await middleware(request)
 
-      // Verify that NextResponse.redirect was called
+      // Verify: Check that a redirect to sign-in page occurred
       const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
       expect(redirectCalls.length).toBeGreaterThan(0)
 
-      // Verify the redirect URL contains the sign-in path
       if (redirectCalls.length > 0) {
         const redirectUrl = redirectCalls[0][0].toString()
         expect(redirectUrl).toContain(AUTH_URLS.SIGN_IN)
       }
     })
 
+    /**
+     * USER FLOW TEST: Verifies that authenticated users can access protected routes
+     * and are redirected to their default team
+     */
     it('allows authenticated users to access protected routes', async () => {
       const request = createMockRequest({
         path: PROTECTED_URLS.DASHBOARD,
       })
 
-      // Mock team data
+      // Setup: Mock team data for the authenticated user
       vi.mocked(supabaseAdmin.from).mockImplementation(
         () =>
           ({
@@ -197,9 +207,10 @@ describe('Middleware Integration Tests', () => {
           }) as unknown as ReturnType<typeof supabaseAdmin.from>
       )
 
+      // Execute: Run the middleware with the authenticated request
       await middleware(request)
 
-      // Check if NextResponse.redirect was called with a URL containing the default team
+      // Verify: Check that user is redirected to their default team
       const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
       expect(redirectCalls.length).toBeGreaterThan(0)
       if (redirectCalls.length > 0) {
@@ -209,7 +220,12 @@ describe('Middleware Integration Tests', () => {
   })
 
   describe('Team Access Control', () => {
+    /**
+     * SECURITY TEST: Verifies that users cannot access teams they don't have permission for
+     * by tampering with cookies
+     */
     it('handles tampered team cookies securely', async () => {
+      // Setup: Create a request with tampered team ID in cookies
       const request = createMockRequest({
         path: '/dashboard/tampered-team-id/sandboxes',
         cookies: {
@@ -217,12 +233,13 @@ describe('Middleware Integration Tests', () => {
         },
       })
 
-      // Mock user has no access to the tampered team
+      // Setup: User has no access to the tampered team
       vi.mocked(checkUserTeamAuthorization).mockResolvedValue(false)
 
+      // Execute: Run the middleware with the tampered request
       await middleware(request)
 
-      // Verify we're redirected away from the tampered team
+      // Verify: User is redirected away from the tampered team
       const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
       expect(redirectCalls.length).toBeGreaterThan(0)
       if (redirectCalls.length > 0) {
@@ -232,12 +249,17 @@ describe('Middleware Integration Tests', () => {
       }
     })
 
+    /**
+     * PERFORMANCE TEST: Verifies that team access checks use the cache when available
+     * to improve performance and reduce database load
+     */
     it('uses cached team access when available', async () => {
+      // Setup: Create a request for a team with cached access
       const request = createMockRequest({
         path: '/dashboard/cached-team-id/sandboxes',
       })
 
-      // Mock cached access value
+      // Setup: Mock cached access value
       vi.mocked(kv.get).mockImplementation((key: string) => {
         if (key.includes('user-123') && key.includes('cached-team-id')) {
           return Promise.resolve(true)
@@ -245,20 +267,26 @@ describe('Middleware Integration Tests', () => {
         return Promise.resolve(null)
       })
 
+      // Execute: Run the middleware with the request
       await middleware(request)
 
-      // Verify checkUserTeamAuthorization was not called since we used the cache
+      // Verify: Database check was skipped due to cache hit
       expect(checkUserTeamAuthorization).not.toHaveBeenCalled()
     })
   })
 
   describe('Team Resolution and Routing', () => {
+    /**
+     * USER FLOW TEST: Verifies that users are redirected to their default team
+     * when accessing the dashboard without specifying a team
+     */
     it('redirects to default team when no team is specified', async () => {
+      // Setup: Create a request to the dashboard without a team
       const request = createMockRequest({
         path: PROTECTED_URLS.DASHBOARD,
       })
 
-      // Mock no teams for this user
+      // Setup: Mock teams data with a default team
       vi.mocked(supabaseAdmin.from).mockImplementation(
         () =>
           ({
@@ -283,9 +311,10 @@ describe('Middleware Integration Tests', () => {
           }) as unknown as ReturnType<typeof supabaseAdmin.from>
       )
 
+      // Execute: Run the middleware with the request
       await middleware(request)
 
-      // Check if NextResponse.redirect was called with a URL containing the default team
+      // Verify: User is redirected to their default team
       const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
       expect(redirectCalls.length).toBeGreaterThan(0)
       if (redirectCalls.length > 0) {
@@ -293,12 +322,17 @@ describe('Middleware Integration Tests', () => {
       }
     })
 
+    /**
+     * USER FLOW TEST: Verifies that new users without teams are redirected
+     * to the team creation page
+     */
     it('redirects to new team page when user has no teams', async () => {
+      // Setup: Create a request to the dashboard
       const request = createMockRequest({
         path: PROTECTED_URLS.DASHBOARD,
       })
 
-      // Mock no teams for this user
+      // Setup: Mock no teams for this user
       vi.mocked(supabaseAdmin.from).mockImplementation(
         () =>
           ({
@@ -313,9 +347,10 @@ describe('Middleware Integration Tests', () => {
           }) as unknown as ReturnType<typeof supabaseAdmin.from>
       )
 
+      // Execute: Run the middleware with the request
       await middleware(request)
 
-      // Check if NextResponse.redirect was called with the new team URL
+      // Verify: User is redirected to the new team page
       const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
       expect(redirectCalls.length).toBeGreaterThan(0)
       if (redirectCalls.length > 0) {
@@ -327,12 +362,17 @@ describe('Middleware Integration Tests', () => {
   })
 
   describe('Error Handling', () => {
+    /**
+     * ERROR HANDLING TEST: Verifies that database errors are handled gracefully
+     * and users are redirected to a safe location
+     */
     it('handles database errors gracefully', async () => {
+      // Setup: Create a request to the dashboard
       const request = createMockRequest({
         path: PROTECTED_URLS.DASHBOARD,
       })
 
-      // Mock database error
+      // Setup: Mock a database error
       vi.mocked(supabaseAdmin.from).mockImplementation(
         () =>
           ({
@@ -347,9 +387,10 @@ describe('Middleware Integration Tests', () => {
           }) as unknown as ReturnType<typeof supabaseAdmin.from>
       )
 
+      // Execute: Run the middleware with the request
       await middleware(request)
 
-      // Should redirect to home on error
+      // Verify: User is redirected to home on error
       const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
       expect(redirectCalls.length).toBeGreaterThan(0)
       if (redirectCalls.length > 0) {
