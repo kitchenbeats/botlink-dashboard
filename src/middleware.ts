@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { AUTH_URLS, PROTECTED_URLS } from './configs/urls'
 import { createServerClient } from '@supabase/ssr'
 import {
   getAuthRedirect,
@@ -9,7 +8,6 @@ import {
   isDashboardRoute,
   resolveTeamForDashboard,
 } from './server/middleware'
-import { COOKIE_KEYS } from './configs/keys'
 import {
   LANDING_PAGE_DOMAIN,
   LANDING_PAGE_FRAMER_DOMAIN,
