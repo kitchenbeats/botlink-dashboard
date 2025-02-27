@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "<<<<<<< Next.js": "",
-    "dev": "bun scripts:check-env && next dev --turbo",
+    "dev": "bun scripts:check-app-env && next dev --turbo",
     "build": "next build",
     "start": "next start",
     "preview": "bun run build && bun start",
@@ -20,19 +20,23 @@
     "db:migration": "bun scripts/create-migration.ts",
 
     "<<<<<< Scripts": "",
-    "scripts:check-env": "bun scripts/check-env.ts",
+    "scripts:check-app-env": "bun scripts/check-app-env.ts",
     "scripts:build-storybook": "bun scripts/build-storybook.ts",
+    "scripts:check-e2e-env": "bun scripts/check-e2e-env.ts",
+    "scripts:check-all-env": "bun scripts:check-app-env && bun scripts:check-e2e-env",
 
     "<<<<<< Development": "",
     "storybook": "storybook dev -p 6006",
     "shad": "bunx shadcn@canary",
-    "prebuild": "bun scripts:check-env && bun test:run && bun scripts:build-storybook",
+    "prebuild": "bun test:integration && bun scripts:build-storybook",
     "postinstall": "fumadocs-mdx",
 
     "<<<<<< Testing": "",
-    "test:run": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:run": "bun scripts:check-all-env && vitest run",
+    "test:integration": "bun scripts:check-app-env && vitest run src/__test__/integration/",
+    "test:e2e": "bun scripts:check-all-env && vitest run src/__test__/e2e/",
+    "test:watch": "bun scripts:check-all-env && vitest",
+    "test:ui": "bun scripts:check-all-env && vitest --ui"
   },
   "dependencies": {
     "@fumadocs/mdx-remote": "^1.2.0",
