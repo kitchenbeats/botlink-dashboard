@@ -111,7 +111,7 @@ export async function resolveTeamForDashboard(
 /**
  * Checks user access to team with caching
  */
-async function checkUserTeamAccess(
+export async function checkUserTeamAccess(
   userId: string,
   teamId: string
 ): Promise<boolean> {

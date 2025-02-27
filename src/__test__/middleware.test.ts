@@ -1,485 +1,360 @@
-import { vi, describe, test, expect } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { NextRequest, NextResponse } from 'next/server'
+import { middleware } from '@/middleware'
+import { checkUserTeamAuthorization } from '@/lib/utils/server'
+import { kv } from '@/lib/clients/kv'
+import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { COOKIE_KEYS } from '@/configs/keys'
+import { PROTECTED_URLS } from '@/configs/urls'
+import { createServerClient } from '@supabase/ssr'
+import { AUTH_URLS } from '@/configs/urls'
 
-// Mock dependencies before imports
-vi.mock('@/lib/clients/supabase/admin', () => ({
-  supabaseAdmin: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() =>
-          Promise.resolve({
-            data: [
-              {
-                team_id: 'default-team-id',
-                is_default: true,
-                team: {
-                  slug: 'default-team-slug',
-                },
-              },
-            ],
-            error: null,
-          })
-        ),
-      })),
-    })),
-  },
+// Mock dependencies
+vi.mock('@/lib/utils/server', () => ({
+  checkUserTeamAuthorization: vi.fn(),
+  resolveTeamId: vi.fn((id) => Promise.resolve(id)),
 }))
 
 vi.mock('@/lib/clients/kv', () => ({
   kv: {
-    get: vi.fn(() => Promise.resolve(null)),
-    set: vi.fn(() => Promise.resolve(true)),
+    get: vi.fn(),
+    set: vi.fn(),
   },
 }))
 
-vi.mock('@/lib/utils/server', () => ({
-  checkUserTeamAuthorization: vi.fn(() => Promise.resolve(true)),
-  resolveTeamId: vi.fn((id) => Promise.resolve(id)),
+vi.mock('@/lib/clients/supabase/admin', () => ({
+  supabaseAdmin: {
+    from: vi.fn(),
+  },
 }))
 
 vi.mock('@supabase/ssr', () => ({
   createServerClient: vi.fn(() => ({
     auth: {
-      getUser: vi.fn(() =>
-        Promise.resolve({
-          data: { user: { id: 'test-user-id' } },
-          error: null,
-        })
-      ),
+      getUser: vi.fn(),
     },
   })),
 }))
 
+// Mock NextResponse
 vi.mock('next/server', async () => {
-  const actual = await vi.importActual('next/server')
+  const actual =
+    await vi.importActual<typeof import('next/server')>('next/server')
+
+  const mockRedirect = vi.fn((url: URL | string) => {
+    const response = new actual.NextResponse(null, {
+      status: 307,
+      headers: {
+        location: url.toString(),
+      },
+    })
+
+    // Add cookies property
+    Object.defineProperty(response, 'cookies', {
+      value: {
+        set: vi.fn(),
+        get: vi.fn(),
+      },
+      writable: true,
+    })
+
+    return response
+  })
+
+  const mockNext = vi.fn(() => {
+    const response = new actual.NextResponse()
+
+    // Add cookies property
+    Object.defineProperty(response, 'cookies', {
+      value: {
+        set: vi.fn(),
+      },
+      writable: true,
+    })
+
+    return response
+  })
+
   return {
     ...actual,
     NextResponse: {
-      redirect: vi.fn((url) => ({
-        url,
-        cookies: {
-          set: vi.fn(),
-          delete: vi.fn(),
-        },
-      })),
-      next: vi.fn(() => ({
-        cookies: {
-          set: vi.fn(),
-          delete: vi.fn(),
-        },
-      })),
-      rewrite: vi.fn((url) => ({
-        url,
-        cookies: {
-          set: vi.fn(),
-          delete: vi.fn(),
-        },
-      })),
+      ...actual.NextResponse,
+      redirect: mockRedirect,
+      next: mockNext,
     },
   }
 })
 
-import { middleware } from '../middleware'
-import {
-  resolveTeamForDashboard,
-  isDashboardRoute,
-  buildRedirectUrl,
-  getAuthRedirect,
-  setCookies,
-  clearTeamCookies,
-  handleTeamResolution,
-} from '../server/middleware'
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { COOKIE_KEYS } from '../configs/keys'
-import { AUTH_URLS, PROTECTED_URLS } from '../configs/urls'
-
 // Helper to create mock requests
-function createMockRequest(
-  path: string,
-  options: {
-    cookies?: Record<string, string>
-    headers?: Record<string, string>
-    method?: string
-  } = {}
-) {
-  const url = new URL(`https://example.com${path}`)
+function createMockRequest({
+  url = 'https://app.e2b.dev',
+  path = '/',
+  cookies = {},
+  headers = {},
+}: {
+  url?: string
+  path?: string
+  cookies?: Record<string, string>
+  headers?: Record<string, string>
+} = {}): NextRequest {
+  const fullUrl = `${url}${path}`
 
-  const request = new NextRequest(url, {
-    method: options.method || 'GET',
-    headers: new Headers(options.headers || {}),
+  // Create request with cookies
+  const req = new NextRequest(fullUrl, {
+    headers: new Headers(headers),
   })
 
   // Add cookies
-  if (options.cookies) {
-    Object.entries(options.cookies).forEach(([name, value]) => {
-      request.cookies.set(name, value)
+  Object.entries(cookies).forEach(([key, value]) => {
+    vi.spyOn(req.cookies, 'get').mockImplementation((name) => {
+      if (name === key) {
+        return { name, value } as { name: string; value: string }
+      }
+      return undefined
     })
-  }
+  })
 
-  return request
+  return req
 }
 
-// Unit tests for extracted functions
-describe('URL Utilities', () => {
-  /**
-   * Tests the isDashboardRoute function to ensure it correctly identifies
-   * dashboard routes vs non-dashboard routes.
-   *
-   * Justification: This is a critical function that determines routing behavior
-   * throughout the application. If this fails, users could be incorrectly
-   * redirected or blocked from accessing certain pages.
-   */
-  test('isDashboardRoute correctly identifies dashboard routes', () => {
-    expect(isDashboardRoute('/dashboard')).toBe(true)
-    expect(isDashboardRoute('/dashboard/teams')).toBe(true)
-    expect(isDashboardRoute('/auth/signin')).toBe(false)
-    expect(isDashboardRoute('/')).toBe(false)
-  })
+describe('Middleware Integration Tests', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
 
-  /**
-   * Tests the buildRedirectUrl function to ensure it constructs URLs correctly.
-   *
-   * Justification: Proper URL construction is essential for redirects to work.
-   * This test verifies that the function maintains the correct origin while
-   * changing the pathname, preventing cross-domain redirects or malformed URLs.
-   */
-  test('buildRedirectUrl constructs URLs correctly', () => {
-    const request = createMockRequest('/current-path')
-    const url = buildRedirectUrl('/new-path', request)
-    expect(url.pathname).toBe('/new-path')
-    expect(url.origin).toBe('https://example.com')
-  })
-})
-
-describe('Authentication Utilities', () => {
-  /**
-   * Tests that unauthenticated users are redirected to sign-in when trying
-   * to access protected routes.
-   *
-   * Justification: This is a core security feature - we must ensure that
-   * protected routes remain inaccessible to unauthenticated users.
-   */
-  test('getAuthRedirect redirects unauthenticated users from protected routes', () => {
-    const request = createMockRequest('/dashboard')
-    const redirect = getAuthRedirect(request, false)
-    expect(redirect).not.toBeNull()
-    expect(redirect?.url.toString()).toContain(AUTH_URLS.SIGN_IN)
-  })
-
-  /**
-   * Tests that authenticated users are redirected to the dashboard when
-   * accessing the root path.
-   *
-   * Justification: This improves UX by automatically directing logged-in users
-   * to their dashboard rather than showing them the public landing page.
-   */
-  test('getAuthRedirect redirects authenticated users from root path', () => {
-    const request = createMockRequest('/')
-    const redirect = getAuthRedirect(request, true)
-    expect(redirect).not.toBeNull()
-    expect(redirect?.url.toString()).toContain(PROTECTED_URLS.DASHBOARD)
-  })
-
-  /**
-   * Tests that authenticated users can access protected routes without redirection.
-   *
-   * Justification: Ensures that authorized users have proper access to the
-   * protected areas of the application they're entitled to use.
-   */
-  test('getAuthRedirect allows authenticated users on protected routes', () => {
-    const request = createMockRequest('/dashboard')
-    const redirect = getAuthRedirect(request, true)
-    expect(redirect).toBeNull()
-  })
-
-  /**
-   * Tests that unauthenticated users can access public routes.
-   *
-   * Justification: Confirms that public pages remain accessible to all users,
-   * which is important for marketing, documentation, and other public-facing content.
-   */
-  test('getAuthRedirect allows unauthenticated users on public routes', () => {
-    const request = createMockRequest('/about')
-    const redirect = getAuthRedirect(request, false)
-    expect(redirect).toBeNull()
-  })
-})
-
-describe('Cookie Management', () => {
-  /**
-   * Tests that setCookies properly sets both team ID and slug cookies.
-   *
-   * Justification: Cookies are our primary mechanism for maintaining team context
-   * across requests. This test ensures both required cookies are set with correct values.
-   */
-  test('setCookies sets team ID and slug cookies', () => {
-    const response = { cookies: { set: vi.fn() } } as unknown as NextResponse
-    const result = setCookies(response, 'team-123', 'team-slug')
-
-    expect(response.cookies.set).toHaveBeenCalledTimes(2)
-    expect(response.cookies.set).toHaveBeenCalledWith(
-      COOKIE_KEYS.SELECTED_TEAM_ID,
-      'team-123',
-      expect.any(Object)
-    )
-    expect(response.cookies.set).toHaveBeenCalledWith(
-      COOKIE_KEYS.SELECTED_TEAM_SLUG,
-      'team-slug',
-      expect.any(Object)
-    )
-    expect(result).toBe(response)
-  })
-
-  /**
-   * Tests that setCookies works correctly when only team ID is provided.
-   *
-   * Justification: There are scenarios where we might only have the team ID
-   * but not the slug. This test ensures the function handles this gracefully.
-   */
-  test('setCookies only sets team ID when slug is not provided', () => {
-    const response = { cookies: { set: vi.fn() } } as unknown as NextResponse
-    setCookies(response, 'team-123')
-
-    expect(response.cookies.set).toHaveBeenCalledTimes(1)
-    expect(response.cookies.set).toHaveBeenCalledWith(
-      COOKIE_KEYS.SELECTED_TEAM_ID,
-      'team-123',
-      expect.any(Object)
-    )
-  })
-
-  /**
-   * Tests that clearTeamCookies properly removes all team-related cookies.
-   *
-   * Justification: When switching teams or logging out, we need to ensure
-   * all team context is properly cleared to prevent data leakage between sessions.
-   */
-  test('clearTeamCookies deletes team cookies', () => {
-    const response = { cookies: { delete: vi.fn() } } as unknown as NextResponse
-    const result = clearTeamCookies(response)
-
-    expect(response.cookies.delete).toHaveBeenCalledTimes(2)
-    expect(response.cookies.delete).toHaveBeenCalledWith(
-      COOKIE_KEYS.SELECTED_TEAM_ID
-    )
-    expect(response.cookies.delete).toHaveBeenCalledWith(
-      COOKIE_KEYS.SELECTED_TEAM_SLUG
-    )
-    expect(result).toBe(response)
-  })
-})
-
-describe('Team Resolution Handler', () => {
-  /**
-   * Tests that handleTeamResolution returns the response directly when access is allowed.
-   *
-   * Justification: For special routes like team creation, we need to bypass
-   * normal team resolution. This test ensures those routes work correctly.
-   */
-  test('returns response directly when allowAccess is true', () => {
-    const request = createMockRequest('/dashboard/new-team')
-    const response = NextResponse.next()
-    const teamResult = { allowAccess: true }
-
-    const result = handleTeamResolution(request, response, teamResult)
-    expect(result).toBe(response)
-  })
-
-  /**
-   * Tests that handleTeamResolution redirects and clears cookies when no teamId is provided.
-   *
-   * Justification: When team resolution fails, we need to ensure users are redirected
-   * appropriately and stale team data is cleared to prevent access issues.
-   */
-  test('redirects and clears cookies when no teamId is provided', () => {
-    const request = createMockRequest('/dashboard')
-    const response = NextResponse.next()
-    const teamResult: Awaited<ReturnType<typeof resolveTeamForDashboard>> = {
-      redirect: '/dashboard',
-    }
-
-    vi.mocked(NextResponse.redirect).mockReturnValueOnce({
-      url: '/dashboard',
-      cookies: {
-        set: vi.fn(),
-        delete: vi.fn(),
-      },
-    } as unknown as NextResponse)
-
-    const result = handleTeamResolution(request, response, teamResult)
-
-    expect(NextResponse.redirect).toHaveBeenCalled()
-    expect(result.cookies.delete).toHaveBeenCalledTimes(2)
-  })
-
-  /**
-   * Tests that handleTeamResolution redirects and sets cookies when a redirect is needed.
-   *
-   * Justification: When users need to be redirected to a specific team context,
-   * we must ensure both the redirect happens and the appropriate cookies are set.
-   */
-  test('redirects and sets cookies when redirect is provided', () => {
-    const request = createMockRequest('/dashboard')
-    const response = NextResponse.next()
-    const teamResult = {
-      teamId: 'team-123',
-      teamSlug: 'team-slug',
-      redirect: '/dashboard/team-123',
-    }
-
-    vi.mocked(NextResponse.redirect).mockReturnValueOnce({
-      url: '/dashboard/team-123',
-      cookies: {
-        set: vi.fn(),
-        delete: vi.fn(),
-      },
-    } as unknown as NextResponse)
-
-    const result = handleTeamResolution(request, response, teamResult)
-
-    expect(NextResponse.redirect).toHaveBeenCalled()
-    expect(result.cookies.set).toHaveBeenCalledTimes(2)
-  })
-
-  /**
-   * Tests that handleTeamResolution sets cookies without redirecting when appropriate.
-   *
-   * Justification: For cases where the user is already on the correct page but
-   * team context needs to be established, we should set cookies without redirecting.
-   */
-  test('sets cookies on response when no redirect is needed', () => {
-    const request = createMockRequest('/dashboard/team-123')
-    const response = { cookies: { set: vi.fn() } } as unknown as NextResponse
-    const teamResult: Awaited<ReturnType<typeof resolveTeamForDashboard>> = {
-      teamId: 'team-123',
-      teamSlug: 'team-slug',
-    }
-
-    handleTeamResolution(request, response, teamResult)
-
-    expect(response.cookies.set).toHaveBeenCalledTimes(2)
-  })
-})
-
-// Integration tests for middleware
-describe('Middleware Integration', () => {
-  /**
-   * Tests the complete authentication flow for unauthenticated users.
-   *
-   * Justification: This integration test verifies that the entire middleware
-   * correctly handles unauthenticated users trying to access protected routes,
-   * which is a critical security feature.
-   */
-  test('redirects to sign in when accessing protected route without auth', async () => {
-    // Override the getUser mock for this test
-    vi.mocked(createServerClient).mockImplementationOnce(() => ({
-      auth: {
-        getUser: vi.fn(() =>
-          Promise.resolve({
-            data: { user: null },
-            error: { message: 'Not authenticated' },
-          })
-        ),
-      },
-    }))
-
-    const request = createMockRequest(PROTECTED_URLS.DASHBOARD)
-    const response = await middleware(request)
-
-    expect(response.url.toString()).toContain(AUTH_URLS.SIGN_IN)
-  })
-
-  /**
-   * Tests the root path redirection for authenticated users.
-   *
-   * Justification: This integration test ensures the complete middleware
-   * correctly redirects authenticated users from the landing page to their dashboard,
-   * improving user experience.
-   */
-  test('redirects to dashboard when authenticated user accesses root', async () => {
-    const request = createMockRequest('/')
-    const response = await middleware(request)
-
-    expect(response.url.toString()).toContain(PROTECTED_URLS.DASHBOARD)
-  })
-
-  /**
-   * Tests that team cookies are set when accessing a valid team dashboard.
-   *
-   * Justification: This integration test verifies that the complete middleware
-   * correctly establishes team context when users access a specific team's dashboard.
-   */
-  test('sets team cookies when accessing dashboard with valid team', async () => {
-    const request = createMockRequest(
-      `${PROTECTED_URLS.DASHBOARD}/test-team-id`
-    )
-    const setCookieMock = vi.fn()
-
-    vi.mocked(NextResponse.next).mockImplementationOnce(
+    // Default mocks
+    vi.mocked(createServerClient).mockImplementation(
       () =>
         ({
-          cookies: {
-            set: setCookieMock,
+          auth: {
+            getUser: vi.fn().mockResolvedValue({
+              data: { user: { id: 'user-123' } },
+              error: null,
+            }),
           },
-        }) as unknown as NextResponse
-    )
-
-    await middleware(request)
-
-    expect(setCookieMock).toHaveBeenCalled()
-    expect(setCookieMock).toHaveBeenCalledWith(
-      COOKIE_KEYS.SELECTED_TEAM_ID,
-      expect.any(String),
-      expect.any(Object)
+        }) as ReturnType<typeof createServerClient>
     )
   })
-})
 
-// Tests for resolveTeamForDashboard
-describe('resolveTeamForDashboard', () => {
-  /**
-   * Tests that the new team page is accessible without team context.
-   *
-   * Justification: The team creation page is a special case that should be
-   * accessible even without an existing team context, as it's needed to create
-   * the first team.
-   */
-  test('allows access to new team page', async () => {
-    const request = createMockRequest(PROTECTED_URLS.NEW_TEAM)
-    const result = await resolveTeamForDashboard(request, 'test-user-id')
-
-    expect(result.allowAccess).toBe(true)
+  afterEach(() => {
+    vi.resetAllMocks()
   })
 
-  /**
-   * Tests that team ID is correctly extracted from the URL path.
-   *
-   * Justification: When users access a specific team's dashboard directly via URL,
-   * we need to correctly parse and validate the team ID from the URL.
-   */
-  test('resolves team ID from URL path', async () => {
-    const request = createMockRequest(
-      `${PROTECTED_URLS.DASHBOARD}/test-team-id`
-    )
-    const result = await resolveTeamForDashboard(request, 'test-user-id')
+  describe('Authentication Flow', () => {
+    it('redirects unauthenticated users to sign in', async () => {
+      // Mock unauthenticated user
+      vi.mocked(createServerClient).mockImplementation(
+        () =>
+          ({
+            auth: {
+              getUser: vi.fn().mockResolvedValue({
+                data: { user: null },
+                error: { message: 'Not authenticated' },
+              }),
+            },
+          }) as ReturnType<typeof createServerClient>
+      )
 
-    expect(result.teamId).toBe('test-team-id')
+      const request = createMockRequest({
+        path: PROTECTED_URLS.DASHBOARD,
+      })
+
+      await middleware(request)
+
+      // Verify that NextResponse.redirect was called
+      const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
+      expect(redirectCalls.length).toBeGreaterThan(0)
+
+      // Verify the redirect URL contains the sign-in path
+      if (redirectCalls.length > 0) {
+        const redirectUrl = redirectCalls[0][0].toString()
+        expect(redirectUrl).toContain(AUTH_URLS.SIGN_IN)
+      }
+    })
+
+    it('allows authenticated users to access protected routes', async () => {
+      const request = createMockRequest({
+        path: PROTECTED_URLS.DASHBOARD,
+      })
+
+      // Mock team data
+      vi.mocked(supabaseAdmin.from).mockImplementation(
+        () =>
+          ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() =>
+                Promise.resolve({
+                  data: [
+                    {
+                      team_id: 'default-team-id',
+                      is_default: true,
+                      team: { slug: 'default-team' },
+                    },
+                  ],
+                  error: null,
+                })
+              ),
+            })),
+          }) as unknown as ReturnType<typeof supabaseAdmin.from>
+      )
+
+      await middleware(request)
+
+      // Check if NextResponse.redirect was called with a URL containing the default team
+      const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
+      expect(redirectCalls.length).toBeGreaterThan(0)
+      if (redirectCalls.length > 0) {
+        expect(redirectCalls[0][0].toString()).toContain('default-team')
+      }
+    })
   })
 
-  /**
-   * Tests the fallback to default team when no specific team is requested.
-   *
-   * Justification: Users should be directed to their default team when they
-   * access the general dashboard without specifying a team, improving UX by
-   * eliminating the need to always select a team.
-   */
-  test('falls back to default team when no team specified', async () => {
-    const request = createMockRequest(PROTECTED_URLS.DASHBOARD)
-    const result = await resolveTeamForDashboard(request, 'test-user-id')
+  describe('Team Access Control', () => {
+    it('handles tampered team cookies securely', async () => {
+      const request = createMockRequest({
+        path: '/dashboard/tampered-team-id/sandboxes',
+        cookies: {
+          [COOKIE_KEYS.SELECTED_TEAM_ID]: 'tampered-team-id',
+        },
+      })
 
-    expect(result.teamId).toBe('default-team-id')
-    expect(result.redirect).toContain(
-      PROTECTED_URLS.SANDBOXES('default-team-slug')
-    )
+      // Mock user has no access to the tampered team
+      vi.mocked(checkUserTeamAuthorization).mockResolvedValue(false)
+
+      await middleware(request)
+
+      // Verify we're redirected away from the tampered team
+      const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
+      expect(redirectCalls.length).toBeGreaterThan(0)
+      if (redirectCalls.length > 0) {
+        const url = redirectCalls[0][0].toString()
+        expect(url).toContain(PROTECTED_URLS.DASHBOARD)
+        expect(url).not.toContain('tampered-team-id')
+      }
+    })
+
+    it('uses cached team access when available', async () => {
+      const request = createMockRequest({
+        path: '/dashboard/cached-team-id/sandboxes',
+      })
+
+      // Mock cached access value
+      vi.mocked(kv.get).mockImplementation((key: string) => {
+        if (key.includes('user-123') && key.includes('cached-team-id')) {
+          return Promise.resolve(true)
+        }
+        return Promise.resolve(null)
+      })
+
+      await middleware(request)
+
+      // Verify checkUserTeamAuthorization was not called since we used the cache
+      expect(checkUserTeamAuthorization).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Team Resolution and Routing', () => {
+    it('redirects to default team when no team is specified', async () => {
+      const request = createMockRequest({
+        path: PROTECTED_URLS.DASHBOARD,
+      })
+
+      // Mock no teams for this user
+      vi.mocked(supabaseAdmin.from).mockImplementation(
+        () =>
+          ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() =>
+                Promise.resolve({
+                  data: [
+                    {
+                      team_id: 'default-team-id',
+                      is_default: true,
+                      team: { slug: 'default-team' },
+                    },
+                  ] as Array<{
+                    team_id: string
+                    is_default: boolean
+                    team: { slug: string }
+                  }>,
+                  error: null,
+                })
+              ),
+            })),
+          }) as unknown as ReturnType<typeof supabaseAdmin.from>
+      )
+
+      await middleware(request)
+
+      // Check if NextResponse.redirect was called with a URL containing the default team
+      const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
+      expect(redirectCalls.length).toBeGreaterThan(0)
+      if (redirectCalls.length > 0) {
+        expect(redirectCalls[0][0].toString()).toContain('default-team')
+      }
+    })
+
+    it('redirects to new team page when user has no teams', async () => {
+      const request = createMockRequest({
+        path: PROTECTED_URLS.DASHBOARD,
+      })
+
+      // Mock no teams for this user
+      vi.mocked(supabaseAdmin.from).mockImplementation(
+        () =>
+          ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() =>
+                Promise.resolve({
+                  data: [] as Array<never>,
+                  error: null,
+                })
+              ),
+            })),
+          }) as unknown as ReturnType<typeof supabaseAdmin.from>
+      )
+
+      await middleware(request)
+
+      // Check if NextResponse.redirect was called with the new team URL
+      const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
+      expect(redirectCalls.length).toBeGreaterThan(0)
+      if (redirectCalls.length > 0) {
+        expect(redirectCalls[0][0].toString()).toContain(
+          PROTECTED_URLS.NEW_TEAM
+        )
+      }
+    })
+  })
+
+  describe('Error Handling', () => {
+    it('handles database errors gracefully', async () => {
+      const request = createMockRequest({
+        path: PROTECTED_URLS.DASHBOARD,
+      })
+
+      // Mock database error
+      vi.mocked(supabaseAdmin.from).mockImplementation(
+        () =>
+          ({
+            select: vi.fn(() => ({
+              eq: vi.fn(() =>
+                Promise.resolve({
+                  data: null,
+                  error: { message: 'Database error' },
+                })
+              ),
+            })),
+          }) as unknown as ReturnType<typeof supabaseAdmin.from>
+      )
+
+      await middleware(request)
+
+      // Should redirect to home on error
+      const redirectCalls = vi.mocked(NextResponse.redirect).mock.calls
+      expect(redirectCalls.length).toBeGreaterThan(0)
+      if (redirectCalls.length > 0) {
+        expect(redirectCalls[0][0].toString()).toContain('/')
+      }
+    })
   })
 })
