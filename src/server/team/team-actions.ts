@@ -5,12 +5,10 @@ import { Database } from '@/types/database.types'
 import {
   checkAuthenticated,
   checkUserTeamAuthorization,
-  getApiUrl,
   getUserAccessToken,
   guard,
 } from '@/lib/utils/server'
 import { z } from 'zod'
-import { User } from '@supabase/supabase-js'
 import {
   E2BError,
   InvalidParametersError,

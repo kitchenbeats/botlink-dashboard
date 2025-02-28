@@ -10,13 +10,15 @@ import { Label } from '@/ui/primitives/label'
 import { AUTH_URLS } from '@/configs/urls'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useRef, useEffect, Suspense } from 'react'
+import { useRef, useEffect, Suspense, useTransition } from 'react'
 
 export default function Login() {
   const searchParams = useSearchParams()
   const formRef = useRef<HTMLFormElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
+
+  const [isPending, startTransition] = useTransition()
 
   // Handle email prefill from forgot password flow
   useEffect(() => {
@@ -91,13 +93,18 @@ export default function Login() {
           placeholder="••••••••••••"
           required
         />
-        <Button formAction={signInAction}>Sign in</Button>
+        <Button
+          formAction={(data) => startTransition(() => signInAction(data))}
+          loading={isPending}
+        >
+          Sign in
+        </Button>
       </form>
 
-      <p className="mt-3 text-sm leading-6 text-fg-300">
+      <p className="text-fg-300 mt-3 text-sm leading-6">
         Don&apos;t have an account?{' '}
         <Link
-          className="font-medium text-fg underline"
+          className="text-fg font-medium underline"
           href={AUTH_URLS.SIGN_UP}
         >
           Sign up
