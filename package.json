@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "# Next.js": "",
-    "dev": "bun prebuild && next dev --turbo",
+    "dev": "bun prebuild && next dev",
     "build": "next build",
     "start": "next start",
     "preview": "bun run build && bun start",
@@ -40,6 +40,7 @@
     "@radix-ui/react-toast": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@radix-ui/themes": "^3.2.0",
+    "@sentry/nextjs": "^9",
     "@shikijs/core": "2.3.2",
     "@shikijs/rehype": "^2.3.2",
     "@shikijs/themes": "2.3.2",
