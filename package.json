@@ -10,27 +10,22 @@
     "preview": "bun run build && bun start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-
     "<<<<<< Development Tools": "",
     "dev:scan": "bun dev & bun scan",
     "start:scan": "bun start & bun scan",
-
     "<<<<<< Database": "",
     "db:types": "bunx supabase@latest gen types typescript --schema public > src/types/database.types.ts --project-id $SUPABASE_PROJECT_ID",
     "db:migration": "bun scripts/create-migration.ts",
-
     "<<<<<< Scripts": "",
     "scripts:check-app-env": "bun scripts/check-app-env.ts",
     "scripts:build-storybook": "bun scripts/build-storybook.ts",
     "scripts:check-e2e-env": "bun scripts/check-e2e-env.ts",
     "scripts:check-all-env": "bun scripts:check-app-env && bun scripts:check-e2e-env",
-
     "<<<<<< Development": "",
     "storybook": "storybook dev -p 6006",
     "shad": "bunx shadcn@canary",
     "prebuild": "bun test:integration && bun scripts:build-storybook",
     "postinstall": "fumadocs-mdx",
-
     "<<<<<< Testing": "",
     "test:run": "bun scripts:check-all-env && vitest run",
     "test:integration": "bun scripts:check-app-env && vitest run src/__test__/integration/",
@@ -85,7 +80,7 @@
     "lucide-react": "^0.474.0",
     "motion": "^12.0.6",
     "nanoid": "^5.0.9",
-    "next": "^15.2.0-canary.56",
+    "next": "^15.2.2-canary.6",
     "next-logger": "^5.0.1",
     "next-themes": "^0.4.4",
     "pg": "^8.13.1",
