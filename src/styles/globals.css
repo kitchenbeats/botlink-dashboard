@@ -18,8 +18,6 @@
 
   body {
     @apply bg-bg text-fg tracking-wide antialiased;
-
-    text-rendering: optimizeLegibility;
   }
 
   h1,

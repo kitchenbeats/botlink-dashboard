@@ -9,7 +9,7 @@ import { OAuthProviders } from '@/features/auth/oauth-provider-buttons'
 import { AuthFormMessage, AuthMessage } from '@/features/auth/form-message'
 import TextSeparator from '@/ui/text-separator'
 import { useSearchParams } from 'next/navigation'
-import { useRef, useEffect, Suspense } from 'react'
+import { useRef, useEffect, Suspense, useTransition } from 'react'
 import { AUTH_URLS } from '@/configs/urls'
 
 export default function Signup() {
@@ -18,6 +18,8 @@ export default function Signup() {
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const confirmPasswordRef = useRef<HTMLInputElement>(null)
+
+  const [isPending, startTransition] = useTransition()
 
   // Focus management
   useEffect(() => {
@@ -85,13 +87,18 @@ export default function Signup() {
             autoComplete="new-password"
           />
         </div>
-        <Button formAction={signUpAction}>Sign up</Button>
+        <Button
+          formAction={(data) => startTransition(() => signUpAction(data))}
+          loading={isPending}
+        >
+          Sign up
+        </Button>
       </form>
 
-      <p className="mt-3 text-sm leading-6 text-fg-300">
+      <p className="text-fg-300 mt-3 text-sm leading-6">
         Already have an account?{' '}
         <Link
-          className="font-medium text-fg underline"
+          className="text-fg font-medium underline"
           href={AUTH_URLS.SIGN_IN}
         >
           Sign in
