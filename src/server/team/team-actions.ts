@@ -110,7 +110,7 @@ export const addTeamMemberAction = guard(
       throw insertError
     }
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
@@ -173,7 +173,7 @@ export const removeTeamMemberAction = guard(
       throw removeError
     }
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
@@ -287,7 +287,6 @@ export const uploadTeamProfilePictureAction = guard(
 
             try {
               await bucket.file(filePath).delete()
-              console.log(`Deleted old profile picture: ${filePath}`)
             } catch (deleteError) {
               console.error(`Error deleting file ${filePath}:`, deleteError)
             }
@@ -299,7 +298,7 @@ export const uploadTeamProfilePictureAction = guard(
         }
       })()
 
-      revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+      revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
     } catch (error) {
       console.error('Error uploading profile picture to GCP:', error)
       throw new Error('Failed to upload profile picture')
