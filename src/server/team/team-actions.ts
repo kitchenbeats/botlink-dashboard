@@ -17,6 +17,7 @@ import {
 import { kv } from '@vercel/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { revalidatePath } from 'next/cache'
+import { uploadFile, deleteFile, bucket } from '@/lib/clients/storage'
 
 // Update team name
 
@@ -212,11 +213,6 @@ export const createTeamAction = guard(CreateTeamSchema, async ({ name }) => {
 
 // Upload team profile picture and update team record
 
-const UploadTeamProfilePictureSchema = z.object({
-  teamId: z.string().uuid(),
-  image: z.instanceof(File),
-})
-
 export const uploadTeamProfilePictureAction = guard(
   async (formData: FormData) => {
     const teamId = formData.get('teamId') as string
@@ -246,81 +242,66 @@ export const uploadTeamProfilePictureAction = guard(
 
     const extension = image.name.split('.').pop() || 'png'
     const fileName = `${Date.now()}.${extension}`
-    const filePath = `teams/${teamId}/${fileName}`
+    const filePath = `profile-pictures/teams/${teamId}/${fileName}`
 
     const arrayBuffer = await image.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from('profile-pictures')
-      .upload(filePath, buffer, {
-        contentType: image.type,
-        upsert: true,
-      })
+    try {
+      // Upload file to GCP Storage
+      const publicUrl = await uploadFile(buffer, filePath, image.type)
 
-    if (uploadError) {
-      throw new Error(uploadError.message)
-    }
+      // Update team record with new profile picture URL
+      const { data, error } = await supabaseAdmin
+        .from('teams')
+        .update({ profile_picture_url: publicUrl })
+        .eq('id', teamId)
+        .select()
+        .single()
 
-    const { data: publicUrlData } = supabaseAdmin.storage
-      .from('profile-pictures')
-      .getPublicUrl(filePath)
+      if (error) {
+        throw new Error(error.message)
+      }
 
-    const { data, error } = await supabaseAdmin
-      .from('teams')
-      .update({ profile_picture_url: publicUrlData.publicUrl })
-      .eq('id', teamId)
-      .select()
-      .single()
+      // Clean up old profile pictures asynchronously in the background
+      // We don't await this promise, so it runs in the background
+      ;(async () => {
+        try {
+          // Get the current file name from the path
+          const currentFileName = fileName
 
-    if (error) {
-      throw new Error(error.message)
-    }
+          // List all files in the team's folder from GCP Storage
+          const folderPath = `profile-pictures/teams/${teamId}`
+          const [files] = await bucket.getFiles({
+            prefix: folderPath,
+          })
 
-    // Clean up old profile pictures asynchronously in the background
-    // We don't await this promise, so it runs in the background
-    ;(async () => {
-      try {
-        // List all files in the team's folder
-        const { data: fileList, error: listError } = await supabaseAdmin.storage
-          .from('profile-pictures')
-          .list(`teams/${teamId}`)
+          // Delete all old profile pictures except the one we just uploaded
+          for (const file of files) {
+            const filePath = file.name
+            // Skip the file we just uploaded
+            if (filePath === `${folderPath}/${currentFileName}`) {
+              continue
+            }
 
-        if (listError) {
-          console.error(
-            'Error listing old profile pictures:',
-            listError.message
-          )
-          return
-        }
-
-        if (fileList && fileList.length > 0) {
-          // Filter out the newly uploaded file
-          const filesToDelete = fileList
-            .filter((file) => file.name !== fileName)
-            .map((file) => `teams/${teamId}/${file.name}`)
-
-          if (filesToDelete.length > 0) {
-            // Delete all old files
-            const { error: deleteError } = await supabaseAdmin.storage
-              .from('profile-pictures')
-              .remove(filesToDelete)
-
-            if (deleteError) {
-              console.error(
-                'Error deleting old profile pictures:',
-                deleteError.message
-              )
+            try {
+              await bucket.file(filePath).delete()
+              console.log(`Deleted old profile picture: ${filePath}`)
+            } catch (deleteError) {
+              console.error(`Error deleting file ${filePath}:`, deleteError)
             }
           }
+
+          // No need for Supabase storage cleanup anymore
+        } catch (cleanupError) {
+          console.error('Error during profile picture cleanup:', cleanupError)
         }
-      } catch (cleanupError) {
-        console.error('Error during profile picture cleanup:', cleanupError)
-      }
-    })()
+      })()
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
-
-    return data
+      revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+    } catch (error) {
+      console.error('Error uploading profile picture to GCP:', error)
+      throw new Error('Failed to upload profile picture')
+    }
   }
 )

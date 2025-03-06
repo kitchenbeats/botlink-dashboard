@@ -33,25 +33,30 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
       formData.append('image', file)
 
       startTransition(async () => {
-        const res = await uploadTeamProfilePictureAction(formData)
+        try {
+          const res = await uploadTeamProfilePictureAction(formData)
 
-        if (res.type === 'error') {
+          if (res.type === 'error') {
+            throw new Error(res.message)
+          }
+
+          await refetch()
+
+          toast({
+            title: 'Profile picture updated',
+            description:
+              'Your team profile picture has been updated successfully.',
+            variant: 'default',
+          })
+        } catch (error) {
+          console.error('Error uploading profile picture:', error)
           toast({
             title: 'Upload failed',
-            description: res.message,
+            description:
+              error instanceof Error ? error.message : 'Please try again.',
             variant: 'error',
           })
-          return
         }
-
-        await refetch()
-
-        toast({
-          title: 'Profile picture updated',
-          description:
-            'Your team profile picture has been updated successfully.',
-          variant: 'default',
-        })
       })
     }
   }

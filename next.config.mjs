@@ -14,6 +14,9 @@ const config = {
       dynamic: 180,
       static: 180,
     },
+    serverActions: {
+      bodySizeLimit: '5mb',
+    },
   },
   trailingSlash: false,
   headers: async () => [
