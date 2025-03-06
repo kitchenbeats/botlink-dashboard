@@ -135,7 +135,7 @@ export function NumberInput({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className={cn('bg-bg-100 h-9 rounded-l-none', inputClassName)}
+        className={cn('bg-bg-100 h-9 w-min rounded-l-none', inputClassName)}
         style={{ fieldSizing: 'content' } as React.CSSProperties}
       />
     </div>
