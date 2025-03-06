@@ -9,6 +9,7 @@ import { useEffect } from 'react'
 import { RootProvider } from 'fumadocs-ui/provider'
 import { TooltipProvider } from '@/ui/primitives/tooltip'
 import { ToastProvider } from '@/ui/primitives/toast'
+import { useUser } from '@/lib/hooks/use-user'
 
 interface ClientProvidersProps {
   children: React.ReactNode
@@ -17,9 +18,13 @@ interface ClientProvidersProps {
 export default function ClientProviders({ children }: ClientProvidersProps) {
   const [queryClient] = useState(() => new QueryClient())
 
+  const { user } = useUser()
+
   useLayoutEffect(() => {
+    if (!user) return
+
     preloadTeams()
-  }, [])
+  }, [user])
 
   return (
     <PostHogProvider>
