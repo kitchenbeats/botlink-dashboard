@@ -228,6 +228,7 @@ export const uploadTeamProfilePictureAction = guard(
     }
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+
     if (image.size > MAX_FILE_SIZE) {
       throw InvalidParametersError('File size must be less than 5MB')
     }

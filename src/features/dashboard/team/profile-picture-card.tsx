@@ -27,7 +27,21 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
     if (e.target.files && e.target.files[0] && team?.id) {
       const file = e.target.files[0]
 
-      // Create FormData and append the necessary fields
+      const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB (or match your config limit)
+
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: 'File too large',
+          description: `Profile picture must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB.`,
+          variant: 'error',
+        })
+        // Reset the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+        return
+      }
+
       const formData = new FormData()
       formData.append('teamId', team.id)
       formData.append('image', file)
@@ -50,12 +64,31 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
           })
         } catch (error) {
           console.error('Error uploading profile picture:', error)
+
+          let errorMessage = 'Please try again.'
+
+          if (error instanceof Error) {
+            if (
+              error.message.includes('Body exceeded') ||
+              error.message.includes('413')
+            ) {
+              errorMessage =
+                'The image file is too large. Please select a smaller image (under 5MB).'
+            } else {
+              errorMessage = error.message
+            }
+          }
+
           toast({
             title: 'Upload failed',
-            description:
-              error instanceof Error ? error.message : 'Please try again.',
+            description: errorMessage,
             variant: 'error',
           })
+        } finally {
+          // Reset the file input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ''
+          }
         }
       })
     }
