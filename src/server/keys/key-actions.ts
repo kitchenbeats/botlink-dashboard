@@ -57,7 +57,7 @@ export const createApiKeyAction = guard(
 
     if (error) throw error
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/keys`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/keys`, 'page')
 
     return {
       createdApiKey: apiKeyValue,
@@ -103,7 +103,7 @@ export const deleteApiKeyAction = guard(
 
     if (error) throw error
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/keys`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/keys`, 'page')
 
     return {
       success: true,
