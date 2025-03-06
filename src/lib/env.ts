@@ -2,12 +2,18 @@ import { z } from 'zod'
 
 export const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
-  VERCEL_URL: z.string().optional(),
   BILLING_API_URL: z.string().url(),
-  DEVELOPMENT_INFRA_API_DOMAIN: z.string().optional(),
   COOKIE_ENCRYPTION_KEY: z.string(),
+  GCP_PROJECT_ID: z.string(),
+  GCP_SERVICE_ACCOUNT_EMAIL: z.string(),
+  GCP_SERVICE_ACCOUNT_PRIVATE_KEY: z.string(),
+  GCP_BUCKET_NAME: z.string(),
+  GCP_REGION: z.string(),
 
+  VERCEL_URL: z.string().optional(),
+  DEVELOPMENT_INFRA_API_DOMAIN: z.string().optional(),
   SENTRY_AUTH_TOKEN: z.string().optional(),
+  ZEROBOUNCE_API_KEY: z.string().optional(),
 })
 
 export const clientSchema = z.object({
