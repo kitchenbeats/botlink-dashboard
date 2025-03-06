@@ -8,7 +8,6 @@ export const serverSchema = z.object({
   GCP_SERVICE_ACCOUNT_EMAIL: z.string(),
   GCP_SERVICE_ACCOUNT_PRIVATE_KEY: z.string(),
   GCP_BUCKET_NAME: z.string(),
-  GCP_REGION: z.string(),
 
   VERCEL_URL: z.string().optional(),
   DEVELOPMENT_INFRA_API_DOMAIN: z.string().optional(),
