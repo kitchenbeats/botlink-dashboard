@@ -2,8 +2,8 @@ import { QUERY_KEYS } from '@/configs/keys'
 import { useMemo } from 'react'
 import useSWR, { preload } from 'swr'
 import { TeamWithDefault } from '@/types/dashboard'
-import { useMetadataStore } from '../stores/metadata-store'
 import { useServerContext } from './use-server-context'
+import { useUser } from './use-user'
 
 // Fetcher function extracted so we can use it for preloading
 const teamsFetcher = async () => {
@@ -24,9 +24,11 @@ export const preloadTeams = () => {
 }
 
 export const useTeams = () => {
+  const { user } = useUser()
+
   const { data, error, isLoading, mutate } = useSWR(
-    QUERY_KEYS.TEAMS(),
-    teamsFetcher,
+    user ? QUERY_KEYS.TEAMS() : null,
+    user ? teamsFetcher : null,
     {
       dedupingInterval: 60000,
       revalidateOnFocus: false,
