@@ -79,14 +79,24 @@ vercel storage add
 ```bash
 # Copy the example env file
 cp .env.example .env.local
-
-# Pull environment variables from Vercel (recommended)
-vercel env pull .env.local
-
-# Or manually configure the environment variables outlined in the .env.example file
 ```
 
-#### d. Cookie Encryption
+#### d. GCP Configuration
+The dashboard uses Google Cloud Platform for storage. To set up the required GCP variables:
+
+1. Access the GCP service account key from Google Secret Manager:
+   - The service account key JSON is stored as `dashboard-sa-key` in Secret Manager
+   - This is created automatically when the infrastructure is provisioned via Terraform
+
+2. Extract the required values:
+   - `GCP_SERVICE_ACCOUNT_PRIVATE_KEY`: Extract the `private_key` field from the JSON
+   - `GCP_SERVICE_ACCOUNT_EMAIL`: Extract the `client_email` field from the JSON
+   - `GCP_PROJECT_ID`: Use the project ID where your resources are deployed
+   - `GCP_BUCKET_NAME`: The name of your GCP storage bucket
+
+3. Add these values to your `.env.local` file
+
+#### e. Cookie Encryption
 The dashboard uses encrypted cookies for secure data storage. You'll need to set up a `COOKIE_ENCRYPTION_KEY`:
 
 ```bash
