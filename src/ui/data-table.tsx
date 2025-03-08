@@ -34,8 +34,8 @@ function DataTableHead<TData, TValue>({
     <div
       className={cn(
         'relative flex h-10 items-center p-2 text-left align-middle',
-        'font-mono uppercase tracking-wider',
-        'font-medium text-fg-300',
+        'font-mono tracking-wider uppercase',
+        'text-fg-300 font-medium',
         '[&:has([role=checkbox])]:pr-0',
         {
           'pl-0': header.column.getCanSort(),
@@ -54,7 +54,7 @@ function DataTableHead<TData, TValue>({
             size="icon"
             onClick={() => header.column.toggleSorting(undefined, true)}
             className={cn(
-              'ml-2 size-5 min-w-5 text-fg-500',
+              'text-fg-500 ml-2 size-5 min-w-5',
               sorting !== undefined && 'text-accent'
             )}
           >
@@ -126,11 +126,12 @@ const DataTableRow = React.forwardRef<HTMLDivElement, DataTableRowProps>(
       <div
         ref={ref}
         className={cn(
-          'bg-bg transition-colors data-[state=selected]:bg-bg-300 hover:bg-bg-100/80',
+          'transition-colors',
           'flex w-full items-center',
           {
-            'bg-bg-100': isSelected,
+            'bg-bg-200': isSelected,
           },
+          'odd:bg-bg even:bg-bg-100/80',
           className
         )}
         {...props}
@@ -269,7 +270,7 @@ function DataTablePagination({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-fg-300">
+      <div className="text-fg-300 flex items-center gap-2 text-xs">
         <Select
           value={pageSize.toString()}
           onValueChange={(value) => onPageSizeChange(Number(value))}

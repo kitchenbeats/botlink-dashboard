@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "# Next.js": "",
-    "dev": "bun prebuild && next dev",
+    "dev": "bun prebuild && next dev --turbo",
     "build": "next build",
     "start": "next start",
     "preview": "bun run build && bun start",

@@ -44,7 +44,7 @@ const TableHeader = ({ topRows, headerGroups, state }: TableHeaderProps) => (
           <DataTableRow
             key={row.id}
             className={cn(
-              'bg-transparent hover:bg-transparent',
+              'odd:bg-transparent even:bg-transparent hover:bg-transparent',
               index === 0 && 'border-t'
             )}
           >
