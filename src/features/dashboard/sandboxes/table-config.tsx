@@ -167,21 +167,17 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     cell: ({ getValue, row }) => {
       const cpu = getValue() as number
 
-      const getVariant = (
-        value: number
-      ): VariantProps<typeof badgeVariants>['variant'] => {
-        if (value >= 80) return 'error'
-        if (value >= 50) return 'warning'
-        return 'success'
-      }
+      const textClassName = cn(
+        cpu >= 80 ? 'text-error' : cpu >= 50 ? 'text-warning' : 'text-success'
+      )
 
       return (
-        <Badge
-          variant={getVariant(cpu)}
-          className="font-mono whitespace-nowrap"
-        >
-          <Cpu className="size-2" /> {cpu.toFixed(0)}% · {row.original.cpuCount}{' '}
-          core{row.original.cpuCount > 1 ? 's' : ''}
+        <Badge className={cn('font-mono whitespace-nowrap')}>
+          <span className={cn('mr-1 flex items-center gap-1', textClassName)}>
+            <Cpu className={cn('size-3', textClassName)} /> {cpu.toFixed(0)}%
+          </span>{' '}
+          · {row.original.cpuCount} core
+          {row.original.cpuCount > 1 ? 's' : ''}
         </Badge>
       )
     },
@@ -205,21 +201,21 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
       // Convert MiB to MB
       const usedRamMB = Math.round(row.original.metrics[0]?.memUsedMiB / 0.945)
 
-      const getVariant = (
-        percentage: number
-      ): VariantProps<typeof badgeVariants>['variant'] => {
-        if (percentage >= 80) return 'error'
-        if (percentage >= 50) return 'warning'
-        return 'success'
-      }
+      const textClassName = cn(
+        ramPercentage >= 80
+          ? 'text-error'
+          : ramPercentage >= 50
+            ? 'text-warning'
+            : 'text-success'
+      )
 
       return (
-        <Badge
-          variant={getVariant(ramPercentage)}
-          className="font-mono whitespace-nowrap"
-        >
-          <CgSmartphoneRam className="size-2" /> {usedRamMB.toLocaleString()}/
-          {totalRamMB.toLocaleString()} MB
+        <Badge className={'gap-0 font-mono whitespace-nowrap'}>
+          <span className={cn('flex items-center gap-1', textClassName)}>
+            <CgSmartphoneRam className={cn('size-3', textClassName)} />{' '}
+            {usedRamMB.toLocaleString()}
+          </span>{' '}
+          /{totalRamMB.toLocaleString()} MB
         </Badge>
       )
     },
