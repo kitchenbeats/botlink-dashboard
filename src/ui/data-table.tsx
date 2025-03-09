@@ -200,6 +200,7 @@ function DataTableBody({ className, children, ...props }: DataTableBodyProps) {
           ? {
               height: `${props.virtualizedTotalHeight}px`,
               position: 'relative',
+              overflow: 'visible',
             }
           : {}
       }
