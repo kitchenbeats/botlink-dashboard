@@ -6,11 +6,10 @@ import { ArrowUpRight, Cpu, PinIcon, X } from 'lucide-react'
 import { ColumnDef, FilterFn } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { Sandbox, SandboxMetrics } from '@/types/api'
-import { Badge, badgeVariants } from '@/ui/primitives/badge'
+import { Badge } from '@/ui/primitives/badge'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { DateRange } from 'react-day-picker'
 import { isWithinInterval } from 'date-fns'
-import { VariantProps } from 'class-variance-authority'
 import { CgSmartphoneRam } from 'react-icons/cg'
 import { cn } from '@/lib/utils'
 import { useMemo } from 'react'
@@ -198,24 +197,38 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
 
       const totalRamMB = row.original.memoryMB
 
-      // Convert MiB to MB
-      const usedRamMB = Math.round(row.original.metrics[0]?.memUsedMiB / 0.945)
+      // Convert MiB to MB - memoize this calculation
+      const usedRamMB = useMemo(() => {
+        return Math.round(row.original.metrics[0]?.memUsedMiB / 0.945)
+      }, [row.original.metrics[0]?.memUsedMiB])
 
-      const textClassName = cn(
-        ramPercentage >= 80
-          ? 'text-error'
-          : ramPercentage >= 50
-            ? 'text-warning'
-            : 'text-success'
-      )
+      // Memoize the text class name calculation
+      const textClassName = useMemo(() => {
+        return cn(
+          ramPercentage >= 80
+            ? 'text-error'
+            : ramPercentage >= 50
+              ? 'text-warning'
+              : 'text-success'
+        )
+      }, [ramPercentage])
+
+      // Memoize the badge content to prevent unnecessary re-renders
+      const badgeContent = useMemo(() => {
+        return (
+          <>
+            <span className={cn('flex items-center gap-1', textClassName)}>
+              <CgSmartphoneRam className={cn('size-3', textClassName)} />{' '}
+              {usedRamMB.toLocaleString()}
+            </span>{' '}
+            /{totalRamMB.toLocaleString()} MB
+          </>
+        )
+      }, [textClassName, usedRamMB, totalRamMB])
 
       return (
         <Badge className={'gap-0 font-mono whitespace-nowrap'}>
-          <span className={cn('flex items-center gap-1', textClassName)}>
-            <CgSmartphoneRam className={cn('size-3', textClassName)} />{' '}
-            {usedRamMB.toLocaleString()}
-          </span>{' '}
-          /{totalRamMB.toLocaleString()} MB
+          {badgeContent}
         </Badge>
       )
     },
