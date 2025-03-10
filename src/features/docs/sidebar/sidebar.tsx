@@ -1,6 +1,7 @@
 import { useTreeContext } from 'fumadocs-ui/provider'
 import SidebarItem from './sidebar-item'
 import Header from './header'
+import Search from './search'
 
 export default function Sidebar() {
   const tree = useTreeContext()
@@ -10,6 +11,7 @@ export default function Sidebar() {
       <div className="min-w-[var(--fd-sidebar-width)] truncate" />
       <aside className="fixed top-0 w-full max-w-[var(--fd-sidebar-width)] truncate pt-8 pr-10 md:pt-12 xl:pt-10">
         <Header />
+        <Search />
         {tree.root.children.map((item, index) => (
           <SidebarItem key={`sidebar-root-${index}`} item={item} />
         ))}

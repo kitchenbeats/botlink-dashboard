@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FileIcon, LinkIcon } from 'lucide-react'
+import { FileIcon } from 'lucide-react'
 import { Button } from '@/ui/primitives/button'
 import { Avatar, AvatarFallback } from '@/ui/primitives/avatar'
 
@@ -16,14 +16,14 @@ export default function Header() {
   return (
     <div className="mt-12 mb-4 flex flex-col gap-2">
       {tabs.map((tab) => (
-        <Button key={tab.url} variant="ghost" className="h-auto p-0" asChild>
+        <Button key={tab.url} variant="outline" className="h-auto p-2" asChild>
           <Link
             key={tab.url}
             href={tab.url}
             className="group flex w-full items-center justify-start gap-2"
           >
             <Avatar className="size-9">
-              <AvatarFallback className="bg-bg-100 text-fg">
+              <AvatarFallback className="text-fg">
                 <tab.icon className="size-4" />
               </AvatarFallback>
             </Avatar>

@@ -1,6 +1,5 @@
 'use client'
 
-import { Input } from '@/ui/primitives/input'
 import { cn } from '@/lib/utils'
 import {
   CommandDialog,
@@ -49,7 +48,7 @@ export default function Search({ className }: SearchProps) {
       <Button
         variant="ghost"
         className={cn(
-          'h-10 w-full justify-start text-xs text-fg-300',
+          'text-fg-300 h-10 w-full justify-start text-xs',
           className
         )}
         onClick={() => setOpen(true)}
@@ -58,7 +57,7 @@ export default function Search({ className }: SearchProps) {
       </Button>
       <Kbd
         keys={['cmd', 'k']}
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
+        className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2"
       />
 
       <CommandDialog open={open} onOpenChange={setOpen}>
@@ -80,7 +79,7 @@ export default function Search({ className }: SearchProps) {
                 }}
                 className="group"
               >
-                <link.icon className="!size-4 text-fg-500 group-[&[data-selected=true]]:text-accent" />
+                <link.icon className="text-fg-500 group-[&[data-selected=true]]:text-accent !size-4" />
                 {link.label}
               </CommandItem>
             ))}
