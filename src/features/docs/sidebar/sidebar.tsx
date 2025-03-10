@@ -8,8 +8,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className="min-w-[var(--fd-sidebar-width)] truncate" />
-      <aside className="fixed top-0 w-full max-w-[var(--fd-sidebar-width)] truncate pt-8 pr-10 md:pt-12 xl:pt-10">
+      <aside className="fixed top-[var(--fd-nav-height)] h-full w-[var(--fd-sidebar-width)] max-w-[var(--fd-sidebar-width)] truncate border-r p-4">
         <Header />
         <Search />
         {tree.root.children.map((item, index) => (

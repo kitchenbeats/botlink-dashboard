@@ -14,7 +14,7 @@ const tabs = [
 
 export default function Header() {
   return (
-    <div className="mt-12 mb-4 flex flex-col gap-2">
+    <div className="mb-4 flex flex-col gap-2">
       {tabs.map((tab) => (
         <Button key={tab.url} variant="outline" className="h-auto p-2" asChild>
           <Link

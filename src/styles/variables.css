@@ -67,7 +67,7 @@
 
     /* Fumadocs */
     --fd-nav-height: var(--public-nav-height) !important;
-    --fd-sidebar-width: var(--protected-sidebar-width) !important;
+    --fd-sidebar-width: 300px !important;
 
     --fd-background: var(--bg);
     --fd-foreground: var(--fg);

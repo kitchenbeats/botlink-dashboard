@@ -5,6 +5,7 @@ import { Button } from '@/ui/primitives/button'
 import { MenuIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback } from 'react'
+import ExternalIcon from '@/ui/external-icon'
 
 export default function DocsNavLinks() {
   const { open, setOpen } = useSidebar()
@@ -25,7 +26,7 @@ export default function DocsNavLinks() {
       </Button>
       <Button size="sm" asChild>
         <Link prefetch={true} href="/dashboard">
-          Dashboard
+          Dashboard <ExternalIcon />
         </Link>
       </Button>
     </div>

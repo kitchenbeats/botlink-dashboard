@@ -25,9 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="fixed inset-0 flex flex-col">
       <Nav className="fixed inset-x-0 top-0" />
       <ScrollArea className="flex-1 pt-[var(--fd-nav-height)]">
-        <div className="container mx-auto w-full">
-          <DocsLayout {...docsOptions}>{children}</DocsLayout>
-        </div>
+        <DocsLayout {...docsOptions}>{children}</DocsLayout>
         <ScrollBar />
       </ScrollArea>
     </div>

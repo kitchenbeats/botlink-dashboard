@@ -61,7 +61,7 @@ export default async function Page(props: {
         component: <Footer />,
       }}
       article={{
-        className: 'pb-16 xl:pt-10 max-w-3xl xl:ml-0',
+        className: 'pb-16 xl:pt-10',
       }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
