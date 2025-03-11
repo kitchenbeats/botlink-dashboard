@@ -243,7 +243,7 @@ export const uploadTeamProfilePictureAction = guard(
 
     const extension = image.name.split('.').pop() || 'png'
     const fileName = `${Date.now()}.${extension}`
-    const filePath = `teams/${teamId}/${fileName}`
+    const filePath = `profile-pictures/teams/${teamId}/${fileName}`
 
     const arrayBuffer = await image.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
