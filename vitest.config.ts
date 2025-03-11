@@ -51,7 +51,9 @@ export default defineConfig({
       KV_REST_API_URL:
         process.env.KV_REST_API_URL || 'https://test-kv-api.example.com',
     },
+    setupFiles: ['./src/__test__/setup.ts'],
   },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
