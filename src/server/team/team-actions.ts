@@ -17,7 +17,7 @@ import {
 import { kv } from '@vercel/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { revalidatePath } from 'next/cache'
-import { uploadFile, deleteFile, bucket } from '@/lib/clients/storage'
+import { uploadFile, deleteFile, getFiles } from '@/lib/clients/storage'
 
 // Update team name
 
@@ -243,13 +243,13 @@ export const uploadTeamProfilePictureAction = guard(
 
     const extension = image.name.split('.').pop() || 'png'
     const fileName = `${Date.now()}.${extension}`
-    const filePath = `profile-pictures/teams/${teamId}/${fileName}`
+    const filePath = `teams/${teamId}/${fileName}`
 
     const arrayBuffer = await image.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
     try {
-      // Upload file to GCP Storage
+      // Upload file to Supabase Storage
       const publicUrl = await uploadFile(buffer, filePath, image.type)
 
       // Update team record with new profile picture URL
@@ -271,11 +271,9 @@ export const uploadTeamProfilePictureAction = guard(
           // Get the current file name from the path
           const currentFileName = fileName
 
-          // List all files in the team's folder from GCP Storage
+          // List all files in the team's folder from Supabase Storage
           const folderPath = `profile-pictures/teams/${teamId}`
-          const [files] = await bucket.getFiles({
-            prefix: folderPath,
-          })
+          const files = await getFiles(folderPath)
 
           // Delete all old profile pictures except the one we just uploaded
           for (const file of files) {
@@ -286,13 +284,11 @@ export const uploadTeamProfilePictureAction = guard(
             }
 
             try {
-              await bucket.file(filePath).delete()
+              await deleteFile(filePath)
             } catch (deleteError) {
               console.error(`Error deleting file ${filePath}:`, deleteError)
             }
           }
-
-          // No need for Supabase storage cleanup anymore
         } catch (cleanupError) {
           console.error('Error during profile picture cleanup:', cleanupError)
         }
@@ -300,7 +296,10 @@ export const uploadTeamProfilePictureAction = guard(
 
       revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
     } catch (error) {
-      console.error('Error uploading profile picture to GCP:', error)
+      console.error(
+        'Error uploading profile picture to Supabase Storage:',
+        error
+      )
       throw new Error('Failed to upload profile picture')
     }
   }
