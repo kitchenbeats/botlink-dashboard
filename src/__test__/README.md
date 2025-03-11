@@ -57,54 +57,13 @@ bun test:e2e
 
 Currently, only integration tests are configured to run in CI/CD:
 
-```yaml
-# .github/workflows/test.yml
-jobs:
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Run integration tests
-        run: bun test:integration
-```
+(See [`.github/workflows/test.yml`](.github/workflows/test.yml))
 
 ## Environment Variables
 
 ### For Integration Tests
 
-Integration tests use the environment variables defined in `vitest.config.ts`:
-
-```typescript
-env: {
-  NODE_ENV: 'test',
-  KV_URL: 'redis://localhost:6379',
-  KV_REST_API_READ_ONLY_TOKEN: 'test-read-only-token',
-  KV_REST_API_TOKEN: 'test-api-token',
-  KV_REST_API_URL: 'https://test-kv-api.example.com',
-  SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
-  COOKIE_ENCRYPTION_KEY: 'test-cookie-encryption-key-32-chars-long',
-  BILLING_API_URL: 'https://billing.e2b.dev',
-  NEXT_PUBLIC_POSTHOG_KEY: 'test-posthog-key',
-  NEXT_PUBLIC_SUPABASE_URL: 'https://test-supabase-url.supabase.co',
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-supabase-anon-key',
-  NEXT_PUBLIC_STRIPE_BILLING_URL: 'https://test-stripe-billing.example.com',
-  NEXT_PUBLIC_DEFAULT_API_DOMAIN: 'e2b.dev',
-  NEXT_PUBLIC_EXPOSE_STORYBOOK: '0',
-  NEXT_PUBLIC_SCAN: '0',
-  NEXT_PUBLIC_MOCK_DATA: '1',
-}
-```
+Integration tests use the environment variables defined in [`.github/workflows/test.yml`](.github/workflows/test.yml) or `.env` files.
 
 These values are sufficient for running integration tests without any additional setup.
 
@@ -112,8 +71,8 @@ These values are sufficient for running integration tests without any additional
 
 When implementing E2E tests, you will need to:
 
-1. Create a `.env.test` file with real credentials for external services
-2. Update the `testEnvSchema` in `src/lib/env.ts` to validate the required environment variables
+1. Create `.env` files with real credentials for external services & additional variables for e2e tests
+2. Update the `testEnvSchema` in `src/lib/env.ts` to validate the required additional environment variables
 3. Update the GitHub Actions workflow to include E2E tests with the necessary secrets
 
 ## Implementing E2E Tests
