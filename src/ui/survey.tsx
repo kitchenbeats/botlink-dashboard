@@ -1,5 +1,5 @@
 import { Survey, SurveyQuestion as PostHogSurveyQuestion } from 'posthog-js'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import {
   CardContent,
   CardDescription,
@@ -16,7 +16,7 @@ import {
   PiSmileySadFill,
 } from 'react-icons/pi'
 import { cn } from '@/lib/utils'
-import { PiSmileyHeartEyesFill, PiSmileyStarEyesFill } from './icons'
+import { PiSmileyStarEyesFill } from './icons'
 
 const EMOJI_SIZE = '38px'
 
@@ -61,83 +61,87 @@ export function SurveyContent({
     setCurrentQuestionIndex(0)
   }
 
-  const renderQuestion = (question: PostHogSurveyQuestion) => {
-    const index = question.originalQuestionIndex
-
-    switch (question.type) {
-      case 'rating':
-        return (
-          <div className="flex justify-between">
-            {question.display === 'emoji'
-              ? // Emoji ratings
-                (question.scale === 3 ? EMOJIS_3 : EMOJIS_5).map(
-                  (emoji, emojiIndex) => (
-                    <Button
-                      key={emojiIndex}
-                      type="button"
-                      variant={'ghost'}
-                      size="iconLg"
-                      className={cn(
-                        'text-fg-500 hover:text-fg-300 size-14 rounded-xl hover:scale-[1.03]',
-                        {
-                          'bg-bg-300 border-border-200 text-fg border':
-                            responses[index] === String(emojiIndex + 1),
+  const renderQuestion = useCallback(
+    (question: PostHogSurveyQuestion) => {
+      switch (question.type) {
+        case 'rating':
+          return (
+            <div className="flex justify-between">
+              {question.display === 'emoji'
+                ? // Emoji ratings
+                  (question.scale === 3 ? EMOJIS_3 : EMOJIS_5).map(
+                    (emoji, emojiIndex) => (
+                      <Button
+                        key={emojiIndex}
+                        type="button"
+                        variant={'ghost'}
+                        size="iconLg"
+                        className={cn(
+                          'text-fg-500 hover:text-fg-300 size-14 rounded-xl hover:scale-[1.03]',
+                          {
+                            'bg-bg-300 border-border-200 text-fg border':
+                              responses[currentQuestionIndex] ===
+                              String(emojiIndex + 1),
+                          }
+                        )}
+                        onClick={() =>
+                          setResponses((prev) => ({
+                            ...prev,
+                            [currentQuestionIndex]: String(emojiIndex + 1),
+                          }))
                         }
-                      )}
-                      onClick={() =>
-                        setResponses((prev) => ({
-                          ...prev,
-                          [index]: String(emojiIndex + 1),
-                        }))
-                      }
-                    >
-                      {emoji}
-                    </Button>
+                      >
+                        {emoji}
+                      </Button>
+                    )
                   )
-                )
-              : // Numeric ratings
-                Array.from({ length: question.scale }, (_, i) => i + 1).map(
-                  (num) => (
-                    <Button
-                      key={num}
-                      type="button"
-                      variant={
-                        responses[index] === String(num) ? 'default' : 'outline'
-                      }
-                      size="iconLg"
-                      onClick={() =>
-                        setResponses((prev) => ({
-                          ...prev,
-                          [index]: String(num),
-                        }))
-                      }
-                    >
-                      {num}
-                    </Button>
-                  )
-                )}
-          </div>
-        )
+                : // Numeric ratings
+                  Array.from({ length: question.scale }, (_, i) => i + 1).map(
+                    (num) => (
+                      <Button
+                        key={num}
+                        type="button"
+                        variant={
+                          responses[currentQuestionIndex] === String(num)
+                            ? 'default'
+                            : 'outline'
+                        }
+                        size="iconLg"
+                        onClick={() =>
+                          setResponses((prev) => ({
+                            ...prev,
+                            [currentQuestionIndex]: String(num),
+                          }))
+                        }
+                      >
+                        {num}
+                      </Button>
+                    )
+                  )}
+            </div>
+          )
 
-      case 'open':
-        return (
-          <Textarea
-            placeholder={survey?.appearance?.placeholder}
-            value={responses[index] || ''}
-            className="min-h-28"
-            onChange={(e) =>
-              setResponses((prev) => ({
-                ...prev,
-                [index]: e.target.value,
-              }))
-            }
-          />
-        )
+        case 'open':
+          return (
+            <Textarea
+              placeholder={survey?.appearance?.placeholder}
+              value={responses[currentQuestionIndex] || ''}
+              className="min-h-28"
+              onChange={(e) =>
+                setResponses((prev) => ({
+                  ...prev,
+                  [currentQuestionIndex]: e.target.value,
+                }))
+              }
+            />
+          )
 
-      default:
-        return null
-    }
-  }
+        default:
+          return null
+      }
+    },
+    [responses, currentQuestionIndex, survey?.appearance?.placeholder]
+  )
 
   if (isLoading) {
     return (
