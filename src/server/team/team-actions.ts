@@ -272,7 +272,7 @@ export const uploadTeamProfilePictureAction = guard(
           const currentFileName = fileName
 
           // List all files in the team's folder from Supabase Storage
-          const folderPath = `profile-pictures/teams/${teamId}`
+          const folderPath = `teams/${teamId}`
           const files = await getFiles(folderPath)
 
           // Delete all old profile pictures except the one we just uploaded
