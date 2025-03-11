@@ -21,6 +21,7 @@ import ClientOnly from '@/ui/client-only'
 import { CreateTeamDialog } from './create-team-dialog'
 import { Button } from '@/ui/primitives/button'
 import { Plus } from 'lucide-react'
+import { PrefetchKind } from 'next/dist/client/components/router-reducer/router-reducer-types'
 
 interface TeamSelectorProps {
   className?: string
@@ -42,6 +43,16 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
     [loadedTeams, defaultTeam]
   )
 
+  const prefetchTeamRoutes = () => {
+    loadedTeams.forEach((team) => {
+      const route = PROTECTED_URLS.SANDBOXES(team.slug || team.id)
+
+      router.prefetch(route, {
+        kind: PrefetchKind.FULL,
+      })
+    })
+  }
+
   return (
     <>
       <Select
@@ -51,6 +62,11 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
 
           router.push(PROTECTED_URLS.SANDBOXES(team?.slug || teamId))
           router.refresh()
+        }}
+        onOpenChange={(open) => {
+          if (open) {
+            prefetchTeamRoutes()
+          }
         }}
       >
         <SelectTrigger

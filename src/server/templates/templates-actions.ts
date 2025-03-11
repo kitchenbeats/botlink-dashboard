@@ -38,7 +38,7 @@ export const deleteTemplateAction = guard(
       throw new Error(text ?? `Failed to update template: ${templateId}`)
     }
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/templates`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/templates`, 'page')
   }
 )
 
@@ -77,6 +77,6 @@ export const updateTemplateAction = guard(
       throw new Error(text ?? `Failed to update template: ${templateId}`)
     }
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/templates`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/templates`, 'page')
   }
 )

@@ -6,7 +6,7 @@ export const cardVariants = cva('', {
   variants: {
     variant: {
       default: 'bg-bg text-fg',
-      layer: 'bg-bg-100/60 backdrop-blur-lg border border-border',
+      layer: 'bg-bg-200/60 backdrop-blur-lg border border-border',
       slate: '',
     },
   },
@@ -78,7 +78,7 @@ const CardContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('p-6 pt-3 font-mono', 'text-sm tracking-wide', className)}
+    className={cn('p-6 pt-3', 'text-sm tracking-wide', className)}
     {...props}
   />
 ))

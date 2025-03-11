@@ -1,13 +1,11 @@
 import '@/app/_fonts/fonts'
 import '@/styles/globals.css'
 
-import { RootProvider } from 'fumadocs-ui/provider'
 import { Body } from './layout.client'
 import { BASE_URL } from '@/configs/urls'
 import { Metadata } from 'next/types'
 import { METADATA } from '@/configs/metadata'
 import ClientProviders from '@/features/client-providers'
-import Script from 'next/script'
 import { Suspense } from 'react'
 import { GeneralAnalyticsCollector } from '@/features/general-analytics-collector'
 import { Toaster } from '@/ui/primitives/toaster'

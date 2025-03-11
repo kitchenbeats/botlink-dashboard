@@ -1,8 +1,13 @@
+import * as Sentry from '@sentry/nextjs'
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('pino-pretty')
-    // @ts-expect-error next-logger is not typed
-    await import('next-logger')
-    await import('pino')
+    await import('../sentry.server.config')
+  }
+
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    await import('../sentry.edge.config')
   }
 }
+
+export const onRequestError = Sentry.captureRequestError
