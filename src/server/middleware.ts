@@ -22,6 +22,9 @@ export async function resolveTeamForDashboard(
   redirect?: string
   allowAccess?: boolean
 }> {
+  // Check for tab query parameter - skip default redirects if present
+  const hasTabParam = request.nextUrl.searchParams.has('tab')
+
   if (request.nextUrl.pathname === PROTECTED_URLS.NEW_TEAM) {
     return { allowAccess: true }
   }
@@ -62,6 +65,19 @@ export async function resolveTeamForDashboard(
         (await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(currentTeamId))) ||
         undefined
 
+      // Skip redirect if we're at /dashboard with a tab parameter
+      if (
+        hasTabParam &&
+        request.nextUrl.pathname === PROTECTED_URLS.DASHBOARD
+      ) {
+        return {
+          teamId: currentTeamId,
+          teamSlug,
+          // No redirect here - we'll let the page handle the tab parameter
+          // This case is handled by @/app/dashboard/route.ts
+        }
+      }
+
       return {
         teamId: currentTeamId,
         teamSlug,
@@ -95,6 +111,15 @@ export async function resolveTeamForDashboard(
   }
 
   const defaultTeam = teamsData.find((t) => t.is_default) || teamsData[0]
+
+  // Skip redirect if we're at /dashboard with a tab parameter
+  if (hasTabParam && request.nextUrl.pathname === PROTECTED_URLS.DASHBOARD) {
+    return {
+      teamId: defaultTeam.team_id,
+      teamSlug: defaultTeam.team?.slug || undefined,
+      // No redirect here - we'll let the page handle the tab parameter
+    }
+  }
 
   return {
     teamId: defaultTeam.team_id,
