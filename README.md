@@ -75,21 +75,28 @@ vercel storage add
 3. Copy the `anon key` and `service_role key`
 4. Copy the project URL
 
-#### c. Supabase Storage Setup
+#### c. Database Setup
+1. Retrieve the `POSTGRES_CONNECTION_STRING` from the Supabase project settings
+2. Run the migrations by running the following command:
+```bash
+bun run db:migrations:apply
+```
+
+#### d. Supabase Storage Setup
 1. Go to Storage > Buckets
 2. Create a new **public** bucket named `profile-pictures`
-3. Apply storage access policies by running the SQL from [supabase/policies/buckets.sql](supabase/policies/buckets.sql) in the Supabase SQL Editor:
+3. Apply storage access policies by running the SQL from [migrations/supabase/profile-picture-bucket.sql](migrations/supabase/profile-picture-bucket.sql) in the Supabase SQL Editor:
    - These policies ensure only Supabase admin (service role) can write to and list files in the bucket
    - Public URLs are accessible for downloading files if the exact path is known
    - Regular users cannot browse, upload, update, or delete files in the bucket
 
-#### d. Environment Variables
+#### e. Environment Variables
 ```bash
 # Copy the example env file
 cp .env.example .env.local
 ```
 
-#### e. Cookie Encryption
+#### f. Cookie Encryption
 The dashboard uses encrypted cookies for secure data storage. You'll need to set up a `COOKIE_ENCRYPTION_KEY`:
 
 ```bash
