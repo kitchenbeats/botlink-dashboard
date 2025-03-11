@@ -32,7 +32,7 @@
         "@tanstack/match-sorter-utils": "^8.19.4",
         "@tanstack/react-query": "^5.65.0",
         "@tanstack/react-table": "^8.20.6",
-        "@tanstack/react-virtual": "^3.13.2",
+        "@tanstack/react-virtual": "^3.11.3",
         "@theguild/remark-mermaid": "^0.2.0",
         "@types/mdx": "^2.0.13",
         "@vercel/kv": "^3.0.0",

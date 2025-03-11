@@ -4,10 +4,6 @@ export const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
   BILLING_API_URL: z.string().url(),
   COOKIE_ENCRYPTION_KEY: z.string(),
-  GCP_PROJECT_ID: z.string(),
-  GCP_SERVICE_ACCOUNT_EMAIL: z.string(),
-  GCP_SERVICE_ACCOUNT_PRIVATE_KEY: z.string(),
-  GCP_BUCKET_NAME: z.string(),
 
   VERCEL_URL: z.string().optional(),
   DEVELOPMENT_INFRA_API_DOMAIN: z.string().optional(),
