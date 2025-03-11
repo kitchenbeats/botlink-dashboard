@@ -1,13 +1,11 @@
 import {
   Activity,
-  BarChart,
-  Blocks,
+  Container,
   CreditCard,
   DollarSign,
   Key,
   LucideProps,
-  LucideSheet,
-  User,
+  PackageOpen,
   Users,
 } from 'lucide-react'
 import { ForwardRefExoticComponent, RefAttributes } from 'react'
@@ -30,12 +28,12 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
   {
     label: 'Sandboxes',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/sandboxes`,
-    icon: Blocks,
+    icon: PackageOpen,
   },
   {
     label: 'Templates',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/templates`,
-    icon: LucideSheet,
+    icon: Container,
   },
   {
     label: 'Usage',

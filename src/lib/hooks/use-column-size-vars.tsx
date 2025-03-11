@@ -1,22 +1,36 @@
 import { Table } from '@tanstack/react-table'
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 
 /**
  * Hook to gather all column sizes once and store them as CSS variables.
  * Note: header.id values cannot contain spaces as they are used in CSS variable names.
+ *
+ * This optimized version reduces re-renders during column resizing by using a ref
+ * to track the previous sizing state and only updating when necessary.
  */
 export function useColumnSizeVars<T extends object>(table: Table<T>) {
-  return useMemo(() => {
-    const headers = table.getFlatHeaders()
-    const colSizes: { [key: string]: string } = {}
+  const prevSizingRef = useRef<string>('')
+  const colSizesRef = useRef<{ [key: string]: string }>({})
 
-    headers.forEach((header) => {
-      const sizePx = `${header.getSize()}px`
-      colSizes[`--header-${header.id}-size`] = sizePx
-      colSizes[`--col-${header.column.id}-size`] = sizePx
-    })
+  // Get the current sizing state as a string for comparison
+  const currentSizing = JSON.stringify(table.getState().columnSizing)
 
-    return colSizes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [table.getState().columnSizing, table.getState().columnSizingInfo])
+  // Only recalculate when sizing actually changes
+  useEffect(() => {
+    if (prevSizingRef.current !== currentSizing) {
+      const headers = table.getFlatHeaders()
+      const newColSizes: { [key: string]: string } = {}
+
+      headers.forEach((header) => {
+        const sizePx = `${header.getSize()}px`
+        newColSizes[`--header-${header.id}-size`] = sizePx
+        newColSizes[`--col-${header.column.id}-size`] = sizePx
+      })
+
+      colSizesRef.current = newColSizes
+      prevSizingRef.current = currentSizing
+    }
+  }, [table, currentSizing])
+
+  return colSizesRef.current
 }

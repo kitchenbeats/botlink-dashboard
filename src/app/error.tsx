@@ -1,14 +1,8 @@
 'use client'
 
-import { UnknownError } from '@/types/errors'
-import ErrorBoundary from '@/ui/error'
+import { createErrorBoundary } from '@/lib/create-error-boundary'
 
-export default function Error() {
-  return (
-    <ErrorBoundary
-      error={UnknownError()}
-      description={'An Unexpected Error Occurred'}
-      className="min-h-svh"
-    />
-  )
-}
+export default createErrorBoundary({
+  title: 'Something went wrong',
+  description: 'An unexpected error occurred',
+})

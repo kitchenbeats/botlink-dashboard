@@ -5,12 +5,10 @@ import { Database } from '@/types/database.types'
 import {
   checkAuthenticated,
   checkUserTeamAuthorization,
-  getApiUrl,
   getUserAccessToken,
   guard,
 } from '@/lib/utils/server'
 import { z } from 'zod'
-import { User } from '@supabase/supabase-js'
 import {
   E2BError,
   InvalidParametersError,
@@ -19,6 +17,7 @@ import {
 import { kv } from '@vercel/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { revalidatePath } from 'next/cache'
+import { uploadFile, deleteFile, getFiles } from '@/lib/clients/storage'
 
 // Update team name
 
@@ -111,7 +110,7 @@ export const addTeamMemberAction = guard(
       throw insertError
     }
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
@@ -174,7 +173,7 @@ export const removeTeamMemberAction = guard(
       throw removeError
     }
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/general`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
   }
@@ -211,3 +210,97 @@ export const createTeamAction = guard(CreateTeamSchema, async ({ name }) => {
 
   return data
 })
+
+// Upload team profile picture and update team record
+
+export const uploadTeamProfilePictureAction = guard(
+  async (formData: FormData) => {
+    const teamId = formData.get('teamId') as string
+    const image = formData.get('image') as File
+
+    if (!teamId || !image) {
+      throw InvalidParametersError('Team ID and image are required')
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml']
+    if (!allowedTypes.includes(image.type)) {
+      throw InvalidParametersError('File must be JPG, PNG, or SVG format')
+    }
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+
+    if (image.size > MAX_FILE_SIZE) {
+      throw InvalidParametersError('File size must be less than 5MB')
+    }
+
+    const { user } = await checkAuthenticated()
+
+    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
+
+    if (!isAuthorized) {
+      throw UnauthorizedError('User is not authorized to update this team')
+    }
+
+    const extension = image.name.split('.').pop() || 'png'
+    const fileName = `${Date.now()}.${extension}`
+    const filePath = `teams/${teamId}/${fileName}`
+
+    const arrayBuffer = await image.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    try {
+      // Upload file to Supabase Storage
+      const publicUrl = await uploadFile(buffer, filePath, image.type)
+
+      // Update team record with new profile picture URL
+      const { data, error } = await supabaseAdmin
+        .from('teams')
+        .update({ profile_picture_url: publicUrl })
+        .eq('id', teamId)
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      // Clean up old profile pictures asynchronously in the background
+      // We don't await this promise, so it runs in the background
+      ;(async () => {
+        try {
+          // Get the current file name from the path
+          const currentFileName = fileName
+
+          // List all files in the team's folder from Supabase Storage
+          const folderPath = `profile-pictures/teams/${teamId}`
+          const files = await getFiles(folderPath)
+
+          // Delete all old profile pictures except the one we just uploaded
+          for (const file of files) {
+            const filePath = file.name
+            // Skip the file we just uploaded
+            if (filePath === `${folderPath}/${currentFileName}`) {
+              continue
+            }
+
+            try {
+              await deleteFile(filePath)
+            } catch (deleteError) {
+              console.error(`Error deleting file ${filePath}:`, deleteError)
+            }
+          }
+        } catch (cleanupError) {
+          console.error('Error during profile picture cleanup:', cleanupError)
+        }
+      })()
+
+      revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    } catch (error) {
+      console.error(
+        'Error uploading profile picture to Supabase Storage:',
+        error
+      )
+      throw new Error('Failed to upload profile picture')
+    }
+  }
+)

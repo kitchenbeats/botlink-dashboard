@@ -8,6 +8,7 @@ import {
   guard,
 } from '@/lib/utils/server'
 import { E2BError, UnknownError } from '@/types/errors'
+import { revalidateTag } from 'next/cache'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
@@ -86,7 +87,7 @@ export const setLimitAction = guard(SetLimitParamsSchema, async (params) => {
     throw new E2BError('BILLING_API_ERROR', text ?? 'Failed to set limit')
   }
 
-  revalidatePath(`/dashboard/[teamIdOrSlug]/budget`)
+  revalidatePath(`/dashboard/[teamIdOrSlug]/budget`, 'page')
 })
 
 const ClearLimitParamsSchema = z.object({
@@ -117,6 +118,6 @@ export const clearLimitAction = guard(
       throw new E2BError('BILLING_API_ERROR', text ?? 'Failed to clear limit')
     }
 
-    revalidatePath(`/dashboard/[teamIdOrSlug]/budget`)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/budget`, 'page')
   }
 )

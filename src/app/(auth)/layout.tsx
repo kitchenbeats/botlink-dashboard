@@ -34,8 +34,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           gradientFrom="from-border-400"
           gradientVia="via-border-100"
           gradientTo="to-border-200"
-          wrapperClassName="w-full max-w-96"
-          className="p-6"
+          wrapperClassName="w-full max-w-96 rounded-sm"
+          className="rounded-sm p-6"
         >
           <div className="h-full w-full">{children}</div>
         </GradientBorder>

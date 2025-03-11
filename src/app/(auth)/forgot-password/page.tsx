@@ -7,12 +7,14 @@ import { Input } from '@/ui/primitives/input'
 import { Label } from '@/ui/primitives/label'
 import { AUTH_URLS } from '@/configs/urls'
 import { useSearchParams } from 'next/navigation'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useTransition } from 'react'
 
 export default function ForgotPassword() {
   const searchParams = useSearchParams()
   const formRef = useRef<HTMLFormElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
+
+  const [isPending, startTransition] = useTransition()
 
   // Handle email prefill from sign in page
   useEffect(() => {
@@ -42,12 +44,12 @@ export default function ForgotPassword() {
   return (
     <div className="flex w-full flex-col">
       <h1 className="text-2xl font-medium">Reset Password</h1>
-      <p className="text-sm leading-6 text-fg-300">
+      <p className="text-fg-300 text-sm leading-6">
         Remember your password?{' '}
         <button
           type="button"
           onClick={handleBackToSignIn}
-          className="font-medium text-fg underline"
+          className="text-fg font-medium underline"
         >
           Sign in
         </button>
@@ -63,7 +65,14 @@ export default function ForgotPassword() {
           placeholder="you@example.com"
           required
         />
-        <Button formAction={forgotPasswordAction}>Reset Password</Button>
+        <Button
+          formAction={(data) =>
+            startTransition(() => forgotPasswordAction(data))
+          }
+          loading={isPending}
+        >
+          Reset Password
+        </Button>
       </form>
 
       {message && <AuthFormMessage className="mt-4" message={message} />}
