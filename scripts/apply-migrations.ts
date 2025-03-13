@@ -1,3 +1,10 @@
+/**
+ * DISCLAIMER:
+ * This script is currently not in use. The database migrations are handled
+ * through a different mechanism. This file is kept for reference purposes
+ * and may be implemented in the future.
+ */
+
 import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { loadEnvConfig } from '@next/env'
