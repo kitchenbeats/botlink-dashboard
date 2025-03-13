@@ -85,10 +85,6 @@ bun run db:migrations:apply
 #### d. Supabase Storage Setup
 1. Go to Storage > Buckets
 2. Create a new **public** bucket named `profile-pictures`
-3. Apply storage access policies by running the SQL from [migrations/supabase/profile-picture-bucket.sql](migrations/supabase/profile-picture-bucket.sql) in the Supabase SQL Editor:
-   - These policies ensure only Supabase admin (service role) can write to and list files in the bucket
-   - Public URLs are accessible for downloading files if the exact path is known
-   - Regular users cannot browse, upload, update, or delete files in the bucket
 
 #### e. Environment Variables
 ```bash
