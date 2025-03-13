@@ -87,7 +87,7 @@ BEGIN
     test_slug := base_slug;
 
     WHILE EXISTS (SELECT 1 FROM teams WHERE slug = test_slug) LOOP
-      suffix := SUBSTRING(gen_random_uuid()::text, 33, 4);
+      suffix := SUBSTRING(gen_random_uuid()::text, 1, 4);
       test_slug := base_slug || '-' || suffix;
     END LOOP;
 
