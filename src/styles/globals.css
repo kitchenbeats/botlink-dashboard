@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-@custom-variant dark (&:is(.dark *));
 @import 'fumadocs-ui/css/preset.css';
 
 /* path of `fumadocs-ui` relative to the CSS file */

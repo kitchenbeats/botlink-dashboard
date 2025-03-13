@@ -36,7 +36,14 @@ async function ensureMigrationsTable() {
       );
     `)
     await db(`
-      GRANT ALL ON public._migrations TO supabase_admin;
+      -- Enable Row Level Security
+      ALTER TABLE public._migrations ENABLE ROW LEVEL SECURITY;
+
+      -- Create policy for admin access
+      CREATE POLICY admin_all ON public._migrations
+        FOR ALL
+        TO supabase_admin
+        USING (true);
     `)
   } catch (error) {
     console.error('❌ Failed to create migrations table:', error)
