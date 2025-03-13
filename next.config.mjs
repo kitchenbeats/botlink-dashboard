@@ -44,6 +44,23 @@ const config = {
       destination: 'https://us.i.posthog.com/decide',
     },
   ],
+  redirects: async () => [
+    {
+      source: '/docs/api/cli',
+      destination: '/auth/cli',
+      permanent: true,
+    },
+    {
+      source: '/auth/sign-in',
+      destination: '/sign-in',
+      permanent: true,
+    },
+    {
+      source: '/auth/sign-up',
+      destination: '/sign-up',
+      permanent: true,
+    },
+  ],
   skipTrailingSlashRedirect: true,
 }
 
