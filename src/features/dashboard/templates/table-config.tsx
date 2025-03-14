@@ -348,8 +348,8 @@ export const useColumns = (deps: unknown[]) => {
         filterFn: 'equals',
       },
       {
-        accessorKey: 'defaultDescription',
-        header: 'Pre-Made Template',
+        accessorKey: 'isDefault',
+        header: 'Made by E2B',
         size: 100,
         minSize: 100,
         cell: ({ getValue }) => {
@@ -358,9 +358,9 @@ export const useColumns = (deps: unknown[]) => {
           }
 
           return (
-            <p className="text-accent truncate text-xs">
-              {getValue() as string}
-            </p>
+            <Badge className={cn('text-accent font-mono whitespace-nowrap')}>
+              Yes
+            </Badge>
           )
         },
       },
