@@ -5,7 +5,7 @@
 import { ArrowUpRight, Cpu, PinIcon, X } from 'lucide-react'
 import { ColumnDef, FilterFn } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
-import { Sandbox, SandboxMetrics } from '@/types/api'
+import { Sandbox, SandboxMetrics, Template } from '@/types/api'
 import { Badge } from '@/ui/primitives/badge'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { DateRange } from 'react-day-picker'
@@ -132,6 +132,10 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     header: 'TEMPLATE',
     cell: ({ getValue, table }) => {
       const templateId = getValue() as string
+      const template: Template | undefined = table
+        .getState()
+        // @ts-expect-error - templates state not in type definition
+        .templates.find((t: Template) => t.templateID === templateId)
 
       const { selectedTeamSlug, selectedTeamId } = useServerContext()
 
@@ -142,7 +146,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
       return (
         <Button
           variant="link"
-          className="text-fg h-auto p-0 text-xs"
+          className="text-fg h-auto p-0 text-xs normal-case"
           onClick={() => {
             useTemplateTableStore.getState().setGlobalFilter(templateId)
             router.push(
@@ -150,7 +154,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
             )
           }}
         >
-          {templateId}
+          {template?.aliases?.[0] ?? templateId}
           <ArrowUpRight className="size-3" />
         </Button>
       )
