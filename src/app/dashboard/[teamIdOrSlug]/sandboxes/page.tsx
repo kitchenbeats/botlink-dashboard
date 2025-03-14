@@ -2,7 +2,10 @@ import LoadingLayout from '@/features/dashboard/loading-layout'
 import DashboardPageLayout from '@/features/dashboard/page-layout'
 import SandboxesTable from '@/features/dashboard/sandboxes/table'
 import { getTeamSandboxes } from '@/server/sandboxes/get-team-sandboxes'
-import { getTeamTemplates } from '@/server/templates/get-team-templates'
+import {
+  getDefaultTemplates,
+  getTeamTemplates,
+} from '@/server/templates/get-team-templates'
 import { Suspense } from 'react'
 import ErrorBoundary from '@/ui/error'
 import {
@@ -37,9 +40,10 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
 
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
-  const [sandboxesRes, templatesRes] = await Promise.all([
+  const [sandboxesRes, templatesRes, defaultTemplateRes] = await Promise.all([
     getTeamSandboxes({ teamId }),
     getTeamTemplates({ teamId }),
+    getDefaultTemplates(),
   ])
 
   if (sandboxesRes.type === 'error') {
@@ -71,7 +75,10 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
   }
 
   const sandboxes = sandboxesRes.data
-  const templates = templatesRes.data
+  const templates = [
+    ...(defaultTemplateRes.type === 'success' ? defaultTemplateRes.data : []),
+    ...templatesRes.data,
+  ]
 
   return <SandboxesTable sandboxes={sandboxes} templates={templates} />
 }

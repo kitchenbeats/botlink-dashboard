@@ -149,6 +149,8 @@ export default function SandboxesTable({
       columnSizing,
       columnFilters,
       rowPinning,
+      // @ts-expect-error - templates state not in type definition
+      templates,
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

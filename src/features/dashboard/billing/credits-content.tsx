@@ -14,7 +14,7 @@ export default async function BillingCreditsContent({
         <ErrorIndicator
           description={'Could not load credits'}
           message={res.message}
-          className="w-full max-w-full bg-bg"
+          className="bg-bg w-full max-w-full"
         />
       </div>
     )
@@ -24,8 +24,11 @@ export default async function BillingCreditsContent({
 
   return (
     <span className="ml-2 text-2xl font-bold">
-      <span className="text-sm font-normal text-accent">$ </span>
-      {usage.credits}
+      <span className="text-accent text-sm font-normal">$ </span>
+      {usage.credits.toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      })}
     </span>
   )
 }

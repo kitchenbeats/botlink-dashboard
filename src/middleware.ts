@@ -14,6 +14,7 @@ import {
   BLOG_FRAMER_DOMAIN,
   DOCS_NEXT_DOMAIN,
 } from '@/configs/domains'
+import { PROTECTED_URLS } from './configs/urls'
 
 // Main middleware function
 export async function middleware(request: NextRequest) {
@@ -39,6 +40,16 @@ export async function middleware(request: NextRequest) {
         },
       }
     )
+
+    // Redirect to dashboard if user is logged in and on landing page
+    if (
+      request.nextUrl.pathname === '/' &&
+      (await supabase.auth.getSession()).data.session
+    ) {
+      return NextResponse.redirect(
+        new URL(PROTECTED_URLS.DASHBOARD, request.url)
+      )
+    }
 
     // 2. Handle URL rewrites first (early return for non-dashboard routes)
     const rewriteResponse = await handleUrlRewrites(request, {

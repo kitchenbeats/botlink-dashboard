@@ -2,7 +2,7 @@
 
 'use client'
 
-import { MoreVertical, Lock, LockOpen, Trash, Cpu } from 'lucide-react'
+import { MoreVertical, Lock, LockOpen, Cpu } from 'lucide-react'
 import {
   ColumnDef,
   FilterFn,
@@ -12,7 +12,7 @@ import {
   TableOptions,
 } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
-import { Template } from '@/types/api'
+import { DefaultTemplate, Template } from '@/types/api'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/use-toast'
 import { Button } from '@/ui/primitives/button'
@@ -36,6 +36,7 @@ import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { Loader } from '@/ui/loader'
 import { AlertDialog } from '@/ui/alert-dialog'
 import posthog from 'posthog-js'
+import { cn } from '@/lib/utils'
 
 // FILTERS
 export const fuzzyFilter: FilterFn<unknown> = (
@@ -65,7 +66,7 @@ export const fuzzyFilter: FilterFn<unknown> = (
 }
 
 // TABLE CONFIG
-export const fallbackData: Template[] = []
+export const fallbackData: (Template | DefaultTemplate)[] = []
 
 export const trackTemplateTableInteraction = (
   action: string,
@@ -78,7 +79,7 @@ export const trackTemplateTableInteraction = (
 }
 
 export const useColumns = (deps: unknown[]) => {
-  return useMemo<ColumnDef<Template>[]>(
+  return useMemo<ColumnDef<Template | DefaultTemplate>[]>(
     () => [
       {
         id: 'actions',
@@ -191,7 +192,9 @@ export const useColumns = (deps: unknown[]) => {
                     variant="ghost"
                     size="icon"
                     className="text-fg-500 size-5"
-                    disabled={isUpdating || isDeleting}
+                    disabled={
+                      isUpdating || isDeleting || 'isDefault' in template
+                    }
                   >
                     {isUpdating ? (
                       <Loader className="size-4" />
@@ -210,12 +213,12 @@ export const useColumns = (deps: unknown[]) => {
                       {template.public ? (
                         <>
                           <Lock className="!size-3" />
-                          Unpublish
+                          Set Private
                         </>
                       ) : (
                         <>
                           <LockOpen className="!size-3" />
-                          Publish
+                          Set Public
                         </>
                       )}
                     </DropdownMenuItem>
@@ -239,15 +242,7 @@ export const useColumns = (deps: unknown[]) => {
           )
         },
       },
-      /*       {
-        accessorKey: "aliases",
-        header: "Aliases",
-        cell: ({ row }) => (
-          <div className="font-mono font-medium">
-            {(row.getValue("aliases") as string[])[0]}
-          </div>
-        ),
-      }, */
+
       {
         accessorKey: 'templateID',
         header: 'ID',
@@ -260,6 +255,20 @@ export const useColumns = (deps: unknown[]) => {
         ),
       },
       {
+        accessorKey: 'name',
+        accessorFn: (row) => row.aliases?.[0],
+        header: 'Name',
+        cell: ({ getValue }) => (
+          <div
+            className={cn('font-mono font-medium', {
+              'text-fg-500': !getValue(),
+            })}
+          >
+            {(getValue() as string) ?? 'N/A'}
+          </div>
+        ),
+      },
+      {
         accessorKey: 'cpuCount',
         header: 'CPU',
         size: 125,
@@ -267,8 +276,9 @@ export const useColumns = (deps: unknown[]) => {
         cell: ({ row }) => {
           const cpuCount = row.getValue('cpuCount') as number
           return (
-            <Badge variant="contrast-2" className="font-mono whitespace-nowrap">
-              <Cpu className="size-2" /> {cpuCount} core
+            <Badge className="text-fg-500 font-mono whitespace-nowrap">
+              <Cpu className="text-contrast-2 size-2.5" />{' '}
+              <span className="text-contrast-2">{cpuCount}</span> core
               {cpuCount > 1 ? 's' : ''}
             </Badge>
           )
@@ -283,8 +293,11 @@ export const useColumns = (deps: unknown[]) => {
         cell: ({ row }) => {
           const memoryMB = row.getValue('memoryMB') as number
           return (
-            <Badge variant="contrast-1" className="font-mono whitespace-nowrap">
-              <CgSmartphoneRam className="size-2" /> {memoryMB.toLocaleString()}{' '}
+            <Badge className="text-fg-500 font-mono whitespace-nowrap">
+              <CgSmartphoneRam className="text-contrast-1 size-2.5" />{' '}
+              <span className="text-contrast-1">
+                {memoryMB.toLocaleString()}{' '}
+              </span>
               MB
             </Badge>
           )
@@ -319,26 +332,46 @@ export const useColumns = (deps: unknown[]) => {
       },
       {
         accessorKey: 'public',
-        header: 'Public',
-        size: 100,
+        header: 'Visibility',
+        size: 140,
         minSize: 100,
         cell: ({ getValue }) => (
           <Badge
-            variant={getValue() ? 'success' : 'muted'}
-            className="font-mono whitespace-nowrap"
+            className={cn('text-fg-500 font-mono whitespace-nowrap', {
+              'text-success': getValue(),
+            })}
           >
-            {getValue() ? 'true' : 'false'}
+            {getValue() ? 'Public' : 'Private'}
           </Badge>
         ),
         enableSorting: false,
         filterFn: 'equals',
+      },
+      {
+        accessorKey: 'isDefault',
+        header: 'Made by E2B',
+        size: 100,
+        minSize: 100,
+        cell: ({ getValue }) => {
+          if (!getValue()) {
+            return null
+          }
+
+          return (
+            <Badge className={cn('text-accent font-mono whitespace-nowrap')}>
+              Yes
+            </Badge>
+          )
+        },
       },
     ],
     deps
   )
 }
 
-export const templatesTableConfig: Partial<TableOptions<Template>> = {
+export const templatesTableConfig: Partial<
+  TableOptions<Template | DefaultTemplate>
+> = {
   filterFns: {
     fuzzy: fuzzyFilter,
   },
