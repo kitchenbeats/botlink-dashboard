@@ -213,12 +213,12 @@ export const useColumns = (deps: unknown[]) => {
                       {template.public ? (
                         <>
                           <Lock className="!size-3" />
-                          Unpublish
+                          Set Private
                         </>
                       ) : (
                         <>
                           <LockOpen className="!size-3" />
-                          Publish
+                          Set Public
                         </>
                       )}
                     </DropdownMenuItem>
