@@ -103,7 +103,7 @@ export const getDefaultTemplates = guard(async () => {
       .from('env_builds')
       .select('id, ram_mb, vcpu')
       .eq('env_id', env.id)
-      .eq('status', 'success')
+      .eq('status', 'uploaded')
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
