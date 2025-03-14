@@ -8,6 +8,8 @@ import { useTemplateTableStore } from './stores/table-store'
 import { useMemo } from 'react'
 import { ExternalLink, X } from 'lucide-react'
 import ExternalIcon from '@/ui/external-icon'
+import { cn } from '@/lib/utils'
+import Scanline from '@/ui/scanline'
 
 interface TableBodyProps {
   templates: Template[] | undefined
@@ -45,7 +47,7 @@ export function TableBody({
           description="No templates match your current filters"
           message={
             <Button variant="default" onClick={resetFilters}>
-              Reset Filters <X className="size-4 text-accent" />
+              Reset Filters <X className="text-accent size-4" />
             </Button>
           }
           className="h-[70%] max-md:w-screen"

@@ -6,7 +6,7 @@ import {
   TableOptions,
   useReactTable,
 } from '@tanstack/react-table'
-import { Template } from '@/types/api'
+import { DefaultTemplate, Template } from '@/types/api'
 import { DataTableHead, DataTableRow, DataTableHeader } from '@/ui/data-table'
 import { useEffect, useState, useRef } from 'react'
 import { ColumnSizingState } from '@tanstack/react-table'
@@ -18,9 +18,10 @@ import { useColumnSizeVars } from '@/lib/hooks/use-column-size-vars'
 import { TableBody } from './table-body'
 import TemplatesHeader from './header'
 import ClientOnly from '@/ui/client-only'
+import HelpTooltip from '@/ui/help-tooltip'
 
 interface TemplatesTableProps {
-  templates: Template[]
+  templates: (Template | DefaultTemplate)[]
 }
 
 const INITIAL_VISUAL_ROWS_COUNT = 50
@@ -123,7 +124,7 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
     <ClientOnly className="flex h-full flex-col pt-3">
       <TemplatesHeader table={table} />
 
-      <div className="mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
+      <div className="bg-bg mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto">
         <DataTable
           className="h-full min-w-[calc(100svw-var(--protected-sidebar-width))] overflow-y-auto"
           style={{ ...columnSizeVars }}
@@ -142,12 +143,20 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
                     }}
                     sorting={sorting.find((s) => s.id === header.id)?.desc}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.id === 'public' ? (
+                      <HelpTooltip>
+                        Public templates can be used by all users to start
+                        Sandboxes, but can only be edited by your Team.
+                      </HelpTooltip>
+                    ) : null}
+                    <span className="truncate">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </span>
                   </DataTableHead>
                 ))}
               </DataTableRow>

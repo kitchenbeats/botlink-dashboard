@@ -25,6 +25,11 @@ interface Template {
   } | null
 }
 
+interface DefaultTemplate extends Template {
+  isDefault: true
+  defaultDescription?: string
+}
+
 interface SandboxMetrics {
   cpuCount: number
   cpuUsedPct: number
@@ -33,4 +38,4 @@ interface SandboxMetrics {
   timestamp: string
 }
 
-export type { Sandbox, Template, SandboxMetrics }
+export type { Sandbox, Template, SandboxMetrics, DefaultTemplate }
