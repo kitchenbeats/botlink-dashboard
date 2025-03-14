@@ -146,7 +146,7 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
                     {header.id === 'public' ? (
                       <HelpTooltip>
                         Public templates can be used by all users to start
-                        Sandboxes.
+                        Sandboxes, but can only be edited by your Team.
                       </HelpTooltip>
                     ) : null}
                     <span className="truncate">
