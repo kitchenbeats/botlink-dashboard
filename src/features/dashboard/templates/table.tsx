@@ -6,7 +6,7 @@ import {
   TableOptions,
   useReactTable,
 } from '@tanstack/react-table'
-import { Template } from '@/types/api'
+import { DefaultTemplate, Template } from '@/types/api'
 import { DataTableHead, DataTableRow, DataTableHeader } from '@/ui/data-table'
 import { useEffect, useState, useRef } from 'react'
 import { ColumnSizingState } from '@tanstack/react-table'
@@ -20,7 +20,7 @@ import TemplatesHeader from './header'
 import ClientOnly from '@/ui/client-only'
 
 interface TemplatesTableProps {
-  templates: Template[]
+  templates: (Template | DefaultTemplate)[]
 }
 
 const INITIAL_VISUAL_ROWS_COUNT = 50
@@ -123,7 +123,7 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
     <ClientOnly className="flex h-full flex-col pt-3">
       <TemplatesHeader table={table} />
 
-      <div className="mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto bg-bg">
+      <div className="bg-bg mt-4 max-w-[calc(100svw-var(--protected-sidebar-width))] flex-1 overflow-x-auto">
         <DataTable
           className="h-full min-w-[calc(100svw-var(--protected-sidebar-width))] overflow-y-auto"
           style={{ ...columnSizeVars }}

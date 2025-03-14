@@ -1,6 +1,9 @@
 import DashboardPageLayout from '@/features/dashboard/page-layout'
 import TemplatesTable from '@/features/dashboard/templates/table'
-import { getTeamTemplates } from '@/server/templates/get-team-templates'
+import {
+  getDefaultTemplates,
+  getTeamTemplates,
+} from '@/server/templates/get-team-templates'
 import { Suspense } from 'react'
 import LoadingLayout from '../../loading'
 import ErrorBoundary from '@/ui/error'
@@ -40,6 +43,8 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
     teamId,
   })
 
+  const defaultRes = await getDefaultTemplates()
+
   if (res.type === 'error') {
     return (
       <ErrorBoundary
@@ -54,7 +59,10 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
     )
   }
 
-  const templates = res.data
+  const templates = [
+    ...res.data,
+    ...(defaultRes.type === 'success' ? defaultRes.data : []),
+  ]
 
   return <TemplatesTable templates={templates} />
 }

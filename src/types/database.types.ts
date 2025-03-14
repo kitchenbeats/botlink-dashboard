@@ -9,29 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      _dashboard_migrations: {
+        Row: {
+          applied_at: string | null
+          checksum: string | null
+          filename: string
+        }
+        Insert: {
+          applied_at?: string | null
+          checksum?: string | null
+          filename: string
+        }
+        Update: {
+          applied_at?: string | null
+          checksum?: string | null
+          filename?: string
+        }
+        Relationships: []
+      }
       access_tokens: {
         Row: {
           access_token: string
+          access_token_hash: string | null
+          access_token_mask: string | null
           created_at: string
           user_id: string
         }
         Insert: {
           access_token?: string
+          access_token_hash?: string | null
+          access_token_mask?: string | null
           created_at?: string
           user_id: string
         }
         Update: {
           access_token?: string
+          access_token_hash?: string | null
+          access_token_mask?: string | null
           created_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'access_tokens_users_access_tokens'
-            columns: ['user_id']
+            foreignKeyName: "access_tokens_users_access_tokens"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: 'auth_users'
-            referencedColumns: ['id']
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -53,11 +77,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'env_aliases_envs_env_aliases'
-            columns: ['env_id']
+            foreignKeyName: "env_aliases_envs_env_aliases"
+            columns: ["env_id"]
             isOneToOne: false
-            referencedRelation: 'envs'
-            referencedColumns: ['id']
+            referencedRelation: "envs"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -115,11 +139,34 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'env_builds_envs_builds'
-            columns: ['env_id']
+            foreignKeyName: "env_builds_envs_builds"
+            columns: ["env_id"]
             isOneToOne: false
-            referencedRelation: 'envs'
-            referencedColumns: ['id']
+            referencedRelation: "envs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      env_defaults: {
+        Row: {
+          description: string | null
+          env_id: string
+        }
+        Insert: {
+          description?: string | null
+          env_id: string
+        }
+        Update: {
+          description?: string | null
+          env_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "env_defaults_env_id_fkey"
+            columns: ["env_id"]
+            isOneToOne: true
+            referencedRelation: "envs"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -159,18 +206,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'envs_teams_envs'
-            columns: ['team_id']
+            foreignKeyName: "envs_teams_envs"
+            columns: ["team_id"]
             isOneToOne: false
-            referencedRelation: 'teams'
-            referencedColumns: ['id']
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'envs_users_created_envs'
-            columns: ['created_by']
+            foreignKeyName: "envs_users_created_envs"
+            columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: 'auth_users'
-            referencedColumns: ['id']
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -204,6 +251,8 @@ export type Database = {
       team_api_keys: {
         Row: {
           api_key: string
+          api_key_hash: string | null
+          api_key_mask: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -214,6 +263,8 @@ export type Database = {
         }
         Insert: {
           api_key?: string
+          api_key_hash?: string | null
+          api_key_mask?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -224,6 +275,8 @@ export type Database = {
         }
         Update: {
           api_key?: string
+          api_key_hash?: string | null
+          api_key_mask?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -234,18 +287,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'team_api_keys_teams_team_api_keys'
-            columns: ['team_id']
+            foreignKeyName: "team_api_keys_teams_team_api_keys"
+            columns: ["team_id"]
             isOneToOne: false
-            referencedRelation: 'teams'
-            referencedColumns: ['id']
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'team_api_keys_users_created_api_keys'
-            columns: ['created_by']
+            foreignKeyName: "team_api_keys_users_created_api_keys"
+            columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: 'auth_users'
-            referencedColumns: ['id']
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -259,7 +312,7 @@ export type Database = {
           is_blocked: boolean
           name: string
           profile_picture_url: string | null
-          slug: string | null
+          slug: string
           tier: string
         }
         Insert: {
@@ -271,7 +324,7 @@ export type Database = {
           is_blocked?: boolean
           name: string
           profile_picture_url?: string | null
-          slug?: string | null
+          slug: string
           tier: string
         }
         Update: {
@@ -283,16 +336,16 @@ export type Database = {
           is_blocked?: boolean
           name?: string
           profile_picture_url?: string | null
-          slug?: string | null
+          slug?: string
           tier?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'teams_tiers_teams'
-            columns: ['tier']
+            foreignKeyName: "teams_tiers_teams"
+            columns: ["tier"]
             isOneToOne: false
-            referencedRelation: 'tiers'
-            referencedColumns: ['id']
+            referencedRelation: "tiers"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -347,25 +400,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'users_teams_added_by_user'
-            columns: ['added_by']
+            foreignKeyName: "users_teams_added_by_user"
+            columns: ["added_by"]
             isOneToOne: false
-            referencedRelation: 'auth_users'
-            referencedColumns: ['id']
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'users_teams_teams_teams'
-            columns: ['team_id']
+            foreignKeyName: "users_teams_teams_teams"
+            columns: ["team_id"]
             isOneToOne: false
-            referencedRelation: 'teams'
-            referencedColumns: ['id']
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'users_teams_users_users'
-            columns: ['user_id']
+            foreignKeyName: "users_teams_users_users"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: 'auth_users'
-            referencedColumns: ['id']
+            referencedRelation: "auth_users"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -373,115 +426,16 @@ export type Database = {
     Views: {
       auth_users: {
         Row: {
-          aud: string | null
-          banned_until: string | null
-          confirmation_sent_at: string | null
-          confirmation_token: string | null
-          confirmed_at: string | null
-          created_at: string | null
-          deleted_at: string | null
           email: string | null
-          email_change: string | null
-          email_change_confirm_status: number | null
-          email_change_sent_at: string | null
-          email_change_token_current: string | null
-          email_change_token_new: string | null
-          email_confirmed_at: string | null
-          encrypted_password: string | null
           id: string | null
-          instance_id: string | null
-          invited_at: string | null
-          is_anonymous: boolean | null
-          is_sso_user: boolean | null
-          is_super_admin: boolean | null
-          last_sign_in_at: string | null
-          phone: string | null
-          phone_change: string | null
-          phone_change_sent_at: string | null
-          phone_change_token: string | null
-          phone_confirmed_at: string | null
-          raw_app_meta_data: Json | null
-          raw_user_meta_data: Json | null
-          reauthentication_sent_at: string | null
-          reauthentication_token: string | null
-          recovery_sent_at: string | null
-          recovery_token: string | null
-          role: string | null
-          updated_at: string | null
         }
         Insert: {
-          aud?: string | null
-          banned_until?: string | null
-          confirmation_sent_at?: string | null
-          confirmation_token?: string | null
-          confirmed_at?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
           email?: string | null
-          email_change?: string | null
-          email_change_confirm_status?: number | null
-          email_change_sent_at?: string | null
-          email_change_token_current?: string | null
-          email_change_token_new?: string | null
-          email_confirmed_at?: string | null
-          encrypted_password?: string | null
           id?: string | null
-          instance_id?: string | null
-          invited_at?: string | null
-          is_anonymous?: boolean | null
-          is_sso_user?: boolean | null
-          is_super_admin?: boolean | null
-          last_sign_in_at?: string | null
-          phone?: string | null
-          phone_change?: string | null
-          phone_change_sent_at?: string | null
-          phone_change_token?: string | null
-          phone_confirmed_at?: string | null
-          raw_app_meta_data?: Json | null
-          raw_user_meta_data?: Json | null
-          reauthentication_sent_at?: string | null
-          reauthentication_token?: string | null
-          recovery_sent_at?: string | null
-          recovery_token?: string | null
-          role?: string | null
-          updated_at?: string | null
         }
         Update: {
-          aud?: string | null
-          banned_until?: string | null
-          confirmation_sent_at?: string | null
-          confirmation_token?: string | null
-          confirmed_at?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
           email?: string | null
-          email_change?: string | null
-          email_change_confirm_status?: number | null
-          email_change_sent_at?: string | null
-          email_change_token_current?: string | null
-          email_change_token_new?: string | null
-          email_confirmed_at?: string | null
-          encrypted_password?: string | null
           id?: string | null
-          instance_id?: string | null
-          invited_at?: string | null
-          is_anonymous?: boolean | null
-          is_sso_user?: boolean | null
-          is_super_admin?: boolean | null
-          last_sign_in_at?: string | null
-          phone?: string | null
-          phone_change?: string | null
-          phone_change_sent_at?: string | null
-          phone_change_token?: string | null
-          phone_confirmed_at?: string | null
-          raw_app_meta_data?: Json | null
-          raw_user_meta_data?: Json | null
-          reauthentication_sent_at?: string | null
-          reauthentication_token?: string | null
-          recovery_sent_at?: string | null
-          recovery_token?: string | null
-          role?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -517,13 +471,13 @@ export type Database = {
       }
       unaccent: {
         Args: {
-          '': string
+          "": string
         }
         Returns: string
       }
       unaccent_init: {
         Args: {
-          '': unknown
+          "": unknown
         }
         Returns: unknown
       }
@@ -537,27 +491,27 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, 'public'>]
+type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-        Database[PublicTableNameOrOptions['schema']]['Views'])
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-      Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] &
-        PublicSchema['Views'])
-    ? (PublicSchema['Tables'] &
-        PublicSchema['Views'])[PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -566,19 +520,19 @@ export type Tables<
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -587,19 +541,19 @@ export type TablesInsert<
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -608,28 +562,28 @@ export type TablesUpdate<
 
 export type Enums<
   PublicEnumNameOrOptions extends
-    | keyof PublicSchema['Enums']
+    | keyof PublicSchema["Enums"]
     | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
-    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
+    | keyof PublicSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
