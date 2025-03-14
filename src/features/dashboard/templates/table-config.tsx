@@ -36,6 +36,7 @@ import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { Loader } from '@/ui/loader'
 import { AlertDialog } from '@/ui/alert-dialog'
 import posthog from 'posthog-js'
+import { cn } from '@/lib/utils'
 
 // FILTERS
 export const fuzzyFilter: FilterFn<unknown> = (
@@ -239,15 +240,7 @@ export const useColumns = (deps: unknown[]) => {
           )
         },
       },
-      /*       {
-        accessorKey: "aliases",
-        header: "Aliases",
-        cell: ({ row }) => (
-          <div className="font-mono font-medium">
-            {(row.getValue("aliases") as string[])[0]}
-          </div>
-        ),
-      }, */
+
       {
         accessorKey: 'templateID',
         header: 'ID',
@@ -256,6 +249,20 @@ export const useColumns = (deps: unknown[]) => {
         cell: ({ row }) => (
           <div className="text-fg-500 truncate font-mono text-xs">
             {row.getValue('templateID')}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'name',
+        accessorFn: (row) => row.aliases?.[0],
+        header: 'Name',
+        cell: ({ getValue }) => (
+          <div
+            className={cn('font-mono font-medium', {
+              'text-fg-500': !getValue(),
+            })}
+          >
+            {(getValue() as string) ?? 'N/A'}
           </div>
         ),
       },
