@@ -1,6 +1,54 @@
 import { nanoid } from 'nanoid'
-import { Sandbox, SandboxMetrics, Template } from '@/types/api'
+import { DefaultTemplate, Sandbox, SandboxMetrics, Template } from '@/types/api'
 import { addHours, subHours } from 'date-fns'
+
+const DEFAULT_TEMPLATES: DefaultTemplate[] = [
+  {
+    aliases: ['code-interpreter'],
+    buildID: 'build_000',
+    cpuCount: 1,
+    memoryMB: 1024,
+    public: true,
+    templateID: 'code-interpreter-v1',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    createdBy: {
+      email: 'admin@example.com',
+      id: 'user_001',
+    },
+    isDefault: true,
+    defaultDescription: 'Code Interpreter',
+  },
+  {
+    aliases: ['web-starter'],
+    buildID: 'build_005',
+    cpuCount: 2,
+    memoryMB: 2048,
+    public: true,
+    templateID: 'web-starter-v1',
+    createdAt: '2024-01-05T00:00:00Z',
+    updatedAt: '2024-01-05T00:00:00Z',
+    createdBy: null,
+    isDefault: true,
+    defaultDescription: 'Web Development Environment',
+  },
+  {
+    aliases: ['data-science'],
+    buildID: 'build_006',
+    cpuCount: 4,
+    memoryMB: 8192,
+    public: true,
+    templateID: 'data-science-v1',
+    createdAt: '2024-01-06T00:00:00Z',
+    updatedAt: '2024-01-06T00:00:00Z',
+    createdBy: {
+      email: 'datascience@example.com',
+      id: 'user_002',
+    },
+    isDefault: true,
+    defaultDescription: 'Data Science Environment with ML Libraries',
+  },
+]
 
 const TEMPLATES: Template[] = [
   {
@@ -315,3 +363,4 @@ export const MOCK_METRICS_DATA = (sandboxes: Sandbox[]) =>
   generateMockMetrics(sandboxes)
 export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(300)
 export const MOCK_TEMPLATES_DATA = TEMPLATES
+export const MOCK_DEFAULT_TEMPLATES_DATA = DEFAULT_TEMPLATES
