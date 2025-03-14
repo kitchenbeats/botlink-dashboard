@@ -30,9 +30,14 @@ const TableHeader = ({ topRows, headerGroups, state }: TableHeaderProps) => (
             }}
             sorting={state.sorting.find((s) => s.id === header.id)?.desc}
           >
-            {header.isPlaceholder
-              ? null
-              : flexRender(header.column.columnDef.header, header.getContext())}
+            <span className="truncate">
+              {header.isPlaceholder
+                ? null
+                : flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+            </span>
           </DataTableHead>
         ))}
       </DataTableRow>

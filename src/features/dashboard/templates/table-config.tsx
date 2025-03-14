@@ -333,7 +333,7 @@ export const useColumns = (deps: unknown[]) => {
       {
         accessorKey: 'public',
         header: 'Visibility',
-        size: 100,
+        size: 140,
         minSize: 100,
         cell: ({ getValue }) => (
           <Badge

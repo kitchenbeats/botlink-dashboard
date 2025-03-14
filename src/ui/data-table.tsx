@@ -67,7 +67,7 @@ function DataTableHead<TData, TValue>({
             )}
           </Button>
         )}
-        <span className="truncate">{children}</span>
+        {children}
       </div>
 
       {header.column.getCanResize() && (

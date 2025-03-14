@@ -18,6 +18,7 @@ import { useColumnSizeVars } from '@/lib/hooks/use-column-size-vars'
 import { TableBody } from './table-body'
 import TemplatesHeader from './header'
 import ClientOnly from '@/ui/client-only'
+import HelpTooltip from '@/ui/help-tooltip'
 
 interface TemplatesTableProps {
   templates: (Template | DefaultTemplate)[]
@@ -142,12 +143,20 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
                     }}
                     sorting={sorting.find((s) => s.id === header.id)?.desc}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.id === 'public' ? (
+                      <HelpTooltip>
+                        Public templates can be used by all users to start
+                        Sandboxes.
+                      </HelpTooltip>
+                    ) : null}
+                    <span className="truncate">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </span>
                   </DataTableHead>
                 ))}
               </DataTableRow>
