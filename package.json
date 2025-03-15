@@ -33,7 +33,8 @@
     "test:integration": "bun scripts:check-app-env && vitest run src/__test__/integration/",
     "test:e2e": "bun scripts:check-all-env && vitest run src/__test__/e2e/",
     "test:watch": "bun scripts:check-all-env && vitest",
-    "test:ui": "bun scripts:check-all-env && vitest --ui"
+    "test:ui": "bun scripts:check-all-env && vitest --ui",
+    "test:ui:integration": "bun scripts:check-app-env && vitest --ui src/__test__/integration/"
   },
   "dependencies": {
     "@fumadocs/mdx-remote": "^1.2.0",

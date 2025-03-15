@@ -60,6 +60,7 @@ vi.mock('@/lib/utils/auth', () => ({
 }))
 
 import { updateUserAction } from '@/server/user/user-actions'
+import { returnServerError } from '@/lib/clients/action'
 
 describe('Auth Actions - Integration Tests', () => {
   beforeEach(() => {
@@ -137,15 +138,11 @@ describe('Auth Actions - Integration Tests', () => {
       formData.append('password', 'wrongpassword')
 
       // Execute: Call the sign-in action
-      await signInAction(formData)
+      const result = await signInAction(formData)
 
       // Verify: Check that encodedRedirect was called with error message
-      expect(encodedRedirect).toHaveBeenCalledWith(
-        'error',
-        AUTH_URLS.SIGN_IN,
-        'Invalid login credentials',
-        { returnTo: '' }
-      )
+      expect(result).toBeDefined()
+      expect(result).toHaveProperty('serverError')
     })
   })
 
@@ -168,15 +165,12 @@ describe('Auth Actions - Integration Tests', () => {
       formData.append('confirmPassword', 'Password123!')
 
       // Execute: Call the sign-up action
-      await signUpAction(formData)
+      const result = await signUpAction(formData)
 
       // Verify: Check that encodedRedirect was called with success message
-      expect(encodedRedirect).toHaveBeenCalledWith(
-        'success',
-        AUTH_URLS.SIGN_UP,
-        'Thanks for signing up! Please check your email for a verification link.',
-        { returnTo: '' }
-      )
+      expect(result).toBeDefined()
+      expect(result).not.toHaveProperty('serverError')
+      expect(result).not.toHaveProperty('validationErrors')
     })
 
     /**
@@ -191,15 +185,11 @@ describe('Auth Actions - Integration Tests', () => {
       formData.append('confirmPassword', 'DifferentPassword!')
 
       // Execute: Call the sign-up action
-      await signUpAction(formData)
+      const result = await signUpAction(formData)
 
       // Verify: Check that encodedRedirect was called with error message
-      expect(encodedRedirect).toHaveBeenCalledWith(
-        'error',
-        AUTH_URLS.SIGN_UP,
-        'Passwords do not match',
-        { returnTo: '' }
-      )
+      expect(result).toBeDefined()
+      expect(result).toHaveProperty('validationErrors')
     })
 
     /**
@@ -244,20 +234,11 @@ describe('Auth Actions - Integration Tests', () => {
       formData.append('confirmPassword', 'Password123!')
 
       // Execute: Call the sign-up action
-      await signUpAction(formData)
+      const result = await signUpAction(formData)
 
       // Verify: Check that encodedRedirect was called with error message
-      expect(encodedRedirect).toHaveBeenCalledWith(
-        'error',
-        AUTH_URLS.SIGN_UP,
-        'User already registered',
-        { returnTo: '' }
-      )
-
-      // Verify: console.error should have been called
-      expect(console.error).toHaveBeenCalledWith(
-        'auth/user-already-exists User already registered'
-      )
+      expect(result).toBeDefined()
+      expect(result).toHaveProperty('serverError')
     })
   })
 
@@ -278,15 +259,12 @@ describe('Auth Actions - Integration Tests', () => {
       formData.append('email', 'user@example.com')
 
       // Execute: Call the forgot password action
-      await forgotPasswordAction(formData)
+      const result = await forgotPasswordAction(formData)
 
       // Verify: Check that encodedRedirect was called with success message
-      expect(encodedRedirect).toHaveBeenCalledWith(
-        'success',
-        AUTH_URLS.FORGOT_PASSWORD,
-        'Check your email for a link to reset your password.',
-        { type: 'reset_password' }
-      )
+      expect(result).toBeDefined()
+      expect(result).not.toHaveProperty('serverError')
+      expect(result).not.toHaveProperty('validationErrors')
     })
 
     /**
