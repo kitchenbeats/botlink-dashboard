@@ -106,7 +106,6 @@ export const signUpAction = actionClient
     }
   })
 
-// Sign in action with zod-form-data
 const signInSchema = zfd.formData({
   email: zfd.text(z.string().email('Valid email is required')),
   password: zfd.text(z.string().min(1, 'Password is required')),
@@ -134,7 +133,6 @@ export const signInAction = actionClient
     redirect(returnTo || PROTECTED_URLS.DASHBOARD)
   })
 
-// Forgot password action with zod-form-data
 const forgotPasswordSchema = zfd.formData({
   email: zfd.text(z.string().email('Valid email is required')),
   callbackUrl: zfd.text(z.string().optional()),
