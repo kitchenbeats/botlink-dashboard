@@ -18,7 +18,7 @@ export const updateUserAction = authActionClient
   .schema(UpdateUserSchema)
   .metadata({ actionName: 'updateUser' })
   .action(async ({ parsedInput, ctx }) => {
-    const { supabase, user } = ctx
+    const { supabase } = ctx
     const origin = (await headers()).get('origin')
 
     const { data: updateData, error } = await supabase.auth.updateUser(
@@ -35,7 +35,46 @@ export const updateUserAction = authActionClient
     )
 
     if (error) {
-      throw new Error(error.message)
+      switch (error.code) {
+        case 'email_address_invalid':
+          return {
+            success: false,
+            validationErrors: {
+              fieldErrors: {
+                email: ['Invalid e-mail address'],
+              },
+            },
+          }
+        case 'email_exists':
+          return {
+            success: false,
+            validationErrors: {
+              fieldErrors: { email: ['E-mail already in use'] },
+            },
+          }
+        case 'same_password':
+          return {
+            success: false,
+            validationErrors: {
+              fieldErrors: {
+                password: [
+                  'New password cannot be the same as the old password',
+                ],
+              },
+            },
+          }
+        case 'weak_password':
+          return {
+            success: false,
+            validationErrors: {
+              fieldErrors: {
+                password: ['Password is too weak'],
+              },
+            },
+          }
+        default:
+          throw new Error(error.message)
+      }
     }
 
     return {
