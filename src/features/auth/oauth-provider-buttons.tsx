@@ -1,6 +1,6 @@
 'use client'
 
-import { signInWithOAuth } from '@/server/auth/auth-actions'
+import { signInWithOAuthAction } from '@/server/auth/auth-actions'
 import { Button } from '@/ui/primitives/button'
 import { useSearchParams } from 'next/navigation'
 
@@ -9,7 +9,7 @@ export function OAuthProviders() {
   const returnTo = searchParams.get('returnTo')
 
   const handleOAuthSignIn = (provider: 'google' | 'github') => {
-    signInWithOAuth(provider, returnTo || undefined)
+    signInWithOAuthAction({ provider, returnTo: returnTo || undefined })
   }
 
   return (

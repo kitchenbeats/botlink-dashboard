@@ -63,10 +63,8 @@ export function EmailSettings({ className }: EmailSettingsProps) {
     },
     onError: ({ error }) => {
       if (error.validationErrors?.fieldErrors?.email?.[0]) {
-        toast({
-          title: 'Validation Error',
-          description: error.validationErrors?.fieldErrors?.email?.[0],
-          variant: 'error',
+        form.setError('email', {
+          message: error.validationErrors.fieldErrors.email?.[0],
         })
         return
       }
