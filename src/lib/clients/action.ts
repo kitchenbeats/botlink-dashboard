@@ -4,8 +4,52 @@ import { z } from 'zod'
 import { UnknownError } from '@/types/errors'
 import { logDebug, logError, logSuccess } from './logger'
 
+/**
+ * Custom error class for action-specific errors.
+ *
+ * @remarks
+ * This error class is used in server actions but will be serialized and sent to the client.
+ * Be careful not to include sensitive information in error messages as they will be exposed to the client.
+ * When thrown in a server action, the message will be visible in client-side error handling.
+ */
+class ActionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ActionError'
+  }
+}
+
+/**
+ * Returns a server error to the client by throwing an ActionError.
+ *
+ * @param message - The error message to be sent to the client
+ * @returns Never returns as it always throws an error
+ *
+ * @example
+ * ```ts
+ * if (error) {
+ *   if (error.code === 'invalid_credentials') {
+ *     return returnServerError('Invalid credentials')
+ *   }
+ *   throw error
+ * }
+ * ```
+ *
+ * @remarks
+ * This function is used to return user-friendly error messages from server actions.
+ * The error message will be serialized and sent to the client, so avoid including
+ * sensitive information.
+ */
+export const returnServerError = (message: string) => {
+  throw new ActionError(message)
+}
+
 export const actionClient = createSafeActionClient({
   handleServerError(e) {
+    if (e instanceof ActionError) {
+      return e.message
+    }
+
     logError('Unexpected server error:', e.message)
 
     return UnknownError().message

@@ -6,8 +6,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Provider } from '@supabase/supabase-js'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
-import { logger } from '@/lib/clients/logger'
-import { actionClient } from '@/lib/clients/action'
+import { actionClient, returnServerError } from '@/lib/clients/action'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 
@@ -56,15 +55,19 @@ export const signInWithOAuthAction = actionClient
     )
   })
 
-// Sign up action with zod-form-data
-const signUpSchema = zfd.formData({
-  email: zfd.text(z.string().email('Valid email is required')),
-  password: zfd.text(
-    z.string().min(8, 'Password must be at least 8 characters')
-  ),
-  confirmPassword: zfd.text(),
-  returnTo: zfd.text(z.string().optional()),
-})
+const signUpSchema = zfd
+  .formData({
+    email: zfd.text(z.string().email('Valid email is required')),
+    password: zfd.text(
+      z.string().min(8, 'Password must be at least 8 characters')
+    ),
+    confirmPassword: zfd.text(),
+    returnTo: zfd.text(z.string().optional()),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match',
+  })
 
 export const signUpAction = actionClient
   .schema(signUpSchema)
@@ -73,15 +76,6 @@ export const signUpAction = actionClient
     const { email, password, confirmPassword, returnTo = '' } = parsedInput
     const supabase = await createClient()
     const origin = (await headers()).get('origin') || ''
-
-    if (password !== confirmPassword) {
-      throw encodedRedirect(
-        'error',
-        AUTH_URLS.SIGN_UP,
-        'Passwords do not match',
-        { returnTo }
-      )
-    }
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -92,23 +86,22 @@ export const signUpAction = actionClient
     })
 
     if (error) {
-      console.error(error.code + ' ' + error.message)
-      throw encodedRedirect('error', AUTH_URLS.SIGN_UP, error.message, {
-        returnTo,
-      })
-    } else {
-      throw encodedRedirect(
-        'success',
-        AUTH_URLS.SIGN_UP,
-        'Thanks for signing up! Please check your email for a verification link.',
-        { returnTo }
-      )
+      switch (error.code) {
+        case 'email_exists':
+          return returnServerError('Email already in use')
+        case 'weak_password':
+          return returnServerError('Password is too weak')
+        default:
+          throw error
+      }
     }
   })
 
 const signInSchema = zfd.formData({
   email: zfd.text(z.string().email('Valid email is required')),
-  password: zfd.text(z.string().min(1, 'Password is required')),
+  password: zfd.text(
+    z.string().min(8, 'Password must be at least 8 characters')
+  ),
   returnTo: zfd.text(z.string().optional()),
 })
 
@@ -125,9 +118,10 @@ export const signInAction = actionClient
     })
 
     if (error) {
-      throw encodedRedirect('error', AUTH_URLS.SIGN_IN, error.message, {
-        returnTo,
-      })
+      if (error.code === 'invalid_credentials') {
+        return returnServerError('Invalid credentials')
+      }
+      throw error
     }
 
     redirect(returnTo || PROTECTED_URLS.DASHBOARD)
@@ -142,7 +136,7 @@ export const forgotPasswordAction = actionClient
   .schema(forgotPasswordSchema)
   .metadata({ actionName: 'forgotPassword' })
   .action(async ({ parsedInput }) => {
-    const { email, callbackUrl } = parsedInput
+    const { email } = parsedInput
     const supabase = await createClient()
     const origin = (await headers()).get('origin')
 
@@ -151,65 +145,9 @@ export const forgotPasswordAction = actionClient
     })
 
     if (error) {
-      logger.error(error.message)
-      throw encodedRedirect(
-        'error',
-        AUTH_URLS.FORGOT_PASSWORD,
-        'Could not reset password'
-      )
+      throw error
     }
-
-    throw encodedRedirect(
-      'success',
-      callbackUrl || AUTH_URLS.FORGOT_PASSWORD,
-      'Check your email for a link to reset your password.',
-      // we add a type for the case that this is called from the account page
-      // -> account page needs to know what message type to display
-      {
-        type: 'reset_password',
-      }
-    )
   })
-
-/* Commented out as in original code
-export const resetPasswordAction = actionClient
-  .schema(zfd.formData({
-    password: zfd.text(z.string().min(8, 'Password must be at least 8 characters')),
-    confirmPassword: zfd.text(),
-  }))
-  .metadata({ actionName: 'resetPassword' })
-  .action(async ({ parsedInput }) => {
-    const { password, confirmPassword } = parsedInput
-    const supabase = await createClient()
-
-    if (password !== confirmPassword) {
-      throw encodedRedirect(
-        'error',
-        AUTH_URLS.RESET_PASSWORD,
-        'Passwords do not match'
-      )
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: password,
-    })
-
-    if (error) {
-      logger.error(error.message)
-      throw encodedRedirect(
-        'error',
-        AUTH_URLS.RESET_PASSWORD,
-        'Password update failed'
-      )
-    }
-
-    throw encodedRedirect(
-      'success',
-      AUTH_URLS.RESET_PASSWORD,
-      'Password updated'
-    )
-  })
-*/
 
 export const signOutAction = async () => {
   const supabase = await createClient()
