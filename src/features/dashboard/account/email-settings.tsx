@@ -1,7 +1,6 @@
 'use client'
 
 import { updateUserAction } from '@/server/user/user-actions'
-import { AuthFormMessage } from '@/features/auth/form-message'
 import {
   Card,
   CardContent,
@@ -18,19 +17,18 @@ import {
   FormMessage,
 } from '@/ui/primitives/form'
 import { Input } from '@/ui/primitives/input'
-import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
 import { useUser } from '@/lib/hooks/use-user'
-import { AnimatePresence } from 'motion/react'
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useAction } from 'next-safe-action/hooks'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/lib/hooks/use-toast'
 
 const formSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid e-mail address'),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -40,32 +38,44 @@ interface EmailSettingsProps {
 }
 
 export function EmailSettings({ className }: EmailSettingsProps) {
+  'use no memo'
+
   const { user, setUser, refetch: refetchUser } = useUser()
   const searchParams = useSearchParams()
-  const [message, setMessage] = useTimeoutMessage()
+  const { toast } = useToast()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: searchParams.get('new_email') || user?.email || '',
     },
+    values: {
+      email: searchParams.get('new_email') || user?.email || '',
+    },
   })
 
-  const { mutate: updateEmail, isPending } = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const response = await updateUserAction({ email: values.email })
-
-      if (response.type === 'error') {
-        throw new Error(response.message)
+  const { execute: updateEmail, isPending } = useAction(updateUserAction, {
+    onSuccess: () => {
+      toast({
+        title: 'Check your email for a verification link',
+        variant: 'success',
+      })
+    },
+    onError: ({ error }) => {
+      if (error.validationErrors?.fieldErrors?.email?.[0]) {
+        toast({
+          title: 'Validation Error',
+          description: error.validationErrors?.fieldErrors?.email?.[0],
+          variant: 'error',
+        })
+        return
       }
 
-      return response
-    },
-    onSuccess: () => {
-      setMessage({ success: 'Check your email for a verification link' })
-    },
-    onError: (error: Error) => {
-      setMessage({ error: error.message })
+      toast({
+        title: 'Error Updating E-Mail',
+        description: error.serverError || 'Failed to update e-mail',
+        variant: 'error',
+      })
     },
   })
 
@@ -86,14 +96,17 @@ export function EmailSettings({ className }: EmailSettingsProps) {
           }))
         }
 
-        setMessage({
-          success: decodeURIComponent(searchParams.get('success')!),
+        toast({
+          title: decodeURIComponent(searchParams.get('success')!),
+          variant: 'success',
         })
 
         refetchUser()
       } else {
-        setMessage({
-          error: decodeURIComponent(searchParams.get('error')!),
+        toast({
+          title: 'Error',
+          description: decodeURIComponent(searchParams.get('error')!),
+          variant: 'error',
         })
       }
     }
@@ -110,8 +123,10 @@ export function EmailSettings({ className }: EmailSettingsProps) {
       <CardContent className="flex flex-col gap-3">
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit((values) => updateEmail(values))}
-            className="flex items-center gap-2"
+            onSubmit={form.handleSubmit((values) =>
+              updateEmail({ email: values.email })
+            )}
+            className="flex gap-2"
           >
             <FormField
               control={form.control}
@@ -139,10 +154,6 @@ export function EmailSettings({ className }: EmailSettingsProps) {
             </Button>
           </form>
         </Form>
-
-        <AnimatePresence initial={false} mode="wait">
-          {message && <AuthFormMessage message={message} className="mt-4" />}
-        </AnimatePresence>
       </CardContent>
     </Card>
   )

@@ -1,5 +1,6 @@
+import 'server-cli-only'
+
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
-import 'server-only'
 
 export async function getDefaultTeamRelation(userId: string) {
   const { data, error } = await supabaseAdmin
