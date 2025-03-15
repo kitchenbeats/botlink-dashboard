@@ -1,16 +1,10 @@
 'use server'
 
+import { authActionClient } from '@/lib/clients/action'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
-import { User } from '@supabase/supabase-js'
-import {
-  checkAuthenticated,
-  getUserAccessToken,
-  guard,
-} from '@/lib/utils/server'
+import { getUserAccessToken } from '@/lib/utils/server'
 import { z } from 'zod'
 import { headers } from 'next/headers'
-import { revalidatePath } from 'next/cache'
-import { E2BError } from '@/types/errors'
 
 const UpdateUserSchema = z.object({
   email: z.string().email().optional(),
@@ -20,58 +14,57 @@ const UpdateUserSchema = z.object({
 
 export type UpdateUserSchemaType = z.infer<typeof UpdateUserSchema>
 
-interface UpdateUserResponse {
-  newUser: User
-}
+export const updateUserAction = authActionClient
+  .schema(UpdateUserSchema)
+  .metadata({ actionName: 'updateUser' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { supabase, user } = ctx
+    const origin = (await headers()).get('origin')
 
-export const updateUserAction = guard<
-  typeof UpdateUserSchema,
-  UpdateUserResponse
->(UpdateUserSchema, async (data) => {
-  const { supabase } = await checkAuthenticated()
-
-  const origin = (await headers()).get('origin')
-
-  const { data: updateData, error } = await supabase.auth.updateUser(
-    {
-      email: data.email,
-      password: data.password,
-      data: {
-        name: data.name,
+    const { data: updateData, error } = await supabase.auth.updateUser(
+      {
+        email: parsedInput.email,
+        password: parsedInput.password,
+        data: {
+          name: parsedInput.name,
+        },
       },
-    },
-    {
-      emailRedirectTo: `${origin}/api/auth/email-callback?new_email=${data.email}`,
+      {
+        emailRedirectTo: `${origin}/api/auth/email-callback?new_email=${parsedInput.email}`,
+      }
+    )
+
+    if (error) {
+      throw new Error(error.message)
     }
-  )
 
-  if (error) {
-    throw new E2BError('update_user_error', error.message)
-  }
+    return {
+      success: true,
+      newUser: updateData.user,
+    }
+  })
 
-  revalidatePath('/dashboard', 'layout')
-
-  return {
-    newUser: updateData.user,
-  }
-})
-
-export const deleteAccountAction = guard(async () => {
-  const { user } = await checkAuthenticated()
+export const deleteAccountAction = authActionClient.action(async ({ ctx }) => {
+  const { user } = ctx
 
   const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id)
 
   if (error) {
-    throw error
+    throw new Error(error.message)
   }
+
+  return { success: true }
 })
 
-export const getUserAccessTokenAction = guard(async () => {
-  const { user } = await checkAuthenticated()
+export const getUserAccessTokenAction = authActionClient.action(
+  async ({ ctx }) => {
+    const { user } = ctx
 
-  const accessToken = await getUserAccessToken(user.id)
+    const accessToken = await getUserAccessToken(user.id)
 
-  return {
-    accessToken,
+    return {
+      success: true,
+      accessToken,
+    }
   }
-})
+)
