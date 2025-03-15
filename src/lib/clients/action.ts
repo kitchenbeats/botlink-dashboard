@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { UnknownError } from '@/types/errors'
 import { logDebug, logError, logSuccess } from './logger'
 
-const actionClient = createSafeActionClient({
+export const actionClient = createSafeActionClient({
   handleServerError(e) {
     logError('Unexpected server error:', e.message)
 
@@ -24,12 +24,16 @@ const actionClient = createSafeActionClient({
 
   const result = await next()
 
-  // strip ctx from result logging
+  // strip ctx from result logging to avoid leaking sensitive data (supabase client)
   const { ctx, ...rest } = result
 
   const actionName = metadata?.actionName || 'Unknown action'
 
-  if (result.serverError || result.success === false) {
+  if (
+    result.serverError ||
+    result.validationErrors ||
+    result.success === false
+  ) {
     logError(`Action '${actionName}' failed:`, {
       result: rest,
       input: clientInput,

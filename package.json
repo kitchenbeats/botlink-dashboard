@@ -110,6 +110,7 @@
     "usehooks-ts": "^3.1.0",
     "vaul": "^1.1.2",
     "zod": "^3.24.1",
+    "zod-form-data": "^2.0.7",
     "zustand": "^5.0.3",
     "zustand-computed": "^2.0.2"
   },
