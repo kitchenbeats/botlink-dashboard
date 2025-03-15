@@ -7,28 +7,28 @@ const stringifyArg = (arg: unknown) =>
 
 export const logError = (...args: Parameters<typeof console.error>) => {
   console.error(
-    ansis.bgRedBright.white('ERROR'),
+    ansis.bgRedBright.white(' ERROR '),
     ansis.redBright(args.map(stringifyArg).join(' '))
   )
 }
 
 export const logDebug = (...args: Parameters<typeof console.debug>) => {
   console.debug(
-    ansis.bgBlueBright.white('DEBUG'),
+    ansis.bgBlueBright.white(' DEBUG '),
     ansis.blueBright(args.map(stringifyArg).join(' '))
   )
 }
 
 export const logSuccess = (...args: Parameters<typeof console.log>) => {
   console.log(
-    ansis.bgGreenBright.white('SUCCESS'),
+    ansis.bgGreenBright.white(' SUCCESS '),
     ansis.greenBright(args.map(stringifyArg).join(' '))
   )
 }
 
 export const logWarning = (...args: Parameters<typeof console.warn>) => {
   console.warn(
-    ansis.bgYellowBright.white('WARNING'),
+    ansis.bgYellowBright.white(' WARNING '),
     ansis.yellowBright(args.map(stringifyArg).join(' '))
   )
 }

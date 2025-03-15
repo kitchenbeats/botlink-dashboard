@@ -9,24 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      _dashboard_migrations: {
-        Row: {
-          applied_at: string | null
-          checksum: string | null
-          filename: string
-        }
-        Insert: {
-          applied_at?: string | null
-          checksum?: string | null
-          filename: string
-        }
-        Update: {
-          applied_at?: string | null
-          checksum?: string | null
-          filename?: string
-        }
-        Relationships: []
-      }
       access_tokens: {
         Row: {
           access_token: string
