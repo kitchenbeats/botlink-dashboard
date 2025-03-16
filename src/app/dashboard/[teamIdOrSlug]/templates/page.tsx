@@ -35,8 +35,6 @@ interface PageContentProps {
 }
 
 async function PageContent({ teamIdOrSlug }: PageContentProps) {
-  bailOutFromPPR()
-
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   const res = await getTeamTemplates({
@@ -45,13 +43,13 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
 
   const defaultRes = await getDefaultTemplates()
 
-  if (res.type === 'error') {
+  if (!res?.data?.templates || res?.serverError) {
     return (
       <ErrorBoundary
         error={
           {
             name: 'Templates Error',
-            message: res.message,
+            message: res?.serverError ?? 'Unknown error',
           } satisfies Error
         }
         description={'Could not load templates'}
@@ -60,8 +58,8 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
   }
 
   const templates = [
-    ...res.data,
-    ...(defaultRes.type === 'success' ? defaultRes.data : []),
+    ...res.data.templates,
+    ...(defaultRes?.data?.templates ? defaultRes.data.templates : []),
   ]
 
   return <TemplatesTable templates={templates} />

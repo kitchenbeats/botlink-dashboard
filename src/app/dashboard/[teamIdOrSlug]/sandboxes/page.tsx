@@ -8,10 +8,7 @@ import {
 } from '@/server/templates/get-team-templates'
 import { Suspense } from 'react'
 import ErrorBoundary from '@/ui/error'
-import {
-  bailOutFromPPR,
-  resolveTeamIdInServerComponent,
-} from '@/lib/utils/server'
+import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 
 interface PageProps {
   params: Promise<{
@@ -36,8 +33,6 @@ interface PageContentProps {
 }
 
 async function PageContent({ teamIdOrSlug }: PageContentProps) {
-  bailOutFromPPR()
-
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   const [sandboxesRes, templatesRes, defaultTemplateRes] = await Promise.all([
@@ -46,27 +41,21 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
     getDefaultTemplates(),
   ])
 
-  if (sandboxesRes.type === 'error') {
+  if (
+    !sandboxesRes?.data ||
+    sandboxesRes?.serverError ||
+    !templatesRes?.data?.templates ||
+    templatesRes?.serverError
+  ) {
     return (
       <ErrorBoundary
         error={
           {
             name: 'Sandboxes Error',
-            message: sandboxesRes.message,
-          } satisfies Error
-        }
-        description={'Could not load sandboxes'}
-      />
-    )
-  }
-
-  if (templatesRes.type === 'error') {
-    return (
-      <ErrorBoundary
-        error={
-          {
-            name: 'Sandboxes Error',
-            message: templatesRes.message,
+            message:
+              sandboxesRes?.serverError ??
+              templatesRes?.serverError ??
+              'Unknown error',
           } satisfies Error
         }
         description={'Could not load sandboxes'}
@@ -76,8 +65,10 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
 
   const sandboxes = sandboxesRes.data
   const templates = [
-    ...(defaultTemplateRes.type === 'success' ? defaultTemplateRes.data : []),
-    ...templatesRes.data,
+    ...(defaultTemplateRes?.data?.templates
+      ? defaultTemplateRes.data.templates
+      : []),
+    ...templatesRes.data.templates,
   ]
 
   return <SandboxesTable sandboxes={sandboxes} templates={templates} />
