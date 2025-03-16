@@ -10,18 +10,14 @@ import {
   FormMessage,
 } from '@/ui/primitives/form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import { useParams } from 'next/navigation'
-import { mutate } from 'swr'
-import { QUERY_KEYS } from '@/configs/keys'
 import { addTeamMemberAction } from '@/server/team/team-actions'
 import { z } from 'zod'
 import { Input } from '@/ui/primitives/input'
 import { useToast } from '@/lib/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { useForm } from 'react-hook-form'
-import { Label } from '@/ui/primitives/label'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useAction } from 'next-safe-action/hooks'
 
 const addMemberSchema = z.object({
   email: z.string().email(),
@@ -34,6 +30,8 @@ interface AddMemberFormProps {
 }
 
 export default function AddMemberForm({ className }: AddMemberFormProps) {
+  'use no memo'
+
   const selectedTeam = useSelectedTeam()
   const { toast } = useToast()
 
@@ -44,41 +42,35 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
     },
   })
 
-  const { mutate: addMember, isPending } = useMutation({
-    mutationFn: async (data: AddMemberForm) => {
-      if (!selectedTeam) {
-        throw new Error('No team selected')
-      }
-
-      const response = await addTeamMemberAction({
-        teamId: selectedTeam.id,
-        email: data.email,
-      })
-
-      if (response.type === 'error') {
-        throw new Error(response.message)
-      }
-
-      return response
-    },
+  const { execute, isExecuting } = useAction(addTeamMemberAction, {
     onSuccess: () => {
       toast({
-        title: 'Member added to team',
         description: 'The member has been added to the team.',
+        variant: 'success',
       })
       form.reset()
     },
-    onError: (error: Error) => {
+    onError: ({ error }) => {
       toast({
-        title: 'Error',
-        description: error.message,
+        description: error.serverError || 'An error occurred',
         variant: 'error',
       })
     },
   })
 
   function onSubmit(data: AddMemberForm) {
-    addMember(data)
+    if (!selectedTeam) {
+      toast({
+        description: 'No team selected',
+        variant: 'error',
+      })
+      return
+    }
+
+    execute({
+      teamId: selectedTeam.id,
+      email: data.email,
+    })
   }
 
   return (
@@ -98,7 +90,7 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
                   <Input placeholder="member@acme.com" {...field} />
                 </FormControl>
                 <Button
-                  loading={isPending}
+                  loading={isExecuting}
                   type="submit"
                   disabled={!form.formState.isValid}
                   variant="outline"
