@@ -17,13 +17,12 @@ export const getTeamMembers = authActionClient
     const { teamId } = parsedInput
     const { user } = ctx
 
-    const { data: userTeamsRelationData, error: userTeamsRelationError } =
-      await supabaseAdmin
-        .from('users_teams')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('team_id', teamId)
-        .single()
+    const { error: userTeamsRelationError } = await supabaseAdmin
+      .from('users_teams')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('team_id', teamId)
+      .single()
 
     if (userTeamsRelationError) {
       return returnServerError('User is not authorized to get team members')
