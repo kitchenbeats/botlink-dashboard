@@ -1,23 +1,20 @@
 'use server'
 
 import { z } from 'zod'
-import {
-  checkAuthenticated,
-  getApiUrl,
-  getUserAccessToken,
-  guard,
-} from '@/lib/utils/server'
-import { E2BError } from '@/types/errors'
+import { getApiUrl, getUserAccessToken } from '@/lib/utils/server'
 import { revalidatePath } from 'next/cache'
+import { authActionClient, returnServerError } from '@/lib/clients/action'
 
 const DeleteTemplateParamsSchema = z.object({
   templateId: z.string(),
 })
 
-export const deleteTemplateAction = guard(
-  DeleteTemplateParamsSchema,
-  async ({ templateId }) => {
-    const { user } = await checkAuthenticated()
+export const deleteTemplateAction = authActionClient
+  .schema(DeleteTemplateParamsSchema)
+  .metadata({ actionName: 'deleteTemplate' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { templateId } = parsedInput
+    const { user } = ctx
     const accessToken = await getUserAccessToken(user.id)
     const { url } = await getApiUrl()
 
@@ -30,17 +27,20 @@ export const deleteTemplateAction = guard(
 
     if (!res.ok) {
       if (res.status === 404) {
-        throw new E2BError('INVALID_PARAMETERS', `Template not found`)
+        return returnServerError('Template not found')
       }
 
       const text = await res.text()
+      const statusCode = res.status
+      const statusText = res.statusText
 
-      throw new Error(text ?? `Failed to update template: ${templateId}`)
+      throw new Error(
+        `HTTP Error ${statusCode} ${statusText}: ${text || `Failed to delete template: ${templateId}`}`
+      )
     }
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/templates`, 'page')
-  }
-)
+  })
 
 const UpdateTemplateParamsSchema = z.object({
   templateId: z.string(),
@@ -51,10 +51,12 @@ const UpdateTemplateParamsSchema = z.object({
     .partial(),
 })
 
-export const updateTemplateAction = guard(
-  UpdateTemplateParamsSchema,
-  async ({ templateId, props }) => {
-    const { user } = await checkAuthenticated()
+export const updateTemplateAction = authActionClient
+  .schema(UpdateTemplateParamsSchema)
+  .metadata({ actionName: 'updateTemplate' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { templateId, props } = parsedInput
+    const { user } = ctx
     const accessToken = await getUserAccessToken(user.id)
     const { url } = await getApiUrl()
 
@@ -69,14 +71,17 @@ export const updateTemplateAction = guard(
 
     if (!res.ok) {
       if (res.status === 404) {
-        throw new E2BError('INVALID_PARAMETERS', `Template not found`)
+        return returnServerError('Template not found')
       }
 
       const text = await res.text()
+      const statusCode = res.status
+      const statusText = res.statusText
 
-      throw new Error(text ?? `Failed to update template: ${templateId}`)
+      throw new Error(
+        `HTTP Error ${statusCode} ${statusText}: ${text || `Failed to update template: ${templateId}`}`
+      )
     }
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/templates`, 'page')
-  }
-)
+  })

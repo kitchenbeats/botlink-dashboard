@@ -122,6 +122,7 @@ export default function SignUp() {
                     type="email"
                     placeholder="you@example.com"
                     required
+                    autoComplete="email"
                     {...field}
                   />
                 </FormControl>
@@ -142,6 +143,7 @@ export default function SignUp() {
                     type="password"
                     placeholder="Password"
                     required
+                    autoComplete="new-password"
                     {...field}
                   />
                 </FormControl>
@@ -155,15 +157,13 @@ export default function SignUp() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor="confirmPassword">
-                  Confirm Password
-                </FormLabel>
                 <FormControl>
                   <Input
                     id="confirmPassword"
                     type="password"
                     placeholder="Confirm Password"
                     required
+                    autoComplete="new-password"
                     {...field}
                   />
                 </FormControl>
