@@ -17,8 +17,8 @@ export default async function MemberTableBody({
   try {
     const result = await getTeamMembers({ teamId })
 
-    if (result.type === 'error') {
-      throw new Error(result.message)
+    if (!result?.data || result.serverError || result.validationErrors) {
+      throw new Error(result?.serverError || 'Unknown error')
     }
 
     const members = result.data
@@ -58,7 +58,7 @@ export default async function MemberTableBody({
           <ErrorIndicator
             description={'Could not load team members'}
             message={error instanceof Error ? error.message : 'Unknown error'}
-            className="mt-2 w-full max-w-full bg-bg"
+            className="bg-bg mt-2 w-full max-w-full"
           />
         </TableCell>
       </TableRow>
