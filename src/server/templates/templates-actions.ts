@@ -3,7 +3,8 @@
 import { z } from 'zod'
 import { getApiUrl, getUserAccessToken } from '@/lib/utils/server'
 import { revalidatePath } from 'next/cache'
-import { authActionClient, returnServerError } from '@/lib/clients/action'
+import { authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 
 const DeleteTemplateParamsSchema = z.object({
   templateId: z.string(),

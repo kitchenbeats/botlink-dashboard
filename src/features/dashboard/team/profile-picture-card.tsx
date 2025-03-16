@@ -98,7 +98,9 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Avatar className={cn('h-24 w-24', className)}>
+      <Avatar
+        className={cn('h-24 w-24 border-none drop-shadow-lg filter', className)}
+      >
         <AvatarImage
           src={team?.profile_picture_url || ''}
           alt={`${team?.name}'s profile picture`}

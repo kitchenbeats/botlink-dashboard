@@ -2,11 +2,11 @@ import 'server-only'
 
 import { z } from 'zod'
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from '@/configs/mock-data'
-import { ApiError } from '@/types/errors'
-import { logError, logger } from '@/lib/clients/logger'
+import { logError } from '@/lib/clients/logger'
 import { ERROR_CODES } from '@/configs/logs'
 import { SandboxWithMetrics } from '@/features/dashboard/sandboxes/table-config'
-import { authActionClient, returnServerError } from '@/lib/clients/action'
+import { authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 import { getApiUrl, getTeamApiKey } from '@/lib/utils/server'
 
 const GetTeamSandboxesSchema = z.object({
