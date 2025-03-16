@@ -5,7 +5,7 @@ import { Button } from '@/ui/primitives/button'
 import { Input } from '@/ui/primitives/input'
 import { Skeleton } from '@/ui/primitives/skeleton'
 import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
-import { useEffect, useTransition } from 'react'
+import { useEffect } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -24,88 +24,55 @@ import {
   FormMessage,
 } from '@/ui/primitives/form'
 import { useToast } from '@/lib/hooks/use-toast'
+import { useAction } from 'next-safe-action/hooks'
 
 interface NameCardProps {
   className?: string
-}
-
-type FormData = {
-  name: string
 }
 
 const formSchema = z.object({
   name: z.string().min(1, 'Team name is required'),
 })
 
+type FormValues = z.infer<typeof formSchema>
+
 export function NameCard({ className }: NameCardProps) {
   'use no memo'
 
   const { refetch: refetchTeams } = useTeams()
   const team = useSelectedTeam()
-  const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
 
-  // Initialize react-hook-form
-  const form = useForm<FormData>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: team?.name ?? '',
     },
   })
 
-  const { control, handleSubmit, reset, getValues, watch } = form
+  const { reset, watch } = form
 
-  // Reset the form when team changes
   useEffect(() => {
     if (team) {
       reset({ name: team.name })
     }
   }, [team, reset])
 
-  const canSubmit = getValues('name') !== team?.name
-  // Async submission using useTransition
-  const handleUpdate = async (values: FormData) => {
-    if (!team) return
-
-    startTransition(async () => {
-      try {
-        const response = await updateTeamNameAction({
-          teamId: team.id,
-          name: values.name,
-        })
-
-        if (response.type === 'error') {
-          toast({
-            title: 'Error updating team name',
-            description: response.message,
-            variant: 'error',
-          })
-          return
-        }
-
-        await refetchTeams()
-        toast({
-          title: 'Success',
-          description: 'Team name updated successfully',
-          variant: 'default',
-        })
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          toast({
-            title: 'Error updating team name',
-            description: error.message,
-            variant: 'error',
-          })
-        } else {
-          toast({
-            title: 'Error updating team name',
-            description: 'An unknown error occurred',
-            variant: 'error',
-          })
-        }
-      }
-    })
-  }
+  const { execute: updateName, isPending } = useAction(updateTeamNameAction, {
+    onSuccess: async () => {
+      await refetchTeams()
+      toast({
+        description: 'Team name updated successfully',
+        variant: 'success',
+      })
+    },
+    onError: (error) => {
+      toast({
+        description: error.error.serverError || 'Failed to update team name',
+        variant: 'error',
+      })
+    },
+  })
 
   return (
     <Card className={className}>
@@ -119,11 +86,13 @@ export function NameCard({ className }: NameCardProps) {
         {team ? (
           <Form {...form}>
             <form
-              onSubmit={handleSubmit(handleUpdate)}
-              className="flex max-w-sm items-center gap-2"
+              onSubmit={form.handleSubmit((values) =>
+                updateName({ teamId: team.id, name: values.name })
+              )}
+              className="flex max-w-sm gap-2"
             >
               <FormField
-                control={control}
+                control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem className="flex-1">
@@ -138,7 +107,7 @@ export function NameCard({ className }: NameCardProps) {
                 type="submit"
                 variant="outline"
                 loading={isPending}
-                disabled={!canSubmit}
+                disabled={watch('name') === team.name}
               >
                 Save
               </Button>

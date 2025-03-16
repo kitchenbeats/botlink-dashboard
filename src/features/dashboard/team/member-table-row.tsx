@@ -15,6 +15,7 @@ import { PROTECTED_URLS } from '@/configs/urls'
 import { QUERY_KEYS } from '@/configs/keys'
 import { mutate } from 'swr'
 import { TeamMember } from '@/server/team/types'
+import { useAction } from 'next-safe-action/hooks'
 
 interface TableRowProps {
   member: TeamMember
@@ -33,47 +34,46 @@ export default function MemberTableRow({
   const { refetch: refetchTeams } = useTeams()
   const { user } = useUser()
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
-  const [isRemoving, setIsRemoving] = useState(false)
+
+  const { execute: removeMember, isExecuting: isRemoving } = useAction(
+    removeTeamMemberAction,
+    {
+      onSuccess: ({ input }) => {
+        if (input.userId === user?.id) {
+          refetchTeams()
+          router.push(PROTECTED_URLS.DASHBOARD)
+          toast({
+            description: 'You have left the team',
+            variant: 'success',
+          })
+        } else {
+          toast({
+            description: 'The member has been removed from the team',
+            variant: 'success',
+          })
+        }
+      },
+      onError: ({ error }) => {
+        toast({
+          description: error.serverError || 'Unknown error',
+          variant: 'error',
+        })
+      },
+      onSettled: () => {
+        setRemoveDialogOpen(false)
+      },
+    }
+  )
 
   const handleRemoveMember = async (userId: string) => {
     if (!selectedTeam) {
       return
     }
 
-    setIsRemoving(true)
-
-    try {
-      const res = await removeTeamMemberAction({
-        teamId: selectedTeam.id,
-        userId,
-      })
-
-      if (res.type === 'error') {
-        throw new Error(res.message)
-      }
-
-      if (userId === user?.id) {
-        refetchTeams()
-        router.push(PROTECTED_URLS.DASHBOARD)
-        toast({
-          title: 'You have left the team',
-        })
-      } else {
-        toast({
-          title: 'Member removed',
-          description: 'The member has been removed from the team',
-        })
-      }
-    } catch (error: unknown) {
-      toast({
-        title: 'Could not remove member',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'error',
-      })
-    } finally {
-      setIsRemoving(false)
-      setRemoveDialogOpen(false)
-    }
+    removeMember({
+      teamId: selectedTeam.id,
+      userId,
+    })
   }
 
   return (

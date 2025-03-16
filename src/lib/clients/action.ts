@@ -55,9 +55,17 @@ export const actionClient = createSafeActionClient({
     return UnknownError().message
   },
   defineMetadataSchema() {
-    return z.object({
-      actionName: z.string(),
-    })
+    return z
+      .object({
+        actionName: z.string().optional(),
+        serverFunctionName: z.string().optional(),
+      })
+      .refine((data) => {
+        if (!data.actionName && !data.serverFunctionName) {
+          return 'actionName or serverFunctionName is required in definition metadata'
+        }
+        return true
+      })
   },
   defaultValidationErrorsShape: 'flattened',
 }).use(async ({ next, clientInput, metadata }) => {
@@ -71,19 +79,23 @@ export const actionClient = createSafeActionClient({
   // strip ctx from result logging to avoid leaking sensitive data (supabase client)
   const { ctx, ...rest } = result
 
-  const actionName = metadata?.actionName || 'Unknown action'
+  const actionOrFunctionName = metadata?.actionName || 'Unknown action'
+
+  const actionOrFunction = metadata.serverFunctionName
+    ? 'Server Function'
+    : 'Action'
 
   if (
     result.serverError ||
     result.validationErrors ||
     result.success === false
   ) {
-    logError(`Action '${actionName}' failed:`, {
+    logError(`${actionOrFunction} '${actionOrFunctionName}' failed:`, {
       result: rest,
       input: clientInput,
     })
   } else if (process.env.NODE_ENV === 'development') {
-    logSuccess(`Action '${actionName}' succeeded:`, {
+    logSuccess(`${actionOrFunction} '${actionOrFunctionName}' succeeded:`, {
       result: rest,
       input: clientInput,
     })
@@ -91,7 +103,9 @@ export const actionClient = createSafeActionClient({
 
   if (process.env.NODE_ENV === 'development' && startTime) {
     const endTime = performance.now()
-    logDebug(`Action '${actionName}' execution took ${endTime - startTime} ms`)
+    logDebug(
+      `${actionOrFunction} '${actionOrFunctionName}' execution took ${endTime - startTime} ms`
+    )
   }
 
   return result
