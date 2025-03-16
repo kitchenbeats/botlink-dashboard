@@ -59,9 +59,6 @@ vi.mock('@/lib/utils/auth', () => ({
   })),
 }))
 
-import { updateUserAction } from '@/server/user/user-actions'
-import { returnServerError } from '@/lib/clients/action'
-
 describe('Auth Actions - Integration Tests', () => {
   beforeEach(() => {
     vi.resetAllMocks()

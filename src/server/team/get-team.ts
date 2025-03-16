@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { TeamWithDefault } from '@/types/dashboard'
 import { z } from 'zod'
 import { authActionClient } from '@/lib/clients/action'
-import { returnServerError } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 
 const GetTeamSchema = z.object({
   teamId: z.string().uuid(),

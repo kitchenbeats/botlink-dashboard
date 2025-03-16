@@ -22,7 +22,7 @@ export default async function UsageLimits({
         <ErrorIndicator
           description={'Could not load usage limits'}
           message={res.message}
-          className="bg-bg w-full max-w-full"
+          className="w-full max-w-full"
         />
       </div>
     )
@@ -31,7 +31,7 @@ export default async function UsageLimits({
   const limits = res.data
 
   return (
-    <div className={cn('bg-bg flex flex-col border-t lg:flex-row', className)}>
+    <div className={cn('flex flex-col border-t lg:flex-row', className)}>
       <LimitCard value={limits.limit_amount_gte} className="flex-1 border-r" />
       <AlertCard value={limits.alert_amount_gte} className="flex-1" />
     </div>
