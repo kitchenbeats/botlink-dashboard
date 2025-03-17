@@ -29,7 +29,7 @@ import {
   deleteTemplateAction,
   updateTemplateAction,
 } from '@/server/templates/templates-actions'
-import { useMemo, useState, startTransition } from 'react'
+import { useMemo, useState } from 'react'
 import { Badge } from '@/ui/primitives/badge'
 import { CgSmartphoneRam } from 'react-icons/cg'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
@@ -37,6 +37,8 @@ import { Loader } from '@/ui/loader'
 import { AlertDialog } from '@/ui/alert-dialog'
 import posthog from 'posthog-js'
 import { cn } from '@/lib/utils'
+import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 // FILTERS
 export const fuzzyFilter: FilterFn<unknown> = (
@@ -91,47 +93,55 @@ export const useColumns = (deps: unknown[]) => {
           const template = row.original
           const selectedTeam = useSelectedTeam()
           const { toast } = useToast()
-          const [isUpdating, setIsUpdating] = useState(false)
           const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-          const [isDeleting, setIsDeleting] = useState(false)
 
           const router = useRouter()
+
+          const { execute: executeUpdateTemplate, isExecuting: isUpdating } =
+            useAction(updateTemplateAction, {
+              onSuccess: () => {
+                toast(
+                  defaultSuccessToast(
+                    `Template is now ${template.public ? 'public' : 'private'}.`
+                  )
+                )
+              },
+              onError: (error) => {
+                toast(
+                  defaultErrorToast(
+                    error.error.serverError || 'Failed to update template.'
+                  )
+                )
+              },
+            })
+
+          const { execute: executeDeleteTemplate, isExecuting: isDeleting } =
+            useAction(deleteTemplateAction, {
+              onSuccess: () => {
+                toast(defaultSuccessToast('Template has been deleted.'))
+              },
+              onError: (error) => {
+                toast(
+                  defaultErrorToast(
+                    error.error.serverError || 'Failed to delete template.'
+                  )
+                )
+              },
+              onSettled: () => {
+                setIsDeleteDialogOpen(false)
+              },
+            })
 
           const togglePublish = async () => {
             if (!selectedTeam) {
               return
             }
 
-            setIsUpdating(true)
-            startTransition(async () => {
-              try {
-                const response = await updateTemplateAction({
-                  templateId: template.templateID,
-                  props: {
-                    Public: !template.public,
-                  },
-                })
-
-                if (response.type === 'error') {
-                  throw new Error(response.message)
-                }
-
-                router.refresh()
-                toast({
-                  title: 'Success',
-                  description: `Template ${template.public ? 'Unpublished' : 'Published'} Successfully`,
-                  variant: 'success',
-                })
-              } catch (error: unknown) {
-                toast({
-                  title: 'Failed to update template visibility',
-                  description:
-                    error instanceof Error ? error.message : 'Unknown error',
-                  variant: 'error',
-                })
-              } finally {
-                setIsUpdating(false)
-              }
+            executeUpdateTemplate({
+              templateId: template.templateID,
+              props: {
+                Public: !template.public,
+              },
             })
           }
 
@@ -140,34 +150,8 @@ export const useColumns = (deps: unknown[]) => {
               return
             }
 
-            setIsDeleting(true)
-            startTransition(async () => {
-              try {
-                const response = await deleteTemplateAction({
-                  templateId: template.templateID,
-                })
-
-                if (response.type === 'error') {
-                  throw new Error(response.message)
-                }
-
-                router.refresh()
-                toast({
-                  title: 'Success',
-                  description: 'Template deleted successfully',
-                  variant: 'success',
-                })
-              } catch (error: unknown) {
-                toast({
-                  title: 'Failed to delete template',
-                  description:
-                    error instanceof Error ? error.message : 'Unknown error',
-                  variant: 'error',
-                })
-              } finally {
-                setIsDeleting(false)
-                setIsDeleteDialogOpen(false)
-              }
+            executeDeleteTemplate({
+              templateId: template.templateID,
             })
           }
 
@@ -242,7 +226,6 @@ export const useColumns = (deps: unknown[]) => {
           )
         },
       },
-
       {
         accessorKey: 'templateID',
         header: 'ID',

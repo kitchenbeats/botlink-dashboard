@@ -76,7 +76,7 @@ export default function TeamSelector({ className }: TeamSelectorProps) {
           )}
         >
           <div className="flex flex-1 items-center gap-2">
-            <Avatar className="size-9 shrink-0 shadow-lg">
+            <Avatar className="size-9 shrink-0 border-none drop-shadow-lg filter">
               <AvatarImage
                 src={selectedTeam?.profile_picture_url || undefined}
               />

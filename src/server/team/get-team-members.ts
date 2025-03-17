@@ -1,62 +1,62 @@
 import 'server-only'
 
-import { guard } from '@/lib/utils/server'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
-import {
-  checkAuthenticated,
-  checkUserTeamAuthorization,
-} from '@/lib/utils/server'
-import { UnauthorizedError } from '@/types/errors'
 import { User } from '@supabase/supabase-js'
 import { z } from 'zod'
-import { TeamMember, TeamMemberInfo } from './types'
-import { headers } from 'next/headers'
-
-type GetTeamMembersResponse = TeamMember[]
+import { TeamMemberInfo } from './types'
+import { authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 
 const GetTeamMembersSchema = z.object({
   teamId: z.string().uuid(),
 })
 
-export const getTeamMembers = guard<
-  typeof GetTeamMembersSchema,
-  GetTeamMembersResponse
->(GetTeamMembersSchema, async ({ teamId }) => {
-  const { user } = await checkAuthenticated()
+export const getTeamMembers = authActionClient
+  .schema(GetTeamMembersSchema)
+  .metadata({ serverFunctionName: 'getTeamMembers' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId } = parsedInput
+    const { user } = ctx
 
-  const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
+    const { error: userTeamsRelationError } = await supabaseAdmin
+      .from('users_teams')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('team_id', teamId)
+      .single()
 
-  if (!isAuthorized) {
-    throw UnauthorizedError('User is not authorized to get team members')
-  }
+    if (userTeamsRelationError) {
+      return returnServerError('User is not authorized to get team members')
+    }
 
-  const { data, error } = await supabaseAdmin
-    .from('users_teams')
-    .select('*')
-    .eq('team_id', teamId)
+    const { data, error } = await supabaseAdmin
+      .from('users_teams')
+      .select('*')
+      .eq('team_id', teamId)
 
-  if (error) {
-    throw error
-  }
+    if (error) {
+      throw error
+    }
 
-  if (!data) {
-    return []
-  }
+    if (!data) {
+      return []
+    }
 
-  const userResponses = await Promise.all(
-    data.map(
-      async (userTeam) =>
-        (await supabaseAdmin.auth.admin.getUserById(userTeam.user_id)).data.user
+    const userResponses = await Promise.all(
+      data.map(
+        async (userTeam) =>
+          (await supabaseAdmin.auth.admin.getUserById(userTeam.user_id)).data
+            .user
+      )
     )
-  )
 
-  return userResponses
-    .filter((user) => user !== null)
-    .map((user) => ({
-      info: memberDTO(user),
-      relation: data.find((userTeam) => userTeam.user_id === user.id)!,
-    }))
-})
+    return userResponses
+      .filter((user) => user !== null)
+      .map((user) => ({
+        info: memberDTO(user),
+        relation: data.find((userTeam) => userTeam.user_id === user.id)!,
+      }))
+  })
 
 function memberDTO(user: User): TeamMemberInfo {
   return {

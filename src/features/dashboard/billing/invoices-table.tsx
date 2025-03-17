@@ -38,14 +38,14 @@ function LoadingFallback() {
 async function InvoicesTableContent({ teamId }: { teamId: string }) {
   const res = await getInvoices({ teamId })
 
-  if (res.type === 'error') {
+  if (!res?.data || res.serverError || res.validationErrors) {
     return (
       <TableRow>
         <TableCell colSpan={4}>
           <ErrorIndicator
             description={'Could not load invoices'}
-            message={res.message}
-            className="mt-2 w-full max-w-full bg-bg"
+            message={res?.serverError || 'Unknown error'}
+            className="bg-bg mt-2 w-full max-w-full"
           />
         </TableCell>
       </TableRow>
@@ -93,7 +93,7 @@ export default function BillingInvoicesTable({
   teamId,
 }: BillingInvoicesTableProps) {
   return (
-    <Table className="w-full min-w-[800px] animate-in fade-in">
+    <Table className="animate-in fade-in w-full min-w-[800px]">
       <TableHeader>
         <TableRow>
           <TableHead>Date</TableHead>

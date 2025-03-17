@@ -84,7 +84,8 @@ const components = ({
     Accordions,
     Callout,
     blockquote: Blockquote,
-    pre: CodeBlock,
+    code: CodeBlock,
+    pre: (props) => <CodeBlock {...props} />,
     HeadlessOnly: slug[0] === 'headless' ? Fragment : () => undefined,
     UIOnly: slug[0] === 'ui' ? Fragment : () => undefined,
   }

@@ -4,11 +4,12 @@ import { Button } from '@/ui/primitives/button'
 import { Tier } from '@/configs/tiers'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { useToast } from '@/lib/hooks/use-toast'
-import { useMutation } from '@tanstack/react-query'
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 import { redirectToCheckoutAction } from '@/server/billing/billing-actions'
 import { Badge } from '@/ui/primitives/badge'
+import { useAction } from 'next-safe-action/hooks'
+import { defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface BillingTierCardProps {
   tier: Tier
@@ -22,37 +23,36 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
 
     const { toast } = useToast()
 
-    const { isPending, mutate: redirectToCheckout } = useMutation({
-      mutationFn: async () => {
-        if (!team) {
-          return
-        }
-
-        const res = await redirectToCheckoutAction({
-          teamId: team.id,
-          tierId: tier.id,
-        })
-
-        if (res?.type === 'error') {
-          throw new Error(res.message)
-        }
-      },
-      onError: (error) => {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'error',
-        })
-      },
-    })
+    const { execute: redirectToCheckout, status } = useAction(
+      redirectToCheckoutAction,
+      {
+        onError: ({ error }) => {
+          toast(
+            defaultErrorToast(
+              error.serverError ?? 'Failed to redirect to checkout'
+            )
+          )
+        },
+      }
+    )
 
     const isSelected = team?.tier === tier.id
+    const isPending = status === 'executing'
+
+    const handleRedirectToCheckout = () => {
+      if (!team) return
+
+      redirectToCheckout({
+        teamId: team.id,
+        tierId: tier.id,
+      })
+    }
 
     return (
       <div
         ref={ref}
         className={cn(
-          'flex h-full flex-col border bg-gradient-to-b from-bg p-5',
+          'from-bg bg-bg flex h-full flex-col border p-5',
           className
         )}
       >
@@ -63,7 +63,7 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
         <ul className="mb-4 space-y-1 pl-4">
           {tier.prose.map((prose, i) => (
             <li
-              className="font-sans text-xs text-fg-500"
+              className="text-fg-500 font-sans text-xs"
               key={`tier-${tier.id}-prose-${i}`}
             >
               {prose}
@@ -76,7 +76,7 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
             className="mt-4 w-full rounded-none"
             size="lg"
             loading={isPending}
-            onClick={() => redirectToCheckout()}
+            onClick={handleRedirectToCheckout}
           >
             Select
           </Button>

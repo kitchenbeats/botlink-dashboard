@@ -54,8 +54,8 @@ export const Loader = ({
 export const AssemblyLoader = ({
   interval = 20,
   className,
-  filledChar = '█',
-  emptyChar = '░',
+  filledChar = '■',
+  emptyChar = '□',
   gridWidth = 5,
   gridHeight = 3,
 }: {
@@ -139,7 +139,12 @@ export const AssemblyLoader = ({
   }, [interval, grid])
 
   return (
-    <div className={cn('h-fit w-fit whitespace-pre font-mono', className)}>
+    <div
+      className={cn(
+        'text-fg-300 h-fit w-fit font-mono whitespace-pre',
+        className
+      )}
+    >
       {grid.map((row, y) => (
         <div key={y}>
           {row.map((cell, x) => (

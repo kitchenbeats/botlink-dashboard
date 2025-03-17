@@ -1,7 +1,6 @@
 'use client'
 
 import { updateUserAction } from '@/server/user/user-actions'
-import { AuthFormMessage } from '@/features/auth/form-message'
 import { Button } from '@/ui/primitives/button'
 import {
   Card,
@@ -18,14 +17,14 @@ import {
   FormMessage,
 } from '@/ui/primitives/form'
 import { Input } from '@/ui/primitives/input'
-import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
 import { useUser } from '@/lib/hooks/use-user'
-import { AnimatePresence } from 'motion/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useAction } from 'next-safe-action/hooks'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/lib/hooks/use-toast'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name cannot be empty'),
@@ -38,28 +37,29 @@ interface NameSettingsProps {
 }
 
 export function NameSettings({ className }: NameSettingsProps) {
-  const { user, refetch: refetchUser } = useUser()
-  const [message, setMessage] = useTimeoutMessage()
+  'use no memo'
+
+  const { user } = useUser()
+  const { toast } = useToast()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: user?.user_metadata?.name || '',
     },
+    values: {
+      name: user?.user_metadata?.name || '',
+    },
   })
 
-  const { mutate: updateName, isPending } = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const response = await updateUserAction({ name: values.name })
-      return response
-    },
+  const { execute: updateName, isPending } = useAction(updateUserAction, {
     onSuccess: async () => {
-      await refetchUser()
-
-      setMessage({ success: 'Name updated successfully' })
+      toast(defaultSuccessToast('Name updated.'))
     },
-    onError: (error: Error) => {
-      setMessage({ error: error.message })
+    onError: (error) => {
+      toast(
+        defaultErrorToast(error.error.serverError || 'Failed to update name.')
+      )
     },
   })
 
@@ -74,8 +74,10 @@ export function NameSettings({ className }: NameSettingsProps) {
       <CardContent className="flex flex-col gap-3">
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit((values) => updateName(values))}
-            className="flex items-center gap-2"
+            onSubmit={form.handleSubmit((values) =>
+              updateName({ name: values.name })
+            )}
+            className="flex gap-2"
           >
             <FormField
               control={form.control}
@@ -99,10 +101,6 @@ export function NameSettings({ className }: NameSettingsProps) {
             </Button>
           </form>
         </Form>
-
-        <AnimatePresence initial={false} mode="wait">
-          {message && <AuthFormMessage message={message} className="mt-4" />}
-        </AnimatePresence>
       </CardContent>
     </Card>
   )

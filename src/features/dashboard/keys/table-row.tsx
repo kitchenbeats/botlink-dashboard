@@ -15,10 +15,12 @@ import {
 import { ObscuredApiKey } from '@/server/keys/types'
 import { deleteApiKeyAction } from '@/server/keys/key-actions'
 import { AlertDialog } from '@/ui/alert-dialog'
-import { useState, startTransition } from 'react'
+import { useState } from 'react'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { exponentialSmoothing } from '@/lib/utils'
+import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface TableRowProps {
   apiKey: ObscuredApiKey
@@ -29,42 +31,35 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
   const { toast } = useToast()
   const selectedTeam = useSelectedTeam()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [hoveredRowIndex, setHoveredRowIndex] = useState(-1)
   const [dropDownOpen, setDropDownOpen] = useState(false)
 
-  const deleteKey = async (apiKeyId: string) => {
+  const { execute: executeDeleteKey, isExecuting: isDeleting } = useAction(
+    deleteApiKeyAction,
+    {
+      onSuccess: () => {
+        toast(defaultSuccessToast('Api key has been deleted.'))
+        setIsDeleteDialogOpen(false)
+      },
+      onError: (error) => {
+        toast(
+          defaultErrorToast(
+            error.error.serverError || 'Failed to delete api key.'
+          )
+        )
+        setIsDeleteDialogOpen(false)
+      },
+    }
+  )
+
+  const deleteKey = () => {
     if (!selectedTeam) {
       return
     }
 
-    setIsDeleting(true)
-    startTransition(async () => {
-      try {
-        const res = await deleteApiKeyAction({
-          teamId: selectedTeam.id,
-          apiKeyId,
-        })
-
-        if (res.type === 'error') {
-          throw new Error(res.message)
-        }
-
-        toast({
-          title: 'Success',
-          description: 'API key deleted successfully',
-          variant: 'success',
-        })
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: error instanceof Error ? error.message : 'Unknown error',
-          variant: 'error',
-        })
-      } finally {
-        setIsDeleting(false)
-        setIsDeleteDialogOpen(false)
-      }
+    executeDeleteKey({
+      teamId: selectedTeam.id,
+      apiKeyId: apiKey.id,
     })
   }
 
@@ -76,7 +71,7 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
         title="Delete API Key"
         description="Are you sure you want to delete this API key? This action cannot be undone."
         confirm="Delete"
-        onConfirm={() => deleteKey(apiKey.id)}
+        onConfirm={deleteKey}
         confirmProps={{
           disabled: isDeleting,
           loading: isDeleting,

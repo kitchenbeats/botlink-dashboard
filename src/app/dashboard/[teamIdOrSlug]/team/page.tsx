@@ -18,7 +18,7 @@ export default async function GeneralPage({ params }: GeneralPageProps) {
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   return (
-    <DashboardPageLayout title="General">
+    <DashboardPageLayout title="Team">
       <div className="grid w-full grid-cols-12">
         <Suspense>
           <>

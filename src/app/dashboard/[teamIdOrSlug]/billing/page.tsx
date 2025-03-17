@@ -25,12 +25,12 @@ export default async function BillingPage({
         <div className="flex flex-col gap-1">
           <CardTitle>Plan</CardTitle>
           <CardDescription>
-            Manage your current plan and subscription details
+            Manage your current plan and subscription details.
           </CardDescription>
         </div>
 
         <Suspense fallback={null}>
-          <CustomerPortalLink className="mt-2 w-fit" />
+          <CustomerPortalLink className="bg-bg mt-2 w-fit" />
         </Suspense>
 
         <div className="mt-3 flex flex-col gap-12 overflow-x-auto max-lg:mb-6 lg:flex-row">
@@ -50,7 +50,7 @@ export default async function BillingPage({
         <div className="flex flex-col gap-1">
           <CardTitle>Billing History</CardTitle>
           <CardDescription>
-            View your team's billing history and invoices
+            View your team's billing history and invoices.
           </CardDescription>
         </div>
 

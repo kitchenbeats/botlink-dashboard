@@ -1,77 +1,109 @@
 'use server'
 
+import { authActionClient } from '@/lib/clients/action'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
-import { User } from '@supabase/supabase-js'
-import {
-  checkAuthenticated,
-  getUserAccessToken,
-  guard,
-} from '@/lib/utils/server'
+import { getUserAccessToken } from '@/lib/utils/server'
 import { z } from 'zod'
 import { headers } from 'next/headers'
+import { returnValidationErrors } from 'next-safe-action'
 import { revalidatePath } from 'next/cache'
-import { E2BError } from '@/types/errors'
 
-const UpdateUserSchema = z.object({
-  email: z.string().email().optional(),
-  password: z.string().min(8).optional(),
-  name: z.string().min(1).optional(),
-})
-
-export type UpdateUserSchemaType = z.infer<typeof UpdateUserSchema>
-
-interface UpdateUserResponse {
-  newUser: User
-}
-
-export const updateUserAction = guard<
-  typeof UpdateUserSchema,
-  UpdateUserResponse
->(UpdateUserSchema, async (data) => {
-  const { supabase } = await checkAuthenticated()
-
-  const origin = (await headers()).get('origin')
-
-  const { data: updateData, error } = await supabase.auth.updateUser(
-    {
-      email: data.email,
-      password: data.password,
-      data: {
-        name: data.name,
-      },
+const UpdateUserSchema = z
+  .object({
+    email: z.string().email().optional(),
+    password: z.string().min(8).optional(),
+    name: z.string().min(1).optional(),
+  })
+  .refine(
+    (data) => {
+      return Boolean(data.email || data.password || data.name)
     },
     {
-      emailRedirectTo: `${origin}/api/auth/email-callback?new_email=${data.email}`,
+      message: 'At least one field must be provided (email, password, name)',
+      path: [],
     }
   )
 
-  if (error) {
-    throw new E2BError('update_user_error', error.message)
-  }
+export type UpdateUserSchemaType = z.infer<typeof UpdateUserSchema>
 
-  revalidatePath('/dashboard', 'layout')
+export const updateUserAction = authActionClient
+  .schema(UpdateUserSchema)
+  .metadata({ actionName: 'updateUser' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { supabase } = ctx
+    const origin = (await headers()).get('origin')
 
-  return {
-    newUser: updateData.user,
-  }
-})
+    const { data: updateData, error } = await supabase.auth.updateUser(
+      {
+        email: parsedInput.email,
+        password: parsedInput.password,
+        data: {
+          name: parsedInput.name,
+        },
+      },
+      {
+        emailRedirectTo: `${origin}/api/auth/email-callback?new_email=${parsedInput.email}`,
+      }
+    )
 
-export const deleteAccountAction = guard(async () => {
-  const { user } = await checkAuthenticated()
+    if (!error) {
+      revalidatePath('/dashboard', 'layout')
 
-  const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+      return {
+        user: updateData.user,
+      }
+    }
 
-  if (error) {
-    throw error
-  }
-})
+    switch (error.code) {
+      case 'email_address_invalid':
+        return returnValidationErrors(UpdateUserSchema, {
+          email: {
+            _errors: ['Invalid e-mail address'],
+          },
+        })
+      case 'email_exists':
+        return returnValidationErrors(UpdateUserSchema, {
+          email: {
+            _errors: ['E-mail already in use'],
+          },
+        })
+      case 'same_password':
+        return returnValidationErrors(UpdateUserSchema, {
+          password: {
+            _errors: ['New password cannot be the same as the old password'],
+          },
+        })
+      case 'weak_password':
+        return returnValidationErrors(UpdateUserSchema, {
+          password: {
+            _errors: ['Password is too weak'],
+          },
+        })
+      default:
+        throw new Error(error.message)
+    }
+  })
 
-export const getUserAccessTokenAction = guard(async () => {
-  const { user } = await checkAuthenticated()
+export const deleteAccountAction = authActionClient
+  .metadata({ actionName: 'deleteAccount' })
+  .action(async ({ ctx }) => {
+    const { user } = ctx
 
-  const accessToken = await getUserAccessToken(user.id)
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id)
 
-  return {
-    accessToken,
-  }
-})
+    if (error) {
+      throw new Error(error.message)
+    }
+  })
+
+export const getUserAccessTokenAction = authActionClient
+  .metadata({ actionName: 'getUserAccessToken' })
+  .action(async ({ ctx }) => {
+    const { user } = ctx
+
+    const accessToken = await getUserAccessToken(user.id)
+
+    return {
+      accessToken,
+    }
+  })

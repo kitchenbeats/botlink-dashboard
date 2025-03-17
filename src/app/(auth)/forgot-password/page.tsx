@@ -7,14 +7,28 @@ import { Input } from '@/ui/primitives/input'
 import { Label } from '@/ui/primitives/label'
 import { AUTH_URLS } from '@/configs/urls'
 import { useSearchParams } from 'next/navigation'
-import { useRef, useEffect, useTransition } from 'react'
+import { useRef, useEffect, useState } from 'react'
+import { useAction } from 'next-safe-action/hooks'
 
 export default function ForgotPassword() {
   const searchParams = useSearchParams()
   const formRef = useRef<HTMLFormElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
+  const [message, setMessage] = useState<AuthMessage | undefined>()
 
-  const [isPending, startTransition] = useTransition()
+  const { execute, isExecuting } = useAction(forgotPasswordAction, {
+    onSuccess: () => {
+      if (formRef.current) formRef.current.reset()
+      setMessage({ success: 'Check your email for a reset link' })
+    },
+    onError: ({ error }) => {
+      if (error.serverError) {
+        setMessage({ error: error.serverError })
+      } else if (error.validationErrors) {
+        setMessage({ error: 'Please check your email address' })
+      }
+    },
+  })
 
   // Handle email prefill from sign in page
   useEffect(() => {
@@ -32,14 +46,9 @@ export default function ForgotPassword() {
     window.location.href = `${AUTH_URLS.SIGN_IN}${searchParams}`
   }
 
-  // Parse search params into AuthMessage
-  const message: AuthMessage | undefined = (() => {
-    const error = searchParams.get('error')
-    const success = searchParams.get('success')
-    if (error) return { error: decodeURIComponent(error) }
-    if (success) return { success: decodeURIComponent(success) }
-    return undefined
-  })()
+  const handleSubmit = (formData: FormData) => {
+    execute(formData)
+  }
 
   return (
     <div className="flex w-full flex-col">
@@ -55,7 +64,11 @@ export default function ForgotPassword() {
         </button>
       </p>
 
-      <form ref={formRef} className="mt-5 flex flex-col gap-2 [&>input]:mb-1">
+      <form
+        ref={formRef}
+        className="mt-5 flex flex-col gap-2 [&>input]:mb-1"
+        action={handleSubmit}
+      >
         <Label htmlFor="email">E-Mail</Label>
         <Input
           ref={emailRef}
@@ -65,12 +78,7 @@ export default function ForgotPassword() {
           placeholder="you@example.com"
           required
         />
-        <Button
-          formAction={(data) =>
-            startTransition(() => forgotPasswordAction(data))
-          }
-          loading={isPending}
-        >
+        <Button type="submit" loading={isExecuting}>
           Reset Password
         </Button>
       </form>
