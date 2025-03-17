@@ -12,10 +12,9 @@ import { useRouter } from 'next/navigation'
 import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
 import { useUser } from '@/lib/hooks/use-user'
 import { PROTECTED_URLS } from '@/configs/urls'
-import { QUERY_KEYS } from '@/configs/keys'
-import { mutate } from 'swr'
 import { TeamMember } from '@/server/team/types'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface TableRowProps {
   member: TeamMember
@@ -42,22 +41,15 @@ export default function MemberTableRow({
         if (input.userId === user?.id) {
           refetchTeams()
           router.push(PROTECTED_URLS.DASHBOARD)
-          toast({
-            description: 'You have left the team',
-            variant: 'success',
-          })
+          toast(defaultSuccessToast('You have left the team.'))
         } else {
-          toast({
-            description: 'The member has been removed from the team',
-            variant: 'success',
-          })
+          toast(
+            defaultSuccessToast('The member has been removed from the team.')
+          )
         }
       },
       onError: ({ error }) => {
-        toast({
-          description: error.serverError || 'Unknown error',
-          variant: 'error',
-        })
+        toast(defaultErrorToast(error.serverError || 'Unknown error.'))
       },
       onSettled: () => {
         setRemoveDialogOpen(false)

@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import HelpTooltip from '@/ui/help-tooltip'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useRouter } from 'next/navigation'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 const formSchema = z.object({
   domain: z
@@ -82,18 +83,13 @@ export default function InfraDomainForm({
         router.refresh()
       })
 
-      toast({
-        title: 'Success',
-        description: 'API domain verified and updated successfully',
-        variant: 'success',
-      })
+      toast(defaultSuccessToast('API domain verified and updated successfully'))
     } catch (error) {
-      toast({
-        title: 'Error',
-        description:
-          'Failed to verify API domain. Please check the URL and try again',
-        variant: 'error',
-      })
+      toast(
+        defaultErrorToast(
+          'Failed to verify API domain. Please check the URL and try again'
+        )
+      )
       return
     }
   }
@@ -104,11 +100,7 @@ export default function InfraDomainForm({
     })
 
     if (!res.ok) {
-      toast({
-        title: 'Error',
-        description: 'Failed to reset API domain',
-        variant: 'error',
-      })
+      toast(defaultErrorToast('Failed to reset API domain'))
       return
     }
 
@@ -118,11 +110,7 @@ export default function InfraDomainForm({
       router.refresh()
     })
 
-    toast({
-      title: 'Success',
-      description: 'API domain reset to default successfully',
-      variant: 'success',
-    })
+    toast(defaultSuccessToast('API domain reset to default successfully'))
   }
 
   const canResetToDefault =

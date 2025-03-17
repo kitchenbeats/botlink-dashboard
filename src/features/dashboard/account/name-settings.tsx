@@ -1,7 +1,6 @@
 'use client'
 
 import { updateUserAction } from '@/server/user/user-actions'
-import { AuthFormMessage } from '@/features/auth/form-message'
 import { Button } from '@/ui/primitives/button'
 import {
   Card,
@@ -18,15 +17,14 @@ import {
   FormMessage,
 } from '@/ui/primitives/form'
 import { Input } from '@/ui/primitives/input'
-import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
 import { useUser } from '@/lib/hooks/use-user'
-import { AnimatePresence } from 'motion/react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAction } from 'next-safe-action/hooks'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/lib/hooks/use-toast'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Name cannot be empty'),
@@ -57,16 +55,12 @@ export function NameSettings({ className }: NameSettingsProps) {
   const { execute: updateName, isPending } = useAction(updateUserAction, {
     onSuccess: async () => {
       await refetchUser()
-      toast({
-        title: 'Name updated successfully',
-      })
+      toast(defaultSuccessToast('Name updated.'))
     },
     onError: (error) => {
-      toast({
-        title: 'Error updating name',
-        description: error.error.serverError || 'Failed to update name',
-        variant: 'error',
-      })
+      toast(
+        defaultErrorToast(error.error.serverError || 'Failed to update name.')
+      )
     },
   })
 

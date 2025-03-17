@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { useForm } from 'react-hook-form'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 const addMemberSchema = z.object({
   email: z.string().email(),
@@ -44,26 +45,16 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
 
   const { execute, isExecuting } = useAction(addTeamMemberAction, {
     onSuccess: () => {
-      toast({
-        description: 'The member has been added to the team.',
-        variant: 'success',
-      })
+      toast(defaultSuccessToast('The member has been added to the team.'))
       form.reset()
     },
     onError: ({ error }) => {
-      toast({
-        description: error.serverError || 'An error occurred',
-        variant: 'error',
-      })
+      toast(defaultErrorToast(error.serverError || 'An error occurred.'))
     },
   })
 
   function onSubmit(data: AddMemberForm) {
     if (!selectedTeam) {
-      toast({
-        description: 'No team selected',
-        variant: 'error',
-      })
       return
     }
 

@@ -29,6 +29,7 @@ import { toast } from '@/lib/hooks/use-toast'
 import { useTeams } from '@/lib/hooks/use-teams'
 import { useRouter } from 'next/navigation'
 import { PROTECTED_URLS } from '@/configs/urls'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface CreateTeamDialogProps {
   open: boolean
@@ -62,10 +63,7 @@ export function CreateTeamDialog({
       await refetchTeams()
       onOpenChange(false)
 
-      toast({
-        description: 'Team created successfully',
-        variant: 'success',
-      })
+      toast(defaultSuccessToast('Team created successfully'))
 
       if (result.data) {
         router.push(
@@ -75,15 +73,9 @@ export function CreateTeamDialog({
     },
     onError: ({ error }) => {
       if (error.serverError) {
-        toast({
-          description: error.serverError,
-          variant: 'error',
-        })
+        toast(defaultErrorToast(error.serverError))
       } else if (error.validationErrors) {
-        toast({
-          description: 'Please check the form for errors',
-          variant: 'error',
-        })
+        toast(defaultErrorToast('Please check the form for errors'))
       }
     },
   })

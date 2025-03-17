@@ -11,6 +11,7 @@ import { Loader } from '@/ui/loader'
 import { getUserAccessTokenAction } from '@/server/user/user-actions'
 import CopyButton from '@/ui/copy-button'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface UserAccessTokenProps {
   className?: string
@@ -31,11 +32,7 @@ export default function UserAccessToken({ className }: UserAccessTokenProps) {
         }
       },
       onError: () => {
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch access token',
-          variant: 'error',
-        })
+        toast(defaultErrorToast('Failed to fetch access token'))
       },
     }
   )

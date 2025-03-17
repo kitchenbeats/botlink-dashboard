@@ -21,6 +21,7 @@ import {
 } from '@/ui/primitives/form'
 import { NumberInput } from '@/ui/number-input'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface LimitFormProps {
   teamId: string
@@ -58,18 +59,20 @@ export default function LimitForm({
 
   const { execute: setLimit, isPending: isSaving } = useAction(setLimitAction, {
     onSuccess: () => {
-      toast({
-        title: type === 'limit' ? 'Limit saved' : 'Alert saved',
-        variant: 'default',
-      })
+      toast(
+        defaultSuccessToast(
+          `Billing ${type === 'limit' ? 'limit' : 'alert'} saved.`
+        )
+      )
       setIsEditing(false)
     },
     onError: ({ error }) => {
-      toast({
-        title: type === 'limit' ? 'Error saving limit' : 'Error saving alert',
-        description: error.serverError || 'An unknown error occurred',
-        variant: 'error',
-      })
+      toast(
+        defaultErrorToast(
+          error.serverError ||
+            `Failed to save billing ${type === 'limit' ? 'limit' : 'alert'}.`
+        )
+      )
     },
   })
 
@@ -77,43 +80,39 @@ export default function LimitForm({
     clearLimitAction,
     {
       onSuccess: () => {
-        toast({
-          title: type === 'limit' ? 'Limit cleared' : 'Alert cleared',
-          variant: 'default',
-        })
+        toast(
+          defaultSuccessToast(
+            `Billing ${type === 'limit' ? 'limit' : 'alert'} cleared.`
+          )
+        )
         setIsEditing(false)
         form.reset({ value: null })
       },
       onError: ({ error }) => {
-        toast({
-          title:
-            type === 'limit' ? 'Error clearing limit' : 'Error clearing alert',
-          description: error.serverError || 'An unknown error occurred',
-          variant: 'error',
-        })
+        toast(
+          defaultErrorToast(
+            `Failed to clear billing ${type === 'limit' ? 'limit' : 'alert'}.`
+          )
+        )
       },
     }
   )
 
-  const handleSave = async (data: FormData) => {
+  const handleSave = (data: FormData) => {
     if (!data.value) {
-      toast({
-        title: 'Error',
-        description: 'Input cannot be empty',
-        variant: 'error',
-      })
+      toast(defaultErrorToast('Input cannot be empty.'))
       return
     }
 
-    await setLimit({
+    setLimit({
       type,
       value: data.value,
       teamId,
     })
   }
 
-  const handleClear = async () => {
-    await clearLimit({
+  const handleClear = () => {
+    clearLimit({
       type,
       teamId,
     })

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { redirectToCheckoutAction } from '@/server/billing/billing-actions'
 import { Badge } from '@/ui/primitives/badge'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface BillingTierCardProps {
   tier: Tier
@@ -26,10 +27,11 @@ const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
       redirectToCheckoutAction,
       {
         onError: ({ error }) => {
-          toast({
-            description: error.serverError ?? 'Failed to redirect to checkout',
-            variant: 'error',
-          })
+          toast(
+            defaultErrorToast(
+              error.serverError ?? 'Failed to redirect to checkout'
+            )
+          )
         },
       }
     )

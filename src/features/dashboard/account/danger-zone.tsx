@@ -16,6 +16,7 @@ import { useToast } from '@/lib/hooks/use-toast'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface DangerZoneProps {
   className?: string
@@ -31,17 +32,18 @@ export function DangerZone({ className }: DangerZoneProps) {
       onSuccess: () => {
         toast({
           title: 'Account deleted',
-          description: 'You have been signed out',
+          description: 'You have been signed out.',
+          variant: 'success',
         })
 
         signOutAction()
       },
       onError: (error) => {
-        toast({
-          title: 'Error deleting account',
-          description: error.error.serverError,
-          variant: 'error',
-        })
+        toast(
+          defaultErrorToast(
+            error.error.serverError || 'Failed to delete account.'
+          )
+        )
       },
     }
   )

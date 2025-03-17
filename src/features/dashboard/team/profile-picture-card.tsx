@@ -2,7 +2,7 @@
 
 import { Skeleton } from '@/ui/primitives/skeleton'
 import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
-import { useTransition, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useToast } from '@/lib/hooks/use-toast'
 import { Avatar, AvatarImage, AvatarFallback } from '@/ui/primitives/avatar'
 import { cn, exponentialSmoothing } from '@/lib/utils'
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { cardVariants } from '@/ui/primitives/card'
 import { uploadTeamProfilePictureAction } from '@/server/team/team-actions'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface ProfilePictureCardProps {
   className?: string
@@ -29,25 +30,15 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
       onSuccess: () => {
         refetch()
 
-        toast({
-          title: 'Your team profile picture has been updated successfully.',
-          variant: 'success',
-        })
+        toast(defaultSuccessToast('Your team logo has been updated.'))
       },
       onError: ({ error }) => {
         if (error.validationErrors?.fieldErrors.image) {
-          toast({
-            title: error.validationErrors.fieldErrors.image[0],
-            variant: 'error',
-          })
+          toast(defaultErrorToast(error.validationErrors.fieldErrors.image[0]))
           return
         }
 
-        toast({
-          title: 'Error uploading profile picture',
-          description: error.serverError || 'Unknown error. Please try again.',
-          variant: 'error',
-        })
+        toast(defaultErrorToast(error.serverError || 'Failed to update logo.'))
       },
       onSettled: () => {
         if (fileInputRef.current) {
@@ -64,12 +55,12 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
       const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB (or match your config limit)
 
       if (file.size > MAX_FILE_SIZE) {
-        toast({
-          title: 'File too large',
-          description: `Profile picture must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB.`,
-          variant: 'error',
-        })
-        // Reset the file input
+        toast(
+          defaultErrorToast(
+            `Profile picture must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB.`
+          )
+        )
+
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
         }

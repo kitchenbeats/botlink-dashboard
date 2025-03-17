@@ -15,6 +15,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/ui/primitives/form'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 const formSchema = z
   .object({
@@ -45,9 +46,7 @@ export default function ResetPasswordForm() {
 
   const { execute: updatePassword, isPending } = useAction(updateUserAction, {
     onSuccess: () => {
-      toast({
-        title: 'Password updated successfully',
-      })
+      toast(defaultSuccessToast('Password updated.'))
       form.reset()
     },
     onError: ({ error }) => {
@@ -56,11 +55,9 @@ export default function ResetPasswordForm() {
           message: error.validationErrors.fieldErrors.password?.[0],
         })
       } else {
-        toast({
-          title: 'Error updating password',
-          description: error.serverError || 'Failed to update password',
-          variant: 'error',
-        })
+        toast(
+          defaultErrorToast(error.serverError || 'Failed to update password.')
+        )
       }
     },
   })
