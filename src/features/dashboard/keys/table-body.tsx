@@ -16,12 +16,12 @@ export default async function TableBodyContent({
 
   const result = await getTeamApiKeys({ teamId })
 
-  if (result.type === 'error') {
+  if (!result?.data || result.serverError || result.validationErrors) {
     ;<TableRow>
       <TableCell colSpan={5}>
         <ErrorIndicator
           description={'Could not load API keys'}
-          message={result.message}
+          message={result?.serverError || 'Unknown error'}
           className="bg-bg mt-2 w-full max-w-full"
         />
       </TableCell>
