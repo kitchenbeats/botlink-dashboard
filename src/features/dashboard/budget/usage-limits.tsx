@@ -16,12 +16,12 @@ export default async function UsageLimits({
 }: UsageLimitsProps) {
   const res = await getBillingLimits({ teamId })
 
-  if (res.type === 'error') {
+  if (!res?.data || res.serverError || res.validationErrors) {
     return (
       <div className="p-4">
         <ErrorIndicator
           description={'Could not load usage limits'}
-          message={res.message}
+          message={res?.serverError || 'Unknown error'}
           className="w-full max-w-full"
         />
       </div>

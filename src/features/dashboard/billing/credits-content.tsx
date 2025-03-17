@@ -8,12 +8,12 @@ export default async function BillingCreditsContent({
 }) {
   const res = await getUsage({ teamId })
 
-  if (res.type === 'error') {
+  if (!res?.data || res.serverError) {
     return (
       <div className="p-4 pb-0">
         <ErrorIndicator
           description={'Could not load credits'}
-          message={res.message}
+          message={res?.serverError || 'Unknown error'}
           className="bg-bg w-full max-w-full"
         />
       </div>
