@@ -15,10 +15,32 @@ import {
 } from '@/ui/primitives/dialog'
 import { Input } from '@/ui/primitives/input'
 import { Label } from '@/ui/primitives/label'
-import { useMutation } from '@tanstack/react-query'
 import { FC, ReactNode, useState } from 'react'
 import CopyButton from '@/ui/copy-button'
 import { usePostHog } from 'posthog-js/react'
+import { useAction } from 'next-safe-action/hooks'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/ui/primitives/form'
+import { useToast } from '@/lib/hooks/use-toast'
+import { defaultErrorToast } from '@/lib/hooks/use-toast'
+
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Name cannot be empty')
+    .max(50, 'Name cannot be longer than 50 characters')
+    .trim(),
+})
+
+type FormValues = z.infer<typeof formSchema>
 
 interface CreateApiKeyDialogProps {
   teamId: string
@@ -29,39 +51,42 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
   teamId,
   children,
 }) => {
-  const [keyName, setKeyName] = useState('')
+  'use no memo'
+
+  const [open, setOpen] = useState(false)
+  const [createdApiKey, setCreatedApiKey] = useState<string | null>(null)
   const posthog = usePostHog()
+  const { toast } = useToast()
 
-  // mutations
-  const {
-    data: createdApiKey,
-    mutate: createApiKey,
-    isPending: isMutatingApiKeyCreation,
-    reset: resetCreateApiKeyMutation,
-  } = useMutation({
-    mutationFn: async (name: string) => {
-      const response = await createApiKeyAction({ teamId, name })
-
-      if (response.type === 'error') {
-        throw new Error(response.message)
-      }
-
-      return response.data.createdApiKey
-    },
-    onError: (error) => {
-      console.error('createApiKeyAction error:', error.message)
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
     },
   })
 
-  return (
-    <Dialog
-      onOpenChange={(value) => {
-        if (value) return
+  const { execute: createApiKey, isPending } = useAction(createApiKeyAction, {
+    onSuccess: ({ data }) => {
+      if (data?.createdApiKey) {
+        setCreatedApiKey(data.createdApiKey)
+        form.reset()
+      }
+    },
+    onError: ({ error }) => {
+      toast(defaultErrorToast(error.serverError || 'Failed to create API key.'))
+    },
+  })
 
-        setKeyName('')
-        resetCreateApiKeyMutation()
-      }}
-    >
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value)
+    if (!value) {
+      form.reset()
+      setCreatedApiKey(null)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-[500px]">
         <DialogHeader>
@@ -72,34 +97,41 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
         </DialogHeader>
 
         {!createdApiKey ? (
-          <form
-            key="create-form"
-            onSubmit={(e) => {
-              e.preventDefault()
-              createApiKey(keyName)
-            }}
-          >
-            <div className="flex flex-col gap-3 px-2 py-6">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="key-name"
-                placeholder="e.g. development-key"
-                required
-                value={keyName}
-                onChange={(e) => setKeyName(e.target.value)}
-                autoComplete="off"
-                data-1p-ignore
-                data-form-type="other"
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit((values) =>
+                createApiKey({ teamId, name: values.name })
+              )}
+              className="flex flex-col gap-6"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="px-2">
+                    <Label htmlFor={field.name}>Name</Label>
+                    <FormControl>
+                      <Input
+                        id={field.name}
+                        placeholder="e.g. development-key"
+                        autoComplete="off"
+                        data-1p-ignore
+                        data-form-type="other"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <DialogFooter>
-              <Button type="submit" loading={isMutatingApiKeyCreation}>
-                Create Key
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <Button type="submit" loading={isPending}>
+                  Create Key
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         ) : (
           <>
             <div className="animate-in fade-in slide-in-from-right-5 flex flex-col gap-3 px-2 py-6 duration-200">

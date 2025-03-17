@@ -6,198 +6,153 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Provider } from '@supabase/supabase-js'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
-import { logger } from '@/lib/clients/logger'
+import { actionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
+import { z } from 'zod'
+import { zfd } from 'zod-form-data'
 
-export const signInWithOAuth = async (
-  provider: Provider,
-  returnTo?: string
-) => {
-  const supabase = await createClient()
-  const origin = (await headers()).get('origin')
+export const signInWithOAuthAction = actionClient
+  .schema(
+    z.object({
+      provider: z.string() as unknown as z.ZodType<Provider>,
+      returnTo: z.string().optional(),
+    })
+  )
+  .metadata({ actionName: 'signInWithOAuth' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { provider, returnTo } = parsedInput
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: provider,
-    options: {
-      redirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`,
-      scopes: 'email',
-    },
-  })
+    const supabase = await createClient()
 
-  if (error) {
-    const queryParams = returnTo ? { returnTo } : undefined
-    return encodedRedirect(
+    const origin = (await headers()).get('origin')
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider,
+      options: {
+        redirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`,
+        scopes: 'email',
+      },
+    })
+
+    if (error) {
+      const queryParams = returnTo ? { returnTo } : undefined
+      throw encodedRedirect(
+        'error',
+        AUTH_URLS.SIGN_IN,
+        error.message,
+        queryParams
+      )
+    }
+
+    if (data.url) {
+      redirect(data.url)
+    }
+
+    throw encodedRedirect(
       'error',
       AUTH_URLS.SIGN_IN,
-      error.message,
-      queryParams
+      'Something went wrong',
+      returnTo ? { returnTo } : undefined
     )
-  }
-
-  if (data.url) {
-    return redirect(data.url)
-  }
-
-  return encodedRedirect(
-    'error',
-    AUTH_URLS.SIGN_IN,
-    'Something went wrong',
-    returnTo ? { returnTo } : undefined
-  )
-}
-
-export const signUpAction = async (formData: FormData) => {
-  const email = formData.get('email')?.toString() || ''
-  const password = formData.get('password')?.toString() || ''
-  const confirmPassword = formData.get('confirmPassword')?.toString() || ''
-  const returnTo = formData.get('returnTo')?.toString() || ''
-  const supabase = await createClient()
-  const origin = (await headers()).get('origin') || ''
-
-  if (!email || !password || !confirmPassword) {
-    return encodedRedirect(
-      'error',
-      AUTH_URLS.SIGN_UP,
-      'E-Mail and both passwords are required',
-      { returnTo }
-    )
-  }
-
-  if (password !== confirmPassword) {
-    return encodedRedirect(
-      'error',
-      AUTH_URLS.SIGN_UP,
-      'Passwords do not match',
-      { returnTo }
-    )
-  }
-
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`,
-    },
   })
 
-  if (error) {
-    console.error(error.code + ' ' + error.message)
-    return encodedRedirect('error', AUTH_URLS.SIGN_UP, error.message, {
-      returnTo,
+const signUpSchema = zfd
+  .formData({
+    email: zfd.text(z.string().email('Valid email is required')),
+    password: zfd.text(
+      z.string().min(8, 'Password must be at least 8 characters')
+    ),
+    confirmPassword: zfd.text(),
+    returnTo: zfd.text(z.string().optional()),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match',
+  })
+
+export const signUpAction = actionClient
+  .schema(signUpSchema)
+  .metadata({ actionName: 'signUp' })
+  .action(async ({ parsedInput }) => {
+    const { email, password, confirmPassword, returnTo = '' } = parsedInput
+    const supabase = await createClient()
+    const origin = (await headers()).get('origin') || ''
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`,
+      },
     })
-  } else {
-    return encodedRedirect(
-      'success',
-      AUTH_URLS.SIGN_UP,
-      'Thanks for signing up! Please check your email for a verification link.',
-      { returnTo }
-    )
-  }
-}
 
-export const signInAction = async (formData: FormData) => {
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const returnTo = formData.get('returnTo')?.toString() || ''
-  const supabase = await createClient()
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-
-  if (error) {
-    return encodedRedirect('error', AUTH_URLS.SIGN_IN, error.message, {
-      returnTo,
-    })
-  }
-
-  return redirect(returnTo || PROTECTED_URLS.DASHBOARD)
-}
-
-export const forgotPasswordAction = async (formData: FormData) => {
-  const email = formData.get('email')?.toString()
-  const supabase = await createClient()
-  const origin = (await headers()).get('origin')
-  const callbackUrl = formData.get('callbackUrl')?.toString()
-
-  if (!email) {
-    return encodedRedirect(
-      'error',
-      AUTH_URLS.FORGOT_PASSWORD,
-      'E-Mail is required'
-    )
-  }
-
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}${AUTH_URLS.CALLBACK}?redirect_to=${AUTH_URLS.RESET_PASSWORD}`,
-  })
-
-  if (error) {
-    logger.error(error.message)
-    return encodedRedirect(
-      'error',
-      AUTH_URLS.FORGOT_PASSWORD,
-      'Could not reset password'
-    )
-  }
-
-  return encodedRedirect(
-    'success',
-    callbackUrl || AUTH_URLS.FORGOT_PASSWORD,
-    'Check your email for a link to reset your password.',
-    // we add a type for the case that this is called from the account page
-    // -> account page needs to know what message type to display
-    {
-      type: 'reset_password',
+    if (error) {
+      switch (error.code) {
+        case 'email_exists':
+          return returnServerError('Email already in use')
+        case 'weak_password':
+          return returnServerError('Password is too weak')
+        default:
+          throw error
+      }
     }
-  )
-}
-
-export const resetPasswordAction = async (formData: FormData) => {
-  const supabase = await createClient()
-
-  const password = formData.get('password') as string
-  const confirmPassword = formData.get('confirmPassword') as string
-
-  if (!password || !confirmPassword) {
-    return encodedRedirect(
-      'error',
-      AUTH_URLS.RESET_PASSWORD,
-      'Password and confirm password are required'
-    )
-  }
-
-  if (password !== confirmPassword) {
-    return encodedRedirect(
-      'error',
-      AUTH_URLS.RESET_PASSWORD,
-      'Passwords do not match'
-    )
-  }
-
-  const { error } = await supabase.auth.updateUser({
-    password: password,
   })
 
-  if (error) {
-    logger.error(error.message)
-    return encodedRedirect(
-      'error',
-      AUTH_URLS.RESET_PASSWORD,
-      'Password update failed'
-    )
-  }
+const signInSchema = zfd.formData({
+  email: zfd.text(z.string().email('Valid email is required')),
+  password: zfd.text(
+    z.string().min(8, 'Password must be at least 8 characters')
+  ),
+  returnTo: zfd.text(z.string().optional()),
+})
 
-  return encodedRedirect(
-    'success',
-    AUTH_URLS.RESET_PASSWORD,
-    'Password updated'
-  )
-}
+export const signInAction = actionClient
+  .schema(signInSchema)
+  .metadata({ actionName: 'signInWithEmailAndPassword' })
+  .action(async ({ parsedInput }) => {
+    const { email, password, returnTo = '' } = parsedInput
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      if (error.code === 'invalid_credentials') {
+        return returnServerError('Invalid credentials')
+      }
+      throw error
+    }
+
+    redirect(returnTo || PROTECTED_URLS.DASHBOARD)
+  })
+
+const forgotPasswordSchema = zfd.formData({
+  email: zfd.text(z.string().email('Valid email is required')),
+  callbackUrl: zfd.text(z.string().optional()),
+})
+
+export const forgotPasswordAction = actionClient
+  .schema(forgotPasswordSchema)
+  .metadata({ actionName: 'forgotPassword' })
+  .action(async ({ parsedInput }) => {
+    const { email } = parsedInput
+    const supabase = await createClient()
+    const origin = (await headers()).get('origin')
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${origin}${AUTH_URLS.CALLBACK}?redirect_to=${AUTH_URLS.RESET_PASSWORD}`,
+    })
+
+    if (error) {
+      throw error
+    }
+  })
 
 export const signOutAction = async () => {
   const supabase = await createClient()
   await supabase.auth.signOut()
 
-  return redirect(AUTH_URLS.SIGN_IN)
+  redirect(AUTH_URLS.SIGN_IN)
 }

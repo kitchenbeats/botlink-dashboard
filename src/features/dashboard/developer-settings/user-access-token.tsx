@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { Button } from '@/ui/primitives/button'
 import { Input } from '@/ui/primitives/input'
 import HelpTooltip from '@/ui/help-tooltip'
@@ -10,6 +10,8 @@ import { Label } from '@/ui/primitives/label'
 import { Loader } from '@/ui/loader'
 import { getUserAccessTokenAction } from '@/server/user/user-actions'
 import CopyButton from '@/ui/copy-button'
+import { useAction } from 'next-safe-action/hooks'
+import { defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface UserAccessTokenProps {
   className?: string
@@ -17,28 +19,23 @@ interface UserAccessTokenProps {
 
 export default function UserAccessToken({ className }: UserAccessTokenProps) {
   const { toast } = useToast()
-  const [isPending, startTransition] = useTransition()
   const [token, setToken] = useState<string>()
   const [isVisible, setIsVisible] = useState(false)
 
-  const fetchToken = async () => {
-    try {
-      startTransition(async () => {
-        const res = await getUserAccessTokenAction()
-
-        if (res.type === 'error') throw new Error('Failed to fetch token')
-
-        setToken(res.data.accessToken)
-        setIsVisible(true)
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch access token',
-        variant: 'error',
-      })
+  const { execute: fetchToken, isPending } = useAction(
+    getUserAccessTokenAction,
+    {
+      onSuccess: (result) => {
+        if (result.data) {
+          setToken(result.data.accessToken)
+          setIsVisible(true)
+        }
+      },
+      onError: () => {
+        toast(defaultErrorToast('Failed to fetch access token'))
+      },
     }
-  }
+  )
 
   return (
     <div className={className}>

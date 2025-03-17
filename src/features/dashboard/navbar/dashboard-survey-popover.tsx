@@ -53,8 +53,8 @@ export function DashboardSurveyPopover() {
     setWasSubmitted(true)
 
     toast({
-      title: 'Thank you for your feedback!',
-      description: 'Your response has been recorded.',
+      title: 'Thank you!',
+      description: 'Your feedback has been recorded.',
     })
 
     // Reset states

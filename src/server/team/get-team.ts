@@ -1,17 +1,21 @@
 import 'server-only'
 
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
-import { checkAuthenticated, guard } from '@/lib/utils/server'
 import { TeamWithDefault } from '@/types/dashboard'
-import { UnauthorizedError } from '@/types/errors'
 import { z } from 'zod'
+import { authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 
-export const getTeam = guard(
-  z.object({
-    teamId: z.string().uuid(),
-  }),
-  async ({ teamId }) => {
-    const { user } = await checkAuthenticated()
+const GetTeamSchema = z.object({
+  teamId: z.string().uuid(),
+})
+
+export const getTeam = authActionClient
+  .schema(GetTeamSchema)
+  .metadata({ serverFunctionName: 'getTeam' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId } = parsedInput
+    const { user } = ctx
 
     const { data: userTeamsRelationData, error: userTeamsRelationError } =
       await supabaseAdmin
@@ -22,7 +26,7 @@ export const getTeam = guard(
         .single()
 
     if (userTeamsRelationError) {
-      throw UnauthorizedError('User is not authorized to view this team')
+      return returnServerError('User is not authorized to view this team')
     }
 
     const { data: team, error: teamError } = await supabaseAdmin
@@ -41,5 +45,30 @@ export const getTeam = guard(
     }
 
     return teamWithDefault
-  }
-)
+  })
+
+export const getUserTeams = authActionClient
+  .metadata({ serverFunctionName: 'getUserTeams' })
+  .action(async ({ ctx }) => {
+    const { user } = ctx
+
+    const { data: usersTeamsData, error } = await supabaseAdmin
+      .from('users_teams')
+      .select('*, teams (*)')
+      .eq('user_id', user.id)
+
+    if (error) {
+      throw error
+    }
+
+    if (!usersTeamsData || usersTeamsData.length === 0) {
+      return returnServerError('No teams found.')
+    }
+
+    const teams: TeamWithDefault[] = usersTeamsData.map((userTeam) => {
+      const team = userTeam.teams
+      return { ...team, is_default: userTeam.is_default }
+    })
+
+    return teams
+  })

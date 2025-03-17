@@ -6,15 +6,14 @@ import { Button } from '@/ui/primitives/button'
 import { AlertDialog } from '@/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import { removeTeamMemberAction } from '@/server/team/team-actions'
-import { useParams } from 'next/navigation'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
+import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { useUser } from '@/lib/hooks/use-user'
 import { PROTECTED_URLS } from '@/configs/urls'
-import { QUERY_KEYS } from '@/configs/keys'
-import { mutate } from 'swr'
 import { TeamMember } from '@/server/team/types'
+import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface TableRowProps {
   member: TeamMember
@@ -30,50 +29,40 @@ export default function MemberTableRow({
   const { toast } = useToast()
   const selectedTeam = useSelectedTeam()
   const router = useRouter()
-  const { refetch: refetchTeams } = useTeams()
   const { user } = useUser()
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
-  const [isRemoving, setIsRemoving] = useState(false)
+
+  const { execute: removeMember, isExecuting: isRemoving } = useAction(
+    removeTeamMemberAction,
+    {
+      onSuccess: ({ input }) => {
+        if (input.userId === user?.id) {
+          router.push(PROTECTED_URLS.DASHBOARD)
+          toast(defaultSuccessToast('You have left the team.'))
+        } else {
+          toast(
+            defaultSuccessToast('The member has been removed from the team.')
+          )
+        }
+      },
+      onError: ({ error }) => {
+        toast(defaultErrorToast(error.serverError || 'Unknown error.'))
+      },
+      onSettled: () => {
+        setRemoveDialogOpen(false)
+      },
+    }
+  )
 
   const handleRemoveMember = async (userId: string) => {
     if (!selectedTeam) {
       return
     }
 
-    setIsRemoving(true)
-
-    try {
-      const res = await removeTeamMemberAction({
-        teamId: selectedTeam.id,
-        userId,
-      })
-
-      if (res.type === 'error') {
-        throw new Error(res.message)
-      }
-
-      if (userId === user?.id) {
-        refetchTeams()
-        router.push(PROTECTED_URLS.DASHBOARD)
-        toast({
-          title: 'You have left the team',
-        })
-      } else {
-        toast({
-          title: 'Member removed',
-          description: 'The member has been removed from the team',
-        })
-      }
-    } catch (error: unknown) {
-      toast({
-        title: 'Could not remove member',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'error',
-      })
-    } finally {
-      setIsRemoving(false)
-      setRemoveDialogOpen(false)
-    }
+    removeMember({
+      teamId: selectedTeam.id,
+      userId,
+    })
   }
 
   return (

@@ -1,47 +1,31 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState, useLayoutEffect } from 'react'
-import { preloadTeams } from '@/lib/hooks/use-teams'
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 import { useEffect } from 'react'
 import { RootProvider } from 'fumadocs-ui/provider'
 import { TooltipProvider } from '@/ui/primitives/tooltip'
 import { ToastProvider } from '@/ui/primitives/toast'
-import { useUser } from '@/lib/hooks/use-user'
 
 interface ClientProvidersProps {
   children: React.ReactNode
 }
 
 export default function ClientProviders({ children }: ClientProvidersProps) {
-  const [queryClient] = useState(() => new QueryClient())
-
-  const { user } = useUser()
-
-  useLayoutEffect(() => {
-    if (!user) return
-
-    preloadTeams()
-  }, [user])
-
   return (
     <PostHogProvider>
-      <QueryClientProvider client={queryClient}>
-        <RootProvider
-          theme={{
-            attribute: 'class',
-            defaultTheme: 'system',
-            enableSystem: true,
-            disableTransitionOnChange: true,
-          }}
-        >
-          <TooltipProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </TooltipProvider>
-        </RootProvider>
-      </QueryClientProvider>
+      <RootProvider
+        theme={{
+          attribute: 'class',
+          defaultTheme: 'system',
+          enableSystem: true,
+          disableTransitionOnChange: true,
+        }}
+      >
+        <TooltipProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </TooltipProvider>
+      </RootProvider>
     </PostHogProvider>
   )
 }

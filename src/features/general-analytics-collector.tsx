@@ -1,26 +1,23 @@
 'use client'
 
-import { useUser } from '@/lib/hooks/use-user'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { supabase } from '@/lib/clients/supabase/client'
 import { usePostHog } from 'posthog-js/react'
 import { useEffect } from 'react'
 
 export function GeneralAnalyticsCollector() {
   const posthog = usePostHog()
-  const { user } = useUser()
-  /*   const selectedTeam = useSelectedTeam(); */
 
   useEffect(() => {
-    if (user) {
-      posthog?.identify(user.id, { email: user.email })
+    if (!posthog) return
 
-      /*       if (!selectedTeam) return;
-
-      posthog?.group("team", selectedTeam.id, {
-        name: selectedTeam.name,
-      }); */
-    }
-  }, [user, posthog])
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        posthog?.identify(session.user.id, { email: session.user.email })
+      } else if (event === 'SIGNED_OUT') {
+        posthog?.reset()
+      }
+    })
+  }, [posthog])
 
   return null
 }

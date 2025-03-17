@@ -187,4 +187,22 @@ function useToast() {
   }
 }
 
-export { useToast, toast }
+// utils
+
+function defaultSuccessToast(description: React.ReactNode): Toast {
+  return {
+    variant: 'success',
+    title: 'Success',
+    description,
+  }
+}
+
+function defaultErrorToast(description: React.ReactNode): Toast {
+  return {
+    variant: 'error',
+    title: 'Error',
+    description,
+  }
+}
+
+export { useToast, toast, defaultSuccessToast, defaultErrorToast }

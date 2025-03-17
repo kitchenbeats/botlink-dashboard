@@ -2,7 +2,6 @@
 
 import { LogOut } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
-import { User } from '@supabase/supabase-js'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Button } from '@/ui/primitives/button'
@@ -10,16 +9,14 @@ import { PROTECTED_URLS } from '@/configs/urls'
 import { useTransition } from 'react'
 import { signOutAction } from '@/server/auth/auth-actions'
 import { Loader } from '@/ui/loader'
+import { useUser } from '@/lib/hooks/use-user'
 
 interface UserDetailsTileProps {
-  user: User
   className?: string
 }
 
-export default function UserDetailsTile({
-  user,
-  className,
-}: UserDetailsTileProps) {
+export default function UserDetailsTile({ className }: UserDetailsTileProps) {
+  const { user } = useUser()
   const [isSigningOut, startTransition] = useTransition()
 
   const handleSignOut = () => {
@@ -33,10 +30,10 @@ export default function UserDetailsTile({
       <Button
         variant="ghost"
         asChild
-        className="group relative h-auto w-full justify-start rounded-none p-3 hover:bg-bg-200"
+        className="group hover:bg-bg-200 relative h-auto w-full justify-start rounded-none p-3"
       >
         <Link href={PROTECTED_URLS.ACCOUNT_SETTINGS}>
-          <Avatar className="size-9 shadow-lg">
+          <Avatar className="size-9 drop-shadow-md filter">
             <AvatarImage src={user.user_metadata.avatar_url} />
             <AvatarFallback>
               {user.email?.charAt(0).toUpperCase() || '?'}
@@ -44,10 +41,10 @@ export default function UserDetailsTile({
           </Avatar>
 
           <div className="flex flex-1 flex-col normal-case">
-            <h6 className="max-w-[135px] truncate whitespace-nowrap text-sm text-fg-300 transition-colors group-hover:text-fg">
+            <h6 className="text-fg-300 group-hover:text-fg max-w-[135px] truncate text-sm whitespace-nowrap transition-colors">
               {user.user_metadata.name}
             </h6>
-            <span className="max-w-[140px] truncate whitespace-nowrap font-sans text-xs text-fg-500 transition-colors group-hover:text-fg-300">
+            <span className="text-fg-500 group-hover:text-fg-300 max-w-[140px] truncate font-sans text-xs whitespace-nowrap transition-colors">
               {user.email}
             </span>
           </div>
@@ -56,7 +53,7 @@ export default function UserDetailsTile({
       <Button
         variant="ghost"
         size="icon"
-        className="h-full w-16 rounded-none border-l text-error hover:border-error/20 hover:bg-error/10"
+        className="text-error hover:border-error/20 hover:bg-error/10 h-full w-16 rounded-none border-l"
         onClick={handleSignOut}
         disabled={isSigningOut}
       >

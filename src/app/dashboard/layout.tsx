@@ -7,6 +7,8 @@ import {
   resolveTeamIdInServerComponent,
   resolveTeamSlugInServerComponent,
 } from '@/lib/utils/server'
+import { getUserTeams } from '@/server/team/get-team'
+import { getSessionInsecure } from '@/server/auth/get-session'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -23,8 +25,21 @@ export default async function DashboardLayout({
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
   const teamSlug = await resolveTeamSlugInServerComponent()
 
+  const session = await getSessionInsecure()
+
+  const res = await getUserTeams()
+
+  if (!res?.data || res.serverError) {
+    throw new Error(res?.serverError || 'Error loading teams.')
+  }
+
   return (
-    <ServerContextProvider teamId={teamId} teamSlug={teamSlug}>
+    <ServerContextProvider
+      teamId={teamId}
+      teamSlug={teamSlug}
+      teams={res?.data}
+      user={session!.user}
+    >
       <div className="fixed inset-0 flex max-h-full w-full flex-col overflow-hidden">
         <NetworkStateBanner />
         <div className="flex h-full max-h-full w-full flex-1 overflow-hidden">

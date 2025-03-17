@@ -3,38 +3,37 @@
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { Database } from '@/types/database.types'
 import {
-  checkAuthenticated,
   checkUserTeamAuthorization,
   getUserAccessToken,
-  guard,
 } from '@/lib/utils/server'
 import { z } from 'zod'
-import {
-  E2BError,
-  InvalidParametersError,
-  UnauthorizedError,
-} from '@/types/errors'
 import { kv } from '@vercel/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { revalidatePath } from 'next/cache'
 import { uploadFile, deleteFile, getFiles } from '@/lib/clients/storage'
-
-// Update team name
+import { authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
+import { zfd } from 'zod-form-data'
+import { logWarning } from '@/lib/clients/logger'
+import { returnValidationErrors } from 'next-safe-action'
+import { getTeam } from './get-team'
 
 const UpdateTeamNameSchema = z.object({
   teamId: z.string().uuid(),
   name: z.string().min(1),
 })
 
-export const updateTeamNameAction = guard(
-  UpdateTeamNameSchema,
-  async ({ teamId, name }) => {
-    const { user } = await checkAuthenticated()
+export const updateTeamNameAction = authActionClient
+  .schema(UpdateTeamNameSchema)
+  .metadata({ actionName: 'updateTeamName' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, name } = parsedInput
+    const { user } = ctx
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
     if (!isAuthorized) {
-      throw UnauthorizedError('User is not authorized to update this team')
+      return returnServerError('User is not authorized to update this team')
     }
 
     const { data, error } = await supabaseAdmin
@@ -45,29 +44,31 @@ export const updateTeamNameAction = guard(
       .single()
 
     if (error) {
-      throw new E2BError(error.message, 'Failed to update team name')
+      return returnServerError(`Failed to update team name: ${error.message}`)
     }
 
-    return data
-  }
-)
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
 
-// Add team member
+    return data
+  })
 
 const AddTeamMemberSchema = z.object({
   teamId: z.string().uuid(),
   email: z.string().email(),
 })
 
-export const addTeamMemberAction = guard(
-  AddTeamMemberSchema,
-  async ({ teamId, email }) => {
-    const { user } = await checkAuthenticated()
+export const addTeamMemberAction = authActionClient
+  .schema(AddTeamMemberSchema)
+  .metadata({ actionName: 'addTeamMember' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, email } = parsedInput
+    const { user } = ctx
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
     if (!isAuthorized) {
-      throw UnauthorizedError('User is not authorized to add a team member')
+      return returnServerError('User is not authorized to add a team member')
     }
 
     const { data: existingUsers, error: userError } = await supabaseAdmin
@@ -76,13 +77,13 @@ export const addTeamMemberAction = guard(
       .eq('email', email)
 
     if (userError) {
-      throw userError
+      return returnServerError(`Error finding user: ${userError.message}`)
     }
 
     const existingUser = existingUsers?.[0]
 
     if (!existingUser) {
-      throw InvalidParametersError(
+      return returnServerError(
         'User with this email does not exist. Account must be registered first.'
       )
     }
@@ -95,7 +96,7 @@ export const addTeamMemberAction = guard(
       .single()
 
     if (existingTeamMember) {
-      throw InvalidParametersError('User is already a member of this team')
+      return returnServerError('User is already a member of this team')
     }
 
     const { error: insertError } = await supabaseAdmin
@@ -107,31 +108,40 @@ export const addTeamMemberAction = guard(
       })
 
     if (insertError) {
-      throw insertError
+      return returnServerError(
+        `Failed to add team member: ${insertError.message}`
+      )
     }
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
-  }
-)
+    getTeam({ teamId }).then(async (result) => {
+      if (!result?.data || result.serverError || result.validationErrors) {
+        return
+      }
 
-// Remove team member
+      await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, result.data.slug))
+    })
+  })
 
 const RemoveTeamMemberSchema = z.object({
   teamId: z.string().uuid(),
   userId: z.string().uuid(),
 })
 
-export const removeTeamMemberAction = guard(
-  RemoveTeamMemberSchema,
-  async ({ teamId, userId }) => {
-    const { user } = await checkAuthenticated()
+export const removeTeamMemberAction = authActionClient
+  .schema(RemoveTeamMemberSchema)
+  .metadata({ actionName: 'removeTeamMember' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, userId } = parsedInput
+    const { user } = ctx
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
     if (!isAuthorized) {
-      throw UnauthorizedError('User is not authorized to remove team members')
+      return returnServerError('User is not authorized to remove team members')
     }
 
     const { data: teamMemberData, error: teamMemberError } = await supabaseAdmin
@@ -141,13 +151,13 @@ export const removeTeamMemberAction = guard(
       .eq('user_id', userId)
 
     if (teamMemberError || !teamMemberData || teamMemberData.length === 0) {
-      throw InvalidParametersError('User is not a member of this team')
+      return returnServerError('User is not a member of this team')
     }
 
     const teamMember = teamMemberData[0]
 
     if (teamMember.user_id !== user.id && teamMember.is_default) {
-      throw InvalidParametersError('Cannot remove a default team member')
+      return returnServerError('Cannot remove a default team member')
     }
 
     const { count, error: countError } = await supabaseAdmin
@@ -156,11 +166,13 @@ export const removeTeamMemberAction = guard(
       .eq('team_id', teamId)
 
     if (countError) {
-      throw countError
+      return returnServerError(
+        `Error checking team members: ${countError.message}`
+      )
     }
 
     if (count === 1) {
-      throw InvalidParametersError('Cannot remove the last team member')
+      return returnServerError('Cannot remove the last team member')
     }
 
     const { error: removeError } = await supabaseAdmin
@@ -174,133 +186,142 @@ export const removeTeamMemberAction = guard(
     }
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
-  }
-)
+
+    getTeam({ teamId }).then(async (result) => {
+      if (!result?.data || result.serverError || result.validationErrors) {
+        return
+      }
+
+      await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, result.data.slug))
+    })
+  })
 
 const CreateTeamSchema = z.object({
   name: z.string().min(1),
 })
 
-export const createTeamAction = guard(CreateTeamSchema, async ({ name }) => {
-  const { user } = await checkAuthenticated()
+export const createTeamAction = authActionClient
+  .schema(CreateTeamSchema)
+  .metadata({ actionName: 'createTeam' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { name } = parsedInput
+    const { user } = ctx
 
-  const accessToken = await getUserAccessToken(user.id)
+    const accessToken = await getUserAccessToken(user.id)
 
-  const response = await fetch(`${process.env.BILLING_API_URL}/teams`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-User-Access-Token': accessToken,
-    },
-    body: JSON.stringify({ name }),
-  })
+    const response = await fetch(`${process.env.BILLING_API_URL}/teams`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Access-Token': accessToken,
+      },
+      body: JSON.stringify({ name }),
+    })
 
-  if (!response.ok) {
-    const error = await response.json()
+    if (!response.ok) {
+      const error = await response.json()
 
-    throw new Error(error?.message ?? 'Failed to create team')
-  }
-
-  revalidatePath('/dashboard', 'layout')
-
-  const data =
-    (await response.json()) as Database['public']['Tables']['teams']['Row']
-
-  return data
-})
-
-// Upload team profile picture and update team record
-
-export const uploadTeamProfilePictureAction = guard(
-  async (formData: FormData) => {
-    const teamId = formData.get('teamId') as string
-    const image = formData.get('image') as File
-
-    if (!teamId || !image) {
-      throw InvalidParametersError('Team ID and image are required')
+      throw new Error(error?.message ?? 'Failed to create team')
     }
 
+    revalidatePath('/dashboard', 'layout')
+
+    const data =
+      (await response.json()) as Database['public']['Tables']['teams']['Row']
+
+    return data
+  })
+
+const UploadTeamProfilePictureSchema = zfd.formData(
+  z.object({
+    teamId: zfd.text(),
+    image: zfd.file(),
+  })
+)
+
+export const uploadTeamProfilePictureAction = authActionClient
+  .schema(UploadTeamProfilePictureSchema)
+  .metadata({ actionName: 'uploadTeamProfilePicture' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, image } = parsedInput
+
     const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml']
+
     if (!allowedTypes.includes(image.type)) {
-      throw InvalidParametersError('File must be JPG, PNG, or SVG format')
+      return returnValidationErrors(UploadTeamProfilePictureSchema, {
+        image: { _errors: ['File must be JPG, PNG, or SVG format'] },
+      })
     }
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
 
     if (image.size > MAX_FILE_SIZE) {
-      throw InvalidParametersError('File size must be less than 5MB')
+      return returnValidationErrors(UploadTeamProfilePictureSchema, {
+        image: { _errors: ['File size must be less than 5MB'] },
+      })
     }
 
-    const { user } = await checkAuthenticated()
+    const { user } = ctx
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
     if (!isAuthorized) {
-      throw UnauthorizedError('User is not authorized to update this team')
+      return returnServerError('User is not authorized to update this team')
     }
 
     const extension = image.name.split('.').pop() || 'png'
     const fileName = `${Date.now()}.${extension}`
-    const filePath = `profile-pictures/teams/${teamId}/${fileName}`
+    const filePath = `teams/${teamId}/${fileName}`
 
     const arrayBuffer = await image.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    try {
-      // Upload file to Supabase Storage
-      const publicUrl = await uploadFile(buffer, filePath, image.type)
+    // Upload file to Supabase Storage
+    const publicUrl = await uploadFile(buffer, filePath, image.type)
 
-      // Update team record with new profile picture URL
-      const { data, error } = await supabaseAdmin
-        .from('teams')
-        .update({ profile_picture_url: publicUrl })
-        .eq('id', teamId)
-        .select()
-        .single()
+    // Update team record with new profile picture URL
+    const { data, error } = await supabaseAdmin
+      .from('teams')
+      .update({ profile_picture_url: publicUrl })
+      .eq('id', teamId)
+      .select()
+      .single()
 
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      // Clean up old profile pictures asynchronously in the background
-      // We don't await this promise, so it runs in the background
-      ;(async () => {
-        try {
-          // Get the current file name from the path
-          const currentFileName = fileName
-
-          // List all files in the team's folder from Supabase Storage
-          const folderPath = `teams/${teamId}`
-          const files = await getFiles(folderPath)
-
-          // Delete all old profile pictures except the one we just uploaded
-          for (const file of files) {
-            const filePath = file.name
-            // Skip the file we just uploaded
-            if (filePath === `${folderPath}/${currentFileName}`) {
-              continue
-            }
-
-            try {
-              await deleteFile(filePath)
-            } catch (deleteError) {
-              console.error(`Error deleting file ${filePath}:`, deleteError)
-            }
-          }
-        } catch (cleanupError) {
-          console.error('Error during profile picture cleanup:', cleanupError)
-        }
-      })()
-
-      revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
-    } catch (error) {
-      console.error(
-        'Error uploading profile picture to Supabase Storage:',
-        error
-      )
-      throw new Error('Failed to upload profile picture')
+    if (error) {
+      throw new Error(error.message)
     }
-  }
-)
+
+    // Clean up old profile pictures asynchronously in the background
+    // We don't await this promise, so it runs in the background
+    ;(async () => {
+      try {
+        // Get the current file name from the path
+        const currentFileName = fileName
+
+        // List all files in the team's folder from Supabase Storage
+        const folderPath = `teams/${teamId}`
+        const files = await getFiles(folderPath)
+
+        // Delete all old profile pictures except the one we just uploaded
+        for (const file of files) {
+          const filePath = file.name
+          // Skip the file we just uploaded
+          if (filePath === `${folderPath}/${currentFileName}`) {
+            continue
+          }
+
+          await deleteFile(filePath)
+        }
+      } catch (cleanupError) {
+        logWarning('Error during profile picture cleanup:', cleanupError)
+      }
+    })()
+
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
+
+    return data
+  })

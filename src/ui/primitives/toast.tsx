@@ -33,8 +33,9 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: 'border bg-bg/40 text-fg backdrop-blur-lg',
-        error: 'group border-error/40 bg-error/10 backdrop-blur-lg',
-        success: 'group border-success/40 bg-success/10 backdrop-blur-lg',
+        error: 'group border-error/40 bg-error/10 backdrop-blur-lg text-error',
+        success:
+          'group border-success/40 bg-success/10 backdrop-blur-lg text-success',
       },
     },
     defaultVariants: {
@@ -65,7 +66,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      'ring-offset-background hover:bg-secondary group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive focus:ring-ring inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50',
+      'ring-offset-bg hover:bg-secondary group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive focus:ring-ring inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50',
       className
     )}
     {...props}
@@ -97,7 +98,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn('text-sm font-semibold', className)}
+    className={cn('font-mono text-sm uppercase', className)}
     {...props}
   />
 ))
@@ -109,7 +110,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
-    className={cn('text-sm opacity-90', className)}
+    className={cn('text-fg-300 text-sm', className)}
     {...props}
   />
 ))

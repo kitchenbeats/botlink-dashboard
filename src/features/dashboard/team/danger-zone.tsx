@@ -1,9 +1,6 @@
-import { bailOutFromPPR } from '@/lib/utils/server'
 import { getTeam } from '@/server/team/get-team'
-import { UnknownError } from '@/types/errors'
 import { AlertDialog } from '@/ui/alert-dialog'
 import ErrorBoundary from '@/ui/error'
-import { Alert } from '@/ui/primitives/alert'
 import { Button } from '@/ui/primitives/button'
 import {
   Card,
@@ -36,13 +33,13 @@ export function DangerZone({ teamId }: DangerZoneProps) {
 async function DangerZoneContent({ teamId }: { teamId: string }) {
   const res = await getTeam({ teamId })
 
-  if (res.type === 'error') {
+  if (!res?.data || res.serverError || res.validationErrors) {
     return (
       <ErrorBoundary
         error={
           {
             name: 'Team Error',
-            message: res.message,
+            message: res?.serverError || 'Unknown error',
           } satisfies Error
         }
         description={'Could not load team'}
