@@ -74,13 +74,21 @@ vercel storage add
 2. Go to Project Settings > API
 3. Copy the `anon key` and `service_role key`
 4. Copy the project URL
+5. Configure authentication:
+   - Go to Authentication > URL Configuration
+   - Set Site URL to the hosting domain 
+   - Add `http://localhost:3000/**` to Redirect URLs (for development)
+6. Enable auth providers:
+   - Go to Authentication > Providers
+   - Enable the providers you want to use (GitHub, Google, E-Mail)
+   - Configure each provider with the appropriate credentials
 
 #### c. Database Setup
-1. Retrieve the `POSTGRES_CONNECTION_STRING` from the Supabase project settings
-2. Run the migrations by running the following command:
-```bash
-bun run db:migrations:apply
-```
+1. Apply the database migrations manually:
+   - Navigate to the `/migrations` folder in the project
+   - Execute each SQL migration file in sequential order against your Supabase database
+   - You can run these migrations using the Supabase SQL Editor or a PostgreSQL client
+   - Make sure to apply migrations in the correct order based on their timestamp prefixes
 
 #### d. Supabase Storage Setup
 1. Go to Storage > Buckets
