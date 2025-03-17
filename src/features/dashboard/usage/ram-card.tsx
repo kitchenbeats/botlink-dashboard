@@ -22,7 +22,7 @@ export function RAMCard({
       <CardHeader>
         <CardTitle className="font-mono">RAM Hours</CardTitle>
         <CardDescription>
-          Memory usage duration across all sandboxes
+          Memory usage duration across all sandboxes.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

@@ -25,7 +25,7 @@ export default async function BillingPage({
         <div className="flex flex-col gap-1">
           <CardTitle>Plan</CardTitle>
           <CardDescription>
-            Manage your current plan and subscription details
+            Manage your current plan and subscription details.
           </CardDescription>
         </div>
 
@@ -50,7 +50,7 @@ export default async function BillingPage({
         <div className="flex flex-col gap-1">
           <CardTitle>Billing History</CardTitle>
           <CardDescription>
-            View your team's billing history and invoices
+            View your team's billing history and invoices.
           </CardDescription>
         </div>
 

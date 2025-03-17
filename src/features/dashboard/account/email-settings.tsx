@@ -105,7 +105,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
     <Card variant="slate" className={cn(className)}>
       <CardHeader>
         <CardTitle>E-Mail</CardTitle>
-        <CardDescription>Update your email address.</CardDescription>
+        <CardDescription>Update your e-mail address.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <Form {...form}>
