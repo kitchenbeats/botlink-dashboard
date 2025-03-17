@@ -1,6 +1,5 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useLayoutEffect } from 'react'
 import { preloadTeams } from '@/lib/hooks/use-teams'
 import posthog from 'posthog-js'
@@ -16,8 +15,6 @@ interface ClientProvidersProps {
 }
 
 export default function ClientProviders({ children }: ClientProvidersProps) {
-  const [queryClient] = useState(() => new QueryClient())
-
   const { user } = useUser()
 
   useLayoutEffect(() => {
@@ -28,20 +25,18 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
 
   return (
     <PostHogProvider>
-      <QueryClientProvider client={queryClient}>
-        <RootProvider
-          theme={{
-            attribute: 'class',
-            defaultTheme: 'system',
-            enableSystem: true,
-            disableTransitionOnChange: true,
-          }}
-        >
-          <TooltipProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </TooltipProvider>
-        </RootProvider>
-      </QueryClientProvider>
+      <RootProvider
+        theme={{
+          attribute: 'class',
+          defaultTheme: 'system',
+          enableSystem: true,
+          disableTransitionOnChange: true,
+        }}
+      >
+        <TooltipProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </TooltipProvider>
+      </RootProvider>
     </PostHogProvider>
   )
 }
