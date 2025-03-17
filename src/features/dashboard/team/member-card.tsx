@@ -19,7 +19,7 @@ export function MemberCard({ teamId, className }: MemberCardProps) {
     <Card className={className}>
       <CardHeader>
         <CardTitle>Members</CardTitle>
-        <CardDescription>Manage your Team members</CardDescription>
+        <CardDescription>Manage your team members.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-8">

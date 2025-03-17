@@ -22,7 +22,7 @@ export function VCPUCard({
       <CardHeader>
         <CardTitle className="font-mono">vCPU Hours</CardTitle>
         <CardDescription>
-          Virtual CPU time consumed by your sandboxes
+          Virtual CPU time consumed by your sandboxes.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

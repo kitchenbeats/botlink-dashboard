@@ -20,8 +20,8 @@ export default function CreditsCard({ teamId, className }: CreditsCardProps) {
       <CardHeader>
         <CardTitle className="font-mono">Credits</CardTitle>
         <CardDescription>
-          Your current credits balance
-          <br /> Usage costs are deducted from your credits
+          Your current credits balance.
+          <br /> Usage costs are deducted from your credits.
         </CardDescription>
       </CardHeader>
       <CardContent className="max-w-[500px] text-xs">

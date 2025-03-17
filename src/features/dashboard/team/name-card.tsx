@@ -78,7 +78,7 @@ export function NameCard({ className }: NameCardProps) {
       <CardHeader>
         <CardTitle>Name</CardTitle>
         <CardDescription>
-          Change your team name to display on your invoices and receipts
+          Change your team name to display on your invoices and receipts.
         </CardDescription>
       </CardHeader>
       <CardContent>
