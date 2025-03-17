@@ -41,7 +41,7 @@ interface EmailSettingsProps {
 export function EmailSettings({ className }: EmailSettingsProps) {
   'use no memo'
 
-  const { user, setUser, refetch: refetchUser } = useUser()
+  const { user } = useUser()
   const searchParams = useSearchParams()
   const { toast } = useToast()
 
@@ -81,18 +81,18 @@ export function EmailSettings({ className }: EmailSettingsProps) {
 
     if (searchParams.get('type') === 'update_email') {
       if (searchParams.has('success')) {
-        if (searchParams.has('new_email')) {
+        /*         if (searchParams.has('new_email')) {
           setUser((state) => ({
             ...state!,
             email: searchParams.get('new_email')!,
           }))
-        }
+        } */
 
         toast(
           defaultSuccessToast(decodeURIComponent(searchParams.get('success')!))
         )
 
-        refetchUser()
+        /*         refetchUser() */
       } else {
         toast(defaultErrorToast(decodeURIComponent(searchParams.get('error')!)))
       }

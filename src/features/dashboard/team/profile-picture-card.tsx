@@ -19,7 +19,6 @@ interface ProfilePictureCardProps {
 
 export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
   const team = useSelectedTeam()
-  const { refetch } = useTeams()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -28,8 +27,6 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
     uploadTeamProfilePictureAction,
     {
       onSuccess: () => {
-        refetch()
-
         toast(defaultSuccessToast('Your team logo has been updated.'))
       },
       onError: ({ error }) => {

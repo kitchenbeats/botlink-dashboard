@@ -100,7 +100,6 @@ export const useColumns = (deps: unknown[]) => {
           const { execute: executeUpdateTemplate, isExecuting: isUpdating } =
             useAction(updateTemplateAction, {
               onSuccess: () => {
-                router.refresh()
                 toast(
                   defaultSuccessToast(
                     `Template is now ${template.public ? 'public' : 'private'}.`
@@ -119,7 +118,6 @@ export const useColumns = (deps: unknown[]) => {
           const { execute: executeDeleteTemplate, isExecuting: isDeleting } =
             useAction(deleteTemplateAction, {
               onSuccess: () => {
-                router.refresh()
                 toast(defaultSuccessToast('Template has been deleted.'))
               },
               onError: (error) => {

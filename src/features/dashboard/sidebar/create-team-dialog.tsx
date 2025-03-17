@@ -48,7 +48,6 @@ export function CreateTeamDialog({
 }: CreateTeamDialogProps) {
   'use no memo'
 
-  const { refetch: refetchTeams } = useTeams()
   const router = useRouter()
 
   const form = useForm<FormValues>({
@@ -60,10 +59,9 @@ export function CreateTeamDialog({
 
   const { execute, isExecuting } = useAction(createTeamAction, {
     onSuccess: async (result) => {
-      await refetchTeams()
       onOpenChange(false)
 
-      toast(defaultSuccessToast('Team created successfully'))
+      toast(defaultSuccessToast('Team was created.'))
 
       if (result.data) {
         router.push(

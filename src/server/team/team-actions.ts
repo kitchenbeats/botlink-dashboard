@@ -47,6 +47,9 @@ export const updateTeamNameAction = authActionClient
       return returnServerError(`Failed to update team name: ${error.message}`)
     }
 
+    revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
+
     return data
   })
 
@@ -111,6 +114,7 @@ export const addTeamMemberAction = authActionClient
     }
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
     getTeam({ teamId }).then(async (result) => {
@@ -182,6 +186,7 @@ export const removeTeamMemberAction = authActionClient
     }
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
 
@@ -316,6 +321,7 @@ export const uploadTeamProfilePictureAction = authActionClient
     })()
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
+    revalidatePath(`/dashboard`, 'layout')
 
     return data
   })
