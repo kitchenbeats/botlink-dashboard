@@ -1,44 +1,48 @@
 import 'server-only'
 
-import { checkAuthenticated, getTeamApiKey, guard } from '@/lib/utils/server'
+import { getTeamApiKey } from '@/lib/utils/server'
 import { Usage, TransformedUsageData } from '@/server/usage/types'
 import { z } from 'zod'
-import { E2BError } from '@/types/errors'
 import { TEAM_API_KEY_HEADER } from '@/configs/constants'
+import { authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 
-const GetUsageParamsSchema = z.object({
+const GetUsageSchema = z.object({
   teamId: z.string().uuid(),
 })
 
-export const getUsage = guard(GetUsageParamsSchema, async ({ teamId }) => {
-  const { user } = await checkAuthenticated()
+export const getUsage = authActionClient
+  .schema(GetUsageSchema)
+  .metadata({ serverFunctionName: 'getUsage' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId } = parsedInput
+    const { user } = ctx
 
-  const apiKey = await getTeamApiKey(user.id, teamId)
+    const apiKey = await getTeamApiKey(user.id, teamId)
 
-  const response = await fetch(
-    `${process.env.BILLING_API_URL}/teams/${teamId}/usage`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        [TEAM_API_KEY_HEADER]: apiKey,
-      },
+    const response = await fetch(
+      `${process.env.BILLING_API_URL}/teams/${teamId}/usage`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          [TEAM_API_KEY_HEADER]: apiKey,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      const text = await response.text()
+      return returnServerError(text ?? 'Failed to fetch usage data')
     }
-  )
 
-  if (!response.ok) {
-    const text = await response.text()
+    const data = await response.json()
 
-    throw new E2BError('UNEXPECTED_ERROR', text ?? 'Failed to fetch usage data')
-  }
-
-  const data = await response.json()
-
-  return {
-    ...transformUsageData(data.usages),
-    credits: data.credits as number,
-  }
-})
+    return {
+      ...transformUsageData(data.usages),
+      credits: data.credits as number,
+    }
+  })
 
 function transformUsageData(usages: Usage[]): TransformedUsageData {
   const ramData = usages.map((usage) => ({
