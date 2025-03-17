@@ -46,3 +46,29 @@ export const getTeam = authActionClient
 
     return teamWithDefault
   })
+
+export const getUserTeams = authActionClient
+  .metadata({ serverFunctionName: 'getUserTeams' })
+  .action(async ({ ctx }) => {
+    const { user } = ctx
+
+    const { data: usersTeamsData, error } = await supabaseAdmin
+      .from('users_teams')
+      .select('*, teams (*)')
+      .eq('user_id', user.id)
+
+    if (error) {
+      throw error
+    }
+
+    if (!usersTeamsData || usersTeamsData.length === 0) {
+      return returnServerError('No teams found.')
+    }
+
+    const teams: TeamWithDefault[] = usersTeamsData.map((userTeam) => {
+      const team = userTeam.teams
+      return { ...team, is_default: userTeam.is_default }
+    })
+
+    return teams
+  })

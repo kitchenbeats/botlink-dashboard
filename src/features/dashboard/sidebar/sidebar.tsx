@@ -10,7 +10,6 @@ import Link from 'next/link'
 import ExternalIcon from '@/ui/external-icon'
 import { GITHUB_URL } from '@/configs/socials'
 import UserDetailsTile from '@/features/auth/user-details-tile'
-import { getSessionInsecure } from '@/server/auth/get-session'
 import DeveloperSettingsDialog from '../developer-settings/settings-dialog'
 import { getApiDomain } from '@/lib/utils/server'
 
@@ -73,8 +72,6 @@ export default function Sidebar({ className }: SidebarProps) {
 }
 
 async function ClientComponentWrapper() {
-  const session = await getSessionInsecure()
-
   const apiDomain = await getApiDomain()
 
   return (
@@ -88,7 +85,7 @@ async function ClientComponentWrapper() {
           Developer Settings
         </Button>
       </DeveloperSettingsDialog>
-      <UserDetailsTile user={session!.user} className="w-full border-t" />
+      <UserDetailsTile className="w-full border-t" />
     </>
   )
 }

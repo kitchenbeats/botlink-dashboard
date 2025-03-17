@@ -13,16 +13,10 @@ import { signOutAction } from '@/server/auth/auth-actions'
 import Link from 'next/link'
 import { PROTECTED_URLS } from '@/configs/urls'
 import UserDetailsTile from './user-details-tile'
-import { useState } from 'react'
-import { User } from '@supabase/supabase-js'
+import { useUser } from '@/lib/hooks/use-user'
 
-interface UserMenuProps {
-  user: User
-  apiDomain?: string
-}
-
-export default function UserMenu({ user, apiDomain }: UserMenuProps) {
-  const [developerSettingsOpen, setDeveloperSettingsOpen] = useState(false)
+export default function UserMenu() {
+  const { user } = useUser()
 
   return (
     <>
@@ -45,14 +39,8 @@ export default function UserMenu({ user, apiDomain }: UserMenuProps) {
         <DropdownMenuContent>
           <DropdownMenuItem asChild className="p-1">
             <Link href={PROTECTED_URLS.ACCOUNT_SETTINGS}>
-              <UserDetailsTile user={user} />
+              <UserDetailsTile />
             </Link>
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem onClick={() => setDeveloperSettingsOpen(true)}>
-            Developer Settings
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

@@ -6,6 +6,7 @@ import { getUserAccessToken } from '@/lib/utils/server'
 import { z } from 'zod'
 import { headers } from 'next/headers'
 import { returnValidationErrors } from 'next-safe-action'
+import { revalidatePath } from 'next/cache'
 
 const UpdateUserSchema = z
   .object({
@@ -46,6 +47,8 @@ export const updateUserAction = authActionClient
     )
 
     if (!error) {
+      revalidatePath('/dashboard', 'layout')
+
       return {
         user: updateData.user,
       }

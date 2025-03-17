@@ -26,6 +26,7 @@ import {
 import { useToast } from '@/lib/hooks/use-toast'
 import { useAction } from 'next-safe-action/hooks'
 import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
+import { useRouter } from 'next/navigation'
 
 interface NameCardProps {
   className?: string
@@ -40,9 +41,9 @@ type FormValues = z.infer<typeof formSchema>
 export function NameCard({ className }: NameCardProps) {
   'use no memo'
 
-  const { refetch: refetchTeams } = useTeams()
   const team = useSelectedTeam()
   const { toast } = useToast()
+  const router = useRouter()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -61,7 +62,6 @@ export function NameCard({ className }: NameCardProps) {
 
   const { execute: updateName, isPending } = useAction(updateTeamNameAction, {
     onSuccess: async () => {
-      await refetchTeams()
       toast(defaultSuccessToast('Team name updated.'))
     },
     onError: (error) => {

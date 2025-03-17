@@ -2,7 +2,6 @@
 
 import { LogOut } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
-import { User } from '@supabase/supabase-js'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Button } from '@/ui/primitives/button'
@@ -10,16 +9,14 @@ import { PROTECTED_URLS } from '@/configs/urls'
 import { useTransition } from 'react'
 import { signOutAction } from '@/server/auth/auth-actions'
 import { Loader } from '@/ui/loader'
+import { useUser } from '@/lib/hooks/use-user'
 
 interface UserDetailsTileProps {
-  user: User
   className?: string
 }
 
-export default function UserDetailsTile({
-  user,
-  className,
-}: UserDetailsTileProps) {
+export default function UserDetailsTile({ className }: UserDetailsTileProps) {
+  const { user } = useUser()
   const [isSigningOut, startTransition] = useTransition()
 
   const handleSignOut = () => {

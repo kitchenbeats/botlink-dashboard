@@ -1,28 +1,17 @@
 'use client'
 
-import { useState, useLayoutEffect } from 'react'
-import { preloadTeams } from '@/lib/hooks/use-teams'
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 import { useEffect } from 'react'
 import { RootProvider } from 'fumadocs-ui/provider'
 import { TooltipProvider } from '@/ui/primitives/tooltip'
 import { ToastProvider } from '@/ui/primitives/toast'
-import { useUser } from '@/lib/hooks/use-user'
 
 interface ClientProvidersProps {
   children: React.ReactNode
 }
 
 export default function ClientProviders({ children }: ClientProvidersProps) {
-  const { user } = useUser()
-
-  useLayoutEffect(() => {
-    if (!user) return
-
-    preloadTeams()
-  }, [user])
-
   return (
     <PostHogProvider>
       <RootProvider

@@ -39,7 +39,7 @@ interface NameSettingsProps {
 export function NameSettings({ className }: NameSettingsProps) {
   'use no memo'
 
-  const { user, refetch: refetchUser } = useUser()
+  const { user } = useUser()
   const { toast } = useToast()
 
   const form = useForm<FormValues>({
@@ -54,7 +54,6 @@ export function NameSettings({ className }: NameSettingsProps) {
 
   const { execute: updateName, isPending } = useAction(updateUserAction, {
     onSuccess: async () => {
-      await refetchUser()
       toast(defaultSuccessToast('Name updated.'))
     },
     onError: (error) => {

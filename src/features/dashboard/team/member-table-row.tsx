@@ -6,10 +6,9 @@ import { Button } from '@/ui/primitives/button'
 import { AlertDialog } from '@/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import { removeTeamMemberAction } from '@/server/team/team-actions'
-import { useParams } from 'next/navigation'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
+import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { useUser } from '@/lib/hooks/use-user'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { TeamMember } from '@/server/team/types'
@@ -30,7 +29,6 @@ export default function MemberTableRow({
   const { toast } = useToast()
   const selectedTeam = useSelectedTeam()
   const router = useRouter()
-  const { refetch: refetchTeams } = useTeams()
   const { user } = useUser()
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
 
@@ -39,7 +37,6 @@ export default function MemberTableRow({
     {
       onSuccess: ({ input }) => {
         if (input.userId === user?.id) {
-          refetchTeams()
           router.push(PROTECTED_URLS.DASHBOARD)
           toast(defaultSuccessToast('You have left the team.'))
         } else {
