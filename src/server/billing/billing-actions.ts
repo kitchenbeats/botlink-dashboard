@@ -1,14 +1,9 @@
 'use server'
 
 import { USER_ACCESS_TOKEN_HEADER } from '@/configs/constants'
-import { PROTECTED_URLS } from '@/configs/urls'
-import {
-  checkAuthenticated,
-  getUserAccessToken,
-  guard,
-} from '@/lib/utils/server'
-import { E2BError, UnknownError } from '@/types/errors'
-import { revalidateTag } from 'next/cache'
+import { authActionClient } from '@/lib/clients/action'
+import { getUserAccessToken } from '@/lib/utils/server'
+import { returnServerError } from '@/lib/utils/action'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
@@ -20,10 +15,11 @@ const RedirectToCheckoutParamsSchema = z.object({
   tierId: z.string(),
 })
 
-export const redirectToCheckoutAction = guard(
-  RedirectToCheckoutParamsSchema,
-  async (params) => {
-    await checkAuthenticated()
+export const redirectToCheckoutAction = authActionClient
+  .schema(RedirectToCheckoutParamsSchema)
+  .metadata({ actionName: 'redirectToCheckout' })
+  .action(async ({ parsedInput }) => {
+    const { teamId, tierId } = parsedInput
 
     const res = await fetch(`${process.env.BILLING_API_URL}/checkouts`, {
       method: 'POST',
@@ -31,8 +27,8 @@ export const redirectToCheckoutAction = guard(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        teamID: params.teamId,
-        tierID: params.tierId,
+        teamID: teamId,
+        tierID: tierId,
       }),
     })
 
@@ -48,8 +44,7 @@ export const redirectToCheckoutAction = guard(
     }
 
     throw redirect(data.url)
-  }
-)
+  })
 
 // Limits
 
@@ -63,47 +58,51 @@ const SetLimitParamsSchema = z.object({
   value: z.number().min(1),
 })
 
-export const setLimitAction = guard(SetLimitParamsSchema, async (params) => {
-  const { user } = await checkAuthenticated()
+export const setLimitAction = authActionClient
+  .schema(SetLimitParamsSchema)
+  .metadata({ actionName: 'setLimit' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, type, value } = parsedInput
+    const { user } = ctx
+    const accessToken = await getUserAccessToken(user.id)
 
-  const accessToken = await getUserAccessToken(user.id)
+    const res = await fetch(
+      `${process.env.BILLING_API_URL}/teams/${teamId}/billing-limits`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          [USER_ACCESS_TOKEN_HEADER]: accessToken,
+        },
+        body: JSON.stringify({
+          [typeToKey(type)]: value,
+        }),
+      }
+    )
 
-  const res = await fetch(
-    `${process.env.BILLING_API_URL}/teams/${params.teamId}/billing-limits`,
-    {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        [USER_ACCESS_TOKEN_HEADER]: accessToken,
-      },
-      body: JSON.stringify({
-        [typeToKey(params.type)]: params.value,
-      }),
+    if (!res.ok) {
+      const text = await res.text()
+      return returnServerError(text ?? 'Failed to set limit')
     }
-  )
 
-  if (!res.ok) {
-    const text = await res.text()
-    throw new E2BError('BILLING_API_ERROR', text ?? 'Failed to set limit')
-  }
-
-  revalidatePath(`/dashboard/[teamIdOrSlug]/budget`, 'page')
-})
+    revalidatePath(`/dashboard/[teamIdOrSlug]/budget`, 'page')
+  })
 
 const ClearLimitParamsSchema = z.object({
   teamId: z.string().uuid(),
   type: z.enum(['limit', 'alert']),
 })
 
-export const clearLimitAction = guard(
-  ClearLimitParamsSchema,
-  async (params) => {
-    const { user } = await checkAuthenticated()
-
+export const clearLimitAction = authActionClient
+  .schema(ClearLimitParamsSchema)
+  .metadata({ actionName: 'clearLimit' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, type } = parsedInput
+    const { user } = ctx
     const accessToken = await getUserAccessToken(user.id)
 
     const res = await fetch(
-      `${process.env.BILLING_API_URL}/teams/${params.teamId}/billing-limits/${typeToKey(params.type)}`,
+      `${process.env.BILLING_API_URL}/teams/${teamId}/billing-limits/${typeToKey(type)}`,
       {
         method: 'DELETE',
         headers: {
@@ -115,9 +114,8 @@ export const clearLimitAction = guard(
 
     if (!res.ok) {
       const text = await res.text()
-      throw new E2BError('BILLING_API_ERROR', text ?? 'Failed to clear limit')
+      return returnServerError(text ?? 'Failed to clear limit')
     }
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/budget`, 'page')
-  }
-)
+  })
