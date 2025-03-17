@@ -7,7 +7,6 @@ import {
   setLimitAction,
 } from '@/server/billing/billing-actions'
 import { Button } from '@/ui/primitives/button'
-import { useTransition } from 'react'
 import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -21,6 +20,7 @@ import {
   FormLabel,
 } from '@/ui/primitives/form'
 import { NumberInput } from '@/ui/number-input'
+import { useAction } from 'next-safe-action/hooks'
 
 interface LimitFormProps {
   teamId: string
@@ -47,8 +47,6 @@ export default function LimitForm({
   'use no memo'
 
   const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, startSaveTransition] = useTransition()
-  const [isClearing, startClearTransition] = useTransition()
   const { toast } = useToast()
 
   const form = useForm<FormData>({
@@ -57,6 +55,45 @@ export default function LimitForm({
       value: originalValue,
     },
   })
+
+  const { execute: setLimit, isPending: isSaving } = useAction(setLimitAction, {
+    onSuccess: () => {
+      toast({
+        title: type === 'limit' ? 'Limit saved' : 'Alert saved',
+        variant: 'default',
+      })
+      setIsEditing(false)
+    },
+    onError: ({ error }) => {
+      toast({
+        title: type === 'limit' ? 'Error saving limit' : 'Error saving alert',
+        description: error.serverError || 'An unknown error occurred',
+        variant: 'error',
+      })
+    },
+  })
+
+  const { execute: clearLimit, isPending: isClearing } = useAction(
+    clearLimitAction,
+    {
+      onSuccess: () => {
+        toast({
+          title: type === 'limit' ? 'Limit cleared' : 'Alert cleared',
+          variant: 'default',
+        })
+        setIsEditing(false)
+        form.reset({ value: null })
+      },
+      onError: ({ error }) => {
+        toast({
+          title:
+            type === 'limit' ? 'Error clearing limit' : 'Error clearing alert',
+          description: error.serverError || 'An unknown error occurred',
+          variant: 'error',
+        })
+      },
+    }
+  )
 
   const handleSave = async (data: FormData) => {
     if (!data.value) {
@@ -68,75 +105,17 @@ export default function LimitForm({
       return
     }
 
-    startSaveTransition(async () => {
-      try {
-        const res = await setLimitAction({
-          type,
-          value: data.value!,
-          teamId,
-        })
-
-        if (res.type === 'error') {
-          toast({
-            title: 'Error',
-            description: res.message,
-            variant: 'error',
-          })
-          return
-        }
-
-        toast({
-          title: type === 'limit' ? 'Limit saved' : 'Alert saved',
-          variant: 'default',
-        })
-        setIsEditing(false)
-      } catch (error) {
-        toast({
-          title: type === 'limit' ? 'Error saving limit' : 'Error saving alert',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'An unknown error occurred',
-          variant: 'error',
-        })
-      }
+    await setLimit({
+      type,
+      value: data.value,
+      teamId,
     })
   }
 
   const handleClear = async () => {
-    startClearTransition(async () => {
-      try {
-        const res = await clearLimitAction({
-          type,
-          teamId,
-        })
-
-        if (res.type === 'error') {
-          toast({
-            title: 'Error',
-            description: res.message,
-            variant: 'error',
-          })
-          return
-        }
-
-        toast({
-          title: type === 'limit' ? 'Limit cleared' : 'Alert cleared',
-          variant: 'default',
-        })
-        setIsEditing(false)
-        form.reset({ value: null })
-      } catch (error) {
-        toast({
-          title:
-            type === 'limit' ? 'Error clearing limit' : 'Error clearing alert',
-          description:
-            error instanceof Error
-              ? error.message
-              : 'An unknown error occurred',
-          variant: 'error',
-        })
-      }
+    await clearLimit({
+      type,
+      teamId,
     })
   }
 
