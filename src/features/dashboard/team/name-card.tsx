@@ -25,6 +25,7 @@ import {
 } from '@/ui/primitives/form'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface NameCardProps {
   className?: string
@@ -61,16 +62,14 @@ export function NameCard({ className }: NameCardProps) {
   const { execute: updateName, isPending } = useAction(updateTeamNameAction, {
     onSuccess: async () => {
       await refetchTeams()
-      toast({
-        description: 'Team name updated successfully',
-        variant: 'success',
-      })
+      toast(defaultSuccessToast('Team name updated.'))
     },
     onError: (error) => {
-      toast({
-        description: error.error.serverError || 'Failed to update team name',
-        variant: 'error',
-      })
+      toast(
+        defaultErrorToast(
+          error.error.serverError || 'Failed to update team name.'
+        )
+      )
     },
   })
 

@@ -30,6 +30,7 @@ import {
   FormMessage,
 } from '@/ui/primitives/form'
 import { useToast } from '@/lib/hooks/use-toast'
+import { defaultErrorToast } from '@/lib/hooks/use-toast'
 
 const formSchema = z.object({
   name: z
@@ -72,11 +73,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
       }
     },
     onError: ({ error }) => {
-      toast({
-        title: 'Error creating API key',
-        description: error.serverError || 'Failed to create API key',
-        variant: 'error',
-      })
+      toast(defaultErrorToast(error.serverError || 'Failed to create API key.'))
     },
   })
 

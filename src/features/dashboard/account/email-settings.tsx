@@ -26,6 +26,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useAction } from 'next-safe-action/hooks'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/lib/hooks/use-toast'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 const formSchema = z.object({
   email: z.string().email('Invalid e-mail address'),
@@ -56,10 +57,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
 
   const { execute: updateEmail, isPending } = useAction(updateUserAction, {
     onSuccess: () => {
-      toast({
-        title: 'Check your email for a verification link',
-        variant: 'success',
-      })
+      toast(defaultSuccessToast('Check your email for a verification link.'))
     },
     onError: ({ error }) => {
       if (error.validationErrors?.fieldErrors?.email?.[0]) {
@@ -69,11 +67,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
         return
       }
 
-      toast({
-        title: 'Error Updating E-Mail',
-        description: error.serverError || 'Failed to update e-mail',
-        variant: 'error',
-      })
+      toast(defaultErrorToast(error.serverError || 'Failed to update e-mail.'))
     },
   })
 
@@ -94,18 +88,13 @@ export function EmailSettings({ className }: EmailSettingsProps) {
           }))
         }
 
-        toast({
-          title: decodeURIComponent(searchParams.get('success')!),
-          variant: 'success',
-        })
+        toast(
+          defaultSuccessToast(decodeURIComponent(searchParams.get('success')!))
+        )
 
         refetchUser()
       } else {
-        toast({
-          title: 'Error',
-          description: decodeURIComponent(searchParams.get('error')!),
-          variant: 'error',
-        })
+        toast(defaultErrorToast(decodeURIComponent(searchParams.get('error')!)))
       }
     }
   }, [searchParams])

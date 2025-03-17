@@ -38,6 +38,7 @@ import { AlertDialog } from '@/ui/alert-dialog'
 import posthog from 'posthog-js'
 import { cn } from '@/lib/utils'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 // FILTERS
 export const fuzzyFilter: FilterFn<unknown> = (
@@ -100,17 +101,18 @@ export const useColumns = (deps: unknown[]) => {
             useAction(updateTemplateAction, {
               onSuccess: () => {
                 router.refresh()
-                toast({
-                  title: `Template ${template.public ? 'Unpublished' : 'Published'} Successfully`,
-                  variant: 'success',
-                })
+                toast(
+                  defaultSuccessToast(
+                    `Template is now ${template.public ? 'public' : 'private'}.`
+                  )
+                )
               },
               onError: (error) => {
-                toast({
-                  title: 'Failed to update template',
-                  description: error.error.serverError || 'Unknown error',
-                  variant: 'error',
-                })
+                toast(
+                  defaultErrorToast(
+                    error.error.serverError || 'Failed to update template.'
+                  )
+                )
               },
             })
 
@@ -118,17 +120,14 @@ export const useColumns = (deps: unknown[]) => {
             useAction(deleteTemplateAction, {
               onSuccess: () => {
                 router.refresh()
-                toast({
-                  title: 'Template deleted successfully',
-                  variant: 'success',
-                })
+                toast(defaultSuccessToast('Template has been deleted.'))
               },
               onError: (error) => {
-                toast({
-                  title: 'Failed to delete template',
-                  description: error.error.serverError || 'Unknown error',
-                  variant: 'error',
-                })
+                toast(
+                  defaultErrorToast(
+                    error.error.serverError || 'Failed to delete template.'
+                  )
+                )
               },
               onSettled: () => {
                 setIsDeleteDialogOpen(false)

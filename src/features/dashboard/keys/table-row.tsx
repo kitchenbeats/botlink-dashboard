@@ -20,6 +20,7 @@ import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { motion } from 'motion/react'
 import { exponentialSmoothing } from '@/lib/utils'
 import { useAction } from 'next-safe-action/hooks'
+import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 
 interface TableRowProps {
   apiKey: ObscuredApiKey
@@ -37,19 +38,15 @@ export default function ApiKeyTableRow({ apiKey, index }: TableRowProps) {
     deleteApiKeyAction,
     {
       onSuccess: () => {
-        toast({
-          title: 'Success',
-          description: 'API key deleted successfully',
-          variant: 'success',
-        })
+        toast(defaultSuccessToast('Api key has been deleted.'))
         setIsDeleteDialogOpen(false)
       },
       onError: (error) => {
-        toast({
-          title: 'Error',
-          description: error.error.serverError || 'Unknown error',
-          variant: 'error',
-        })
+        toast(
+          defaultErrorToast(
+            error.error.serverError || 'Failed to delete api key.'
+          )
+        )
         setIsDeleteDialogOpen(false)
       },
     }
