@@ -10,8 +10,8 @@ const alertVariants = cva(
         default: 'bg-bg border-border text-fg',
         contrast1: 'border-contrast-1 [&>svg]:text-contrast-1 text-fg',
         contrast2: 'border-contrast-2 [&>svg]:text-contrast-2 text-fg',
-        warning: 'text-warning-fg border-warning-fg [&>svg]:text-warning-fg',
-        error: 'text-error-fg border-error [&>svg]:text-error-fg',
+        warning: 'text-warning border-warning [&>svg]:text-warning',
+        error: 'text-error border-error [&>svg]:text-error',
       },
       border: {
         left: 'border-l-[3px]',

@@ -1,39 +1,34 @@
 import 'server-only'
 
 import { z } from 'zod'
-import { guard } from '@/lib/utils/server'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { maskApiKey } from '@/lib/utils/server'
-import {
-  checkAuthenticated,
-  checkUserTeamAuthorization,
-} from '@/lib/utils/server'
+import { checkUserTeamAuthorization } from '@/lib/utils/server'
 import { ObscuredApiKey } from './types'
+import { authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 
 const GetApiKeysSchema = z.object({
   teamId: z.string({ required_error: 'Team ID is required' }).uuid(),
 })
 
-interface GetTeamApiKeysResponse {
-  apiKeys: ObscuredApiKey[]
-}
-
-export const getTeamApiKeys = guard(
-  GetApiKeysSchema,
-  async ({
-    teamId,
-  }: z.infer<typeof GetApiKeysSchema>): Promise<GetTeamApiKeysResponse> => {
-    const { user } = await checkAuthenticated()
+export const getTeamApiKeys = authActionClient
+  .schema(GetApiKeysSchema)
+  .metadata({ serverFunctionName: 'getTeamApiKeys' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId } = parsedInput
+    const { user } = ctx
 
     const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
 
-    if (!isAuthorized) throw new Error('Not authorized to edit team api keys')
+    if (!isAuthorized)
+      return returnServerError('Not authorized to edit team api keys')
 
     const { data, error } = await supabaseAdmin
       .from('team_api_keys')
       .select('*')
       .eq('team_id', teamId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
 
     if (error) throw error
 
@@ -63,5 +58,4 @@ export const getTeamApiKeys = guard(
     }
 
     return { apiKeys: resultApiKeys }
-  }
-)
+  })
