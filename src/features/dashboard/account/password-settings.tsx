@@ -1,7 +1,6 @@
 'use client'
 
 import { forgotPasswordAction } from '@/server/auth/auth-actions'
-import { AuthFormMessage } from '@/features/auth/form-message'
 import {
   Card,
   CardContent,
@@ -10,12 +9,14 @@ import {
   CardTitle,
 } from '@/ui/primitives/card'
 import { Button } from '@/ui/primitives/button'
-import { useTimeoutMessage } from '@/lib/hooks/use-timeout-message'
 import { useUser } from '@/lib/hooks/use-user'
-import { AnimatePresence } from 'motion/react'
-import { useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { useAction } from 'next-safe-action/hooks'
+import {
+  defaultSuccessToast,
+  defaultErrorToast,
+  useToast,
+} from '@/lib/hooks/use-toast'
 
 interface PasswordSettingsProps {
   className?: string
@@ -23,29 +24,19 @@ interface PasswordSettingsProps {
 
 export function PasswordSettings({ className }: PasswordSettingsProps) {
   const { user } = useUser()
-  const searchParams = useSearchParams()
-  const [message, setMessage] = useTimeoutMessage()
+  const { toast } = useToast()
 
-  useEffect(() => {
-    if (
-      !searchParams.has('success') &&
-      !searchParams.has('error') &&
-      !searchParams.has('type')
-    )
-      return
-
-    if (searchParams.get('type') === 'reset_password') {
-      setMessage(
-        searchParams.has('success')
-          ? {
-              success: decodeURIComponent(searchParams.get('success')!),
-            }
-          : {
-              error: decodeURIComponent(searchParams.get('error')!),
-            }
-      )
-    }
-  }, [searchParams])
+  const { execute: forgotPassword, isExecuting: isForgotPasswordPending } =
+    useAction(forgotPasswordAction, {
+      onSuccess: () => {
+        toast(defaultSuccessToast('Password reset e-mail sent.'))
+      },
+      onError: ({ error }) => {
+        toast(
+          defaultErrorToast(error.serverError || 'Failed to reset password.')
+        )
+      },
+    })
 
   if (!user) return null
 
@@ -68,14 +59,12 @@ export function PasswordSettings({ className }: PasswordSettingsProps) {
             formData.set('email', user.email)
             formData.set('callbackUrl', '/dashboard/account')
 
-            forgotPasswordAction(formData)
+            forgotPassword(formData)
           }}
+          loading={isForgotPasswordPending}
         >
           Change Password
         </Button>
-        <AnimatePresence initial={false} mode="wait">
-          {message && <AuthFormMessage className="mt-4" message={message} />}
-        </AnimatePresence>
       </CardContent>
     </Card>
   )
