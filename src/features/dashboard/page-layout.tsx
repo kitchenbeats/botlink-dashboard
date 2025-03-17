@@ -23,7 +23,11 @@ export default async function DashboardPageLayout({
   fullscreen = false,
 }: DashboardPageLayoutProps) {
   return (
-    <div className={cn('relative flex h-svh pt-[var(--protected-nav-height)]')}>
+    <div
+      className={cn(
+        'relative flex h-full max-h-svh pt-[var(--protected-nav-height)]'
+      )}
+    >
       <div className="bg-bg absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b pr-3 md:pl-3">
         <div className="flex w-full items-center gap-2">
           <Suspense fallback={null}>

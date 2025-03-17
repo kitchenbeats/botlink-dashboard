@@ -12,9 +12,6 @@ import { GITHUB_URL } from '@/configs/socials'
 import UserDetailsTile from '@/features/auth/user-details-tile'
 import { getSessionInsecure } from '@/server/auth/get-session'
 import DeveloperSettingsDialog from '../developer-settings/settings-dialog'
-import { cookies } from 'next/headers'
-import { COOKIE_KEYS } from '@/configs/keys'
-import { getEncryptedCookie } from '@/lib/utils/cookies'
 import { getApiDomain } from '@/lib/utils/server'
 
 interface SidebarProps {
@@ -25,7 +22,7 @@ export default function Sidebar({ className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'relative flex h-svh w-[var(--protected-sidebar-width)] min-w-[var(--protected-sidebar-width)] flex-col border-r',
+        'relative flex h-full max-h-svh w-[var(--protected-sidebar-width)] min-w-[var(--protected-sidebar-width)] flex-col border-r',
         className
       )}
     >
