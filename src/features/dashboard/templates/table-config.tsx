@@ -95,8 +95,6 @@ export const useColumns = (deps: unknown[]) => {
           const { toast } = useToast()
           const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-          const router = useRouter()
-
           const { execute: executeUpdateTemplate, isExecuting: isUpdating } =
             useAction(updateTemplateAction, {
               onSuccess: () => {
@@ -241,9 +239,11 @@ export const useColumns = (deps: unknown[]) => {
         accessorKey: 'name',
         accessorFn: (row) => row.aliases?.[0],
         header: 'Name',
+        size: 160,
+        minSize: 120,
         cell: ({ getValue }) => (
           <div
-            className={cn('font-mono font-medium', {
+            className={cn('truncate font-mono font-medium', {
               'text-fg-500': !getValue(),
             })}
           >
