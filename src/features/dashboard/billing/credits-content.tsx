@@ -1,5 +1,4 @@
 import { getUsage } from '@/server/usage/get-usage'
-import { ErrorIndicator } from '@/ui/error-indicator'
 
 export default async function BillingCreditsContent({
   teamId,
@@ -9,15 +8,7 @@ export default async function BillingCreditsContent({
   const res = await getUsage({ teamId })
 
   if (!res?.data || res.serverError) {
-    return (
-      <div className="p-4 pb-0">
-        <ErrorIndicator
-          description={'Could not load credits'}
-          message={res?.serverError || 'Unknown error'}
-          className="bg-bg w-full max-w-full"
-        />
-      </div>
-    )
+    throw new Error(res?.serverError || 'Failed to load credits')
   }
 
   const usage = res.data

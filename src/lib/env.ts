@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
 export const serverSchema = z.object({
-  SUPABASE_SERVICE_ROLE_KEY: z.string(),
-  BILLING_API_URL: z.string().url(),
-  COOKIE_ENCRYPTION_KEY: z.string(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  COOKIE_ENCRYPTION_KEY: z.string().min(1),
 
+  BILLING_API_URL: z.string().url().optional(),
   VERCEL_URL: z.string().optional(),
   DEVELOPMENT_INFRA_API_DOMAIN: z.string().optional(),
   SENTRY_AUTH_TOKEN: z.string().optional(),
@@ -12,11 +12,13 @@ export const serverSchema = z.object({
 })
 
 export const clientSchema = z.object({
-  NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_DEFAULT_API_DOMAIN: z.string(),
-  NEXT_PUBLIC_STRIPE_BILLING_URL: z.string().url(),
+
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_INCLUDE_BILLING: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_BILLING_URL: z.string().url().optional(),
   NEXT_PUBLIC_EXPOSE_STORYBOOK: z.string().optional(),
   NEXT_PUBLIC_SCAN: z.string().optional(),
   NEXT_PUBLIC_MOCK_DATA: z.string().optional(),

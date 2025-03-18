@@ -1,6 +1,6 @@
 'use client'
 
-import { SentryErrorBoundary } from '@/ui/sentry-error-boundary'
+import ErrorBoundary from '@/ui/error'
 
 export default function GlobalError({
   error,
@@ -8,11 +8,9 @@ export default function GlobalError({
   error: Error & { digest?: string }
 }) {
   return (
-    <SentryErrorBoundary
-      error={error}
-      title="Application Error"
+    <ErrorBoundary
       description="Sorry, something went wrong with the application."
-      preserveLayout={false}
+      error={error}
     />
   )
 }
