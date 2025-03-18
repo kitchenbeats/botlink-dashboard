@@ -30,13 +30,7 @@ async function UsagePageContent({ teamId }: { teamId: string }) {
   const res = await getUsage({ teamId })
 
   if (!res?.data || res.serverError || res.validationErrors) {
-    return (
-      <ErrorIndicator
-        description={'Could not load usage'}
-        message={res?.serverError || 'Unknown error'}
-        className="col-span-1 min-h-[360px] border-b lg:col-span-12"
-      />
-    )
+    throw new Error(res?.serverError || 'Failed to load usage')
   }
 
   const data = res.data
