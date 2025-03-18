@@ -33,13 +33,10 @@ export const testEnvSchema = z.object({
  * You can't destruct `process.env` as a regular object, so we do
  * a simple validation of the environment variables we need.
  */
-export const formatErrors = (
-  errors: z.ZodFormattedError<Map<string, string>, string>
-) =>
-  Object.entries(errors)
+export const formatErrors = (errors: z.inferFlattenedErrors<z.AnyZodObject>) =>
+  Object.entries(errors.fieldErrors)
     .map(([name, value]) => {
-      if (value && '_errors' in value)
-        return `${name}: ${value._errors.join(', ')}\n`
+      if (value) return `${name}: ${value.join(', ')}\n`
     })
     .filter(Boolean)
 
@@ -51,10 +48,10 @@ export function validateEnv(schema: z.ZodSchema) {
 
   if (!parsed.success) {
     console.error(
-      '❌ Invalid environment variables:\n',
-      ...formatErrors(parsed.error.format())
+      '❌ Invalid environment variables:\n\n',
+      ...formatErrors(parsed.error.flatten())
     )
-    throw new Error('Invalid environment variables')
+    process.exit(1)
   }
 
   console.log('✅ Environment variables validated successfully')
