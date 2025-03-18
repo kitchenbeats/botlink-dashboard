@@ -2,8 +2,6 @@ import { getBillingLimits } from '@/server/billing/get-billing-limits'
 import LimitCard from './limit-card'
 import AlertCard from './alert-card'
 import { cn } from '@/lib/utils'
-import Dotted from '@/ui/dotted'
-import { ErrorIndicator } from '@/ui/error-indicator'
 
 interface UsageLimitsProps {
   className?: string
@@ -17,15 +15,7 @@ export default async function UsageLimits({
   const res = await getBillingLimits({ teamId })
 
   if (!res?.data || res.serverError || res.validationErrors) {
-    return (
-      <div className="p-4">
-        <ErrorIndicator
-          description={'Could not load usage limits'}
-          message={res?.serverError || 'Unknown error'}
-          className="w-full max-w-full"
-        />
-      </div>
-    )
+    throw new Error(res?.serverError || 'Failed to load usage limits')
   }
 
   const limits = res.data

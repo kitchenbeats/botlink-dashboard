@@ -9,6 +9,7 @@ import {
   Users,
 } from 'lucide-react'
 import { ForwardRefExoticComponent, RefAttributes } from 'react'
+import { INCLUDE_BILLING } from './flags'
 
 type DashboardNavLinkArgs = {
   teamIdOrSlug?: string
@@ -35,11 +36,16 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
     href: (args) => `/dashboard/${args.teamIdOrSlug}/templates`,
     icon: Container,
   },
-  {
-    label: 'Usage',
-    href: (args) => `/dashboard/${args.teamIdOrSlug}/usage`,
-    icon: Activity,
-  },
+  ...(INCLUDE_BILLING
+    ? [
+        {
+          label: 'Usage',
+          href: (args: DashboardNavLinkArgs) =>
+            `/dashboard/${args.teamIdOrSlug}/usage`,
+          icon: Activity,
+        },
+      ]
+    : []),
 
   {
     label: 'Team',
@@ -53,16 +59,23 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
     icon: Key,
     group: 'manage',
   },
-  {
-    label: 'Billing',
-    href: (args) => `/dashboard/${args.teamIdOrSlug}/billing`,
-    icon: CreditCard,
-    group: 'expenses',
-  },
-  {
-    label: 'Budget',
-    href: (args) => `/dashboard/${args.teamIdOrSlug}/budget`,
-    group: 'expenses',
-    icon: DollarSign,
-  },
+
+  ...(INCLUDE_BILLING
+    ? [
+        {
+          label: 'Billing',
+          href: (args: DashboardNavLinkArgs) =>
+            `/dashboard/${args.teamIdOrSlug}/billing`,
+          icon: CreditCard,
+          group: 'expenses',
+        },
+        {
+          label: 'Budget',
+          href: (args: DashboardNavLinkArgs) =>
+            `/dashboard/${args.teamIdOrSlug}/budget`,
+          group: 'expenses',
+          icon: DollarSign,
+        },
+      ]
+    : []),
 ]

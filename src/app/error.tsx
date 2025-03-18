@@ -1,8 +1,16 @@
 'use client'
 
-import { createErrorBoundary } from '@/lib/create-error-boundary'
+import ErrorBoundary from '@/ui/error'
 
-export default createErrorBoundary({
-  title: 'Something went wrong',
-  description: 'An unexpected error occurred',
-})
+export default function Error({
+  error,
+}: {
+  error: Error & { digest?: string }
+}) {
+  return (
+    <ErrorBoundary
+      description="Sorry, something went wrong with the application."
+      error={error}
+    />
+  )
+}

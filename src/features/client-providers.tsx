@@ -32,6 +32,10 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+      return
+    }
+
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
       // Note that PostHog will automatically capture page views and common events
       //
