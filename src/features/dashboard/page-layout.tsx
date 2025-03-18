@@ -4,6 +4,9 @@ import { Suspense } from 'react'
 import SidebarMobile from './sidebar/sidebar-mobile'
 import Frame from '@/ui/frame'
 import { DashboardSurveyPopover } from './navbar/dashboard-survey-popover'
+import { ErrorBoundary } from 'react-error-boundary'
+import E2BErrorBoundary, { CatchErrorBoundary } from '@/ui/error'
+import { UnknownError } from '@/types/errors'
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode
@@ -43,14 +46,16 @@ export default async function DashboardPageLayout({
         </div>
       </div>
 
-      <DesktopContent
-        fullscreen={fullscreen}
-        classNames={classNames}
-        className={className}
-      >
-        {children}
-      </DesktopContent>
-      <MobileContent className={className}>{children}</MobileContent>
+      <CatchErrorBoundary>
+        <DesktopContent
+          fullscreen={fullscreen}
+          classNames={classNames}
+          className={className}
+        >
+          {children}
+        </DesktopContent>
+        <MobileContent className={className}>{children}</MobileContent>
+      </CatchErrorBoundary>
     </div>
   )
 }

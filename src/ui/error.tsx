@@ -2,11 +2,11 @@
 
 import { useEffect } from 'react'
 import { ErrorIndicator } from './error-indicator'
-import { logger } from '@/lib/clients/logger'
+import { logError } from '@/lib/clients/logger'
 import Frame from './frame'
 import { cn } from '@/lib/utils'
-
-// TODO: log error to sentry
+import * as Sentry from '@sentry/nextjs'
+import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
 
 export default function ErrorBoundary({
   error,
@@ -18,14 +18,46 @@ export default function ErrorBoundary({
   className?: string
 }) {
   useEffect(() => {
-    logger.error('Error boundary caught:', error)
+    if (Sentry.isInitialized()) {
+      Sentry.captureException(error, {
+        level: 'fatal',
+        tags: {
+          component: 'ErrorBoundary',
+        },
+      })
+    } else {
+      logError('Error boundary caught:', error)
+    }
   }, [error])
 
   return (
-    <div className={cn('flex h-full items-center justify-center', className)}>
+    <div
+      className={cn(
+        'flex h-full w-full items-center justify-center',
+        className
+      )}
+    >
       <Frame>
-        <ErrorIndicator description={description} message={error.message} />
+        <ErrorIndicator
+          description={description}
+          message={error.message}
+          className="border-none"
+        />
       </Frame>
     </div>
+  )
+}
+
+export function CatchErrorBoundary({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <ReactErrorBoundary
+      fallbackRender={({ error }) => <ErrorBoundary error={error} />}
+    >
+      {children}
+    </ReactErrorBoundary>
   )
 }

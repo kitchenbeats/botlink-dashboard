@@ -31,20 +31,15 @@ export function ErrorIndicator({
   const [isPending, startTransition] = useTransition()
 
   return (
-    <Card
-      className={cn(
-        'w-full max-w-md border bg-gradient-to-b from-bg-100/40 to-bg-100/20 backdrop-blur-lg',
-        className
-      )}
-    >
+    <Card className={cn('bg-bg w-full max-w-md border', className)}>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-light">{title}</CardTitle>
-        <CardDescription className="text-md mt-2 font-thin">
+        <CardDescription className="text-md font-light">
           {description}
         </CardDescription>
       </CardHeader>
       {message && (
-        <CardContent className="mx-auto max-w-md pb-0 text-center text-fg-500">
+        <CardContent className="text-fg-500 mx-auto max-w-md pb-0 text-center">
           <p>{message}</p>
         </CardContent>
       )}
@@ -55,7 +50,7 @@ export function ErrorIndicator({
           className="w-full max-w-md gap-2"
         >
           <RefreshCcw
-            className={`h-4 w-4 text-fg-500 duration-500 ease-in-out ${isPending ? 'animate-spin' : ''}`}
+            className={`text-fg-500 h-4 w-4 duration-500 ease-in-out ${isPending ? 'animate-spin' : ''}`}
           />
           Refresh
         </Button>

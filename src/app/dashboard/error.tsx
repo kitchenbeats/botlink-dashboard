@@ -1,12 +1,15 @@
 'use client'
 
-import { UnknownError } from '@/types/errors'
 import ErrorBoundary from '@/ui/error'
 
-export default function DashboardError() {
+export default function DashboardError({
+  error,
+}: {
+  error: Error & { digest?: string }
+}) {
   return (
     <ErrorBoundary
-      error={UnknownError()}
+      error={error}
       description={'An Unexpected Error Occurred'}
       className="min-h-svh"
     />
