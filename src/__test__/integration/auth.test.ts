@@ -10,6 +10,12 @@ import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { redirect } from 'next/navigation'
 import { encodedRedirect } from '@/lib/utils/auth'
 
+// Create hoisted mock functions that can be used throughout the file
+const { validateEmail, shouldWarnAboutAlternateEmail } = vi.hoisted(() => ({
+  validateEmail: vi.fn(),
+  shouldWarnAboutAlternateEmail: vi.fn(),
+}))
+
 // Mock console.error to prevent output during tests
 const originalConsoleError = console.error
 console.error = vi.fn()
@@ -57,6 +63,12 @@ vi.mock('@/lib/utils/auth', () => ({
     message,
     params,
   })),
+}))
+
+// Use the hoisted mock functions in the module mock
+vi.mock('@/server/auth/validate-email', () => ({
+  validateEmail,
+  shouldWarnAboutAlternateEmail,
 }))
 
 describe('Auth Actions - Integration Tests', () => {
@@ -149,6 +161,14 @@ describe('Auth Actions - Integration Tests', () => {
      * shows success message
      */
     it('should show success message on valid sign-up', async () => {
+      // Set up mock implementations for this specific test
+      validateEmail.mockResolvedValue({
+        valid: true,
+        data: { status: 'valid', address: 'newuser@example.com' },
+      })
+
+      shouldWarnAboutAlternateEmail.mockResolvedValue(false)
+
       // Setup: Mock Supabase client to return successful sign-up
       mockSupabaseClient.auth.signUp.mockResolvedValue({
         data: { user: { id: 'new-user-123' } },
