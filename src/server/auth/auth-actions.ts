@@ -6,11 +6,11 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Provider } from '@supabase/supabase-js'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
-import { validateEmail } from './validate-email'
 import { actionClient } from '@/lib/clients/action'
-import { zfd } from 'zod-form-data'
-import { z } from 'zod'
 import { returnServerError } from '@/lib/utils/action'
+import { z } from 'zod'
+import { zfd } from 'zod-form-data'
+import { shouldWarnAboutAlternateEmail, validateEmail } from './validate-email'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -81,12 +81,15 @@ export const signUpAction = actionClient
 
     const validationResult = await validateEmail(email)
 
-    if (validationResult && !validationResult.valid) {
-      return encodedRedirect(
-        'error',
-        AUTH_URLS.SIGN_UP,
-        'Please use a valid email address - your company email works best',
-        { returnTo }
+    if (!validationResult?.data || !validationResult.valid) {
+      return returnServerError(
+        'Please use a valid email address - your company email works best'
+      )
+    }
+
+    if (await shouldWarnAboutAlternateEmail(validationResult.data)) {
+      return returnServerError(
+        'Is this a secondary email? Use your primary email for fast access'
       )
     }
 
