@@ -10,6 +10,10 @@ import { actionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
+import {
+  shouldWarnAboutAlternateEmail,
+  validateEmail,
+} from '@/server/auth/validate-email'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -78,11 +82,32 @@ export const signUpAction = actionClient
     const supabase = await createClient()
     const origin = (await headers()).get('origin') || ''
 
+    const validationResult = await validateEmail(email)
+
+    if (validationResult?.data) {
+      if (!validationResult.valid) {
+        return returnServerError(
+          'Please use a valid email address - your company email works best'
+        )
+      }
+
+      if (await shouldWarnAboutAlternateEmail(validationResult.data)) {
+        return returnServerError(
+          'Is this a secondary email? Use your primary email for fast access'
+        )
+      }
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`,
+        data: validationResult?.data
+          ? {
+              email_validation: validationResult?.data,
+            }
+          : undefined,
       },
     })
 
