@@ -10,7 +10,10 @@ import { actionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
-import { shouldWarnAboutAlternateEmail, validateEmail } from './validate-email'
+import {
+  shouldWarnAboutAlternateEmail,
+  validateEmail,
+} from '@/server/auth/validate-email'
 
 export const signInWithOAuthAction = actionClient
   .schema(
