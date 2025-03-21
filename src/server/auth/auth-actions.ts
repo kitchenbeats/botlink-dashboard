@@ -84,16 +84,18 @@ export const signUpAction = actionClient
 
     const validationResult = await validateEmail(email)
 
-    if (!validationResult?.data || !validationResult.valid) {
-      return returnServerError(
-        'Please use a valid email address - your company email works best'
-      )
-    }
+    if (validationResult?.data) {
+      if (!validationResult.valid) {
+        return returnServerError(
+          'Please use a valid email address - your company email works best'
+        )
+      }
 
-    if (await shouldWarnAboutAlternateEmail(validationResult.data)) {
-      return returnServerError(
-        'Is this a secondary email? Use your primary email for fast access'
-      )
+      if (await shouldWarnAboutAlternateEmail(validationResult.data)) {
+        return returnServerError(
+          'Is this a secondary email? Use your primary email for fast access'
+        )
+      }
     }
 
     const { error } = await supabase.auth.signUp({
