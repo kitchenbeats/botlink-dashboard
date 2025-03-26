@@ -2,7 +2,7 @@ import { checkUserTeamAuthorization, resolveTeamId } from '@/lib/utils/server'
 import { kv } from '@/lib/clients/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { NextRequest, NextResponse } from 'next/server'
-import { replaceUrls } from '@/configs/domains'
+import { LANDING_PAGE_DOMAIN, replaceUrls } from '@/configs/domains'
 import { COOKIE_KEYS } from '@/configs/keys'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
@@ -220,18 +220,15 @@ export const handleUrlRewrites = async (
   }
 
   try {
+    if (url.hostname === LANDING_PAGE_DOMAIN) {
+      return NextResponse.rewrite(url.toString())
+    }
+
+    const headers = new Headers(request.headers)
+
     const res = await fetch(url.toString(), {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; E2BProxy/1.0)',
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        Connection: 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-      },
+      ...request,
+      headers,
       redirect: 'follow',
     })
     const htmlBody = await res.text()
