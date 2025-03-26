@@ -28,7 +28,10 @@ export function RAMCard({
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-baseline gap-2">
           <p className="font-mono text-2xl">
-            {latestRAM?.toFixed(2) ?? '0.00'}
+            {new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(latestRAM || 0)}
           </p>
           <span className="text-fg-500 text-xs">GB-hours this month</span>
         </div>
