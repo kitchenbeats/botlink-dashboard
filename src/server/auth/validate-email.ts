@@ -62,7 +62,7 @@ export async function validateEmail(
     const response = await fetch(
       `https://api.zerobounce.net/v2/validate?api_key=${process.env.ZEROBOUNCE_API_KEY}&email=${email}&ip_address=`
     )
-    // Parse the JSON response from the ZeroBounce API
+
     const responseData = await response.json()
 
     // Convert the mx_found string value to a boolean if it's 'true' or 'false'
