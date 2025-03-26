@@ -4,7 +4,6 @@ import { RAMCard } from '@/features/dashboard/usage/ram-card'
 import { VCPUCard } from '@/features/dashboard/usage/vcpu-card'
 import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { getUsage } from '@/server/usage/get-usage'
-import { ErrorIndicator } from '@/ui/error-indicator'
 import { AssemblyLoader } from '@/ui/loader'
 import { Suspense } from 'react'
 
