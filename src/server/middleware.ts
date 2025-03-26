@@ -8,7 +8,6 @@ import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { z } from 'zod'
 import { createServerClient } from '@supabase/ssr'
-import { logDebug } from '@/lib/clients/logger'
 
 /**
  * Core function to resolve team ID and ensure access for dashboard routes.
