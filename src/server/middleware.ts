@@ -220,12 +220,22 @@ export const handleUrlRewrites = async (
   }
 
   try {
-    const res = await fetch(url.toString(), { ...request })
+    const res = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; E2BProxy/1.0)',
+        Accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        Connection: 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      },
+      redirect: 'follow',
+    })
     const htmlBody = await res.text()
     const modifiedHtmlBody = replaceUrls(htmlBody, url.pathname, 'href="', '">')
-
-    logDebug('request headers', request.headers)
-    logDebug('response headers', res.headers)
 
     return new NextResponse(modifiedHtmlBody, {
       status: res.status,
