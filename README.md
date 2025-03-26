@@ -30,6 +30,8 @@ Our Dashboard is a modern, feature-rich web application built to manage and moni
 
 ## Getting Started
 
+> **Self-hosting Note**: If you're planning to self-host this dashboard, you'll likely want to self-host our infrastructure first. Please refer to our [infrastructure repository](https://github.com/e2b-dev/infra) for guidance on setting up the E2B platform on your own infrastructure.
+
 ### Prerequisites
 - Node.js 18+
 - Git
@@ -51,7 +53,7 @@ cd dashboard
 bun install
 
 # Using npm
-npm install
+npm install --legacy-peer-deps
 ```
 
 3. Set up required services:
