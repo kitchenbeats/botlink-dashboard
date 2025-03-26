@@ -56,18 +56,19 @@ npm install
 
 3. Set up required services:
 
-#### a. Vercel & KV Storage
-```bash
-# Install Vercel CLI
-npm i -g vercel
+#### a. Key-Value Store Setup
+This project requires a Redis-compatible key-value store. You'll need to:
 
-# Link project to Vercel
-vercel link
+1. Set up a Redis instance (self-hosted or using a cloud provider)
+2. Configure the following environment variables in your `.env.local` file:
+   ```
+   KV_URL=your_redis_connection_string
+   KV_REST_API_URL=your_redis_rest_api_url
+   KV_REST_API_TOKEN=your_redis_api_write_token
+   KV_REST_API_READ_ONLY_TOKEN=your_redis_api_read_token
+   ```
 
-# Set up Vercel KV
-vercel storage add
-# Select "KV" and follow the prompts
-```
+> **Note**: For production deployments, we use Vercel KV Storage integration, which provides a managed Redis-compatible store and automatically configures these environment variables. You can add this integration through the Vercel dashboard when deploying your project.
 
 #### b. Supabase Setup
 1. Create a new Supabase project
