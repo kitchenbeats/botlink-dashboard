@@ -8,6 +8,7 @@ import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { z } from 'zod'
 import { createServerClient } from '@supabase/ssr'
+import { logDebug } from '@/lib/clients/logger'
 
 /**
  * Core function to resolve team ID and ensure access for dashboard routes.
@@ -222,6 +223,9 @@ export const handleUrlRewrites = async (
     const res = await fetch(url.toString(), { ...request })
     const htmlBody = await res.text()
     const modifiedHtmlBody = replaceUrls(htmlBody, url.pathname, 'href="', '">')
+
+    logDebug('request headers', request.headers)
+    logDebug('response headers', res.headers)
 
     return new NextResponse(modifiedHtmlBody, {
       status: res.status,
