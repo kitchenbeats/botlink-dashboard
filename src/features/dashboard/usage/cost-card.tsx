@@ -22,7 +22,7 @@ export function CostCard({
       <CardHeader>
         <CardTitle className="font-mono">Usage Costs</CardTitle>
         <CardDescription>
-          Total cost of all resources for the current billing period.
+          Total cost of all resources for the current billing month.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -30,7 +30,7 @@ export function CostCard({
           <p className="font-mono text-2xl">
             ${latestCost?.toFixed(2) ?? '0.00'}
           </p>
-          <span className="text-fg-500 text-xs">this period</span>
+          <span className="text-fg-500 text-xs">this month</span>
         </div>
         <CostChart data={data.costSeries[0].data} />
       </CardContent>

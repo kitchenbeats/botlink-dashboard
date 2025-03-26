@@ -22,7 +22,7 @@ export function VCPUCard({
       <CardHeader>
         <CardTitle className="font-mono">vCPU Hours</CardTitle>
         <CardDescription>
-          Virtual CPU time consumed by your sandboxes.
+          Virtual CPU time consumed by your sandboxes this month.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -30,7 +30,7 @@ export function VCPUCard({
           <p className="font-mono text-2xl">
             {latestVCPU?.toFixed(2) ?? '0.00'}
           </p>
-          <span className="text-fg-500 text-xs">hours used</span>
+          <span className="text-fg-500 text-xs">hours this month</span>
         </div>
         <VCPUChart data={data.vcpuSeries[0].data} />
       </CardContent>
