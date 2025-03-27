@@ -22,7 +22,7 @@ export function CostCard({
       <CardHeader>
         <CardTitle className="font-mono">Usage Costs</CardTitle>
         <CardDescription>
-          Total cost of all resources for the current billing month.
+          Total cost of all resources this month.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
