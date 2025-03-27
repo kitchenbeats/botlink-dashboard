@@ -49,7 +49,7 @@ export const getTeamSandboxes = authActionClient
 
       // this case should never happen for the original reason, hence we assume the user defined the wrong infra domain
       return returnServerError(
-        "Something went wrong when contacting the API. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
+        "Something went wrong when accessing the API. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
       )
     }
 
