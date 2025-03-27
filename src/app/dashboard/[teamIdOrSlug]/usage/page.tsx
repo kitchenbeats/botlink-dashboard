@@ -4,7 +4,6 @@ import { RAMCard } from '@/features/dashboard/usage/ram-card'
 import { VCPUCard } from '@/features/dashboard/usage/vcpu-card'
 import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { getUsage } from '@/server/usage/get-usage'
-import { ErrorIndicator } from '@/ui/error-indicator'
 import { AssemblyLoader } from '@/ui/loader'
 import { Suspense } from 'react'
 
@@ -21,7 +20,16 @@ export default async function UsagePage({
       title="Usage"
       className="relative grid max-h-full min-h-[calc(360px+320px)] w-full grid-cols-1 self-start lg:grid-cols-12"
     >
-      <UsagePageContent teamId={teamId} />
+      <Suspense
+        fallback={
+          <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-3">
+            <AssemblyLoader gridWidth={7} gridHeight={3} />
+            <h2 className="text-fg-500 text-lg font-medium">Collecting data</h2>
+          </div>
+        }
+      >
+        <UsagePageContent teamId={teamId} />
+      </Suspense>
     </DashboardPageLayout>
   )
 }
@@ -36,14 +44,7 @@ async function UsagePageContent({ teamId }: { teamId: string }) {
   const data = res.data
 
   return (
-    <Suspense
-      fallback={
-        <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-3">
-          <AssemblyLoader gridWidth={7} gridHeight={3} />
-          <h2 className="text-fg-500 text-lg font-medium">Collecting data</h2>
-        </div>
-      }
-    >
+    <>
       <CostCard
         data={data}
         className="col-span-1 min-h-[360px] border-b lg:col-span-12"
@@ -56,6 +57,6 @@ async function UsagePageContent({ teamId }: { teamId: string }) {
         data={data}
         className="col-span-1 min-h-[320px] border-b lg:col-span-6 lg:border-b-0"
       />
-    </Suspense>
+    </>
   )
 }

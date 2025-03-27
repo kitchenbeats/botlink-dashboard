@@ -22,15 +22,18 @@ export function RAMCard({
       <CardHeader>
         <CardTitle className="font-mono">RAM Hours</CardTitle>
         <CardDescription>
-          Memory usage duration across all sandboxes.
+          Memory usage duration across all sandboxes this month.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-baseline gap-2">
           <p className="font-mono text-2xl">
-            {latestRAM?.toFixed(2) ?? '0.00'}
+            {new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(latestRAM || 0)}
           </p>
-          <span className="text-fg-500 text-xs">GB-hours used</span>
+          <span className="text-fg-500 text-xs">GB-hours this month</span>
         </div>
         <RAMChart data={data.ramSeries[0].data} />
       </CardContent>
