@@ -11,6 +11,7 @@ import { logError } from '@/lib/clients/logger'
 import { ERROR_CODES } from '@/configs/logs'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { actionClient, authActionClient } from '@/lib/clients/action'
+import { returnServerError } from '@/lib/utils/action'
 
 const GetTeamTemplatesSchema = z.object({
   teamId: z.string().uuid(),
@@ -42,14 +43,13 @@ export const getTeamTemplates = authActionClient
     })
 
     if (!res.ok) {
-      logError(ERROR_CODES.INFRA, '/templates', await res.text())
+      const content = await res.text()
+      logError(ERROR_CODES.INFRA, '/templates', content)
 
       // this case should never happen for the described reason, hence we assume the user defined the wrong infra domain
-      return {
-        type: 'error',
-        message:
-          "Something went wrong when contacting the API. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'",
-      }
+      return returnServerError(
+        "Something went wrong when accessing the API. Ensure you are using the correct Infrastructure Domain under 'Developer Settings'"
+      )
     }
 
     const data = (await res.json()) as Template[]

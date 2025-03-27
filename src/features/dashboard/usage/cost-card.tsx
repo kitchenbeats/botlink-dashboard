@@ -22,15 +22,19 @@ export function CostCard({
       <CardHeader>
         <CardTitle className="font-mono">Usage Costs</CardTitle>
         <CardDescription>
-          Total cost of all resources for the current billing period.
+          Total cost of all resources this month.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-baseline gap-2">
           <p className="font-mono text-2xl">
-            ${latestCost?.toFixed(2) ?? '0.00'}
+            $
+            {new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(latestCost || 0)}
           </p>
-          <span className="text-fg-500 text-xs">this period</span>
+          <span className="text-fg-500 text-xs">this month</span>
         </div>
         <CostChart data={data.costSeries[0].data} />
       </CardContent>
