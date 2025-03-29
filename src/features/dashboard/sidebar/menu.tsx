@@ -30,6 +30,8 @@ import {
 } from 'lucide-react'
 import { PrefetchKind } from 'next/dist/client/components/router-reducer/router-reducer-types'
 import { useUser } from '@/lib/hooks/use-user'
+import { useAction } from 'next-safe-action/hooks'
+import { signOutAction } from '@/server/auth/auth-actions'
 
 interface SidebarMenuProps {
   className?: string
@@ -51,7 +53,16 @@ export default function SidebarMenu({ className }: SidebarMenuProps) {
   }
 
   const handleLogout = () => {
-    console.log('Logout action triggered')
+    signOutAction()
+  }
+
+  const handleMenuOpenChange = (open: boolean) => {
+    if (open && loadedTeams.length > 0) {
+      loadedTeams.forEach((team) => {
+        const url = PROTECTED_URLS.SANDBOXES(team.slug || team.id)
+        router.prefetch(url, { kind: PrefetchKind.FULL })
+      })
+    }
   }
 
   const accountSettingsUrl =
@@ -59,7 +70,7 @@ export default function SidebarMenu({ className }: SidebarMenuProps) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={handleMenuOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
