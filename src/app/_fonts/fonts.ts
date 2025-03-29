@@ -1,5 +1,5 @@
 import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google'
-import localFont from 'next/font/local'
+/* import localFont from 'next/font/local' */
 
 export const mono = IBM_Plex_Mono({
   subsets: ['latin'],
@@ -13,7 +13,7 @@ export const sans = IBM_Plex_Sans({
   weight: ['200', '300', '400', '500', '600', '700'],
 })
 
-export const aeonik = localFont({
+/* export const aeonik = localFont({
   src: [
     {
       path: './AeonikPro-VF.ttf',
@@ -28,4 +28,4 @@ export const aeonik = localFont({
   ],
   variable: '--font-aeonik',
   fallback: ['sans-serif'],
-})
+}) */

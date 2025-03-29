@@ -10,6 +10,7 @@ export default function Error({
   return (
     <ErrorBoundary
       description="Sorry, something went wrong with the application."
+      className="min-h-svh"
       error={error}
     />
   )

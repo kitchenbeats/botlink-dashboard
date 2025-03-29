@@ -5,13 +5,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Dotted from '@/ui/dotted'
 
-interface NavbarItemProps {
+interface SidebarItemProps {
   label: React.ReactNode
   href: string
   icon: React.ReactNode
 }
 
-export function NavbarItem({ label, href, icon }: NavbarItemProps) {
+export function SidebarItem({ label, href, icon }: SidebarItemProps) {
   const pathname = usePathname()
 
   return (
@@ -27,7 +27,7 @@ export function NavbarItem({ label, href, icon }: NavbarItemProps) {
       <div
         className={cn(
           'bg-bg ring-border relative z-10 transition-all duration-150',
-          'group-hover:-translate-y-[4px] group-hover:scale-[1.005] group-hover:ring-1 group-hover:shadow-sm dark:group-hover:shadow-md'
+          'group-hover:-translate-y-[4px] group-hover:scale-[1.005] group-hover:shadow-sm group-hover:ring-1 dark:group-hover:shadow-md'
         )}
       >
         <div className="bg-bg flex w-full items-center font-mono text-sm">
