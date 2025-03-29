@@ -1,9 +1,9 @@
 import { DashboardNavLink } from '@/configs/dashboard-navs'
 import { MAIN_DASHBOARD_LINKS } from '@/configs/dashboard-navs'
 import { cn } from '@/lib/utils'
-import { NavbarItem } from './navbar-item'
 import { cookies } from 'next/headers'
 import { COOKIE_KEYS } from '@/configs/keys'
+import { SidebarItem } from './item'
 
 type GroupedLinks = {
   [key: string]: DashboardNavLink[]
@@ -20,13 +20,11 @@ const createGroupedLinks = (links: DashboardNavLink[]): GroupedLinks => {
   }, {} as GroupedLinks)
 }
 
-interface DashboardNavbarProps {
+interface SidebarListProps {
   className?: string
 }
 
-export default async function DashboardNavbar({
-  className,
-}: DashboardNavbarProps) {
+export default async function SidebarList({ className }: SidebarListProps) {
   const cookiesStore = await cookies()
 
   const selectedTeamIdentifier =
@@ -50,7 +48,7 @@ export default async function DashboardNavbar({
             })
 
             return (
-              <NavbarItem
+              <SidebarItem
                 key={item.label}
                 label={item.label}
                 href={href}

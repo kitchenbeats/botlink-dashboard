@@ -25,7 +25,7 @@ export const Default: Story = {
   render: () => (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>[System Status]</CardTitle>
+        <CardTitle>System Status</CardTitle>
         <CardDescription>
           Current system metrics and performance.
         </CardDescription>
@@ -84,13 +84,13 @@ export const Terminal: Story = {
 
 export const Error: Story = {
   render: () => (
-    <Card className="w-[350px] border-error/50 shadow-error/50">
+    <Card className="border-error/50 shadow-error/50 w-[350px]">
       <CardHeader>
         <CardTitle className="text-error">[Error]</CardTitle>
         <CardDescription>Process terminated unexpectedly</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 font-mono text-sm text-error/90">
+        <div className="text-error/90 space-y-2 font-mono text-sm">
           <div>Error: Connection refused</div>
           <div>at Server.listen (server.js:42:8)</div>
           <div>
