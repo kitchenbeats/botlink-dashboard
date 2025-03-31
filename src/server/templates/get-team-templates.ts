@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { getApiUrl, getUserAccessToken } from '@/lib/utils/server'
+import { getApiUrl } from '@/lib/utils/server'
 import { z } from 'zod'
 import { DefaultTemplate, Template } from '@/types/api'
 import {
@@ -12,6 +12,7 @@ import { ERROR_CODES } from '@/configs/logs'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { actionClient, authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const GetTeamTemplatesSchema = z.object({
   teamId: z.string().uuid(),
@@ -33,14 +34,11 @@ export const getTeamTemplates = authActionClient
 
     const { url } = await getApiUrl()
 
-    logDebug('Session', session)
-
     const res = await fetch(`${url}/templates?teamID=${teamId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'X-Supabase-Token': session.access_token,
-        'X-Supabase-Team': teamId,
+        ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
       },
     })
 

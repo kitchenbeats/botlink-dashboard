@@ -1,10 +1,11 @@
 'use server'
 
 import { z } from 'zod'
-import { getApiUrl, getUserAccessToken } from '@/lib/utils/server'
+import { getApiUrl } from '@/lib/utils/server'
 import { revalidatePath } from 'next/cache'
 import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const DeleteTemplateParamsSchema = z.object({
   templateId: z.string(),
@@ -21,8 +22,7 @@ export const deleteTemplateAction = authActionClient
     const res = await fetch(`${url}/templates/${templateId}`, {
       method: 'DELETE',
       headers: {
-        'X-Supabase-Token': ctx.session.access_token,
-        'X-Supabase-Team': teamId,
+        ...SUPABASE_AUTH_HEADERS(ctx.session.access_token, teamId),
       },
     })
 
@@ -65,8 +65,7 @@ export const updateTemplateAction = authActionClient
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'X-Supabase-Token': session.access_token,
-        'X-Supabase-Team': teamId,
+        ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
       },
       body: JSON.stringify(props),
     })
