@@ -1,4 +1,4 @@
-import '@/app/_fonts/fonts'
+import '@/app/fonts'
 import '@/styles/globals.css'
 
 import { Body } from './layout.client'
