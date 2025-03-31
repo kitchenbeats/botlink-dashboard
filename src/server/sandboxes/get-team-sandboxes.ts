@@ -8,6 +8,7 @@ import { SandboxWithMetrics } from '@/features/dashboard/sandboxes/table-config'
 import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
 import { getApiUrl, getTeamApiKey } from '@/lib/utils/server'
+import { Sandbox } from '@/types/api'
 
 const GetTeamSandboxesSchema = z.object({
   teamId: z.string().uuid(),
@@ -35,7 +36,7 @@ export const getTeamSandboxes = authActionClient
     const apiKey = await getTeamApiKey(user.id, teamId)
     const { url } = await getApiUrl()
 
-    const res = await fetch(`${url}/sandboxes/metrics`, {
+    const res = await fetch(`${url}/sandboxes`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +46,7 @@ export const getTeamSandboxes = authActionClient
 
     if (!res.ok) {
       const content = await res.text()
-      logError(ERROR_CODES.INFRA, '/sandboxes/metrics', content)
+      logError(ERROR_CODES.INFRA, '/sandboxes', content)
 
       // this case should never happen for the original reason, hence we assume the user defined the wrong infra domain
       return returnServerError(
@@ -53,7 +54,7 @@ export const getTeamSandboxes = authActionClient
       )
     }
 
-    const json = (await res.json()) as SandboxWithMetrics[]
+    const json = (await res.json()) as Sandbox[]
 
     return json
   })

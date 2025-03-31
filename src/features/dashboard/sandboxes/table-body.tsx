@@ -1,18 +1,17 @@
-import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
 import { DataTableBody } from '@/ui/data-table'
 import { Table, Row } from '@tanstack/react-table'
-import { SandboxWithMetrics } from './table-config'
 import { memo, useMemo } from 'react'
 import Empty from '@/ui/empty'
 import { Button } from '@/ui/primitives/button'
 import { useSandboxTableStore } from './stores/table-store'
 import { ExternalLink, X } from 'lucide-react'
 import { TableRow } from './table-row'
+import { Sandbox } from '@/types/api'
 
 interface TableBodyProps {
-  sandboxes: SandboxWithMetrics[] | undefined
-  table: Table<SandboxWithMetrics>
-  visualRows: Row<SandboxWithMetrics>[]
+  sandboxes: Sandbox[] | undefined
+  table: Table<Sandbox>
+  visualRows: Row<Sandbox>[]
 }
 
 export const TableBody = memo(function TableBody({

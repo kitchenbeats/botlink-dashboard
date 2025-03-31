@@ -27,14 +27,14 @@ import { SandboxesHeader } from './header'
 import { TableBody } from './table-body'
 import { subHours } from 'date-fns'
 import { useColumnSizeVars } from '@/lib/hooks/use-column-size-vars'
-import { Template } from '@/types/api'
+import { Sandbox, Template } from '@/types/api'
 import ClientOnly from '@/ui/client-only'
 import TableHeader from './table-header'
 
 const INITIAL_VISUAL_ROWS_COUNT = 50
 
 interface SandboxesTableProps {
-  sandboxes: SandboxWithMetrics[]
+  sandboxes: Sandbox[]
   templates: Template[]
 }
 
@@ -117,19 +117,34 @@ export default function SandboxesTable({
 
     // Handle CPU filter
     if (!cpuCount) {
+      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
+    } else {
+      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
+      newFilters.push({ id: 'cpuCount', value: cpuCount })
+    }
+
+    // Handle memory filter
+    if (!memoryMB) {
+      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
+    } else {
+      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
+      newFilters.push({ id: 'memoryMB', value: memoryMB })
+    }
+
+    /* NOTE: Currently disabled due to issue with the metrics api
+    if (!cpuCount) {
       newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
     } else {
       newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
       newFilters.push({ id: 'cpuUsage', value: cpuCount })
     }
 
-    // Handle memory filter
     if (!memoryMB) {
       newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
     } else {
       newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
       newFilters.push({ id: 'ramUsage', value: memoryMB })
-    }
+    } */
 
     resetScroll()
     setColumnFilters(newFilters)
@@ -166,7 +181,7 @@ export default function SandboxesTable({
       resourceRange: resourceRangeFilter,
     },
     enableGlobalFilter: true,
-    globalFilterFn: fuzzyFilter as FilterFn<SandboxWithMetrics>,
+    globalFilterFn: fuzzyFilter as FilterFn<Sandbox>,
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
