@@ -72,13 +72,26 @@ export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
   columnId,
   value: number
 ) => {
-  if (columnId === 'cpuUsage') {
+  /* NOTE: Currently disabled due to issue with the metrics api
+   if (columnId === 'cpuUsage') {
     const rowValue = row.original.cpuCount
     if (!rowValue || !value || value === 0) return true
     return rowValue === value
   }
 
   if (columnId === 'ramUsage') {
+    const rowValue = row.original.memoryMB
+    if (!rowValue || !value || value === 0) return true
+    return rowValue === value
+  } */
+
+  if (columnId === 'cpuCount') {
+    const rowValue = row.original.cpuCount
+    if (!rowValue || !value || value === 0) return true
+    return rowValue === value
+  }
+
+  if (columnId === 'memoryMB') {
     const rowValue = row.original.memoryMB
     if (!rowValue || !value || value === 0) return true
     return rowValue === value
@@ -164,6 +177,46 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     filterFn: 'arrIncludesSome',
   },
   {
+    id: 'cpuCount',
+    header: 'CPU Count',
+    cell: ({ row }) => {
+      const cpuCount = row.original.cpuCount
+
+      return (
+        <Badge className={cn('text-fg-500 px-0 font-mono whitespace-nowrap')}>
+          <span className={cn('text-contrast-2 flex items-center gap-0.5')}>
+            <Cpu className={cn('size-3')} /> {cpuCount}{' '}
+          </span>{' '}
+          core{cpuCount > 1 ? 's' : ''}
+        </Badge>
+      )
+    },
+    size: 130,
+    minSize: 130,
+    // @ts-expect-error resourceRange is not a valid filterFn
+    filterFn: 'resourceRange',
+  },
+  {
+    id: 'memoryMB',
+    header: 'Memory',
+    cell: ({ row }) => {
+      const memoryMB = row.original.memoryMB
+      return (
+        <Badge className={cn('text-fg-500 px-0 font-mono whitespace-nowrap')}>
+          <span className={cn('text-contrast-1 flex items-center gap-0.5')}>
+            <CgSmartphoneRam className={cn('size-3')} /> {memoryMB}{' '}
+          </span>{' '}
+          MB
+        </Badge>
+      )
+    },
+    size: 105,
+    minSize: 105,
+    // @ts-expect-error resourceRange is not a valid filterFn
+    filterFn: 'resourceRange',
+  },
+  // NOTE: Currently disabled due to issue with the metrics api
+  /*   {
     id: 'cpuUsage',
     accessorFn: (row) => row.metrics[0]?.cpuUsedPct ?? 0,
     header: 'CPU Usage',
@@ -240,7 +293,7 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     minSize: 160,
     // @ts-expect-error resourceRange is not a valid filterFn
     filterFn: 'resourceRange',
-  },
+  }, */
   {
     id: 'metadata',
     accessorFn: (row) => JSON.stringify(row.metadata ?? {}),
@@ -249,7 +302,14 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
       const value = getValue() as string
       const json = useMemo(() => JSON.parse(value), [value])
 
-      return <JsonPopover json={json}>{value}</JsonPopover>
+      return (
+        <JsonPopover
+          className="text-fg-500 hover:text-fg hover:underline"
+          json={json}
+        >
+          {value}
+        </JsonPopover>
+      )
     },
     size: 200,
     minSize: 160,
@@ -260,13 +320,15 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
     accessorFn: (row) => new Date(row.startedAt).toUTCString(),
     header: 'Started At',
     cell: ({ row, getValue }) => {
+      const dateTimeString = getValue() as string
+      // Split the date and time parts
+      const [day, date, month, year, time, timezone] = dateTimeString.split(' ')
+
       return (
-        <div
-          className={cn(
-            'text-fg-500 hover:text-fg h-full truncate font-mono text-xs'
-          )}
-        >
-          {getValue() as string}
+        <div className={cn('h-full truncate font-mono text-xs')}>
+          <span className="text-fg-500">{`${day} ${date} ${month} ${year}`}</span>{' '}
+          <span className="text-fg">{time}</span>{' '}
+          <span className="text-fg-500">{timezone}</span>
         </div>
       )
     },
