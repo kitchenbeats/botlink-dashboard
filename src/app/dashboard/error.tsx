@@ -2,16 +2,15 @@
 
 import ErrorBoundary from '@/ui/error'
 
-export default function DashboardError({
+export default function Error({
   error,
 }: {
   error: Error & { digest?: string }
 }) {
   return (
     <ErrorBoundary
+      description="Sorry, something went wrong with the application."
       error={error}
-      description={'An Unexpected Error Occurred'}
-      className="min-h-svh"
     />
   )
 }
