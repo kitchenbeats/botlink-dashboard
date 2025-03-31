@@ -27,14 +27,14 @@ import { SandboxesHeader } from './header'
 import { TableBody } from './table-body'
 import { subHours } from 'date-fns'
 import { useColumnSizeVars } from '@/lib/hooks/use-column-size-vars'
-import { Template } from '@/types/api'
+import { Sandbox, Template } from '@/types/api'
 import ClientOnly from '@/ui/client-only'
 import TableHeader from './table-header'
 
 const INITIAL_VISUAL_ROWS_COUNT = 50
 
 interface SandboxesTableProps {
-  sandboxes: SandboxWithMetrics[]
+  sandboxes: Sandbox[]
   templates: Template[]
 }
 
@@ -181,7 +181,7 @@ export default function SandboxesTable({
       resourceRange: resourceRangeFilter,
     },
     enableGlobalFilter: true,
-    globalFilterFn: fuzzyFilter as FilterFn<SandboxWithMetrics>,
+    globalFilterFn: fuzzyFilter as FilterFn<Sandbox>,
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
