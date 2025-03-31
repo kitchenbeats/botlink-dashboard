@@ -96,10 +96,10 @@ export const useColumns = (deps: unknown[]) => {
 
           const { execute: executeUpdateTemplate, isExecuting: isUpdating } =
             useAction(updateTemplateAction, {
-              onSuccess: () => {
+              onSuccess: ({ input }) => {
                 toast(
                   defaultSuccessToast(
-                    `Template is now ${template.public ? 'public' : 'private'}.`
+                    `Template is now ${input.props.Public ? 'public' : 'private'}.`
                   )
                 )
               },
@@ -136,7 +136,6 @@ export const useColumns = (deps: unknown[]) => {
 
             executeUpdateTemplate({
               templateId: template.templateID,
-              teamId: selectedTeam.id,
               props: {
                 Public: !template.public,
               },
@@ -150,7 +149,6 @@ export const useColumns = (deps: unknown[]) => {
 
             executeDeleteTemplate({
               templateId: template.templateID,
-              teamId: selectedTeam.id,
             })
           }
 
