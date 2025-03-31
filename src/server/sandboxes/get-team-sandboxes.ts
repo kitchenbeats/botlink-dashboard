@@ -8,11 +8,7 @@ import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
 import { getApiUrl } from '@/lib/utils/server'
 import { Sandbox } from '@/types/api'
-import {
-  SUPABASE_AUTH_HEADERS,
-  SUPABASE_TOKEN_HEADER,
-} from '@/configs/constants'
-import { SUPABASE_TEAM_HEADER } from '@/configs/constants'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const GetTeamSandboxesSchema = z.object({
   teamId: z.string().uuid(),

@@ -70,7 +70,7 @@ export const setLimitAction = authActionClient
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
+          ...SUPABASE_AUTH_HEADERS(session.access_token),
         },
         body: JSON.stringify({
           [typeToKey(type)]: value,
@@ -104,7 +104,7 @@ export const clearLimitAction = authActionClient
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
+          ...SUPABASE_AUTH_HEADERS(session.access_token),
         },
       }
     )

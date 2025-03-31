@@ -38,7 +38,7 @@ export const getTeamTemplates = authActionClient
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
+        ...SUPABASE_AUTH_HEADERS(session.access_token),
       },
     })
 

@@ -9,20 +9,19 @@ import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const DeleteTemplateParamsSchema = z.object({
   templateId: z.string(),
-  teamId: z.string(),
 })
 
 export const deleteTemplateAction = authActionClient
   .schema(DeleteTemplateParamsSchema)
   .metadata({ actionName: 'deleteTemplate' })
   .action(async ({ parsedInput, ctx }) => {
-    const { templateId, teamId } = parsedInput
+    const { templateId } = parsedInput
     const { url } = await getApiUrl()
 
     const res = await fetch(`${url}/templates/${templateId}`, {
       method: 'DELETE',
       headers: {
-        ...SUPABASE_AUTH_HEADERS(ctx.session.access_token, teamId),
+        ...SUPABASE_AUTH_HEADERS(ctx.session.access_token),
       },
     })
 
@@ -45,7 +44,6 @@ export const deleteTemplateAction = authActionClient
 
 const UpdateTemplateParamsSchema = z.object({
   templateId: z.string(),
-  teamId: z.string(),
   props: z
     .object({
       Public: z.boolean(),
@@ -57,7 +55,7 @@ export const updateTemplateAction = authActionClient
   .schema(UpdateTemplateParamsSchema)
   .metadata({ actionName: 'updateTemplate' })
   .action(async ({ parsedInput, ctx }) => {
-    const { templateId, teamId, props } = parsedInput
+    const { templateId, props } = parsedInput
     const { session } = ctx
     const { url } = await getApiUrl()
 
@@ -65,7 +63,7 @@ export const updateTemplateAction = authActionClient
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
+        ...SUPABASE_AUTH_HEADERS(session.access_token),
       },
       body: JSON.stringify(props),
     })
