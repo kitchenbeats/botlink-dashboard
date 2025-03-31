@@ -1,10 +1,11 @@
 'use server'
 
 import { z } from 'zod'
-import { getApiUrl, getUserAccessToken } from '@/lib/utils/server'
+import { getApiUrl } from '@/lib/utils/server'
 import { revalidatePath } from 'next/cache'
 import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const DeleteTemplateParamsSchema = z.object({
   templateId: z.string(),
@@ -15,14 +16,12 @@ export const deleteTemplateAction = authActionClient
   .metadata({ actionName: 'deleteTemplate' })
   .action(async ({ parsedInput, ctx }) => {
     const { templateId } = parsedInput
-    const { user } = ctx
-    const accessToken = await getUserAccessToken(user.id)
     const { url } = await getApiUrl()
 
     const res = await fetch(`${url}/templates/${templateId}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        ...SUPABASE_AUTH_HEADERS(ctx.session.access_token),
       },
     })
 
@@ -57,15 +56,14 @@ export const updateTemplateAction = authActionClient
   .metadata({ actionName: 'updateTemplate' })
   .action(async ({ parsedInput, ctx }) => {
     const { templateId, props } = parsedInput
-    const { user } = ctx
-    const accessToken = await getUserAccessToken(user.id)
+    const { session } = ctx
     const { url } = await getApiUrl()
 
     const res = await fetch(`${url}/templates/${templateId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        ...SUPABASE_AUTH_HEADERS(session.access_token),
       },
       body: JSON.stringify(props),
     })

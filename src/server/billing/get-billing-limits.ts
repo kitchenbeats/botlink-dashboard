@@ -1,9 +1,8 @@
 import 'server-only'
 
-import { getUserAccessToken } from '@/lib/utils/server'
 import { z } from 'zod'
 import { BillingLimit } from '@/types/billing'
-import { USER_ACCESS_TOKEN_HEADER } from '@/configs/constants'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 import { authActionClient } from '@/lib/clients/action'
 
 const GetBillingLimitsParamsSchema = z.object({
@@ -15,9 +14,7 @@ export const getBillingLimits = authActionClient
   .metadata({ serverFunctionName: 'getBillingLimits' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId } = parsedInput
-    const { user } = ctx
-
-    const accessToken = await getUserAccessToken(user.id)
+    const { session } = ctx
 
     const res = await fetch(
       `${process.env.BILLING_API_URL}/teams/${teamId}/billing-limits`,
@@ -25,7 +22,7 @@ export const getBillingLimits = authActionClient
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          [USER_ACCESS_TOKEN_HEADER]: accessToken,
+          ...SUPABASE_AUTH_HEADERS(session.access_token),
         },
       }
     )

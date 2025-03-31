@@ -1,17 +1,18 @@
 import 'server-only'
 
-import { getApiUrl, getUserAccessToken } from '@/lib/utils/server'
+import { getApiUrl } from '@/lib/utils/server'
 import { z } from 'zod'
 import { DefaultTemplate, Template } from '@/types/api'
 import {
   MOCK_DEFAULT_TEMPLATES_DATA,
   MOCK_TEMPLATES_DATA,
 } from '@/configs/mock-data'
-import { logError } from '@/lib/clients/logger'
+import { logDebug, logError } from '@/lib/clients/logger'
 import { ERROR_CODES } from '@/configs/logs'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { actionClient, authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const GetTeamTemplatesSchema = z.object({
   teamId: z.string().uuid(),
@@ -22,7 +23,7 @@ export const getTeamTemplates = authActionClient
   .metadata({ serverFunctionName: 'getTeamTemplates' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId } = parsedInput
-    const { user } = ctx
+    const { session } = ctx
 
     if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -31,14 +32,13 @@ export const getTeamTemplates = authActionClient
       }
     }
 
-    const accessToken = await getUserAccessToken(user.id)
     const { url } = await getApiUrl()
 
     const res = await fetch(`${url}/templates?teamID=${teamId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        ...SUPABASE_AUTH_HEADERS(session.access_token),
       },
     })
 
