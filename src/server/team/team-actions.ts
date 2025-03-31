@@ -17,6 +17,7 @@ import { zfd } from 'zod-form-data'
 import { logWarning } from '@/lib/clients/logger'
 import { returnValidationErrors } from 'next-safe-action'
 import { getTeam } from './get-team'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const UpdateTeamNameSchema = z.object({
   teamId: z.string().uuid(),
@@ -189,7 +190,6 @@ export const removeTeamMemberAction = authActionClient
     revalidatePath(`/dashboard`, 'layout')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
-
     getTeam({ teamId }).then(async (result) => {
       if (!result?.data || result.serverError || result.validationErrors) {
         return
@@ -208,15 +208,13 @@ export const createTeamAction = authActionClient
   .metadata({ actionName: 'createTeam' })
   .action(async ({ parsedInput, ctx }) => {
     const { name } = parsedInput
-    const { user } = ctx
-
-    const accessToken = await getUserAccessToken(user.id)
+    const { session } = ctx
 
     const response = await fetch(`${process.env.BILLING_API_URL}/teams`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-User-Access-Token': accessToken,
+        ...SUPABASE_AUTH_HEADERS(session.access_token),
       },
       body: JSON.stringify({ name }),
     })

@@ -1,12 +1,8 @@
 import 'server-only'
 
 import { Invoice } from '@/types/billing'
-import { getTeamApiKey, getUserAccessToken } from '@/lib/utils/server'
 import { z } from 'zod'
-import {
-  TEAM_API_KEY_HEADER,
-  USER_ACCESS_TOKEN_HEADER,
-} from '@/configs/constants'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 import { authActionClient } from '@/lib/clients/action'
 
 const GetInvoicesParamsSchema = z.object({
@@ -18,15 +14,13 @@ export const getInvoices = authActionClient
   .metadata({ serverFunctionName: 'getInvoices' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId } = parsedInput
-    const { user } = ctx
-
-    const apiKey = await getTeamApiKey(user.id, teamId)
+    const { session } = ctx
 
     const res = await fetch(
       `${process.env.BILLING_API_URL}/teams/${teamId}/invoices`,
       {
         headers: {
-          [TEAM_API_KEY_HEADER]: apiKey,
+          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
         },
       }
     )

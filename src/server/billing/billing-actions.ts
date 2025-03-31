@@ -1,8 +1,7 @@
 'use server'
 
-import { USER_ACCESS_TOKEN_HEADER } from '@/configs/constants'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 import { authActionClient } from '@/lib/clients/action'
-import { getUserAccessToken } from '@/lib/utils/server'
 import { returnServerError } from '@/lib/utils/action'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -63,8 +62,7 @@ export const setLimitAction = authActionClient
   .metadata({ actionName: 'setLimit' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId, type, value } = parsedInput
-    const { user } = ctx
-    const accessToken = await getUserAccessToken(user.id)
+    const { session } = ctx
 
     const res = await fetch(
       `${process.env.BILLING_API_URL}/teams/${teamId}/billing-limits`,
@@ -72,7 +70,7 @@ export const setLimitAction = authActionClient
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          [USER_ACCESS_TOKEN_HEADER]: accessToken,
+          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
         },
         body: JSON.stringify({
           [typeToKey(type)]: value,
@@ -98,8 +96,7 @@ export const clearLimitAction = authActionClient
   .metadata({ actionName: 'clearLimit' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId, type } = parsedInput
-    const { user } = ctx
-    const accessToken = await getUserAccessToken(user.id)
+    const { session } = ctx
 
     const res = await fetch(
       `${process.env.BILLING_API_URL}/teams/${teamId}/billing-limits/${typeToKey(type)}`,
@@ -107,7 +104,7 @@ export const clearLimitAction = authActionClient
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          [USER_ACCESS_TOKEN_HEADER]: accessToken,
+          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
         },
       }
     )

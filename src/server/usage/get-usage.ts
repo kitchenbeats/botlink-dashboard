@@ -1,11 +1,10 @@
 import 'server-only'
 
-import { getTeamApiKey } from '@/lib/utils/server'
 import { Usage, TransformedUsageData } from '@/server/usage/types'
 import { z } from 'zod'
-import { TEAM_API_KEY_HEADER } from '@/configs/constants'
 import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const GetUsageSchema = z.object({
   teamId: z.string().uuid(),
@@ -16,9 +15,7 @@ export const getUsage = authActionClient
   .metadata({ serverFunctionName: 'getUsage' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId } = parsedInput
-    const { user } = ctx
-
-    const apiKey = await getTeamApiKey(user.id, teamId)
+    const { session } = ctx
 
     const response = await fetch(
       `${process.env.BILLING_API_URL}/teams/${teamId}/usage`,
@@ -26,7 +23,7 @@ export const getUsage = authActionClient
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          [TEAM_API_KEY_HEADER]: apiKey,
+          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
         },
       }
     )
