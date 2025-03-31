@@ -34,7 +34,7 @@ export const trackTableInteraction = (
 
 // FILTERS
 
-export const fuzzyFilter: FilterFn<SandboxWithMetrics> = (
+export const fuzzyFilter: FilterFn<Sandbox> = (
   row,
   columnId,
   value,
@@ -102,9 +102,9 @@ export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
 
 // TABLE CONFIG
 
-export const fallbackData: SandboxWithMetrics[] = []
+export const fallbackData: Sandbox[] = []
 
-export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
+export const COLUMNS: ColumnDef<Sandbox>[] = [
   {
     id: 'pin',
     cell: ({ row }) => (

@@ -3,17 +3,16 @@ import { Circle, ListFilter } from 'lucide-react'
 import { Table } from '@tanstack/react-table'
 import { SearchInput } from './table-search'
 import SandboxesTableFilters from './table-filters'
-import { SandboxWithMetrics } from './table-config'
 import { PollingButton } from '@/ui/polling-button'
 import { useSandboxTableStore } from './stores/table-store'
-import { Template } from '@/types/api'
+import { Sandbox, Template } from '@/types/api'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 
 interface SandboxesHeaderProps {
   searchInputRef: React.RefObject<HTMLInputElement | null>
   templates: Template[]
-  table: Table<SandboxWithMetrics>
+  table: Table<Sandbox>
 }
 
 export function SandboxesHeader({
