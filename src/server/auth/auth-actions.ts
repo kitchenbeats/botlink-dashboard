@@ -179,5 +179,5 @@ export const signOutAction = async () => {
   const supabase = await createClient()
   await supabase.auth.signOut()
 
-  redirect(AUTH_URLS.SIGN_IN)
+  throw redirect(AUTH_URLS.SIGN_IN)
 }

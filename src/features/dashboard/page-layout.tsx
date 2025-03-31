@@ -4,9 +4,7 @@ import { Suspense } from 'react'
 import SidebarMobile from './sidebar/sidebar-mobile'
 import Frame from '@/ui/frame'
 import { DashboardSurveyPopover } from './navbar/dashboard-survey-popover'
-import { ErrorBoundary } from 'react-error-boundary'
-import E2BErrorBoundary, { CatchErrorBoundary } from '@/ui/error'
-import { UnknownError } from '@/types/errors'
+import { CatchErrorBoundary } from '@/ui/error'
 
 interface DashboardPageLayoutProps {
   children: React.ReactNode

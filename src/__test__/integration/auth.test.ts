@@ -410,11 +410,12 @@ describe('Auth Actions - Integration Tests', () => {
         error: null,
       })
 
-      // Execute: Call the sign-out action
-      await signOutAction()
-
-      // Verify: Check that redirect was called with sign-in URL
-      expect(redirect).toHaveBeenCalledWith(AUTH_URLS.SIGN_IN)
+      // Execute and Verify: Call the sign-out action and expect it to throw redirect
+      await expect(signOutAction()).rejects.toEqual(
+        expect.objectContaining({
+          destination: AUTH_URLS.SIGN_IN,
+        })
+      )
     })
   })
 })

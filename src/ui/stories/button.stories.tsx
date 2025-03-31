@@ -77,11 +77,7 @@ export const IconOnly: Story = {
 }
 
 export const Loading: Story = {
-  render: () => (
-    <Button disabled className="w-24">
-      [....]
-    </Button>
-  ),
+  render: () => <Button loading>Starting</Button>,
 }
 
 export const Sizes: Story = {

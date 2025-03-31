@@ -1,17 +1,17 @@
 import LogoWithoutText from '@/ui/logo-without-text'
-import DashboardSearch from '@/features/dashboard/sidebar/search'
 import { Suspense } from 'react'
-import DashboardNavbar from '../navbar/navbar'
-import TeamSelector from './team-selector'
+import SidebarMenu from './menu'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/primitives/button'
 import { Book, Construction, Github } from 'lucide-react'
-import Link from 'next/link'
-import ExternalIcon from '@/ui/external-icon'
-import { GITHUB_URL } from '@/configs/socials'
 import UserDetailsTile from '@/features/auth/user-details-tile'
 import DeveloperSettingsDialog from '../developer-settings/settings-dialog'
 import { getApiDomain } from '@/lib/utils/server'
+import SidebarList from './list'
+import { GITHUB_URL } from '@/configs/socials'
+import ExternalIcon from '@/ui/external-icon'
+import Link from 'next/link'
+import Search from './search'
 
 interface SidebarProps {
   className?: string
@@ -32,15 +32,15 @@ export default function Sidebar({ className }: SidebarProps) {
 
         <div className="w-full p-2">
           <Suspense fallback={null}>
-            <TeamSelector className="pr-2 pl-1" />
+            <SidebarMenu className="pr-2 pl-1" />
           </Suspense>
         </div>
       </header>
 
-      <DashboardNavbar className="flex-1 p-2 pt-0 pb-8" />
+      <SidebarList className="flex-1 p-2 pt-0 pb-8" />
 
       <Suspense fallback={null}>
-        <DashboardSearch className="w-full" />
+        <Search className="w-full" />
       </Suspense>
       <footer className="bg-bg-100 mt-auto flex flex-col">
         <a
@@ -85,7 +85,6 @@ async function ClientComponentWrapper() {
           Developer Settings
         </Button>
       </DeveloperSettingsDialog>
-      <UserDetailsTile className="w-full border-t" />
     </>
   )
 }
