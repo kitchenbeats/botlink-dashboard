@@ -47,7 +47,7 @@ export async function checkAuthenticated() {
     throw UnauthenticatedError()
   }
 
-  return { user, supabase }
+  return { user, session, supabase }
 }
 
 /*

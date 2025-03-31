@@ -13,7 +13,6 @@ import {
 } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { DefaultTemplate, Template } from '@/types/api'
-import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/use-toast'
 import { Button } from '@/ui/primitives/button'
 import {
@@ -137,6 +136,7 @@ export const useColumns = (deps: unknown[]) => {
 
             executeUpdateTemplate({
               templateId: template.templateID,
+              teamId: selectedTeam.id,
               props: {
                 Public: !template.public,
               },
@@ -150,6 +150,7 @@ export const useColumns = (deps: unknown[]) => {
 
             executeDeleteTemplate({
               templateId: template.templateID,
+              teamId: selectedTeam.id,
             })
           }
 

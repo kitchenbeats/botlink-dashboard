@@ -74,7 +74,7 @@ export const actionClient = createSafeActionClient({
 })
 
 export const authActionClient = actionClient.use(async ({ next }) => {
-  const { user, supabase } = await checkAuthenticated()
+  const { user, session, supabase } = await checkAuthenticated()
 
-  return next({ ctx: { user, supabase } })
+  return next({ ctx: { user, session, supabase } })
 })

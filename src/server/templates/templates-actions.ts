@@ -8,21 +8,21 @@ import { returnServerError } from '@/lib/utils/action'
 
 const DeleteTemplateParamsSchema = z.object({
   templateId: z.string(),
+  teamId: z.string(),
 })
 
 export const deleteTemplateAction = authActionClient
   .schema(DeleteTemplateParamsSchema)
   .metadata({ actionName: 'deleteTemplate' })
   .action(async ({ parsedInput, ctx }) => {
-    const { templateId } = parsedInput
-    const { user } = ctx
-    const accessToken = await getUserAccessToken(user.id)
+    const { templateId, teamId } = parsedInput
     const { url } = await getApiUrl()
 
     const res = await fetch(`${url}/templates/${templateId}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        'X-Supabase-Token': ctx.session.access_token,
+        'X-Supabase-Team': teamId,
       },
     })
 
@@ -45,6 +45,7 @@ export const deleteTemplateAction = authActionClient
 
 const UpdateTemplateParamsSchema = z.object({
   templateId: z.string(),
+  teamId: z.string(),
   props: z
     .object({
       Public: z.boolean(),
@@ -56,16 +57,16 @@ export const updateTemplateAction = authActionClient
   .schema(UpdateTemplateParamsSchema)
   .metadata({ actionName: 'updateTemplate' })
   .action(async ({ parsedInput, ctx }) => {
-    const { templateId, props } = parsedInput
-    const { user } = ctx
-    const accessToken = await getUserAccessToken(user.id)
+    const { templateId, teamId, props } = parsedInput
+    const { session } = ctx
     const { url } = await getApiUrl()
 
     const res = await fetch(`${url}/templates/${templateId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
+        'X-Supabase-Token': session.access_token,
+        'X-Supabase-Team': teamId,
       },
       body: JSON.stringify(props),
     })
