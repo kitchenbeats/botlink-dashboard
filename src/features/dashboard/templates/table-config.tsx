@@ -13,7 +13,6 @@ import {
 } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
 import { DefaultTemplate, Template } from '@/types/api'
-import { useRouter } from 'next/navigation'
 import { useToast } from '@/lib/hooks/use-toast'
 import { Button } from '@/ui/primitives/button'
 import {
@@ -97,10 +96,10 @@ export const useColumns = (deps: unknown[]) => {
 
           const { execute: executeUpdateTemplate, isExecuting: isUpdating } =
             useAction(updateTemplateAction, {
-              onSuccess: () => {
+              onSuccess: ({ input }) => {
                 toast(
                   defaultSuccessToast(
-                    `Template is now ${template.public ? 'public' : 'private'}.`
+                    `Template is now ${input.props.Public ? 'public' : 'private'}.`
                   )
                 )
               },

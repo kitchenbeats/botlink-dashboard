@@ -4,11 +4,11 @@ import { z } from 'zod'
 import { MOCK_METRICS_DATA, MOCK_SANDBOXES_DATA } from '@/configs/mock-data'
 import { logError } from '@/lib/clients/logger'
 import { ERROR_CODES } from '@/configs/logs'
-import { SandboxWithMetrics } from '@/features/dashboard/sandboxes/table-config'
 import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
-import { getApiUrl, getTeamApiKey } from '@/lib/utils/server'
+import { getApiUrl } from '@/lib/utils/server'
 import { Sandbox } from '@/types/api'
+import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
 
 const GetTeamSandboxesSchema = z.object({
   teamId: z.string().uuid(),
@@ -19,7 +19,7 @@ export const getTeamSandboxes = authActionClient
   .metadata({ serverFunctionName: 'getTeamSandboxes' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId } = parsedInput
-    const { user } = ctx
+    const { session } = ctx
 
     if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
       await new Promise((resolve) => setTimeout(resolve, 200))
@@ -33,14 +33,13 @@ export const getTeamSandboxes = authActionClient
       }))
     }
 
-    const apiKey = await getTeamApiKey(user.id, teamId)
     const { url } = await getApiUrl()
 
     const res = await fetch(`${url}/sandboxes`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
+        ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
       },
     })
 
