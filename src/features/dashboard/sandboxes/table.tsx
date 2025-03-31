@@ -117,19 +117,34 @@ export default function SandboxesTable({
 
     // Handle CPU filter
     if (!cpuCount) {
+      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
+    } else {
+      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
+      newFilters.push({ id: 'cpuCount', value: cpuCount })
+    }
+
+    // Handle memory filter
+    if (!memoryMB) {
+      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
+    } else {
+      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
+      newFilters.push({ id: 'memoryMB', value: memoryMB })
+    }
+
+    /* NOTE: Currently disabled due to issue with the metrics api
+    if (!cpuCount) {
       newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
     } else {
       newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
       newFilters.push({ id: 'cpuUsage', value: cpuCount })
     }
 
-    // Handle memory filter
     if (!memoryMB) {
       newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
     } else {
       newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
       newFilters.push({ id: 'ramUsage', value: memoryMB })
-    }
+    } */
 
     resetScroll()
     setColumnFilters(newFilters)
