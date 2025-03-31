@@ -7,13 +7,15 @@ import {
 import { useState } from 'react'
 import ShikiHighlighter from 'react-shiki'
 import { ScrollArea, ScrollBar } from './primitives/scroll-area'
+import { cn } from '@/lib/utils'
 
 interface JsonPopoverProps {
   json: unknown
   children: React.ReactNode
+  className?: string
 }
 
-export function JsonPopover({ json, children }: JsonPopoverProps) {
+export function JsonPopover({ json, children, className }: JsonPopoverProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const shikiTheme = useShikiTheme()
@@ -22,7 +24,10 @@ export function JsonPopover({ json, children }: JsonPopoverProps) {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div
-          className="hover:text-fg text-fg-300 h-full cursor-pointer truncate whitespace-nowrap hover:underline"
+          className={cn(
+            'h-full cursor-pointer truncate whitespace-nowrap',
+            className
+          )}
           onDoubleClick={() => setIsOpen(true)}
         >
           {children}
