@@ -38,6 +38,7 @@ import posthog from 'posthog-js'
 import { cn } from '@/lib/utils'
 import { useAction } from 'next-safe-action/hooks'
 import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
+import { ByE2BBadge } from '@/features/dashboard/templates/by-e2b-badge'
 
 // FILTERS
 export const fuzzyFilter: FilterFn<unknown> = (
@@ -240,13 +241,19 @@ export const useColumns = (deps: unknown[]) => {
         header: 'Name',
         size: 160,
         minSize: 120,
-        cell: ({ getValue }) => (
+        cell: ({ row, getValue }) => (
           <div
-            className={cn('truncate font-mono font-medium', {
-              'text-fg-500': !getValue(),
-            })}
+            className={cn(
+              'flex items-center gap-2 truncate font-mono font-medium',
+              {
+                'text-fg-500': !getValue(),
+              }
+            )}
           >
-            {(getValue() as string) ?? 'N/A'}
+            <span>{(getValue() as string) ?? 'N/A'}</span>
+            {'isDefault' in row.original && row.original.isDefault && (
+              <ByE2BBadge />
+            )}
           </div>
         ),
       },
@@ -328,23 +335,6 @@ export const useColumns = (deps: unknown[]) => {
         ),
         enableSorting: false,
         filterFn: 'equals',
-      },
-      {
-        accessorKey: 'isDefault',
-        header: 'Made by E2B',
-        size: 100,
-        minSize: 100,
-        cell: ({ getValue }) => {
-          if (!getValue()) {
-            return null
-          }
-
-          return (
-            <Badge className={cn('text-accent font-mono whitespace-nowrap')}>
-              Yes
-            </Badge>
-          )
-        },
       },
     ],
     deps
