@@ -1,6 +1,10 @@
 import { MetadataRoute } from 'next'
 import { XMLParser } from 'fast-xml-parser'
-import { LANDING_PAGE_DOMAIN, replaceUrls } from '@/configs/domains'
+import {
+  DOCS_NEXT_DOMAIN,
+  LANDING_PAGE_DOMAIN,
+  replaceUrls,
+} from '@/configs/domains'
 import { BLOG_FRAMER_DOMAIN } from '@/configs/domains'
 import { BASE_URL } from '@/configs/urls'
 
@@ -35,6 +39,12 @@ const sites: Site[] = [
     sitemapUrl: `https://${BLOG_FRAMER_DOMAIN}/sitemap.xml`,
     priority: 0.9,
     changeFrequency: 'daily',
+    baseUrl: BASE_URL,
+  },
+  {
+    sitemapUrl: `https://${DOCS_NEXT_DOMAIN}/sitemap.xml`,
+    priority: 0.9,
+    changeFrequency: 'weekly',
     baseUrl: BASE_URL,
   },
 ]
