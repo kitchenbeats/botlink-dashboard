@@ -2,7 +2,11 @@ import { checkUserTeamAuthorization, resolveTeamId } from '@/lib/utils/server'
 import { kv } from '@/lib/clients/kv'
 import { KV_KEYS } from '@/configs/keys'
 import { NextRequest, NextResponse } from 'next/server'
-import { LANDING_PAGE_DOMAIN, replaceUrls } from '@/configs/domains'
+import {
+  DOCS_NEXT_DOMAIN,
+  LANDING_PAGE_DOMAIN,
+  replaceUrls,
+} from '@/configs/domains'
 import { COOKIE_KEYS } from '@/configs/keys'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
@@ -219,7 +223,10 @@ export const handleUrlRewrites = async (
   }
 
   try {
-    if (url.hostname === LANDING_PAGE_DOMAIN) {
+    if (
+      url.hostname === LANDING_PAGE_DOMAIN ||
+      url.hostname === DOCS_NEXT_DOMAIN
+    ) {
       return NextResponse.rewrite(url.toString())
     }
 
