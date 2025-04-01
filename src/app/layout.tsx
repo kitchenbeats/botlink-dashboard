@@ -11,6 +11,7 @@ import { GeneralAnalyticsCollector } from '@/features/general-analytics-collecto
 import { Toaster } from '@/ui/primitives/toaster'
 import Head from 'next/head'
 import { GTMHead } from '@/features/google-tag-manager'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -47,6 +48,7 @@ export default function RootLayout({
             <Toaster />
           </Suspense>
         </ClientProviders>
+        <Analytics />
       </Body>
     </html>
   )
