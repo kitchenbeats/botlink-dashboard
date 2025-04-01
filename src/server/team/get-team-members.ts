@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { TeamMemberInfo } from './types'
 import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
+import { logError } from '@/lib/clients/logger'
+import { ERROR_CODES } from '@/configs/logs'
 
 const GetTeamMembersSchema = z.object({
   teamId: z.string().uuid(),
@@ -26,6 +28,8 @@ export const getTeamMembers = authActionClient
       .single()
 
     if (userTeamsRelationError) {
+      logError(ERROR_CODES.SUPABASE, userTeamsRelationError)
+
       return returnServerError('User is not authorized to get team members')
     }
 
