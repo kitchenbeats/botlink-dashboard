@@ -13,7 +13,6 @@ import {
   DOCS_NEXT_DOMAIN,
   LANDING_PAGE_DOMAIN,
   LANDING_PAGE_FRAMER_DOMAIN,
-  replaceUrls,
 } from '@/configs/domains'
 import { BLOG_FRAMER_DOMAIN } from '@/configs/domains'
 import { BASE_URL } from '@/configs/urls'
@@ -54,25 +53,25 @@ const sites: Site[] = [
     sitemapUrl: `https://${LANDING_PAGE_DOMAIN}/sitemap.xml`,
     priority: 1.0,
     changeFrequency: 'weekly',
-    baseUrl: BASE_URL,
+    baseUrl: 'https://e2b.dev',
   },
   {
     sitemapUrl: `https://${BLOG_FRAMER_DOMAIN}/sitemap.xml`,
     priority: 0.9,
     changeFrequency: 'weekly',
-    baseUrl: BASE_URL,
+    baseUrl: 'https://e2b.dev',
   },
   {
     sitemapUrl: `https://${DOCS_NEXT_DOMAIN}/sitemap.xml`,
     priority: 0.9,
     changeFrequency: 'weekly',
-    baseUrl: BASE_URL,
+    baseUrl: 'https://e2b.dev',
   },
   {
     sitemapUrl: `https://${LANDING_PAGE_FRAMER_DOMAIN}/sitemap.xml`,
     priority: 0.7,
     changeFrequency: 'weekly',
-    baseUrl: BASE_URL,
+    baseUrl: 'https://e2b.dev',
   },
 ]
 
