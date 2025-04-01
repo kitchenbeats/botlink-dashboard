@@ -35,7 +35,7 @@ export const getTeamSandboxes = authActionClient
 
     const { url } = await getApiUrl()
 
-    const res = await fetch(`${url}/sandboxes`, {
+    const res = await fetch(`${url}/sandboxes?state=running`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
