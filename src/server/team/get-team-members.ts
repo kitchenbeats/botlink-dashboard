@@ -21,12 +21,6 @@ export const getTeamMembers = authActionClient
     const { teamId } = parsedInput
     const { user } = ctx
 
-    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
-
-    if (!isAuthorized) {
-      return returnServerError('User is not authorized to get team members')
-    }
-
     const { data, error } = await supabaseAdmin
       .from('users_teams')
       .select('*')
@@ -34,6 +28,13 @@ export const getTeamMembers = authActionClient
 
     if (error) {
       throw error
+    }
+
+    const accessGranted =
+      data.findIndex((userTeam) => userTeam.user_id === user.id) !== -1
+
+    if (!accessGranted) {
+      return returnServerError('User is not authorized to get team members')
     }
 
     if (!data) {
