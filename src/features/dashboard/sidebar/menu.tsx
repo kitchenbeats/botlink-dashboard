@@ -79,7 +79,12 @@ export default function SidebarMenu({ className }: SidebarMenuProps) {
               className
             )}
           >
-            <Avatar className="size-9 shrink-0 border-none drop-shadow-lg filter">
+            <Avatar
+              className={cn('size-9 shrink-0', {
+                'border-none drop-shadow-lg filter':
+                  selectedTeam?.profile_picture_url,
+              })}
+            >
               <AvatarImage
                 src={selectedTeam?.profile_picture_url || undefined}
               />

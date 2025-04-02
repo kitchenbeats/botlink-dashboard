@@ -6,12 +6,19 @@ import { useRef, useState } from 'react'
 import { useToast } from '@/lib/hooks/use-toast'
 import { Avatar, AvatarImage, AvatarFallback } from '@/ui/primitives/avatar'
 import { cn, exponentialSmoothing } from '@/lib/utils'
-import { Pencil, Loader2 } from 'lucide-react'
+import {
+  Pencil,
+  Loader2,
+  ImageIcon,
+  ChevronsUp,
+  ImagePlusIcon,
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cardVariants } from '@/ui/primitives/card'
 import { uploadTeamProfilePictureAction } from '@/server/team/team-actions'
 import { useAction } from 'next-safe-action/hooks'
 import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
+import { Badge } from '@/ui/primitives/badge'
 
 interface ProfilePictureCardProps {
   className?: string
@@ -87,18 +94,23 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <Avatar
-        className={cn('h-24 w-24 border-none drop-shadow-lg filter', className)}
+        className={cn(
+          'h-24 w-24',
+          {
+            'border-none drop-shadow-lg filter': team?.profile_picture_url,
+          },
+          className
+        )}
       >
         <AvatarImage
           src={team?.profile_picture_url || ''}
           alt={`${team?.name}'s profile picture`}
         />
-        <AvatarFallback className="relative text-2xl font-semibold">
-          {team ? (
-            team?.name?.charAt(0).toUpperCase()
-          ) : (
-            <Skeleton className="absolute inset-0" />
-          )}
+        <AvatarFallback className="bg-bg-200 relative text-2xl font-semibold">
+          <ImagePlusIcon className="text-fg-500" />
+          <Badge className="text-fg-300 absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap uppercase backdrop-blur-md">
+            Upload <ChevronsUp className="text-accent size-4" />
+          </Badge>
         </AvatarFallback>
       </Avatar>
 
