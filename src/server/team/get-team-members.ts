@@ -8,6 +8,7 @@ import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
 import { logError } from '@/lib/clients/logger'
 import { ERROR_CODES } from '@/configs/logs'
+import { checkUserTeamAuthorization } from '@/lib/utils/server'
 
 const GetTeamMembersSchema = z.object({
   teamId: z.string().uuid(),
@@ -20,19 +21,6 @@ export const getTeamMembers = authActionClient
     const { teamId } = parsedInput
     const { user } = ctx
 
-    const { error: userTeamsRelationError } = await supabaseAdmin
-      .from('users_teams')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('team_id', teamId)
-      .single()
-
-    if (userTeamsRelationError) {
-      logError(ERROR_CODES.SUPABASE, userTeamsRelationError)
-
-      return returnServerError('User is not authorized to get team members')
-    }
-
     const { data, error } = await supabaseAdmin
       .from('users_teams')
       .select('*')
@@ -40,6 +28,13 @@ export const getTeamMembers = authActionClient
 
     if (error) {
       throw error
+    }
+
+    const accessGranted =
+      data.findIndex((userTeam) => userTeam.user_id === user.id) !== -1
+
+    if (!accessGranted) {
+      return returnServerError('User is not authorized to get team members')
     }
 
     if (!data) {
