@@ -2,7 +2,7 @@ import DashboardPageLayout from '@/features/dashboard/page-layout'
 import { Suspense } from 'react'
 import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { NameCard } from '@/features/dashboard/team/name-card'
-import { EmailCard } from '@/features/dashboard/team/email-card'
+import { InfoCard } from '@/features/dashboard/team/info-card'
 import { MemberCard } from '@/features/dashboard/team/member-card'
 import { ProfilePictureCard } from '@/features/dashboard/team/profile-picture-card'
 import Scanline from '@/ui/scanline'
@@ -26,7 +26,7 @@ export default async function GeneralPage({ params }: GeneralPageProps) {
               <ProfilePictureCard className="size-32" />
               <NameCard />
             </div>
-            <EmailCard className="col-span-12 flex flex-col justify-between xl:col-span-6" />
+            <InfoCard className="col-span-12 flex flex-col justify-between xl:col-span-6" />
           </>
         </Suspense>
 
