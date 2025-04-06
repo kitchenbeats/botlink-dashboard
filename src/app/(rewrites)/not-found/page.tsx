@@ -1,5 +1,7 @@
-import { notFound } from 'next/navigation'
+import NotFound from '@/ui/not-found'
 
-export default function NotFound() {
-  throw notFound()
+export const dynamic = 'force-static'
+
+export default function NotFoundShell() {
+  return <NotFound />
 }
