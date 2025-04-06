@@ -5,10 +5,12 @@ import {
   replaceUrls,
 } from '@/configs/domains'
 import { ERROR_CODES } from '@/configs/logs'
-import { logError } from '@/lib/clients/logger'
 import { NextRequest } from 'next/server'
+import sitemap from '@/app/sitemap'
+import { BASE_URL } from '@/configs/urls'
 
 export const revalidate = 900
+export const dynamic = 'force-static'
 
 const REVALIDATE_TIME = 900 // 15 minutes ttl
 
@@ -48,21 +50,24 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
   }
 
-  if (url.hostname === requestHostname) {
-    url.pathname = '/not-found'
-  }
-
   try {
-    const headers = new Headers(request.headers)
-    headers.delete('host') // prevent host header conflicts
+    // if hostname did not change, we want to make sure it does not cache the route based on the build times hostname (127.0.0.1:3000)
+    const fetchUrl =
+      url.hostname === requestHostname
+        ? `${BASE_URL}/not-found`
+        : url.toString()
 
-    const res = await fetch(url.toString(), {
-      headers,
+    const res = await fetch(fetchUrl, {
+      headers: new Headers(request.headers),
       redirect: 'follow',
-      cache: 'force-cache',
-      next: {
-        revalidate: REVALIDATE_TIME,
-      },
+      // if the hostname is the same, we don't want to cache the response, since it will not be available in build time
+      ...(url.hostname === requestHostname
+        ? { cache: 'no-store' }
+        : {
+            next: {
+              revalidate: REVALIDATE_TIME,
+            },
+          }),
     })
 
     const contentType = res.headers.get('Content-Type')
@@ -75,14 +80,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       const newHeaders = new Headers(res.headers)
       newHeaders.delete('content-encoding')
 
-      // add cache control headers if not already present
-      if (!newHeaders.has('cache-control')) {
-        newHeaders.set(
-          'cache-control',
-          `public, max-age=${REVALIDATE_TIME}, s-maxage=${REVALIDATE_TIME}, stale-while-revalidate=86400`
-        )
-      }
-
       return new Response(modifiedHtmlBody, {
         status: res.status,
         headers: newHeaders,
@@ -91,7 +88,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     return res
   } catch (error) {
-    logError(ERROR_CODES.URL_REWRITE, error)
+    console.error(ERROR_CODES.URL_REWRITE, error)
 
     return new Response(
       `Proxy Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -101,4 +98,18 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
     )
   }
+}
+
+export async function generateStaticParams() {
+  const sitemapEntries = await sitemap()
+
+  const slugs = sitemapEntries.map((entry) => {
+    const url = new URL(entry.url)
+    const pathname = url.pathname
+    const pathSegments = pathname.split('/').filter((segment) => segment !== '')
+
+    return { slug: pathSegments.length > 0 ? pathSegments : undefined }
+  })
+
+  return slugs
 }
