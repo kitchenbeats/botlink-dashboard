@@ -317,12 +317,18 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
   },
   {
     id: 'startedAt',
-    accessorFn: (row) => new Date(row.startedAt).toUTCString(),
+    accessorKey: 'startedAt',
     header: 'Started At',
     cell: ({ row, getValue }) => {
-      const dateTimeString = getValue() as string
-      // Split the date and time parts
-      const [day, date, month, year, time, timezone] = dateTimeString.split(' ')
+      const dateValue = getValue() as string;
+
+      const dateTimeString = useMemo(() => {
+        return new Date(dateValue).toUTCString();
+      }, [dateValue]);
+
+      const [day, date, month, year, time, timezone] = useMemo(() => {
+        return dateTimeString.split(' ');
+      }, [dateTimeString]);
 
       return (
         <div className={cn('h-full truncate font-mono text-xs')}>
@@ -337,5 +343,8 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     // @ts-expect-error dateRange is not a valid filterFn
     filterFn: 'dateRange',
     enableColumnFilter: true,
+    sortingFn: (rowA, rowB) => {
+      return rowA.original.startedAt.localeCompare(rowB.original.startedAt);
+    },
   },
 ]
