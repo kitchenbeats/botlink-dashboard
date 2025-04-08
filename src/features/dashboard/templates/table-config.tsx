@@ -294,30 +294,64 @@ export const useColumns = (deps: unknown[]) => {
         filterFn: 'equals',
       },
       {
-        accessorFn: (row) => new Date(row.createdAt).toUTCString(),
+        accessorKey: 'createdAt',
         enableGlobalFilter: true,
         id: 'createdAt',
         header: 'Created At',
         size: 250,
         minSize: 140,
-        cell: ({ getValue }) => (
-          <div className="text-fg-500 truncate font-mono text-xs">
-            {getValue() as string}
-          </div>
-        ),
+        cell: ({ row, getValue }) => {
+          const dateValue = getValue() as string;
+
+          const dateTimeString = useMemo(() => {
+            return new Date(dateValue).toUTCString();
+          }, [dateValue]);
+
+          const [day, date, month, year, time, timezone] = useMemo(() => {
+            return dateTimeString.split(' ');
+          }, [dateTimeString]);
+
+          return (
+            <div className={cn('h-full truncate font-mono text-xs')}>
+              <span className="text-fg-500">{`${day} ${date} ${month} ${year}`}</span>{' '}
+              <span className="text-fg">{time}</span>{' '}
+              <span className="text-fg-500">{timezone}</span>
+            </div>
+          )
+        },
+        sortingFn: (rowA, rowB) => {
+          return rowA.original.createdAt.localeCompare(rowB.original.createdAt);
+        },
       },
       {
-        accessorFn: (row) => new Date(row.updatedAt).toUTCString(),
+        accessorKey: 'updatedAt',
         id: 'updatedAt',
         header: 'Updated At',
         size: 250,
         minSize: 140,
         enableGlobalFilter: true,
-        cell: ({ getValue }) => (
-          <div className="text-fg-500 truncate font-mono text-xs">
-            {getValue() as string}
-          </div>
-        ),
+        cell: ({ row, getValue }) => {
+          const dateValue = getValue() as string;
+
+          const dateTimeString = useMemo(() => {
+            return new Date(dateValue).toUTCString();
+          }, [dateValue]);
+
+          const [day, date, month, year, time, timezone] = useMemo(() => {
+            return dateTimeString.split(' ');
+          }, [dateTimeString]);
+
+          return (
+            <div className={cn('h-full truncate font-mono text-xs')}>
+              <span className="text-fg-500">{`${day} ${date} ${month} ${year}`}</span>{' '}
+              <span className="text-fg">{time}</span>{' '}
+              <span className="text-fg-500">{timezone}</span>
+            </div>
+          )
+        },
+        sortingFn: (rowA, rowB) => {
+          return rowA.original.updatedAt.localeCompare(rowB.original.updatedAt);
+        },
       },
       {
         accessorKey: 'public',
@@ -351,7 +385,7 @@ export const templatesTableConfig: Partial<
   getFilteredRowModel: getFilteredRowModel(),
   getSortedRowModel: getSortedRowModel(),
   enableSorting: true,
-  enableMultiSort: true,
+  enableMultiSort: false,
   columnResizeMode: 'onChange',
   enableColumnResizing: true,
   enableGlobalFilter: true,
