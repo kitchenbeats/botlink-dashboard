@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   COOKIE_ENCRYPTION_KEY: z.string().min(32),
+  NO_INDEX: z.string().optional(),
 
   BILLING_API_URL: z.string().url().optional(),
   DEVELOPMENT_INFRA_API_DOMAIN: z.string().optional(),
@@ -25,6 +26,7 @@ export const clientSchema = z.object({
   NEXT_PUBLIC_EXPOSE_STORYBOOK: z.string().optional(),
   NEXT_PUBLIC_SCAN: z.string().optional(),
   NEXT_PUBLIC_MOCK_DATA: z.string().optional(),
+  NEXT_PUBLIC_VERBOSE: z.string().optional(),
 })
 
 export const testEnvSchema = z.object({
