@@ -28,7 +28,12 @@ export function CostChart({ data }: { data: ChartData }) {
             <stop offset="100%" stopColor="var(--color-cost)" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <XAxis dataKey="x" {...commonXAxisProps} />
+        <XAxis
+          dataKey="x"
+          {...commonXAxisProps}
+          interval="preserveStartEnd"
+          tickMargin={10}
+        />
         <YAxis {...commonYAxisProps} tickFormatter={(value) => `$${value}`} />
         <ChartTooltip
           content={({ active, payload }) => {
@@ -45,11 +50,13 @@ export function CostChart({ data }: { data: ChartData }) {
           }}
         />
         <Area
-          type="monotone"
+          type="stepAfter"
           dataKey="y"
           stroke="var(--color-cost)"
           strokeWidth={2}
           fill="url(#cost)"
+          strokeLinecap="butt"
+          strokeLinejoin="round"
         />
       </AreaChart>
     </ChartContainer>

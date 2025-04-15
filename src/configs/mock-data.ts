@@ -1,3 +1,4 @@
+import { subDays, format } from 'date-fns'
 import { nanoid } from 'nanoid'
 import { DefaultTemplate, Sandbox, SandboxMetrics, Template } from '@/types/api'
 import { addHours, subHours } from 'date-fns'
@@ -359,8 +360,76 @@ function generateMockMetrics(
   return metrics
 }
 
+type ChartData = {
+  x: string
+  y: number
+}[]
+
+// Helper function to generate random values with a base and variation
+const generateRandomValue = (base: number, variation: number) => {
+  return base + (Math.random() * variation * 2 - variation)
+}
+
+// Helper function to generate time series data with monthly intervals
+const generateMonthlyTimeSeries = (
+  months: number,
+  valueGenerator: () => number
+): ChartData => {
+  const data: ChartData = []
+  const today = new Date()
+
+  for (let i = months - 1; i >= 0; i--) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
+    data.push({
+      x: format(date, 'MMM yyyy'),
+      y: valueGenerator(),
+    })
+  }
+
+  return data
+}
+
+// Cost data: Simulates monthly costs with business-like variations
+export const generateCostData = (months = 12): ChartData => {
+  let lastValue = 50 // Start with base cost
+  return generateMonthlyTimeSeries(months, () => {
+    // Simulate gradual cost changes with occasional spikes
+    const trend = Math.random() > 0.7 ? 15 : 5 // Occasional larger changes
+    const change = generateRandomValue(0, trend)
+    lastValue = Math.max(20, Math.min(100, lastValue + change))
+    return Number(lastValue.toFixed(2))
+  })
+}
+
+// VCPU data: Simulates monthly CPU usage with business patterns
+export const generateVCPUData = (months = 12): ChartData => {
+  let baseUsage = 40
+  return generateMonthlyTimeSeries(months, () => {
+    // Simulate seasonal/quarterly patterns
+    const quarterEffect = Math.sin((new Date().getMonth() / 12) * Math.PI * 2) * 10
+    const randomVariation = generateRandomValue(0, 15)
+    baseUsage = Math.max(20, Math.min(80, baseUsage + quarterEffect + randomVariation))
+    return Number(baseUsage.toFixed(2))
+  })
+}
+
+// RAM data: Simulates monthly memory usage with gradual scaling
+export const generateRAMData = (months = 12): ChartData => {
+  let currentValue = 60
+  return generateMonthlyTimeSeries(months, () => {
+    // Simulate gradual scaling with memory optimization periods
+    const optimization = Math.random() > 0.8 ? -10 : 0 // Occasional optimization
+    const change = generateRandomValue(0, 8) + optimization
+    currentValue = Math.max(30, Math.min(90, currentValue + change))
+    return Number(currentValue.toFixed(2))
+  })
+}
+
 export const MOCK_METRICS_DATA = (sandboxes: Sandbox[]) =>
   generateMockMetrics(sandboxes)
 export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(300)
 export const MOCK_TEMPLATES_DATA = TEMPLATES
 export const MOCK_DEFAULT_TEMPLATES_DATA = DEFAULT_TEMPLATES
+export const MOCK_COST_DATA = generateCostData()
+export const MOCK_VCPU_DATA = generateVCPUData()
+export const MOCK_RAM_DATA = generateRAMData()

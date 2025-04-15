@@ -5,6 +5,11 @@ import { z } from 'zod'
 import { authActionClient } from '@/lib/clients/action'
 import { returnServerError } from '@/lib/utils/action'
 import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
+import {
+  MOCK_COST_DATA,
+  MOCK_RAM_DATA,
+  MOCK_VCPU_DATA,
+} from '@/configs/mock-data'
 
 const GetUsageSchema = z.object({
   teamId: z.string().uuid(),
@@ -16,6 +21,32 @@ export const getUsage = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { teamId } = parsedInput
     const { session } = ctx
+
+    if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      return {
+        vcpuSeries: [
+          {
+            id: 'vCPU Hours',
+            data: MOCK_VCPU_DATA,
+          },
+        ],
+        ramSeries: [
+          {
+            id: 'RAM Usage',
+            data: MOCK_RAM_DATA,
+          },
+        ],
+        costSeries: [
+          {
+            id: 'Cost',
+            data: MOCK_COST_DATA,
+          },
+        ],
+        credits: 1000,
+      }
+    }
 
     const response = await fetch(
       `${process.env.BILLING_API_URL}/teams/${teamId}/usage`,
