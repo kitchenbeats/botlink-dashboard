@@ -40,10 +40,13 @@ export default async function DashboardLayout({
   const sidebarState = cookieStore.get(COOKIE_KEYS.SIDEBAR_STATE)?.value
   const defaultOpen = sidebarState === 'true'
 
+  const selectedTeam = res?.data.find((team) => team.id === teamId) ?? null
+
   return (
     <ServerContextProvider
       teamId={teamId}
       teamSlug={teamSlug}
+      selectedTeam={selectedTeam}
       teams={res.data}
       user={session!.user}
     >

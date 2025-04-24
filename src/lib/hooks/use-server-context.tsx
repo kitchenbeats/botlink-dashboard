@@ -8,6 +8,7 @@ interface ServerContextValue {
   selectedTeamId: string | null
   selectedTeamSlug: string | null
   teams: TeamWithDefault[]
+  selectedTeam: TeamWithDefault | null
   user: User
 }
 
@@ -18,6 +19,7 @@ interface ServerContextProviderProps {
   teamId?: string | null
   teamSlug?: string | null
   teams: TeamWithDefault[]
+  selectedTeam: TeamWithDefault | null
   user: User
 }
 
@@ -25,13 +27,15 @@ export function ServerContextProvider({
   children,
   teamId = null,
   teamSlug = null,
-  teams,
+  teams: initialTeams,
+  selectedTeam,
   user,
 }: ServerContextProviderProps) {
   const value = {
     selectedTeamId: teamId,
     selectedTeamSlug: teamSlug,
-    teams,
+    teams: initialTeams,
+    selectedTeam,
     user,
   }
 

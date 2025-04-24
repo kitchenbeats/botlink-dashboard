@@ -1,10 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { useForm } from 'react-hook-form'
+import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useAction } from 'next-safe-action/hooks'
 
 import {
   Dialog,
@@ -26,21 +24,15 @@ import {
 import { Input } from '@/ui/primitives/input'
 import { createTeamAction } from '@/server/team/team-actions'
 import { toast } from '@/lib/hooks/use-toast'
-import { useTeams } from '@/lib/hooks/use-teams'
 import { useRouter } from 'next/navigation'
+import { defaultSuccessToast } from '@/lib/hooks/use-toast'
 import { PROTECTED_URLS } from '@/configs/urls'
-import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
+import { CreateTeamSchema } from '@/server/team/types'
 
 interface CreateTeamDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
-const formSchema = z.object({
-  name: z.string().min(1, 'Team name is required'),
-})
-
-type FormValues = z.infer<typeof formSchema>
 
 export function CreateTeamDialog({
   open,
@@ -50,47 +42,41 @@ export function CreateTeamDialog({
 
   const router = useRouter()
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
+  const {
+    form,
+    resetFormAndAction,
+    handleSubmitWithAction,
+    action: { isExecuting },
+  } = useHookFormAction(createTeamAction, zodResolver(CreateTeamSchema), {
+    formProps: {
+      defaultValues: {
+        name: '',
+      },
+    },
+    actionProps: {
+      onSuccess: async (result) => {
+        toast(defaultSuccessToast('Team was created.'))
+
+        if (result.data && result.data.slug) {
+          router.push(PROTECTED_URLS.SANDBOXES(result.data.slug))
+          router.refresh()
+        }
+
+        handleDialogChange(false)
+      },
     },
   })
 
-  const { execute, isExecuting } = useAction(createTeamAction, {
-    onSuccess: async (result) => {
-      onOpenChange(false)
+  const handleDialogChange = (value: boolean) => {
+    onOpenChange(value)
 
-      toast(defaultSuccessToast('Team was created.'))
-
-      if (result.data) {
-        router.push(
-          PROTECTED_URLS.SANDBOXES(result.data.slug ?? result.data.id)
-        )
-      }
-    },
-    onError: ({ error }) => {
-      if (error.serverError) {
-        toast(defaultErrorToast(error.serverError))
-      } else if (error.validationErrors) {
-        toast(defaultErrorToast('Please check the form for errors'))
-      }
-    },
-  })
-
-  const onSubmit = (values: FormValues) => {
-    execute(values)
-  }
-
-  const handleDialogClose = (value: boolean) => {
     if (value) return
 
-    form.reset()
-    onOpenChange(value)
+    resetFormAndAction()
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogClose}>
+    <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create Team</DialogTitle>
@@ -100,7 +86,7 @@ export function CreateTeamDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmitWithAction}>
             <div className="flex flex-col gap-3 px-2 py-6">
               <FormField
                 control={form.control}
@@ -125,7 +111,7 @@ export function CreateTeamDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleDialogChange(false)}
                 disabled={isExecuting}
               >
                 Cancel
