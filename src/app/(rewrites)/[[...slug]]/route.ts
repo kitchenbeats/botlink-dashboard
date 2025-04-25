@@ -7,6 +7,7 @@ import { NO_INDEX } from '@/lib/utils/flags'
 import { logError } from '@/lib/clients/logger'
 import { HTMLRewriter } from '@worker-tools/html-rewriter/base64'
 import { ROUTE_REWRITE_CONFIG } from '@/configs/rewrites'
+import { checkSEODeprecation } from '@/lib/utils/seo'
 
 export const revalidate = 900
 export const dynamic = 'force-static'
@@ -15,6 +16,11 @@ const REVALIDATE_TIME = 900 // 15 minutes ttl
 
 export async function GET(request: NextRequest): Promise<Response> {
   const url = new URL(request.url)
+  const pathname = url.pathname
+
+  const deprecationResponse = checkSEODeprecation(pathname)
+  if (deprecationResponse) return deprecationResponse
+
   const requestHostname = url.hostname
 
   const updateUrlHostname = (newHostname: string) => {
