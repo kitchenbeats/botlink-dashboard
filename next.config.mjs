@@ -60,6 +60,12 @@ const config = {
       destination: '/sign-up',
       permanent: true,
     },
+    // SEO Redirects
+    {
+      source: '/ai-agents/:path*',
+      destination: '/',
+      permanent: true
+    }
   ],
   skipTrailingSlashRedirect: true,
 }
