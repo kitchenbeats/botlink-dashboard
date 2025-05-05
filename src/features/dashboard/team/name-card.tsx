@@ -5,7 +5,6 @@ import { Button } from '@/ui/primitives/button'
 import { Input } from '@/ui/primitives/input'
 import { Skeleton } from '@/ui/primitives/skeleton'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
-import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Card,
@@ -25,6 +24,8 @@ import { useToast } from '@/lib/hooks/use-toast'
 import { defaultSuccessToast, defaultErrorToast } from '@/lib/hooks/use-toast'
 import { UpdateTeamNameSchema } from '@/server/team/types'
 import { useHookFormOptimisticAction } from '@next-safe-action/adapter-react-hook-form/hooks'
+import { AnimatePresence, motion } from 'motion/react'
+import { exponentialSmoothing } from '@/lib/utils'
 
 interface NameCardProps {
   className?: string
@@ -91,7 +92,7 @@ export function NameCard({ className }: NameCardProps) {
           Change your team name to display on your invoices and receipts.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         {team ? (
           <Form {...form}>
             <form
@@ -102,11 +103,33 @@ export function NameCard({ className }: NameCardProps) {
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="flex-1">
+                  <FormItem className="flex-1 gap-1">
                     <FormControl>
                       <Input placeholder="Acme, Inc." {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <AnimatePresence initial={false}>
+                      {team.transformed_default_name && (
+                        <motion.span
+                          className="text-fg-500 ml-0.5 text-xs"
+                          animate={{
+                            opacity: 1,
+                            filter: 'blur(0px)',
+                            height: 'auto',
+                          }}
+                          exit={{ opacity: 0, filter: 'blur(4px)', height: 0 }}
+                          transition={{
+                            duration: 0.4,
+                            ease: exponentialSmoothing(3),
+                          }}
+                        >
+                          Seen as -{' '}
+                          <span className="text-contrast-2">
+                            {team.transformed_default_name}
+                          </span>
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    <FormMessage className="mt-1" />
                   </FormItem>
                 )}
               />
