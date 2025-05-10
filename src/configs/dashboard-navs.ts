@@ -47,7 +47,6 @@ export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
         },
       ]
     : []),
-
   {
     label: 'Team',
     href: (args) => `/dashboard/${args.teamIdOrSlug}/team`,
