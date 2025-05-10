@@ -1,11 +1,13 @@
-import { getUsage } from '@/server/usage/get-usage'
+import { getUsageThroughReactCache } from '@/server/usage/get-usage'
 
 export default async function BillingCreditsContent({
   teamId,
 }: {
   teamId: string
 }) {
-  const res = await getUsage({ teamId })
+  const res = await getUsageThroughReactCache({
+    teamId,
+  })
 
   if (!res?.data || res.serverError) {
     throw new Error(res?.serverError || 'Failed to load credits')
