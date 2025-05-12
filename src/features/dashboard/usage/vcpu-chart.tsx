@@ -7,21 +7,30 @@ import {
 } from '@/ui/primitives/chart'
 import { Area, AreaChart, XAxis, YAxis } from 'recharts'
 import {
+  bigNumbersAxisTickFormatter,
   chartConfig,
   commonChartProps,
   commonXAxisProps,
   commonYAxisProps,
 } from './chart-config'
+import { UsageData } from '@/server/usage/types'
+import { useMemo } from 'react'
 
-type ChartData = {
-  x: string
-  y: number
-}[]
+interface VCPUChartProps {
+  data: UsageData['compute']
+}
 
-export function VCPUChart({ data }: { data: ChartData }) {
+export function VCPUChart({ data }: VCPUChartProps) {
+  const chartData = useMemo(() => {
+    return data.map((item) => ({
+      x: `${item.month}/${item.year}`,
+      y: item.vcpu_hours,
+    }))
+  }, [data])
+
   return (
     <ChartContainer config={chartConfig} className="aspect-auto h-36">
-      <AreaChart data={data} {...commonChartProps}>
+      <AreaChart data={chartData} {...commonChartProps}>
         <defs>
           <linearGradient id="vcpu" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--color-vcpu)" stopOpacity={0.2} />
@@ -29,15 +38,23 @@ export function VCPUChart({ data }: { data: ChartData }) {
           </linearGradient>
         </defs>
         <XAxis dataKey="x" {...commonXAxisProps} />
-        <YAxis {...commonYAxisProps} />
+        <YAxis
+          {...commonYAxisProps}
+          tickFormatter={bigNumbersAxisTickFormatter}
+        />
         <ChartTooltip
-          content={({ active, payload }) => {
-            if (!active || !payload) return null
+          content={({ active, payload, label }) => {
+            if (!active || !payload || !payload.length || !payload[0].payload)
+              return null
+
             return (
               <ChartTooltipContent
-                formatter={(value) => [
-                  <span key="value">{Number(value).toFixed(2)}</span>,
-                  'vCPU Hours',
+                labelFormatter={() => label}
+                formatter={(value, name, item) => [
+                  <span key="value" className="text-accent">
+                    {Number(value).toLocaleString()}
+                  </span>,
+                  `vCPU Hours`,
                 ]}
                 payload={payload}
                 active={active}
@@ -51,6 +68,7 @@ export function VCPUChart({ data }: { data: ChartData }) {
           stroke="var(--color-vcpu)"
           strokeWidth={2}
           fill="url(#vcpu)"
+          connectNulls
         />
       </AreaChart>
     </ChartContainer>
