@@ -15,7 +15,8 @@ import { logWarning } from '@/lib/clients/logger'
 import { returnValidationErrors } from 'next-safe-action'
 import { getTeam } from './get-team'
 import { SUPABASE_AUTH_HEADERS } from '@/configs/constants'
-import { CreateTeamSchema, UpdateTeamNameSchema } from "@/server/team/types";
+import { CreateTeamSchema, UpdateTeamNameSchema } from '@/server/team/types'
+import { CreateTeamsResponse } from '@/types/billing'
 
 export const updateTeamNameAction = authActionClient
   .schema(UpdateTeamNameSchema)
@@ -215,10 +216,9 @@ export const createTeamAction = authActionClient
 
     revalidatePath('/dashboard', 'layout')
 
-    const data =
-      (await response.json()) as Database['public']['Tables']['teams']['Row']
+    const data = (await response.json()) as CreateTeamsResponse
 
-    return {slug: data.slug}
+    return data
   })
 
 const UploadTeamProfilePictureSchema = zfd.formData(
