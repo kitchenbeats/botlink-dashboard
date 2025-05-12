@@ -9,6 +9,7 @@ import {
 import { CostChart } from './cost-chart'
 import { ChartPlaceholder } from '@/ui/chart-placeholder'
 import { getUsageThroughReactCache } from '@/server/usage/get-usage'
+import { logError } from '@/lib/clients/logger'
 
 async function CostCardContentResolver({ teamId }: { teamId: string }) {
   const result = await getUsageThroughReactCache({ teamId })
@@ -19,13 +20,23 @@ async function CostCardContentResolver({ teamId }: { teamId: string }) {
       (Array.isArray(result?.validationErrors?.formErrors) &&
         result?.validationErrors?.formErrors[0]) ||
       'Could not load cost usage data.'
-    console.error(`CostCard Error: ${errorMessage}`, result)
+
     throw new Error(errorMessage)
   }
 
   const dataFromAction = result.data
 
-  const latestCost = dataFromAction.costSeries?.[0]?.data?.at(-1)?.y
+  const latestCost =
+    dataFromAction.compute?.[dataFromAction.compute.length - 1]?.total_cost
+
+  if (!latestCost) {
+    return (
+      <ChartPlaceholder
+        emptyContent="No cost data found."
+        classNames={{ container: 'h-48' }}
+      />
+    )
+  }
 
   return (
     <>
@@ -39,7 +50,7 @@ async function CostCardContentResolver({ teamId }: { teamId: string }) {
         </p>
         <span className="text-fg-500 text-xs">this month</span>
       </div>
-      <CostChart data={dataFromAction.costSeries?.[0]?.data || []} />
+      <CostChart data={dataFromAction.compute} />
     </>
   )
 }

@@ -9,6 +9,7 @@ import {
 import { VCPUChart } from './vcpu-chart'
 import { ChartPlaceholder } from '@/ui/chart-placeholder'
 import { getUsageThroughReactCache } from '@/server/usage/get-usage'
+import { logError } from '@/lib/clients/logger'
 
 async function VCPUCardContentResolver({ teamId }: { teamId: string }) {
   const result = await getUsageThroughReactCache({ teamId })
@@ -22,7 +23,17 @@ async function VCPUCardContentResolver({ teamId }: { teamId: string }) {
     throw new Error(errorMessage)
   }
 
-  const latestVCPU = result.data.vcpuSeries[0].data.at(-1)?.y
+  const latestVCPU =
+    result.data.compute?.[result.data.compute.length - 1]?.vcpu_hours
+
+  if (!latestVCPU) {
+    return (
+      <ChartPlaceholder
+        emptyContent="No vCPU usage data found."
+        classNames={{ container: 'h-48' }}
+      />
+    )
+  }
 
   return (
     <>
@@ -35,7 +46,7 @@ async function VCPUCardContentResolver({ teamId }: { teamId: string }) {
         </p>
         <span className="text-fg-500 text-xs">hours this month</span>
       </div>
-      <VCPUChart data={result.data.vcpuSeries[0].data} />
+      <VCPUChart data={result.data.compute} />
     </>
   )
 }
