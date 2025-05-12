@@ -14,4 +14,14 @@ interface CustomerPortalResponse {
   url: string
 }
 
-export type { Invoice, BillingLimit, CustomerPortalResponse }
+interface CreateTeamsResponse {
+  id: string
+  slug: string
+}
+
+export type {
+  Invoice,
+  BillingLimit,
+  CustomerPortalResponse,
+  CreateTeamsResponse,
+}
