@@ -1,5 +1,4 @@
 import Sidebar from '@/features/dashboard/sidebar/sidebar'
-import NetworkStateBanner from '@/ui/network-state-banner'
 import { DashboardTitleProvider } from '@/features/dashboard/dashboard-title-provider'
 import { Suspense } from 'react'
 import { ServerContextProvider } from '@/lib/hooks/use-server-context'
@@ -12,6 +11,7 @@ import { getSessionInsecure } from '@/server/auth/get-session'
 import { SidebarInset, SidebarProvider } from '@/ui/primitives/sidebar'
 import { cookies } from 'next/headers'
 import { COOKIE_KEYS } from '@/configs/keys'
+import TeamBlockageAlert from '@/features/dashboard/sidebar/blocked-banner'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -52,16 +52,15 @@ export default async function DashboardLayout({
     >
       <SidebarProvider defaultOpen={defaultOpen}>
         <div className="fixed inset-0 flex max-h-full w-full flex-col overflow-hidden">
-          <NetworkStateBanner />
           <div className="flex h-full max-h-full w-full flex-1 overflow-hidden">
             <Sidebar />
             <SidebarInset>{children}</SidebarInset>
           </div>
         </div>
-        <Suspense fallback={null}>
-          <DashboardTitleProvider />
-        </Suspense>
       </SidebarProvider>
+      <Suspense fallback={null}>
+        <DashboardTitleProvider />
+      </Suspense>
     </ServerContextProvider>
   )
 }

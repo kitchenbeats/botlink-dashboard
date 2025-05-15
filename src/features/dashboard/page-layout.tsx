@@ -1,13 +1,12 @@
 import { ThemeSwitcher } from '@/ui/theme-switcher'
 import { cn } from '@/lib/utils'
 import { Suspense } from 'react'
-import SidebarMobile from './sidebar/sidebar-mobile'
 import Frame from '@/ui/frame'
 import { DashboardSurveyPopover } from './navbar/dashboard-survey-popover'
 import { CatchErrorBoundary } from '@/ui/error'
 import { SidebarTrigger } from '@/ui/primitives/sidebar'
 
-interface DashboardPageLayoutProps {
+export interface DashboardPageLayoutProps {
   children: React.ReactNode
   title: string
   className?: string
@@ -34,7 +33,7 @@ export default async function DashboardPageLayout({
     >
       <div className="bg-bg absolute inset-x-0 top-0 z-10 flex h-[var(--protected-nav-height)] border-b pr-3 md:pl-3">
         <div className="flex w-full items-center gap-2">
-          <SidebarTrigger className="text-fg-300 h-full w-11 border-r px-3 md:hidden" />
+          <SidebarTrigger className="text-fg-300 h-full w-11 rounded-none border-r px-3 md:hidden" />
 
           <h2 className="mr-auto text-lg font-bold">{title}</h2>
 
