@@ -9,9 +9,10 @@ import {
   resolveTeamForDashboard,
 } from './server/middleware'
 import { PROTECTED_URLS } from './configs/urls'
-import { getRewriteForPath } from './lib/utils/rewrites'
 import { logError } from './lib/clients/logger'
 import { ERROR_CODES } from './configs/logs'
+import { getRewriteForPath } from './lib/utils/rewrites'
+import { ALLOW_SEO_INDEXING } from './configs/flags'
 
 export async function middleware(request: NextRequest) {
   try {
@@ -40,7 +41,15 @@ export async function middleware(request: NextRequest) {
       rewriteUrl.protocol = 'https'
       rewriteUrl.port = ''
 
-      return NextResponse.rewrite(rewriteUrl)
+      const headers = new Headers(request.headers)
+
+      if (ALLOW_SEO_INDEXING) {
+        headers.set('x-e2b-should-index', '1')
+      }
+
+      return NextResponse.rewrite(rewriteUrl, {
+        headers,
+      })
     }
 
     // Setup response and Supabase client
