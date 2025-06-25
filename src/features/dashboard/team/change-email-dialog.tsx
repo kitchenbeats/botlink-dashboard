@@ -29,19 +29,21 @@ import {
 } from '@/lib/hooks/use-toast'
 import { UpdateTeamEmailSchema } from '@/server/team/types'
 
-interface EmailChangeDialogProps {
+interface ChangeEmailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   teamId: string
   currentEmail: string
 }
 
-export function EmailChangeDialog({
+export function ChangeEmailDialog({
   open,
   onOpenChange,
   teamId,
   currentEmail,
-}: EmailChangeDialogProps) {
+}: ChangeEmailDialogProps) {
+  'use no memo'
+
   const {
     form,
     resetFormAndAction,

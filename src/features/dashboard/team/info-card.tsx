@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/ui/primitives/badge'
 import CopyButton from '@/ui/copy-button'
 import { useState } from 'react'
-import { EmailChangeDialog } from './email-change-dialog'
+import { ChangeEmailDialog } from './change-email-dialog'
 import { Button } from '@/ui/primitives/button'
 import { Pencil } from 'lucide-react'
 
@@ -68,7 +68,7 @@ export function InfoCard({ className }: InfoCardProps) {
           )}
         </CardContent>
       </Card>
-      <EmailChangeDialog
+      <ChangeEmailDialog
         open={isEmailChangeDialogOpen}
         onOpenChange={setIsEmailChangeDialogOpen}
         teamId={team?.id ?? ''}
