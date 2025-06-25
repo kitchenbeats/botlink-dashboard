@@ -38,4 +38,9 @@ const CreateTeamSchema = z.object({
   name: TeamNameSchema,
 })
 
-export { UpdateTeamNameSchema, CreateTeamSchema }
+const UpdateTeamEmailSchema = z.object({
+  teamId: z.string().uuid(),
+  email: z.string().email({ message: 'Invalid email address' }),
+})
+
+export { UpdateTeamNameSchema, CreateTeamSchema, UpdateTeamEmailSchema }

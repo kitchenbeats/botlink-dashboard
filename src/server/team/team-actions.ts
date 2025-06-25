@@ -15,7 +15,11 @@ import { logWarning } from '@/lib/clients/logger'
 import { returnValidationErrors } from 'next-safe-action'
 import { getTeam } from './get-team'
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
-import { CreateTeamSchema, UpdateTeamNameSchema } from '@/server/team/types'
+import {
+  CreateTeamSchema,
+  UpdateTeamNameSchema,
+  UpdateTeamEmailSchema,
+} from '@/server/team/types'
 import { CreateTeamsResponse } from '@/types/billing'
 
 export const updateTeamNameAction = authActionClient
@@ -308,6 +312,33 @@ export const uploadTeamProfilePictureAction = authActionClient
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
     revalidatePath(`/dashboard`, 'layout')
+
+    return data
+  })
+
+export const updateTeamEmailAction = authActionClient
+  .schema(UpdateTeamEmailSchema)
+  .metadata({ actionName: 'updateTeamEmail' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, email } = parsedInput
+    const { user } = ctx
+
+    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
+
+    if (!isAuthorized) {
+      return returnServerError('User is not authorized to update this team')
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('teams')
+      .update({ email })
+      .eq('id', teamId)
+
+    if (error) {
+      throw error
+    }
+
+    revalidatePath('/dashboard', 'layout')
 
     return data
   })
