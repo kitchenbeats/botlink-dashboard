@@ -83,9 +83,9 @@ export function ChangeEmailDialog({
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Change Team Email</DialogTitle>
+          <DialogTitle>Change Team E-Mail</DialogTitle>
           <DialogDescription>
-            Update the email address associated with this team.
+            Update the e-mail address associated with this team.
           </DialogDescription>
         </DialogHeader>
 
@@ -97,7 +97,7 @@ export function ChangeEmailDialog({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team Email</FormLabel>
+                    <FormLabel>Team E-Mail</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -126,7 +126,7 @@ export function ChangeEmailDialog({
                 disabled={isExecuting}
                 loading={isExecuting}
               >
-                Update Email
+                Update E-Mail
               </Button>
             </DialogFooter>
           </form>
