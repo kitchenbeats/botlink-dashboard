@@ -198,6 +198,22 @@ export default function SignUp() {
         >
           Sign in
         </Link>
+        .
+      </p>
+      <p className="text-fg/40 mt-4 text-sm leading-6">
+        By signing up, you agree to our{' '}
+        <Link href="/terms" target="_blank" className="text-fg/60 font-medium">
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link
+          href="/privacy"
+          target="_blank"
+          className="text-fg/60 font-medium"
+        >
+          Privacy Policy
+        </Link>
+        .
       </p>
 
       {message && <AuthFormMessage className="mt-4" message={message} />}
