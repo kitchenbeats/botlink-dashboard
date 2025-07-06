@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/clients/supabase/server'
 import { redirect } from 'next/navigation'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
-import { logError, logInfo } from '@/lib/clients/logger'
+import { logInfo } from '@/lib/clients/logger'
 import { ERROR_CODES } from '@/configs/logs'
+import { encodedRedirect } from '@/lib/utils/auth'
 
 export async function GET(request: Request) {
   // The `/auth/callback` route is required for the server-side auth flow implemented
@@ -26,11 +27,12 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
-      logError(
+      console.error(
         ERROR_CODES.SUPABASE,
         'Error exchanging code for session:',
         error
       )
+      throw encodedRedirect('error', AUTH_URLS.SIGN_IN, error.message)
     } else {
       logInfo('OTP was successfully exchanged for user:', data.user.id)
     }
