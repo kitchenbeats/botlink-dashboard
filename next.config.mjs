@@ -23,6 +23,25 @@ const config = {
     },
   },
   serverExternalPackages: ['winston', 'next-logger', "fumadocs-mdx"],
+  webpack: (config, { isServer }) => {
+    // Handle .node files
+    config.module.rules.push({
+      test: /\.node$/,
+      use: 'raw-loader',
+    })
+
+    // Externalize native modules to prevent webpack from trying to bundle them
+    if (isServer) {
+      config.externals = config.externals || []
+      config.externals.push({
+        '@napi-rs/snappy-darwin-arm64': 'commonjs @napi-rs/snappy-darwin-arm64',
+        '@napi-rs/snappy-linux-x64-gnu': 'commonjs @napi-rs/snappy-linux-x64-gnu',
+        '@napi-rs/snappy-win32-x64-msvc': 'commonjs @napi-rs/snappy-win32-x64-msvc',
+      })
+    }
+
+    return config
+  },
   trailingSlash: false,
   headers: async () => [
     {

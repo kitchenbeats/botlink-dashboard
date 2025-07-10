@@ -2,6 +2,7 @@
 const { createLogger, transports, format } = require('winston')
 const { context, trace } = require('@opentelemetry/api')
 const { piiRedact } = require('@niveus/winston-utils').formatters
+const LokiTransport = require('winston-loki')
 
 const { combine, timestamp, json } = format
 
@@ -66,6 +67,16 @@ const logger = (defaultConfig = {}) =>
         handleExceptions: true,
         format: json(),
       }),
+      ...(process.env.LOKI_HOST && process.env.LOKI_BASIC_AUTH
+        ? [
+            new LokiTransport({
+              host: process.env.LOKI_HOST,
+              json: true,
+              onConnectionError: (err) => console.error(JSON.stringify(err)),
+              replaceTimestamp: true,
+            }),
+          ]
+        : []),
     ],
     ...defaultConfig,
   })

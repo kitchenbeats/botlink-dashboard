@@ -2,15 +2,23 @@
 // The config you add here will be used whenever the server handles a request.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
 import * as Sentry from '@sentry/nextjs'
+import {
+  SentryPropagator,
+  SentrySampler,
+  SentrySpanProcessor,
+} from '@sentry/opentelemetry'
 
-Sentry.init({
+const client = Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE
     ? parseFloat(process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE)
     : 1.0,
+
+  skipOpenTelemetrySetup: true,
 
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: process.env.NEXT_PUBLIC_SENTRY_DEBUG === '1',
@@ -23,3 +31,15 @@ Sentry.init({
     process.env.NODE_ENV === 'production' &&
     !!process.env.NEXT_PUBLIC_SENTRY_DSN,
 })
+
+const provider = new NodeTracerProvider({
+  sampler: client ? new SentrySampler(client) : undefined,
+  spanProcessors: [new SentrySpanProcessor()],
+})
+
+provider.register({
+  propagator: new SentryPropagator(),
+  contextManager: new Sentry.SentryContextManager(),
+})
+
+Sentry.validateOpenTelemetrySetup()

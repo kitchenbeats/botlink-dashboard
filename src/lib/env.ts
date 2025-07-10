@@ -6,6 +6,12 @@ export const serverSchema = z.object({
   KV_REST_API_TOKEN: z.string().min(1),
   KV_REST_API_URL: z.string().url(),
 
+  GRAFANA_OTEL_ENDPOINT: z.string().url().optional(),
+  GRAFANA_OTEL_AUTH: z.string().min(1).optional(),
+
+  LOKI_HOST: z.string().url().optional(),
+  LOKI_BASIC_AUTH: z.string().min(1).optional(),
+
   BILLING_API_URL: z.string().url().optional(),
   ZEROBOUNCE_API_KEY: z.string().optional(),
   VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
