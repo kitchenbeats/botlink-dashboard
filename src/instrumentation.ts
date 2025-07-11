@@ -1,6 +1,11 @@
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
+import { Context } from '@opentelemetry/api'
+import {
+  ReadableSpan,
+  Span,
+  SpanProcessor,
+} from '@opentelemetry/sdk-trace-node'
 import * as Sentry from '@sentry/nextjs'
-import { OTLPHttpJsonTraceExporter, registerOTel } from '@vercel/otel'
+import { registerOTel } from '@vercel/otel'
 
 /**
  * Grafana Cloud OTLP Configuration
@@ -20,48 +25,38 @@ import { OTLPHttpJsonTraceExporter, registerOTel } from '@vercel/otel'
  * 4. Generate API key and copy connection details
  */
 
+/**
+ * Span processor to reduce cardinality of span names.
+ *
+ * Customize with care!
+ */
+class SpanNameProcessor implements SpanProcessor {
+  forceFlush(): Promise<void> {
+    return Promise.resolve()
+  }
+  onStart(span: Span, parentContext: Context): void {
+    if (span.name.startsWith('GET /_next/static')) {
+      span.updateName('GET /_next/static')
+    } else if (span.name.startsWith('GET /_next/data')) {
+      span.updateName('GET /_next/data')
+    } else if (span.name.startsWith('GET /_next/image')) {
+      span.updateName('GET /_next/image')
+    }
+  }
+  onEnd(span: ReadableSpan): void {}
+  shutdown(): Promise<void> {
+    return Promise.resolve()
+  }
+}
+
 export async function register() {
   const useGrafanaOTEL =
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT &&
     process.env.OTEL_EXPORTER_OTLP_HEADERS
 
-  const buildSpanProcessors = () => {
-    if (!useGrafanaOTEL) {
-      console.info(
-        'INSTRUMENTATION:BUILD_SPAN_PROCESSORS',
-        'Skipping Grafana OTEL - missing required environment variables'
-      )
-      return undefined
-    }
-
-    const headers = process.env.OTEL_EXPORTER_OTLP_HEADERS
-      ? Object.fromEntries(
-          process.env.OTEL_EXPORTER_OTLP_HEADERS.split(',').map((header) => {
-            const [key, value] = header.split('=')
-            return [key?.trim(), value?.trim()]
-          })
-        )
-      : undefined
-
-    console.info('INSTRUMENTATION:BUILD_SPAN_PROCESSORS', {
-      useGrafanaOTEL,
-      grafanaOTELEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
-      hasAuthToken: !!headers,
-    })
-
-    return [
-      new BatchSpanProcessor(
-        new OTLPHttpJsonTraceExporter({
-          url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
-          headers,
-        })
-      ),
-    ]
-  }
-
   registerOTel({
-    serviceName: 'dashboard',
-    spanProcessors: buildSpanProcessors(),
+    serviceName: process.env.OTEL_SERVICE_NAME || 'unknown_service:node',
+    spanProcessors: ['auto', new SpanNameProcessor()],
   })
 
   if (process.env.NEXT_RUNTIME === 'nodejs') {
