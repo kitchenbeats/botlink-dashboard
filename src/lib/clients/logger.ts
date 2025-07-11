@@ -1,11 +1,3 @@
-/**
- * Universal logger that picks the correct implementation for the current runtime
- * (Node, Edge, Browser) and exposes an API compatible with `pino`.
- *
- * In Node & Browser we return the real pino instance.
- * In Edge we fall back to the minimal JSON logger implemented in `logger.edge.ts`.
- */
-
 import type { Logger } from 'winston'
 
 const loggerImpl = ((): Logger => {

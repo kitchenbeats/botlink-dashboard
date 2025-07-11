@@ -6,8 +6,8 @@ export const serverSchema = z.object({
   KV_REST_API_TOKEN: z.string().min(1),
   KV_REST_API_URL: z.string().url(),
 
-  GRAFANA_OTEL_ENDPOINT: z.string().url().optional(),
-  GRAFANA_OTEL_AUTH: z.string().min(1).optional(),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_EXPORTER_OTLP_HEADERS: z.string().optional(),
 
   LOKI_HOST: z.string().url().optional(),
   LOKI_BASIC_AUTH: z.string().min(1).optional(),
