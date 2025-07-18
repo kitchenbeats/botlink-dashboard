@@ -1,6 +1,14 @@
 import { nanoid } from 'nanoid'
-import { DefaultTemplate, Sandbox, SandboxMetrics, Template } from '@/types/api'
+import {
+  DefaultTemplate,
+  Sandbox,
+  Sandboxes,
+  SandboxesMetricsRecord,
+  Template,
+} from '@/types/api'
 import { addHours, subHours } from 'date-fns'
+import { MetricsResponse } from '@/app/api/teams/[teamId]/sandboxes/metrics/types'
+import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
 
 const DEFAULT_TEMPLATES: DefaultTemplate[] = [
   {
@@ -218,8 +226,8 @@ const COMPONENTS = [
   'monitoring',
 ] as const
 
-function generateMockSandboxes(count: number): Sandbox[] {
-  const sandboxes: Sandbox[] = []
+function generateMockSandboxes(count: number): Sandboxes {
+  const sandboxes: Sandboxes = []
   const baseDate = new Date()
 
   for (let i = 0; i < count; i++) {
@@ -318,10 +326,8 @@ function generateMockSandboxes(count: number): Sandbox[] {
   return sandboxes
 }
 
-function generateMockMetrics(
-  sandboxes: Sandbox[]
-): Map<string, SandboxMetrics> {
-  const metrics = new Map<string, SandboxMetrics>()
+function generateMockMetrics(sandboxes: Sandbox[]): MetricsResponse {
+  const metrics: ClientSandboxesMetrics = {}
 
   // Define characteristics by template type
   const templatePatterns: Record<
@@ -385,22 +391,24 @@ function generateMockMetrics(
     // Memory calculation
     const memoryNoise = (Math.random() - 0.5) * memVolatility
     const memPct = memBaseline + baseLoad * memVolatility + memoryNoise
-    const memMiBUsed = Math.floor(sandbox.memoryMB * Math.min(0.945, memPct))
+    const memUsedMb = Math.floor(sandbox.memoryMB * Math.min(1.0, memPct))
 
-    metrics.set(sandbox.sandboxID, {
+    metrics[sandbox.sandboxID] = {
       cpuCount: sandbox.cpuCount,
       cpuUsedPct,
-      memTotalMiB: Math.round(sandbox.memoryMB * 0.945),
-      memUsedMiB: memMiBUsed,
+      memTotalMb: sandbox.memoryMB,
+      memUsedMb: memUsedMb,
       timestamp: new Date().toISOString(),
-    })
+    }
   }
 
-  return metrics
+  return {
+    metrics,
+  }
 }
 
 export const MOCK_METRICS_DATA = (sandboxes: Sandbox[]) =>
   generateMockMetrics(sandboxes)
-export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(300)
+export const MOCK_SANDBOXES_DATA = () => generateMockSandboxes(120)
 export const MOCK_TEMPLATES_DATA = TEMPLATES
 export const MOCK_DEFAULT_TEMPLATES_DATA = DEFAULT_TEMPLATES
