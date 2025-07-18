@@ -65,7 +65,6 @@ export const useSandboxTableStore = create<Store>()(
   persist(
     (set, get) => ({
       ...initialState,
-
       // Table actions
       setSorting: (sorting) => {
         set((state) => ({

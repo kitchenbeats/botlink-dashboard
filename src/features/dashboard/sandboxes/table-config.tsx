@@ -2,26 +2,30 @@
 
 'use client'
 
-import { ArrowUpRight, Cpu, PinIcon, X } from 'lucide-react'
-import { ColumnDef, FilterFn } from '@tanstack/react-table'
+import { ColumnDef, FilterFn, useReactTable } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
-import { Sandbox, SandboxMetrics, Template } from '@/types/api'
-import { Badge } from '@/ui/primitives/badge'
-import { PROTECTED_URLS } from '@/configs/urls'
+import { Sandbox } from '@/types/api'
 import { DateRange } from 'react-day-picker'
 import { isWithinInterval } from 'date-fns'
-import { CgSmartphoneRam } from 'react-icons/cg'
-import { cn } from '@/lib/utils'
-import { useMemo } from 'react'
-import { Button } from '@/ui/primitives/button'
-import { useRouter } from 'next/navigation'
-import { useTemplateTableStore } from '../templates/stores/table-store'
-import { useServerContext } from '@/lib/hooks/use-server-context'
-import { JsonPopover } from '@/ui/json-popover'
+
+import {
+  CpuUsageCell,
+  RamUsageCell,
+  IdCell,
+  TemplateCell,
+  MetadataCell,
+  StartedAtCell,
+} from './table-cells'
 import posthog from 'posthog-js'
 import { logError } from '@/lib/clients/logger'
+import { ClientSandboxMetric } from '@/types/sandboxes.types'
 
-export type SandboxWithMetrics = Sandbox & { metrics: SandboxMetrics[] }
+export type SandboxWithMetrics = Sandbox & {
+  metrics?: ClientSandboxMetric | null
+}
+export type SandboxesTable = ReturnType<
+  typeof useReactTable<SandboxWithMetrics>
+>
 
 export const trackTableInteraction = (
   action: string,
@@ -35,7 +39,7 @@ export const trackTableInteraction = (
 
 // FILTERS
 
-export const fuzzyFilter: FilterFn<Sandbox> = (
+export const fuzzyFilter: FilterFn<SandboxWithMetrics> = (
   row,
   columnId,
   value,
@@ -69,7 +73,7 @@ export const fuzzyFilter: FilterFn<Sandbox> = (
   return itemRank.passed
 }
 
-export const dateRangeFilter: FilterFn<Sandbox> = (
+export const dateRangeFilter: FilterFn<SandboxWithMetrics> = (
   row,
   columnId,
   value: DateRange,
@@ -94,19 +98,6 @@ export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
   columnId,
   value: number
 ) => {
-  /* NOTE: Currently disabled due to issue with the metrics api
-   if (columnId === 'cpuUsage') {
-    const rowValue = row.original.cpuCount
-    if (!rowValue || !value || value === 0) return true
-    return rowValue === value
-  }
-
-  if (columnId === 'ramUsage') {
-    const rowValue = row.original.memoryMB
-    if (!rowValue || !value || value === 0) return true
-    return rowValue === value
-  } */
-
   if (columnId === 'cpuCount') {
     const rowValue = row.original.cpuCount
     if (!rowValue || !value || value === 0) return true
@@ -124,39 +115,14 @@ export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
 
 // TABLE CONFIG
 
-export const fallbackData: Sandbox[] = []
+export const fallbackData: SandboxWithMetrics[] = []
 
-export const COLUMNS: ColumnDef<Sandbox>[] = [
-  // FIXME: Currently disabled due to issues with url state management when sandboxes dissapear
-  /*   {
-    id: 'pin',
-    cell: ({ row }) => (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="text-fg-500 size-5"
-        onClick={() => row.pin(row.getIsPinned() ? false : 'top')}
-      >
-        {row.getIsPinned() ? (
-          <X className="size-3" />
-        ) : (
-          <PinIcon className="size-3" />
-        )}
-      </Button>
-    ),
-    size: 35,
-    enableResizing: false,
-    enableColumnFilter: false,
-  }, */
+export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
   {
-    accessorFn: (row) => `${row?.sandboxID}-${row?.clientID}`,
+    accessorKey: 'sandboxID',
     header: 'ID',
-    cell: ({ getValue }) => (
-      <div className="text-fg-500 truncate font-mono text-xs">
-        {getValue() as string}
-      </div>
-    ),
-    size: 300,
+    cell: IdCell,
+    size: 190,
     minSize: 100,
     enableColumnFilter: false,
     enableSorting: false,
@@ -166,177 +132,52 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     accessorKey: 'templateID',
     id: 'template',
     header: 'TEMPLATE',
-    cell: ({ getValue, table }) => {
-      const templateId = getValue() as string
-      const template: Template | undefined = table
-        .getState()
-        // @ts-expect-error - templates state not in type definition
-        .templates.find((t: Template) => t.templateID === templateId)
-
-      const { selectedTeamSlug, selectedTeamId } = useServerContext()
-
-      const router = useRouter()
-
-      if (!selectedTeamSlug || !selectedTeamId) return null
-
-      return (
-        <Button
-          variant="link"
-          className="text-fg h-auto p-0 text-xs normal-case"
-          onClick={() => {
-            useTemplateTableStore.getState().setGlobalFilter(templateId)
-            router.push(
-              PROTECTED_URLS.TEMPLATES(selectedTeamSlug ?? selectedTeamId)
-            )
-          }}
-        >
-          {template?.aliases?.[0] ?? templateId}
-          <ArrowUpRight className="size-3" />
-        </Button>
-      )
-    },
+    cell: TemplateCell,
     size: 250,
     minSize: 180,
     filterFn: 'arrIncludesSome',
     enableGlobalFilter: true,
   },
   {
-    id: 'cpuCount',
-    header: 'CPU Count',
-    cell: ({ row }) => {
-      const cpuCount = row.original.cpuCount
-
-      return (
-        <Badge className={cn('text-fg-500 px-0 font-mono whitespace-nowrap')}>
-          <span className={cn('text-contrast-2 flex items-center gap-0.5')}>
-            <Cpu className={cn('size-3')} /> {cpuCount}{' '}
-          </span>{' '}
-          core{cpuCount > 1 ? 's' : ''}
-        </Badge>
-      )
-    },
-    size: 130,
-    minSize: 130,
-    // @ts-expect-error resourceRange is not a valid filterFn
-    filterFn: 'resourceRange',
-    enableGlobalFilter: false,
-  },
-  {
-    id: 'memoryMB',
-    header: 'Memory',
-    cell: ({ row }) => {
-      const memoryMB = row.original.memoryMB
-      return (
-        <Badge className={cn('text-fg-500 px-0 font-mono whitespace-nowrap')}>
-          <span className={cn('text-contrast-1 flex items-center gap-0.5')}>
-            <CgSmartphoneRam className={cn('size-3')} /> {memoryMB}{' '}
-          </span>{' '}
-          MB
-        </Badge>
-      )
-    },
-    size: 105,
-    minSize: 105,
-    // @ts-expect-error resourceRange is not a valid filterFn
-    filterFn: 'resourceRange',
-    enableGlobalFilter: false,
-  },
-  // NOTE: Currently disabled due to issue with the metrics api
-  /*   {
     id: 'cpuUsage',
-    accessorFn: (row) => row.metrics[0]?.cpuUsedPct ?? 0,
     header: 'CPU Usage',
-    cell: ({ getValue, row }) => {
-      const cpu = getValue() as number
-
-      const textClassName = cn(
-        cpu >= 80 ? 'text-error' : cpu >= 50 ? 'text-warning' : 'text-success'
-      )
-
-      return (
-        <Badge className={cn('font-mono whitespace-nowrap')}>
-          <span className={cn('mr-1 flex items-center gap-1', textClassName)}>
-            <Cpu className={cn('size-3', textClassName)} /> {cpu.toFixed(0)}%
-          </span>{' '}
-          · {row.original.cpuCount} core
-          {row.original.cpuCount > 1 ? 's' : ''}
-        </Badge>
-      )
-    },
-    size: 170,
-    minSize: 170,
-    // @ts-expect-error resourceRange is not a valid filterFn
-    filterFn: 'resourceRange',
+    accessorFn: (row) => row.metrics?.cpuUsedPct,
+    cell: ({ row }) => (
+      <CpuUsageCell
+        metrics={row.original.metrics}
+        cpuCount={row.original.cpuCount ?? null}
+      />
+    ),
+    size: 175,
+    minSize: 120,
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: 'ramUsage',
+    header: 'Memory Usage',
     accessorFn: (row) => {
-      if (!row.metrics[0]?.memUsedMiB || !row.metrics[0]?.memTotalMiB) return 0
-      return (row.metrics[0]?.memUsedMiB / row.metrics[0]?.memTotalMiB) * 100
+      if (row.metrics?.memUsedMb && row.metrics.memTotalMb) {
+        return (row.metrics.memUsedMb / row.metrics.memTotalMb) * 100
+      }
+      return 0
     },
-    header: 'RAM Usage',
-    cell: ({ getValue, row }) => {
-      const ramPercentage = getValue() as number
-
-      const totalRamMB = row.original.memoryMB
-
-      // Convert MiB to MB - memoize this calculation
-      const usedRamMB = useMemo(() => {
-        return Math.round(row.original.metrics[0]?.memUsedMiB / 0.945)
-      }, [row.original.metrics[0]?.memUsedMiB])
-
-      // Memoize the text class name calculation
-      const textClassName = useMemo(() => {
-        return cn(
-          ramPercentage >= 80
-            ? 'text-error'
-            : ramPercentage >= 50
-              ? 'text-warning'
-              : 'text-success'
-        )
-      }, [ramPercentage])
-
-      // Memoize the badge content to prevent unnecessary re-renders
-      const badgeContent = useMemo(() => {
-        return (
-          <>
-            <span className={cn('flex items-center gap-1', textClassName)}>
-              <CgSmartphoneRam className={cn('size-3', textClassName)} />{' '}
-              {usedRamMB.toLocaleString()}
-            </span>{' '}
-            /{totalRamMB.toLocaleString()} MB
-          </>
-        )
-      }, [textClassName, usedRamMB, totalRamMB])
-
-      return (
-        <Badge className={'gap-0 font-mono whitespace-nowrap'}>
-          {badgeContent}
-        </Badge>
-      )
-    },
-    size: 160,
+    cell: ({ row }) => (
+      <RamUsageCell
+        metrics={row.original.metrics}
+        memoryMB={row.original.memoryMB}
+      />
+    ),
+    size: 175,
     minSize: 160,
-    // @ts-expect-error resourceRange is not a valid filterFn
-    filterFn: 'resourceRange',
-  }, */
+    enableSorting: true,
+    enableColumnFilter: false,
+  },
   {
     id: 'metadata',
     accessorFn: (row) => JSON.stringify(row.metadata ?? {}),
     header: 'Metadata',
-    cell: ({ getValue }) => {
-      const value = getValue() as string
-      const json = useMemo(() => JSON.parse(value), [value])
-
-      return (
-        <JsonPopover
-          className="text-fg-500 hover:text-fg hover:underline"
-          json={json}
-        >
-          {value}
-        </JsonPopover>
-      )
-    },
+    cell: MetadataCell,
     filterFn: 'includesStringSensitive',
     enableGlobalFilter: true,
     size: 200,
@@ -346,25 +187,7 @@ export const COLUMNS: ColumnDef<Sandbox>[] = [
     id: 'startedAt',
     accessorKey: 'startedAt',
     header: 'Started At',
-    cell: ({ row, getValue }) => {
-      const dateValue = getValue() as string
-
-      const dateTimeString = useMemo(() => {
-        return new Date(dateValue).toUTCString()
-      }, [dateValue])
-
-      const [day, date, month, year, time, timezone] = useMemo(() => {
-        return dateTimeString.split(' ')
-      }, [dateTimeString])
-
-      return (
-        <div className={cn('h-full truncate font-mono text-xs')}>
-          <span className="text-fg-500">{`${day} ${date} ${month} ${year}`}</span>{' '}
-          <span className="text-fg">{time}</span>{' '}
-          <span className="text-fg-500">{timezone}</span>
-        </div>
-      )
-    },
+    cell: StartedAtCell,
     size: 250,
     minSize: 140,
     // @ts-expect-error dateRange is not a valid filterFn

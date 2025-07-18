@@ -72,7 +72,7 @@ function DataTableHead<TData, TValue>({
 
       {header.column.getCanResize() && (
         <div
-          className="ml-auto h-full cursor-ew-resize px-2"
+          className="ml-auto h-full cursor-ew-resize pl-2"
           onTouchStart={header.getResizeHandler()}
           onMouseDown={header.getResizeHandler()}
           onClick={(e) => {
@@ -131,7 +131,7 @@ const DataTableRow = React.forwardRef<HTMLDivElement, DataTableRowProps>(
           {
             'bg-bg-200': isSelected,
           },
-          'odd:bg-bg even:bg-bg-100/80',
+          'bg-bg',
           className
         )}
         {...props}

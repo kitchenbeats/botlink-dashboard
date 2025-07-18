@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useMemo, memo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 import {
   ColumnFiltersState,
@@ -10,16 +10,16 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   FilterFn,
+  Row,
 } from '@tanstack/react-table'
 import { DataTable } from '@/ui/data-table'
 import useIsMounted from '@/lib/hooks/use-is-mounted'
 import {
-  fallbackData,
-  SandboxWithMetrics,
   fuzzyFilter,
   dateRangeFilter,
   resourceRangeFilter,
   COLUMNS,
+  SandboxWithMetrics,
 } from './table-config'
 import React from 'react'
 import { useSandboxTableStore } from '@/features/dashboard/sandboxes/stores/table-store'
@@ -32,17 +32,22 @@ import ClientOnly from '@/ui/client-only'
 import TableHeader from './table-header'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_TRANSITION_CLASSNAMES } from '@/ui/primitives/sidebar'
+import { useSandboxesMetrics } from './hooks/use-sandboxes-metrics'
+import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { SANDBOXES_METRICS_POLLING_MS } from '@/configs/intervals'
 
 const INITIAL_VISUAL_ROWS_COUNT = 50
 
 interface SandboxesTableProps {
   sandboxes: Sandbox[]
   templates: Template[]
+  initialMetrics: ClientSandboxesMetrics | null
 }
 
 export default function SandboxesTable({
   sandboxes,
   templates,
+  initialMetrics,
 }: SandboxesTableProps) {
   'use no memo'
 
@@ -133,23 +138,9 @@ export default function SandboxesTable({
       newFilters.push({ id: 'memoryMB', value: memoryMB })
     }
 
-    /* NOTE: Currently disabled due to issue with the metrics api
-    if (!cpuCount) {
-      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
-    } else {
-      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
-      newFilters.push({ id: 'cpuUsage', value: cpuCount })
-    }
-
-    if (!memoryMB) {
-      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
-    } else {
-      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
-      newFilters.push({ id: 'ramUsage', value: memoryMB })
-    } */
-
     resetScroll()
     setColumnFilters(newFilters)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startedAtFilter, templateIds, cpuCount, memoryMB])
 
   // effect hook for scrolling to top when sorting or global filter changes
@@ -157,16 +148,34 @@ export default function SandboxesTable({
     resetScroll()
   }, [sorting, globalFilter])
 
+  const [visualRows, setVisualRows] = React.useState<Row<SandboxWithMetrics>[]>(
+    []
+  )
+
+  const { metrics } = useSandboxesMetrics({
+    initialMetrics,
+    sandboxes: visualRows.map((row) => row.original),
+    pollingInterval: SANDBOXES_METRICS_POLLING_MS,
+  })
+
+  const data = useMemo(() => {
+    const result = sandboxes.map((sandbox) => ({
+      ...sandbox,
+      metrics: metrics?.[sandbox.sandboxID] ?? null,
+    })) as SandboxWithMetrics[]
+
+    return result
+  }, [sandboxes, metrics])
+
   const table = useReactTable({
     columns: COLUMNS,
-    data: sandboxes ?? fallbackData,
+    data,
     state: {
       globalFilter,
       sorting,
       columnSizing,
       columnFilters,
       rowPinning,
-      // @ts-expect-error - templates state not in type definition
       templates,
     },
     getCoreRowModel: getCoreRowModel(),
@@ -183,7 +192,7 @@ export default function SandboxesTable({
       resourceRange: resourceRangeFilter,
     },
     enableGlobalFilter: true,
-    globalFilterFn: fuzzyFilter as FilterFn<Sandbox>,
+    globalFilterFn: fuzzyFilter as FilterFn<SandboxWithMetrics>,
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -195,10 +204,9 @@ export default function SandboxesTable({
 
   const centerRows = table.getCenterRows()
 
-  const visualRows = useMemo(
-    () => centerRows.slice(0, visualRowsCount),
-    [centerRows, visualRowsCount]
-  )
+  useEffect(() => {
+    setVisualRows(centerRows.slice(0, visualRowsCount))
+  }, [centerRows, visualRowsCount])
 
   const handleBottomReached = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget

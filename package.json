@@ -17,7 +17,7 @@
     "db:migrations:create": "bun run scripts:create-migration",
     "db:migrations:apply": "bun run scripts:apply-migrations",
     "<<<<<< Gen": "",
-    "generate:infra": "bunx openapi-typescript https://raw.githubusercontent.com/e2b-dev/infra/main/spec/openapi.yml -o ./src/types/infra-api.d.ts",
+    "generate:infra": "bunx openapi-typescript ./spec/openapi.yaml -o ./src/types/infra-api.d.ts",
     "generate:supabase": "bunx supabase@latest gen types typescript --schema public > src/types/database.types.ts --project-id $SUPABASE_PROJECT_ID",
     "generate:envd": "buf generate --template ./spec/envd/buf.gen.yaml",
     "<<<<<< Scripts": "",
@@ -37,7 +37,8 @@
     "test:e2e": "bun scripts:check-all-env && vitest run src/__test__/e2e/",
     "test:watch": "bun scripts:check-all-env && vitest",
     "test:ui": "bun scripts:check-all-env && vitest --ui",
-    "test:ui:integration": "bun scripts:check-app-env && vitest --ui src/__test__/integration/"
+    "test:ui:integration": "bun scripts:check-app-env && vitest --ui src/__test__/integration/",
+    "test:development:metrics": "vitest run src/__test__/development/metrics.test.ts"
   },
   "dependencies": {
     "@connectrpc/connect": "^2.0.2",
@@ -112,6 +113,7 @@
     "remark-math": "^6.0.0",
     "remark-mermaid": "^0.2.0",
     "shiki": "3.2.1",
+    "swr": "^2.3.4",
     "tailwind-merge": "^2.6.0",
     "usehooks-ts": "^3.1.0",
     "vaul": "^1.1.2",
@@ -121,7 +123,11 @@
     "zustand-computed": "^2.0.2"
   },
   "devDependencies": {
+    "@bufbuild/buf": "^1.54.0",
+    "@bufbuild/protobuf": "^2.5.2",
+    "@bufbuild/protoc-gen-es": "^2.5.2",
     "@chromatic-com/storybook": "^3.2.4",
+    "@connectrpc/protoc-gen-connect-es": "^1.6.1",
     "@next/eslint-plugin-next": "^15.1.6",
     "@storybook/addon-essentials": "^8.5.2",
     "@storybook/addon-interactions": "^8.5.2",
@@ -144,6 +150,7 @@
     "autoprefixer": "^10.4.20",
     "babel-plugin-react-compiler": "19.0.0-beta-27714ef-20250124",
     "drizzle-kit": "^0.30.3",
+    "e2b": "^1.7.1",
     "eslint": "^9.19.0",
     "eslint-config-next": "^15.1.6",
     "eslint-config-prettier": "^10.0.1",
@@ -160,11 +167,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.19.2",
     "typescript": "5.7.3",
-    "vitest": "^3.0.7",
-    "@bufbuild/buf": "^1.54.0",
-    "@bufbuild/protobuf": "^2.5.2",
-    "@bufbuild/protoc-gen-es": "^2.5.2",
-    "@connectrpc/protoc-gen-connect-es": "^1.6.1"
+    "vitest": "^3.0.7"
   },
   "resolutions": {
     "whatwg-url": "^13",
