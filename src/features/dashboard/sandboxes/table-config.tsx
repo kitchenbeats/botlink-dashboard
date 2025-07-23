@@ -19,6 +19,8 @@ import {
 import posthog from 'posthog-js'
 import { logError } from '@/lib/clients/logger'
 import { ClientSandboxMetric } from '@/types/sandboxes.types'
+import { useSandboxTableStore } from './stores/table-store'
+import { Row } from '@tanstack/react-table'
 
 export type SandboxWithMetrics = Sandbox & {
   metrics?: ClientSandboxMetric | null
@@ -98,13 +100,13 @@ export const resourceRangeFilter: FilterFn<SandboxWithMetrics> = (
   columnId,
   value: number
 ) => {
-  if (columnId === 'cpuCount') {
+  if (columnId === 'cpuUsage') {
     const rowValue = row.original.cpuCount
     if (!rowValue || !value || value === 0) return true
     return rowValue === value
   }
 
-  if (columnId === 'memoryMB') {
+  if (columnId === 'ramUsage') {
     const rowValue = row.original.memoryMB
     if (!rowValue || !value || value === 0) return true
     return rowValue === value
@@ -141,37 +143,22 @@ export const COLUMNS: ColumnDef<SandboxWithMetrics>[] = [
   {
     id: 'cpuUsage',
     header: 'CPU Usage',
-    accessorFn: (row) => row.metrics?.cpuUsedPct,
-    cell: ({ row }) => (
-      <CpuUsageCell
-        metrics={row.original.metrics}
-        cpuCount={row.original.cpuCount ?? null}
-      />
-    ),
+    cell: (props) => <CpuUsageCell {...props} />,
     size: 175,
     minSize: 120,
-    enableSorting: true,
-    enableColumnFilter: false,
+    enableSorting: false,
+    enableColumnFilter: true,
+    filterFn: resourceRangeFilter,
   },
   {
     id: 'ramUsage',
     header: 'Memory Usage',
-    accessorFn: (row) => {
-      if (row.metrics?.memUsedMb && row.metrics.memTotalMb) {
-        return (row.metrics.memUsedMb / row.metrics.memTotalMb) * 100
-      }
-      return 0
-    },
-    cell: ({ row }) => (
-      <RamUsageCell
-        metrics={row.original.metrics}
-        memoryMB={row.original.memoryMB}
-      />
-    ),
+    cell: (props) => <RamUsageCell {...props} />,
     size: 175,
     minSize: 160,
-    enableSorting: true,
-    enableColumnFilter: false,
+    enableSorting: false,
+    enableColumnFilter: true,
+    filterFn: resourceRangeFilter,
   },
   {
     id: 'metadata',

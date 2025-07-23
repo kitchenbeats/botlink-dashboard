@@ -35,6 +35,7 @@ import { SIDEBAR_TRANSITION_CLASSNAMES } from '@/ui/primitives/sidebar'
 import { useSandboxesMetrics } from './hooks/use-sandboxes-metrics'
 import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
 import { SANDBOXES_METRICS_POLLING_MS } from '@/configs/intervals'
+import { useSandboxMetricsStore } from './stores/metrics-store'
 
 const INITIAL_VISUAL_ROWS_COUNT = 50
 
@@ -124,18 +125,18 @@ export default function SandboxesTable({
 
     // Handle CPU filter
     if (!cpuCount) {
-      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
+      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== 'cpuCount')
-      newFilters.push({ id: 'cpuCount', value: cpuCount })
+      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
+      newFilters.push({ id: 'cpuUsage', value: cpuCount })
     }
 
     // Handle memory filter
     if (!memoryMB) {
-      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
+      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
     } else {
-      newFilters = newFilters.filter((f) => f.id !== 'memoryMB')
-      newFilters.push({ id: 'memoryMB', value: memoryMB })
+      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
+      newFilters.push({ id: 'ramUsage', value: memoryMB })
     }
 
     resetScroll()
@@ -152,20 +153,13 @@ export default function SandboxesTable({
     []
   )
 
-  const { metrics } = useSandboxesMetrics({
+  useSandboxesMetrics({
     initialMetrics,
     sandboxes: visualRows.map((row) => row.original),
     pollingInterval: SANDBOXES_METRICS_POLLING_MS,
   })
 
-  const data = useMemo(() => {
-    const result = sandboxes.map((sandbox) => ({
-      ...sandbox,
-      metrics: metrics?.[sandbox.sandboxID] ?? null,
-    })) as SandboxWithMetrics[]
-
-    return result
-  }, [sandboxes, metrics])
+  const data = useMemo(() => sandboxes, [sandboxes])
 
   const table = useReactTable({
     columns: COLUMNS,
