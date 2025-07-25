@@ -1,5 +1,5 @@
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
-import { logInfo, logError } from '@/lib/clients/logger'
+import { l } from '@/lib/clients/logger'
 import { createClient } from '@/lib/clients/supabase/server'
 import { encodedRedirect } from '@/lib/utils/auth'
 import { redirect } from 'next/navigation'
@@ -34,9 +34,12 @@ export async function GET(request: NextRequest) {
   const dashboardSignInUrl = new URL(request.nextUrl.origin + AUTH_URLS.SIGN_IN)
 
   if (!result.success) {
-    logError('AUTH_CONFIRM_INVALID_PARAMS', {
+    l.error('AUTH_CONFIRM:INVALID_PARAMS', result.error, {
       errors: result.error.errors,
+      type: searchParams.get('type'),
+      next: searchParams.get('next'),
     })
+
     return encodedRedirect(
       'error',
       dashboardSignInUrl.toString(),
@@ -58,7 +61,7 @@ export async function GET(request: NextRequest) {
     normalizeOrigin(new URL(supabaseRedirectTo).origin) !==
       normalizeOrigin(dashboardUrl.origin)
 
-  logInfo('AUTH_CONFIRM_INIT', {
+  l.info('AUTH_CONFIRM:INIT', {
     supabase_token_hash: supabaseTokenHash
       ? `${supabaseTokenHash.slice(0, 10)}...`
       : null,
@@ -86,20 +89,17 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { error, data } = await supabase.auth.verifyOtp({
       type: supabaseType,
       token_hash: supabaseTokenHash,
     })
 
     if (error) {
-      logError('AUTH_CONFIRM_ERROR', {
+      l.error('AUTH_CONFIRM:ERROR', error, {
         supabaseTokenHash: `${supabaseTokenHash.slice(0, 10)}...`,
         supabaseType,
         supabaseRedirectTo,
         redirectUrl: redirectUrl.toString(),
-        errorCode: error.code,
-        errorStatus: error.status,
-        errorMessage: error.message,
       })
 
       let errorMessage = 'Invalid Token'
@@ -121,19 +121,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectUrl.toString())
     }
 
-    logInfo('AUTH_CONFIRM_SUCCESS', {
+    l.info('AUTH_CONFIRM:SUCCESS', {
       supabaseTokenHash: `${supabaseTokenHash.slice(0, 10)}...`,
       supabaseType,
       supabaseRedirectTo,
       redirectUrl: redirectUrl.toString(),
       reauth: redirectUrl.searchParams.get('reauth'),
+      userId: data?.user?.id,
     })
 
     return NextResponse.redirect(redirectUrl.toString())
   } catch (e) {
-    logError('AUTH_CONFIRM_ERROR', {
-      error: e,
+    l.error('AUTH_CONFIRM:ERROR', e, {
+      supabaseTokenHash: `${supabaseTokenHash.slice(0, 10)}...`,
+      supabaseType,
+      supabaseRedirectTo,
     })
+
     return encodedRedirect(
       'error',
       dashboardSignInUrl.toString(),
