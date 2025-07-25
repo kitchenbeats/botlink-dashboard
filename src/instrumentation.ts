@@ -1,6 +1,16 @@
 import * as Sentry from '@sentry/nextjs'
+import { registerOTel } from '@vercel/otel'
 
 export async function register() {
+  registerOTel({
+    serviceName: process.env.OTEL_SERVICE_NAME || 'e2b-dashboard',
+    instrumentationConfig: {
+      fetch: {
+        propagateContextUrls: [],
+      },
+    },
+  })
+
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     await import('../sentry.server.config')
     await import('winston')
