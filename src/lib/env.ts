@@ -7,6 +7,7 @@ export const serverSchema = z.object({
   KV_REST_API_URL: z.string().url(),
 
   BILLING_API_URL: z.string().url().optional(),
+  OTEL_SERVICE_NAME: z.string().optional(),
   ZEROBOUNCE_API_KEY: z.string().optional(),
   VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
   VERCEL_URL: z.string().optional(),
@@ -20,7 +21,6 @@ export const clientSchema = z.object({
 
   NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_INCLUDE_BILLING: z.string().optional(),
-  NEXT_PUBLIC_EXPOSE_STORYBOOK: z.string().optional(),
   NEXT_PUBLIC_SCAN: z.string().optional(),
   NEXT_PUBLIC_MOCK_DATA: z.string().optional(),
   NEXT_PUBLIC_VERBOSE: z.string().optional(),
