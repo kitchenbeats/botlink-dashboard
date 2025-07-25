@@ -1,11 +1,11 @@
-import { z } from 'zod'
-import { authActionClient } from '@/lib/clients/action'
-import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
-import { handleDefaultInfraError } from '@/lib/utils/action'
-import { logError } from '@/lib/clients/logger'
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
-import { transformMetricsToClientMetrics } from '@/lib/utils/sandboxes'
+import { authActionClient } from '@/lib/clients/action'
 import { infra } from '@/lib/clients/api'
+import { l } from '@/lib/clients/logger'
+import { handleDefaultInfraError } from '@/lib/utils/action'
+import { transformMetricsToClientMetrics } from '@/lib/utils/sandboxes'
+import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { z } from 'zod'
 
 const GetTeamSandboxesMetricsSchema = z.object({
   teamId: z.string(),
@@ -51,7 +51,13 @@ export const getTeamSandboxesMetrics = authActionClient
       if (infraRes.error) {
         const status = infraRes.response.status
 
-        logError('/sandboxes/metrics', status, infraRes.error, infraRes.data)
+        l.error('GET_TEAM_SANDBOXES_METRICS:INFRA_ERROR', infraRes.error, {
+          path: '/sandboxes/metrics',
+          teamId,
+          userId: session.user.id,
+          status,
+          sandboxIds,
+        })
 
         return handleDefaultInfraError(status)
       }
