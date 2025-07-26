@@ -72,6 +72,19 @@ const config = {
       destination: '/',
       permanent: true,
     },
+    // Campaigns
+    {
+      source: '/start',
+      destination: '/careers',
+      permanent: false,
+      statusCode: 302,
+    },
+    {
+      source: '/(humans|machines)',
+      destination: '/enterprise?utm_source=billboard&utm_medium=outdoor&utm_campaign=launch_2025&utm_content=machines_ooh',
+      permanent: false,
+      statusCode: 302,
+    }
   ],
   skipTrailingSlashRedirect: true,
 }
