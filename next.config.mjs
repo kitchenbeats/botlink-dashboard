@@ -1,5 +1,20 @@
 import { withSentryConfig } from '@sentry/nextjs'
 
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' ${process.env.CSP_SCRIPT_SRC};
+    style-src 'self' 'unsafe-inline' ${process.env.CSP_STYLE_SRC};
+    img-src 'self' data: https://avatars.githubusercontent.com https://lh3.googleusercontent.com ${process.env.NEXT_PUBLIC_SUPABASE_URL} ${process.env.CSP_IMG_SRC};
+    frame-src 'self' https://vercel.live ${process.env.CSP_FRAME_SRC};
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    worker-src 'self' blob: ${process.env.CSP_SCRIPT_SRC};
+    upgrade-insecure-requests;
+`
+
 /** @type {import('next').NextConfig} */
 const config = {
   eslint: {
@@ -43,6 +58,17 @@ const config = {
         },
       ],
     },
+    // CSP is only enabled in production and can be disabled by setting CSP_DISABLE=1
+    process.env.NODE_ENV === 'production' &&
+      process.env.CSP_DISABLED !== '1' && {
+        source: '/dashboard/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\n/g, ''),
+          },
+        ],
+      },
   ],
   rewrites: async () => [
     {
