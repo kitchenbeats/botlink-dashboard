@@ -1,10 +1,11 @@
 import { withSentryConfig } from '@sentry/nextjs'
-import { createMDX } from 'fumadocs-mdx/next'
 
-const withMDX = createMDX()
 
 /** @type {import('next').NextConfig} */
 const config = {
+  eslint: {
+    dirs: ['src', 'scripts'], // Only run ESLint on these directories during production builds
+  },
   reactStrictMode: true,
   experimental: {
     reactCompiler: true,
@@ -26,7 +27,7 @@ const config = {
   trailingSlash: false,
   headers: async () => [
     {
-      source: '/:path*',
+      source: '/(.*)',
       headers: [
         {
           // config to prevent the browser from rendering the page inside a frame or iframe and avoid clickjacking http://en.wikipedia.org/wiki/Clickjacking
@@ -95,7 +96,7 @@ const config = {
   skipTrailingSlashRedirect: true,
 }
 
-export default withSentryConfig(withMDX(config), {
+export default withSentryConfig(config, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
