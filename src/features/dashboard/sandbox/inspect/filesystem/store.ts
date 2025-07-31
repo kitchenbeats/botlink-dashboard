@@ -1,16 +1,15 @@
 'use client'
 
-import { create } from 'zustand'
-import { immer } from 'zustand/middleware/immer'
-import { enableMapSet } from 'immer'
 import {
-  normalizePath,
+  getBasename,
   getParentPath,
   isChildPath,
-  getBasename,
+  normalizePath,
 } from '@/lib/utils/filesystem'
+import { enableMapSet } from 'immer'
+import { create } from 'zustand'
+import { immer } from 'zustand/middleware/immer'
 import { FilesystemNode } from './types'
-import { FileType } from 'e2b'
 
 enableMapSet()
 
@@ -48,6 +47,8 @@ export interface FilesystemState {
   errorPaths: Map<string, string>
   sortingDirection: 'asc' | 'desc'
   fileContents: Map<string, FileContentState>
+  lastUpdated: Date | null
+  watcherError: string | null
 }
 
 // mutations/actions that modify state
@@ -63,6 +64,8 @@ export interface FilesystemMutations {
   setFileContent: (path: string, updates: FileContentState) => void
   resetFileContent: (path: string) => void
   reset: () => void
+  setLastUpdated: (lastUpdated: Date | null) => void
+  setWatcherError: (error: string | null) => void
 }
 
 // computed/derived values
@@ -96,8 +99,8 @@ function compareFilesystemNodes(
 ): number {
   if (!nodeA || !nodeB) return 0
 
-  if (nodeA.type === FileType.DIR && nodeB.type === FileType.FILE) return -1
-  if (nodeA.type === FileType.FILE && nodeB.type === FileType.DIR) return 1
+  if (nodeA.type === 'dir' && nodeB.type === 'file') return -1
+  if (nodeA.type === 'file' && nodeB.type === 'dir') return 1
 
   const cmp = nodeA.name.localeCompare(nodeB.name, undefined, {
     sensitivity: 'base',
@@ -118,6 +121,8 @@ export const createFilesystemStore = (rootPath: string) =>
       errorPaths: new Map<string, string>(),
       sortingDirection: 'asc' as 'asc' | 'desc',
       fileContents: new Map<string, FileContentState>(),
+      lastUpdated: new Date(),
+      watcherError: null,
 
       addNodes: (parentPath: string, nodes: FilesystemNode[]) => {
         const normalizedParentPath = normalizePath(parentPath)
@@ -131,14 +136,14 @@ export const createFilesystemStore = (rootPath: string) =>
             parentNode = {
               name: parentName,
               path: normalizedParentPath,
-              type: FileType.DIR,
+              type: 'dir',
               isExpanded: false,
               children: [],
             }
             state.nodes.set(normalizedParentPath, parentNode)
           }
 
-          if (parentNode.type === FileType.FILE) {
+          if (parentNode.type === 'file') {
             throw new Error('Parent node is a file')
           }
 
@@ -181,7 +186,7 @@ export const createFilesystemStore = (rootPath: string) =>
 
           const parentPath = getParentPath(normalizedPath)
           const parentNode = state.nodes.get(parentPath)
-          if (parentNode && parentNode.type === FileType.DIR) {
+          if (parentNode && parentNode.type === 'dir') {
             parentNode.children = parentNode.children.filter(
               (childPath: string) => childPath !== normalizedPath
             )
@@ -225,7 +230,7 @@ export const createFilesystemStore = (rootPath: string) =>
 
           if (!node) return
 
-          if (node?.type === FileType.FILE) {
+          if (node?.type === 'file') {
             console.error('Cannot expand file', node)
             return
           }
@@ -306,7 +311,7 @@ export const createFilesystemStore = (rootPath: string) =>
         const state = get()
         const node = state.nodes.get(normalizedPath)
 
-        if (!node || node.type === FileType.FILE) return []
+        if (!node || node.type === 'file') return []
 
         const cached = childrenCache.get(normalizedPath)
         if (cached && cached.ref === node.children) {
@@ -330,7 +335,7 @@ export const createFilesystemStore = (rootPath: string) =>
         const normalizedPath = normalizePath(path)
         const node = get().nodes.get(normalizedPath)
 
-        if (!node || node.type === FileType.FILE) return false
+        if (!node || node.type === 'file') return false
 
         return !!node.isExpanded
       },
@@ -353,7 +358,7 @@ export const createFilesystemStore = (rootPath: string) =>
         const normalizedPath = normalizePath(path)
         const node = get().nodes.get(normalizedPath)
 
-        if (!node || node.type === FileType.FILE) return false
+        if (!node || node.type === 'file') return false
 
         return node.children.length > 0
       },
@@ -361,6 +366,18 @@ export const createFilesystemStore = (rootPath: string) =>
       getFileContent: (path: string) => {
         const normalizedPath = normalizePath(path)
         return get().fileContents.get(normalizedPath)
+      },
+
+      setLastUpdated: (lastUpdated) => {
+        set((state: FilesystemState) => {
+          state.lastUpdated = lastUpdated
+        })
+      },
+
+      setWatcherError: (error) => {
+        set((state: FilesystemState) => {
+          state.watcherError = error
+        })
       },
     }))
   )
