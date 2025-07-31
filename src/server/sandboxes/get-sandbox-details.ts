@@ -32,11 +32,16 @@ export const getSandboxDetails = authActionClient
     if (res.error) {
       const status = res.response.status
 
-      l.error('GET_SANDBOX_DETAILS:INFRA_ERROR', res.error, {
-        status,
-        teamId,
-        userId: session.user.id,
-        sandboxId,
+      l.error({
+        key: 'get_sandbox_details:infra_error',
+        message: res.error.message,
+        error: res.error,
+        team_id: teamId,
+        user_id: session.user.id,
+        context: {
+          status,
+          sandboxId,
+        },
       })
 
       if (status === 404) {

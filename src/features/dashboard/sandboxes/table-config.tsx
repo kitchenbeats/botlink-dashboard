@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-
 'use client'
 
 import { Sandbox } from '@/types/api'
@@ -11,6 +9,7 @@ import { DateRange } from 'react-day-picker'
 import { l } from '@/lib/clients/logger'
 import { ClientSandboxMetric } from '@/types/sandboxes.types'
 import posthog from 'posthog-js'
+import { serializeError } from 'serialize-error'
 import {
   CpuUsageCell,
   IdCell,
@@ -57,10 +56,14 @@ export const fuzzyFilter: FilterFn<SandboxWithMetrics> = (
       return stringifiedMetadata.includes(value)
     }
   } catch (error) {
-    l.error('SANDBOXES_TABLE:FUZZY_FILTER', error, {
-      row,
-      columnId,
-      value,
+    l.error({
+      key: 'sandboxes_table_config:fuzzy_filter:unexpected_error',
+      error: serializeError(error),
+      context: {
+        row,
+        columnId,
+        value,
+      },
     })
     return false
   }
