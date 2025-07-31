@@ -3,6 +3,7 @@ import { l } from '@/lib/clients/logger'
 import { createClient } from '@/lib/clients/supabase/server'
 import { encodedRedirect } from '@/lib/utils/auth'
 import { redirect } from 'next/navigation'
+import { serializeError } from 'serialize-error'
 
 export async function GET(request: Request) {
   // The `/auth/callback` route is required for the server-side auth flow implemented
@@ -15,11 +16,14 @@ export async function GET(request: Request) {
   const returnTo = requestUrl.searchParams.get('returnTo')?.toString()
   const redirectTo = requestUrl.searchParams.get('redirect_to')?.toString()
 
-  l.info('AUTH_CALLBACK:REQUEST', {
-    code: !!code,
-    origin,
-    returnTo,
-    redirectTo,
+  l.info({
+    key: 'auth_callback:request',
+    context: {
+      code: !!code,
+      origin,
+      returnTo,
+      redirectTo,
+    },
   })
 
   if (code) {
@@ -27,17 +31,22 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
-      l.error('AUTH_CALLBACK:SUPABASE_ERROR', error, {
-        code,
-        origin,
-        returnTo,
-        redirectTo,
+      l.error({
+        key: 'auth_callback:supabase_error',
+        error: serializeError(error),
+        context: {
+          code,
+          origin,
+          returnTo,
+          redirectTo,
+        },
       })
 
       throw encodedRedirect('error', AUTH_URLS.SIGN_IN, error.message)
     } else {
-      l.info('AUTH_CALLBACK:OTP_EXCHANGED', {
-        userId: data.user.id,
+      l.info({
+        key: 'auth_callback:otp_exchanged',
+        user_id: data.user.id,
       })
     }
   }
@@ -45,8 +54,11 @@ export async function GET(request: Request) {
   if (redirectTo) {
     const returnToUrl = new URL(redirectTo, origin)
     if (returnToUrl.origin === origin) {
-      l.info('AUTH_CALLBACK:REDIRECTING_TO', {
-        redirectTo,
+      l.info({
+        key: 'auth_callback:redirecting_to',
+        context: {
+          redirectTo,
+        },
       })
       return redirect(redirectTo)
     }
@@ -63,14 +75,22 @@ export async function GET(request: Request) {
     }
 
     if (returnToUrl.origin === origin) {
-      l.info('AUTH_CALLBACK:RETURNING_TO', {
-        returnTo,
+      l.info({
+        key: 'auth_callback:returning_to',
+        context: {
+          returnTo,
+        },
       })
       return redirect(returnTo)
     }
   }
 
   // Default redirect to dashboard
-  l.info('AUTH_CALLBACK:REDIRECTING_TO_DASHBOARD')
+  l.info({
+    key: 'auth_callback:redirecting_to_dashboard',
+    context: {
+      returnTo,
+    },
+  })
   return redirect(PROTECTED_URLS.DASHBOARD)
 }

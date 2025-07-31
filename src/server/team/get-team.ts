@@ -5,6 +5,7 @@ import { l } from '@/lib/clients/logger'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { returnServerError } from '@/lib/utils/action'
 import { ClientTeam } from '@/types/dashboard.types'
+import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 
 const GetTeamSchema = z.object({
@@ -92,7 +93,12 @@ export const getUserTeams = authActionClient
           .in('id', Array.from(defaultUserIds))
 
       if (authUsersError) {
-        l.error('GET_USER_TEAMS:SUPABASE_ERROR', authUsersError)
+        l.error({
+          key: 'get_usr_teams:supabase_error',
+          message: authUsersError.message,
+          error: serializeError(authUsersError),
+          user_id: user.id,
+        })
 
         return usersTeamsData.map((userTeam) => ({
           ...userTeam.teams,
@@ -135,9 +141,13 @@ export const getUserTeams = authActionClient
 
       return teams
     } catch (err) {
-      l.error('GET_USER_TEAMS:UNEXPECTED_ERROR', err, {
-        usersTeamsData,
-        userId: user.id,
+      l.error({
+        key: 'get_user_teams:unexpected_error',
+        error: serializeError(err),
+        user_id: user.id,
+        context: {
+          usersTeamsData,
+        },
       })
 
       return usersTeamsData.map((userTeam) => ({

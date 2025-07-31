@@ -8,6 +8,7 @@ import { createClient } from '@/lib/clients/supabase/server'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
 import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
+import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { infra } from '../clients/api'
 import { l } from '../clients/logger'
@@ -60,11 +61,16 @@ export async function generateE2BUserAccessToken(supabaseAccessToken: string) {
   })
 
   if (res.error) {
-    l.error('GENERATE_E2B_USER_ACCESS_TOKEN:INFRA_ERROR', res.error, {
-      status: res.response.status,
-      method: 'POST',
-      path: '/access-tokens',
-      name: TOKEN_NAME,
+    l.error({
+      key: 'GENERATE_E2B_USER_ACCESS_TOKEN:INFRA_ERROR',
+      message: res.error.message,
+      error: res.error,
+      context: {
+        status: res.response.status,
+        method: 'POST',
+        path: '/access-tokens',
+        name: TOKEN_NAME,
+      },
     })
 
     return returnServerError(`Failed to generate e2b user access token`)
@@ -160,8 +166,13 @@ export async function resolveTeamId(identifier: string): Promise<string> {
     .single()
 
   if (error || !team) {
-    l.error('RESOLVE_TEAM_ID:FAILED_TO_RESOLVE_TEAM_ID_FROM_SLUG', error, {
-      identifier,
+    l.error({
+      key: 'resolve_team_id:failed_to_resolve_team_id_from_slug',
+      message: error.message,
+      error: serializeError(error),
+      context: {
+        identifier,
+      },
     })
 
     throw new E2BError('INVALID_PARAMETERS', 'Invalid team identifier')
@@ -196,13 +207,13 @@ export async function resolveTeamIdInServerComponent(identifier: string) {
     teamId = await resolveTeamId(identifier)
     cookiesStore.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId)
 
-    l.info(
-      'RESOLVE_TEAM_ID_IN_SERVER_COMPONENT:RESOLVING_TEAM_ID_FROM_DATA_SOURCES',
-      {
+    l.info({
+      key: 'resolve_team_id_in_server_component:resolving_team_id_from_data_sources',
+      team_id: teamId,
+      context: {
         identifier,
-        teamId,
-      }
-    )
+      },
+    })
   }
   return teamId
 }

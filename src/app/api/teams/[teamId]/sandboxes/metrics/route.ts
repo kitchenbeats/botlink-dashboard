@@ -42,11 +42,17 @@ export async function POST(
     if (infraRes.error) {
       const status = infraRes.response.status
 
-      l.error('GET_TEAM_SANDBOXES_METRICS:INFRA_ERROR', infraRes.error, {
-        path: '/sandboxes/metrics',
-        status,
-        sandboxIds,
-        userId: session.user.id,
+      l.error({
+        key: 'get_team_sandboxes_metrics',
+        message: infraRes.error.message,
+        error: infraRes.error,
+        team_id: teamId,
+        user_id: session.user.id,
+        context: {
+          path: '/sandboxes/metrics',
+          status,
+          sandboxIds,
+        },
       })
 
       return Response.json(
