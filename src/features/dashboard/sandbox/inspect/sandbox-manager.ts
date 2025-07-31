@@ -1,19 +1,23 @@
 import {
-  FileType,
-  type Sandbox,
-  type FilesystemEvent,
-  type WatchHandle,
+  determineFileContentState,
+  getParentPath,
+  joinPath,
+  normalizePath,
+} from '@/lib/utils/filesystem'
+import {
   type EntryInfo,
+  type FilesystemEvent,
   FilesystemEventType,
+  type Sandbox,
+  type WatchHandle,
 } from 'e2b'
 import type { FilesystemStore } from './filesystem/store'
 import { FilesystemNode } from './filesystem/types'
-import { normalizePath, joinPath, getParentPath } from '@/lib/utils/filesystem'
-import { determineFileContentState } from '@/lib/utils/filesystem'
 
 export const HANDLED_ERRORS = {
   'signal timed out': 'The operation timed out. Please try again later.',
-  'user aborted a request': 'The request was cancelled. Try downloading the file.',
+  'user aborted a request':
+    'The request was cancelled. Try downloading the file.',
 } as const
 
 export class SandboxManager {
@@ -25,7 +29,6 @@ export class SandboxManager {
 
   private static readonly LOAD_DEBOUNCE_MS = 250
   private static readonly READ_DEBOUNCE_MS = 250
-
 
   private loadTimers: Map<string, ReturnType<typeof setTimeout>> = new Map()
   private pendingLoads: Map<
@@ -47,7 +50,12 @@ export class SandboxManager {
     }
   > = new Map()
 
-  constructor(store: FilesystemStore, sandbox: Sandbox, rootPath: string, isSandboxSecure: boolean) {
+  constructor(
+    store: FilesystemStore,
+    sandbox: Sandbox,
+    rootPath: string,
+    isSandboxSecure: boolean
+  ) {
     this.store = store
     this.sandbox = sandbox
     this.rootPath = normalizePath(rootPath)
@@ -64,9 +72,25 @@ export class SandboxManager {
       this.watchHandle = await this.sandbox.files.watchDir(
         this.rootPath,
         (event) => this.handleFilesystemEvent(event),
-        { recursive: true, timeoutMs: 0 }
+        {
+          recursive: true,
+          user: 'root',
+          timeoutMs: 0,
+          requestTimeoutMs: 0,
+          onExit: (error) => {
+            console.warn(`Watcher exited on ${this.rootPath}:`, error)
+          },
+        }
       )
     } catch (error) {
+      this.store
+        .getState()
+        .setWatcherError(
+          'Failed to establish live filesystem updates: ' +
+            (error instanceof Error
+              ? error.message
+              : 'Please try again later. If the problem persists, contact support.')
+        )
       console.error(`Failed to start root watcher on ${this.rootPath}:`, error)
       throw error
     }
@@ -124,7 +148,7 @@ export class SandboxManager {
 
     state.removeNode(removedPath)
 
-    if (node?.type === FileType.FILE) {
+    if (node?.type === 'file') {
       state.resetFileContent(removedPath)
     }
   }
@@ -134,7 +158,7 @@ export class SandboxManager {
 
     const node = this.store.getState().getNode(normalizedPath)
 
-    if (node?.type === FileType.FILE) {
+    if (node?.type === 'file') {
       return
     }
 
@@ -181,25 +205,24 @@ export class SandboxManager {
     const state = this.store.getState()
     const node = state.getNode(normalizedPath)
 
-    if (
-      !node ||
-      node.type !== FileType.DIR ||
-      state.loadingPaths.has(normalizedPath)
-    )
+    if (!node || node.type !== 'dir' || state.loadingPaths.has(normalizedPath))
       return
 
     state.setLoading(normalizedPath, true)
     state.setError(normalizedPath) // clear any previous errors
 
     try {
-      const entries = await this.sandbox.files.list(normalizedPath)
+      const entries = await this.sandbox.files.list(normalizedPath, {
+        user: 'root',
+        requestTimeoutMs: 20_000,
+      })
 
       const nodes: FilesystemNode[] = entries.map((entry: EntryInfo) => {
-        if (entry.type === FileType.DIR) {
+        if (entry.type === 'dir') {
           return {
             name: entry.name,
             path: entry.path,
-            type: FileType.DIR,
+            type: 'dir',
             isExpanded: false,
             isSelected: false,
             children: [],
@@ -208,7 +231,7 @@ export class SandboxManager {
           return {
             name: entry.name,
             path: entry.path,
-            type: FileType.FILE,
+            type: 'file',
             isSelected: false,
           }
         }
@@ -241,7 +264,7 @@ export class SandboxManager {
     const state = this.store.getState()
 
     const node = state.getNode(normalizedPath)
-    if (!node || node.type !== FileType.DIR) return
+    if (!node || node.type !== 'dir') return
 
     await this.loadDirectory(normalizedPath)
   }
@@ -251,7 +274,7 @@ export class SandboxManager {
     const state = this.store.getState()
     const node = state.getNode(normalizedPath)
 
-    if (!node || node.type !== FileType.FILE) return
+    if (!node || node.type !== 'file') return
 
     let pending = this.pendingReads.get(normalizedPath)
     if (!pending) {
@@ -294,7 +317,7 @@ export class SandboxManager {
     const state = this.store.getState()
     const node = state.getNode(normalizedPath)
 
-    if (!node || node.type !== FileType.FILE) return
+    if (!node || node.type !== 'file') return
 
     try {
       state.setLoading(normalizedPath, true)
@@ -302,12 +325,13 @@ export class SandboxManager {
       const blob = await this.sandbox.files.read(normalizedPath, {
         format: 'blob',
         requestTimeoutMs: 30_000,
+        user: 'root',
       })
 
       const contentState = await determineFileContentState(blob)
 
       state.setFileContent(normalizedPath, contentState)
-    } catch (err) { 
+    } catch (err) {
       const errorMessage = SandboxManager.pipeError(err, 'Failed to read file')
 
       console.error(`Failed to read file ${normalizedPath}:`, err)
@@ -325,7 +349,7 @@ export class SandboxManager {
     const state = this.store.getState()
     const node = state.getNode(normalizedPath)
 
-    if (!node || node.type !== FileType.FILE) {
+    if (!node || node.type !== 'file') {
       console.error(
         `Failed to get download URL for file. Invalid node: ${node} ${normalizedPath}`
       )
