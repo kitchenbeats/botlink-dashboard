@@ -1,9 +1,14 @@
 'use client'
 
 import { AUTH_URLS } from '@/configs/urls'
+import {
+  getTimeoutMsFromUserMessage,
+  USER_MESSAGES,
+} from '@/configs/user-messages'
 import { AuthFormMessage, AuthMessage } from '@/features/auth/form-message'
 import { OAuthProviders } from '@/features/auth/oauth-provider-buttons'
 import { signUpAction } from '@/server/auth/auth-actions'
+import { signUpSchema } from '@/server/auth/auth.types'
 import { Button } from '@/ui/primitives/button'
 import {
   Form,
@@ -16,28 +21,10 @@ import {
 import { Input } from '@/ui/primitives/input'
 import TextSeparator from '@/ui/text-separator'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAction } from 'next-safe-action/hooks'
+import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-
-const signUpSchema = z
-  .object({
-    email: z.string().email('Valid email is required'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters'),
-    returnTo: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Passwords do not match',
-  })
-
-type SignUpFormValues = z.infer<typeof signUpSchema>
 
 export default function SignUp() {
   'use no memo'
@@ -54,26 +41,26 @@ export default function SignUp() {
   // Get returnTo URL from search params
   const returnTo = searchParams.get('returnTo') || ''
 
-  const form = useForm<SignUpFormValues>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      returnTo,
+  const {
+    form,
+    handleSubmitWithAction,
+    action: { isExecuting },
+  } = useHookFormAction(signUpAction, zodResolver(signUpSchema), {
+    actionProps: {
+      onSuccess: () => {
+        setMessage({ success: USER_MESSAGES.signUpVerification.message })
+      },
+      onError: ({ error }) => {
+        if (error.serverError) {
+          setMessage({ error: error.serverError })
+        }
+      },
     },
   })
 
-  const { execute, isExecuting } = useAction(signUpAction, {
-    onSuccess: () => {
-      setMessage({ success: 'Check your email for a verification link' })
-    },
-    onError: ({ error }) => {
-      if (error.serverError) {
-        setMessage({ error: error.serverError })
-      }
-    },
-  })
+  useEffect(() => {
+    form.setValue('returnTo', returnTo)
+  }, [returnTo, form])
 
   // Handle email prefill
   useEffect(() => {
@@ -86,14 +73,15 @@ export default function SignUp() {
     }
   }, [searchParams, form])
 
-  const onSubmit = (data: SignUpFormValues) => {
-    const formData = new FormData()
-    formData.append('email', data.email)
-    formData.append('password', data.password)
-    formData.append('confirmPassword', data.confirmPassword)
-    formData.append('returnTo', data.returnTo || '')
-    execute(formData)
-  }
+  useEffect(() => {
+    if (message && 'success' in message && message.success) {
+      const timer = setTimeout(
+        () => setMessage(undefined),
+        getTimeoutMsFromUserMessage(message.success) || 5000
+      )
+      return () => clearTimeout(timer)
+    }
+  }, [message])
 
   return (
     <div className="flex w-full flex-col">
@@ -108,7 +96,7 @@ export default function SignUp() {
       <Form {...form}>
         <form
           className="flex flex-col gap-2 [&>input]:mb-3"
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={handleSubmitWithAction}
         >
           <FormField
             control={form.control}

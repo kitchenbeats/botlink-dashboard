@@ -1,6 +1,7 @@
 'use server'
 
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
+import { USER_MESSAGES } from '@/configs/user-messages'
 import { actionClient } from '@/lib/clients/action'
 import { l } from '@/lib/clients/logger'
 import { createClient } from '@/lib/clients/supabase/server'
@@ -14,7 +15,7 @@ import { Provider } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
-import { zfd } from 'zod-form-data'
+import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -68,25 +69,10 @@ export const signInWithOAuthAction = actionClient
     )
   })
 
-const signUpSchema = zfd
-  .formData({
-    email: zfd.text(z.string().email('Valid email is required')),
-    password: zfd.text(
-      z.string().min(8, 'Password must be at least 8 characters')
-    ),
-    confirmPassword: zfd.text(),
-    returnTo: zfd.text(z.string().optional()),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Passwords do not match',
-  })
-
 export const signUpAction = actionClient
   .schema(signUpSchema)
   .metadata({ actionName: 'signUp' })
-  .action(async ({ parsedInput }) => {
-    const { email, password, confirmPassword, returnTo = '' } = parsedInput
+  .action(async ({ parsedInput: { email, password, returnTo = '' } }) => {
     const supabase = await createClient()
     const origin = (await headers()).get('origin') || ''
 
@@ -95,14 +81,12 @@ export const signUpAction = actionClient
     if (validationResult?.data) {
       if (!validationResult.valid) {
         return returnServerError(
-          'Please use a valid email address - your company email works best'
+          USER_MESSAGES.signUpEmailValidationInvalid.message
         )
       }
 
       if (await shouldWarnAboutAlternateEmail(validationResult.data)) {
-        return returnServerError(
-          'Is this a secondary email? Use your primary email for fast access'
-        )
+        return returnServerError(USER_MESSAGES.signUpEmailAlternate.message)
       }
     }
 
@@ -113,8 +97,8 @@ export const signUpAction = actionClient
         emailRedirectTo: `${origin}${AUTH_URLS.CALLBACK}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`,
         data: validationResult?.data
           ? {
-            email_validation: validationResult?.data,
-          }
+              email_validation: validationResult?.data,
+            }
           : undefined,
       },
     })
@@ -122,28 +106,19 @@ export const signUpAction = actionClient
     if (error) {
       switch (error.code) {
         case 'email_exists':
-          return returnServerError('Email already in use')
+          return returnServerError(USER_MESSAGES.emailInUse.message)
         case 'weak_password':
-          return returnServerError('Password is too weak')
+          return returnServerError(USER_MESSAGES.passwordWeak.message)
         default:
           throw error
       }
     }
   })
 
-const signInSchema = zfd.formData({
-  email: zfd.text(z.string().email('Valid email is required')),
-  password: zfd.text(
-    z.string().min(8, 'Password must be at least 8 characters')
-  ),
-  returnTo: zfd.text(z.string().optional()),
-})
-
 export const signInAction = actionClient
   .schema(signInSchema)
   .metadata({ actionName: 'signInWithEmailAndPassword' })
-  .action(async ({ parsedInput }) => {
-    const { email, password, returnTo = '' } = parsedInput
+  .action(async ({ parsedInput: { email, password, returnTo = '' } }) => {
     const supabase = await createClient()
 
     const headerStore = await headers()
@@ -157,7 +132,10 @@ export const signInAction = actionClient
 
     if (error) {
       if (error.code === 'invalid_credentials') {
-        return returnServerError('Invalid credentials')
+        return returnServerError(USER_MESSAGES.invalidCredentials.message)
+      }
+      if (error.code === 'email_not_confirmed') {
+        return returnServerError(USER_MESSAGES.signInEmailNotConfirmed.message)
       }
       throw error
     }
@@ -177,16 +155,10 @@ export const signInAction = actionClient
     throw redirect(returnTo || PROTECTED_URLS.DASHBOARD)
   })
 
-const forgotPasswordSchema = zfd.formData({
-  email: zfd.text(z.string().email('Valid email is required')),
-  callbackUrl: zfd.text(z.string().optional()),
-})
-
 export const forgotPasswordAction = actionClient
   .schema(forgotPasswordSchema)
   .metadata({ actionName: 'forgotPassword' })
-  .action(async ({ parsedInput }) => {
-    const { email } = parsedInput
+  .action(async ({ parsedInput: { email } }) => {
     const supabase = await createClient()
 
     const { error } = await supabase.auth.resetPasswordForEmail(email)
@@ -196,7 +168,7 @@ export const forgotPasswordAction = actionClient
 
       if (error.message.includes('security purposes')) {
         return returnServerError(
-          'Please wait before requesting another password reset'
+          'Please wait before requesting another password reset.'
         )
       }
 
@@ -211,6 +183,6 @@ export async function signOutAction(returnTo?: string) {
 
   throw redirect(
     AUTH_URLS.SIGN_IN +
-    (returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '')
+      (returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '')
   )
 }

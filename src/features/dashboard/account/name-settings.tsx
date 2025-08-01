@@ -1,5 +1,6 @@
 'use client'
 
+import { USER_MESSAGES } from '@/configs/user-messages'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -58,11 +59,13 @@ export function NameSettings({ className }: NameSettingsProps) {
 
   const { execute: updateName, isPending } = useAction(updateUserAction, {
     onSuccess: async () => {
-      toast(defaultSuccessToast('Name updated.'))
+      toast(defaultSuccessToast(USER_MESSAGES.nameUpdated.message))
     },
-    onError: (error) => {
+    onError: ({ error }) => {
       toast(
-        defaultErrorToast(error.error.serverError || 'Failed to update name.')
+        defaultErrorToast(
+          error.serverError || USER_MESSAGES.failedUpdateName.message
+        )
       )
     },
   })
