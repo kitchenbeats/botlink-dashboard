@@ -9,6 +9,13 @@ const REDACTION_PATHS = [
   'secret',
   'token',
   'apiKey',
+  '*.password',
+  '*.confirmPassword',
+  '*.accessToken',
+  '*.secret',
+  '*.token',
+  '*.apiKey',
+  '*.key',
   '*.*.password',
   '*.*.confirmPassword',
   '*.*.accessToken',
@@ -16,15 +23,7 @@ const REDACTION_PATHS = [
   '*.*.token',
   '*.*.apiKey',
   '*.*.key',
-  '*.*.*.password',
-  '*.*.*.confirmPassword',
-  '*.*.*.accessToken',
-  '*.*.*.secret',
-  '*.*.*.token',
-  '*.*.*.apiKey',
-  '*.*.*.key',
 ]
-
 const createLogger = () => {
   const baseConfig = (additionalTargets?: any[]): LoggerOptions => {
     return {
