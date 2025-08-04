@@ -36,12 +36,7 @@ export const getTeamSandboxes = authActionClient
         }
       }
 
-      const sandboxesRes = await infra.GET('/v2/sandboxes', {
-        params: {
-          query: {
-            state: ['running'],
-          },
-        },
+      const sandboxesRes = await infra.GET('/sandboxes', {
         headers: {
           ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
         },
@@ -59,12 +54,24 @@ export const getTeamSandboxes = authActionClient
           user_id: session.user.id,
           context: {
             status,
-            path: '/v2/sandboxes',
+            path: '/sandboxes',
           },
         })
 
         return handleDefaultInfraError(status)
       }
+
+      l.info({
+        key: 'get_team_sandboxes:success',
+        message: 'Successfully fetched team sandboxes',
+        team_id: teamId,
+        user_id: session.user.id,
+        context: {
+          status: sandboxesRes.response.status,
+          path: '/sandboxes',
+          sandbox_count: sandboxesRes.data.length,
+        },
+      })
 
       return {
         sandboxes: sandboxesRes.data,
