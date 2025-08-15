@@ -23,10 +23,6 @@
   h6 {
     @apply prose-headline-small uppercase;
   }
-
-  .font-mono {
-    @apply tracking-wide;
-  }
 }
 
 /* Common Variables */

@@ -1,7 +1,7 @@
 'use client'
 
 import { UsageData } from '@/server/usage/types'
-import { LineChartTS } from '@/ui/data/line-chart'
+import LineChart from '@/ui/data/line-chart'
 import { useMemo } from 'react'
 
 export function CostChart({ data }: { data: UsageData['compute'] }) {
@@ -10,7 +10,7 @@ export function CostChart({ data }: { data: UsageData['compute'] }) {
       {
         id: 'cost',
         data: data.map((item) => ({
-          x: new Date(item.year, item.month - 1), // Convert to Date object
+          x: new Date(item.year, item.month - 1),
           y: item.total_cost,
         })),
       },
@@ -21,11 +21,10 @@ export function CostChart({ data }: { data: UsageData['compute'] }) {
 
   return (
     <div className="aspect-auto h-48">
-      <LineChartTS
+      <LineChart
         data={chartData}
         minimumVisualRangeMs={minimumVisualRangeMs}
-        curve="linear"
-        enableArea={false}
+        curve="step"
       />
     </div>
   )
