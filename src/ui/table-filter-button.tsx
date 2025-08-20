@@ -18,16 +18,16 @@ export const TableFilterButton = React.forwardRef<
       ref={ref}
       variant="outline"
       size="sm"
-      className="max-w-56 text-xs"
+      className="max-w-56 gap-2"
       suppressHydrationWarning
       {...props}
     >
-      <X className={'size-3.5'} />
+      <X className={'size-3.5 min-w-3.5'} />
       {label}
       {value && (
         <>
           <Separator orientation="vertical" className="h-4" />
-          <span className="truncate text-contrast-1">{value}</span>
+          <span className="truncate text-accent-info-highlight">{value}</span>
         </>
       )}
     </Button>

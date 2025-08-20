@@ -30,16 +30,15 @@ function DataTableHead<TData, TValue>({
   sorting,
   ...props
 }: DataTableColumnHeaderProps<TData, TValue>) {
+  const canSort = header.column.getCanSort()
+
   return (
     <div
       className={cn(
-        'relative flex h-10 items-center p-2 text-left align-middle',
-        'font-mono tracking-wider uppercase',
-        'text-fg-300 font-medium',
+        'relative flex h-10 items-center text-left align-middle',
+        'font-mono prose-label-highlight uppercase',
+        'text-fg-tertiary',
         '[&:has([role=checkbox])]:pr-0',
-        {
-          'pl-0': header.column.getCanSort(),
-        },
         className
       )}
       style={{
@@ -47,17 +46,21 @@ function DataTableHead<TData, TValue>({
       }}
       {...props}
     >
-      <div className="flex h-full items-center gap-3 overflow-hidden">
-        {header.column.getCanSort() && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => header.column.toggleSorting(undefined, true)}
-            className={cn(
-              'text-fg-500 ml-2 size-5 min-w-5',
-              sorting !== undefined && 'text-accent'
-            )}
-          >
+      <div
+        className={cn(
+          'flex h-full w-full items-center gap-2 overflow-hidden p-2',
+          canSort && 'cursor-pointer hover:text-fg-secondary transition-colors',
+          canSort && sorting !== undefined && 'text-accent-main-highlight'
+        )}
+        onClick={
+          canSort
+            ? () => header.column.toggleSorting(undefined, true)
+            : undefined
+        }
+      >
+        {children}
+        {canSort && (
+          <div className="size-5 min-w-5 flex items-center justify-center">
             {sorting === undefined ? (
               <ArrowUpDown className="size-3" />
             ) : sorting ? (
@@ -65,19 +68,20 @@ function DataTableHead<TData, TValue>({
             ) : (
               <ArrowUpNarrowWide className="size-3" />
             )}
-          </Button>
+          </div>
         )}
-        {children}
       </div>
 
       {header.column.getCanResize() && (
         <div
-          className="ml-auto h-full cursor-ew-resize pl-2"
+          className="absolute right-0 bottom-2 h-6 cursor-ew-resize px-2"
           onTouchStart={header.getResizeHandler()}
           onMouseDown={header.getResizeHandler()}
+          onMouseDownCapture={(e) => {
+            e.preventDefault()
+          }}
           onClick={(e) => {
             e.stopPropagation()
-            e.preventDefault()
           }}
         >
           <Separator className="h-full" orientation="vertical" />
@@ -107,6 +111,7 @@ function DataTableCell<TData, TValue>({
       className={cn(
         'p-1 px-2 align-middle font-sans text-xs [&:has([role=checkbox])]:pr-0',
         'flex items-center',
+        'text-fg-secondary prose-table',
         className
       )}
       {...props}
@@ -128,8 +133,9 @@ const DataTableRow = React.forwardRef<HTMLDivElement, DataTableRowProps>(
         className={cn(
           'transition-colors',
           'flex w-full items-center',
+          'border-b border-stroke/60',
           {
-            'bg-bg-200': isSelected,
+            'bg-bg-hover': isSelected,
           },
           'bg-bg',
           className
@@ -155,8 +161,8 @@ const DataTable = React.forwardRef<HTMLDivElement, DataTableProps>(
         ref={ref}
         className={cn(
           // Base table styles from table.tsx
-          'w-full caption-bottom border-t',
-          'font-mono text-sm',
+          'w-full caption-bottom',
+          'font-mono',
           // Div table styles
           'w-fit',
           className
@@ -192,13 +198,18 @@ interface DataTableBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   virtualizedTotalHeight?: number
 }
 
-function DataTableBody({ className, children, ...props }: DataTableBodyProps) {
+function DataTableBody({
+  className,
+  children,
+  virtualizedTotalHeight,
+  ...props
+}: DataTableBodyProps) {
   return (
     <div
       style={
-        props.virtualizedTotalHeight
+        virtualizedTotalHeight
           ? {
-              height: `${props.virtualizedTotalHeight}px`,
+              height: `${virtualizedTotalHeight}px`,
               position: 'relative',
               overflow: 'visible',
             }
@@ -232,7 +243,7 @@ function DataTablePagination({
   return (
     <div className={cn('flex items-center gap-8 border-t p-2 px-3', className)}>
       <div className="flex items-center gap-2 text-xs">
-        <div className="text-fg-300">
+        <div className="text-fg-secondary">
           Page {pageIndex + 1} of {pageCount}
         </div>
         <div className="flex items-center gap-1">
@@ -271,7 +282,7 @@ function DataTablePagination({
         </div>
       </div>
 
-      <div className="text-fg-300 flex items-center gap-2 text-xs">
+      <div className="text-fg-secondary flex items-center gap-2 text-xs">
         <Select
           value={pageSize.toString()}
           onValueChange={(value) => onPageSizeChange(Number(value))}
