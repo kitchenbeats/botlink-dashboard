@@ -1,10 +1,10 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/primitives/tabs'
 import { usePathname } from 'next/navigation'
 import { ReactNode } from 'react'
 import SandboxInspectIncompatible from './inspect/incompatible'
-import { cn } from '@/lib/utils'
 
 interface SandboxDetailsTabsProps {
   tabs: string[]
@@ -29,7 +29,7 @@ export default function SandboxDetailsTabs({
 
   return (
     <Tabs defaultValue={tab} value={tab} className="min-h-0 w-full flex-1">
-      <TabsList className="bg-bg z-30 w-full justify-start pl-4">
+      <TabsList className="bg-bg z-30 w-full justify-start pl-3 md:pl-6">
         {tabs.map((tab) => (
           <TabsTrigger key={tab} value={tab} className="w-fit flex-none">
             {tab.charAt(0).toUpperCase() + tab.slice(1)}

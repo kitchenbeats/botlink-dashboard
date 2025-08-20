@@ -9,13 +9,16 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useMemo } from 'react'
 
+import { useIsMobile } from '@/lib/hooks/use-mobile'
 import {
+  SIDEBAR_TRANSITION_CLASSNAMES,
   SidebarContent,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/ui/primitives/sidebar'
 import { usePathname } from 'next/navigation'
 
@@ -38,6 +41,8 @@ export default function DashboardSidebarContent() {
   const selectedTeam = useSelectedTeam()
   const selectedTeamIdentifier = selectedTeam?.slug ?? selectedTeam?.id
   const pathname = usePathname()
+  const isMobile = useIsMobile()
+  const { setOpenMobile } = useSidebar()
 
   const groupedNavLinks = useMemo(
     () => createGroupedLinks(MAIN_DASHBOARD_LINKS),
@@ -65,7 +70,7 @@ export default function DashboardSidebarContent() {
   }
 
   return (
-    <SidebarContent className="overflow-x-hidden">
+    <SidebarContent className="overflow-x-hidden gap-0">
       {Object.entries(groupedNavLinks).map(([group, links], ix) => (
         <SidebarGroup key={group}>
           {group !== 'ungrouped' && (
@@ -84,11 +89,23 @@ export default function DashboardSidebarContent() {
                     asChild
                     tooltip={item.label}
                   >
-                    <Link suppressHydrationWarning href={href} prefetch>
+                    <Link
+                      suppressHydrationWarning
+                      href={href}
+                      prefetch
+                      onClick={
+                        isMobile
+                          ? () => {
+                              setOpenMobile(false)
+                            }
+                          : undefined
+                      }
+                    >
                       <item.icon
                         className={cn(
-                          'text-fg-500 w-4',
-                          isActive(href) && 'text-accent/80'
+                          'group-data-[collapsible=icon]:size-5 transition-[size,color]',
+                          SIDEBAR_TRANSITION_CLASSNAMES,
+                          isActive(href) && 'text-accent-main-highlight'
                         )}
                       />
                       <span>{item.label}</span>

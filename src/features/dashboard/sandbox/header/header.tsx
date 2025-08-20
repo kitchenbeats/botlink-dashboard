@@ -54,53 +54,29 @@ export default async function SandboxDetailsHeader({
     },
     cpuCount: {
       label: 'CPU Usage',
-      value: (
-        <ResourceUsageClient
-          type="cpu"
-          mode="usage"
-          classNames={{
-            dot: 'mx-1',
-          }}
-        />
-      ),
+      value: <ResourceUsageClient type="cpu" mode="usage" />,
     },
     memoryMB: {
       label: 'Memory Usage',
-      value: (
-        <ResourceUsageClient
-          type="mem"
-          mode="usage"
-          classNames={{
-            dot: 'mx-1',
-          }}
-        />
-      ),
+      value: <ResourceUsageClient type="mem" mode="usage" />,
     },
     diskGB: {
       label: 'Disk Usage',
-      value: (
-        <ResourceUsageClient
-          type="disk"
-          mode="usage"
-          classNames={{
-            dot: 'mx-1',
-          }}
-        />
-      ),
+      value: <ResourceUsageClient type="disk" mode="usage" />,
     },
   }
 
   return (
-    <header className="bg-bg relative z-30 flex w-full flex-col gap-8 p-4 max-md:py-2">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <header className="bg-bg relative z-30 flex w-full flex-col gap-6 p-3 md:p-6 max-md:pt-0">
+      <div className="flex flex-col sm:gap-2 md:gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-1">
           <Link
             href={PROTECTED_URLS.SANDBOXES(teamIdOrSlug)}
-            className="text-fg-300 hover:text-fg flex items-center gap-1.5 transition-colors"
+            className="!text-fg-tertiary hover:!text-fg flex items-center gap-1 prose-body-highlight transition-colors"
             prefetch
             shallow
           >
-            <ChevronLeftIcon className="size-5" />
+            <ChevronLeftIcon className="size-4" />
             Sandboxes
           </Link>
           <SandboxDetailsTitle />
@@ -132,8 +108,8 @@ interface HeaderItemProps {
 function HeaderItem({ label, value }: HeaderItemProps) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-fg-500 text-xs uppercase">{label}</span>
-      {typeof value === 'string' ? <p className="text-sm">{value}</p> : value}
+      <span className="text-fg-tertiary text-xs uppercase">{label}</span>
+      {typeof value === 'string' ? <p className="">{value}</p> : value}
     </div>
   )
 }

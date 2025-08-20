@@ -1,20 +1,20 @@
 'use client'
 
-import { useContent } from './hooks/use-content'
 import { useShikiTheme } from '@/configs/shiki'
-import ShikiHighlighter, { Language } from 'react-shiki'
-import { useErrorPaths, useSelectedPath } from './hooks/use-node'
-import SandboxInspectFrame from './frame'
-import SandboxInspectViewerHeader from './viewer-header'
-import { ScrollArea, ScrollBar } from '@/ui/primitives/scroll-area'
-import { useFile } from './hooks/use-file'
-import { Drawer, DrawerContent } from '@/ui/primitives/drawer'
 import { useIsMobile } from '@/lib/hooks/use-mobile'
-import { useEffect, useState } from 'react'
-import { Button } from '@/ui/primitives/button'
-import { Download } from 'lucide-react'
-import { AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { Button } from '@/ui/primitives/button'
+import { Drawer, DrawerContent } from '@/ui/primitives/drawer'
+import { ScrollArea, ScrollBar } from '@/ui/primitives/scroll-area'
+import { AnimatePresence } from 'framer-motion'
+import { Download } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import ShikiHighlighter, { Language } from 'react-shiki'
+import SandboxInspectFrame from './frame'
+import { useContent } from './hooks/use-content'
+import { useFile } from './hooks/use-file'
+import { useErrorPaths, useSelectedPath } from './hooks/use-node'
+import SandboxInspectViewerHeader from './viewer-header'
 
 export default function SandboxInspectViewer() {
   const path = useSelectedPath()
@@ -27,12 +27,23 @@ export default function SandboxInspectViewer() {
     if (path && !errorPaths.has(path)) {
       setOpen(true)
     }
+
+    if (!path) {
+      setOpen(false)
+    }
   }, [path, errorPaths])
+
+  const handleClose = () => {
+    setOpen(false)
+  }
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="mt-4 h-[90svh] overflow-hidden p-0">
+      <Drawer dismissible={false} open={open} onOpenChange={handleClose}>
+        <DrawerContent
+          className="mt-4 h-[90svh] overflow-hidden p-0"
+          showDragHandle={false}
+        >
           <AnimatePresence mode="wait">
             {path && <SandboxInspectViewerContent key="viewer" path={path} />}
           </AnimatePresence>
@@ -48,7 +59,13 @@ export default function SandboxInspectViewer() {
   )
 }
 
-function SandboxInspectViewerContent({ path }: { path: string }) {
+function SandboxInspectViewerContent({
+  path,
+  onClose,
+}: {
+  path: string
+  onClose?: () => void
+}) {
   const { name, isLoading, refresh, toggle, download } = useFile(path)
   const { state } = useContent(path)
   const shikiTheme = useShikiTheme()
@@ -82,7 +99,10 @@ function SandboxInspectViewerContent({ path }: { path: string }) {
           fileContentState={state}
           isLoading={isLoading}
           onRefresh={refresh}
-          onClose={toggle}
+          onClose={() => {
+            onClose?.()
+            toggle()
+          }}
           onDownload={download}
         />
       }
@@ -128,7 +148,7 @@ function TextContent({
   if (content.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
-        <span className="text-fg-300 text-sm">This file is empty.</span>
+        <span className="text-fg-secondary ">This file is empty.</span>
         <Button variant="warning" size="sm" onClick={onDownload}>
           Download
           <Download className="ml-1.5 h-4 w-4" />
@@ -182,7 +202,7 @@ interface UnreadableContent {
 function UnreadableContent({ onDownload }: UnreadableContent) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3">
-      <span className="text-fg-300 text-sm">This file is not readable.</span>
+      <span className="text-fg-secondary ">This file is not readable.</span>
       <Button variant="warning" size="sm" onClick={onDownload}>
         Download
         <Download className="ml-1.5 h-4 w-4" />
