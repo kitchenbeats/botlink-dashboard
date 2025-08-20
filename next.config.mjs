@@ -59,8 +59,25 @@ const config = {
 
     return config
   },
-  headers: async () => [
-    {
+  headers: async () => {
+    const headers = []
+
+    if (
+      process.env.NODE_ENV === 'production' &&
+      process.env.CSP_DISABLED !== '1'
+    ) {
+      headers.push({
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\n/g, ''),
+          },
+        ],
+      })
+    }
+
+    headers.push({
       source: '/(.*)',
       headers: [
         {
@@ -69,19 +86,10 @@ const config = {
           value: 'SAMEORIGIN',
         },
       ],
-    },
-    // CSP is only enabled in production and can be disabled by setting CSP_DISABLE=1
-    process.env.NODE_ENV === 'production' &&
-      process.env.CSP_DISABLED !== '1' && {
-        source: '/dashboard/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: cspHeader.replace(/\n/g, ''),
-          },
-        ],
-      },
-  ],
+    })
+
+    return headers
+  },
   rewrites: async () => [
     {
       source: '/ingest/static/:path*',
