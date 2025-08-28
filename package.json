@@ -105,7 +105,6 @@
     "openapi-fetch": "^0.14.0",
     "pathe": "^2.0.3",
     "pino": "^9.7.0",
-    "pino-opentelemetry-transport": "^1.0.1",
     "postgres": "^3.4.5",
     "posthog-js": "^1.214.0",
     "react": "^19.1.0",
