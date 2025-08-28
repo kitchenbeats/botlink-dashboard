@@ -100,6 +100,13 @@ const config = {
       permanent: false,
       statusCode: 302,
     },
+    // TEMP
+    {
+      source: '/dashboard',
+      destination: 'https://status.e2b.dev/',
+      permanent: false,
+      statusCode: 302,
+    },
   ],
   skipTrailingSlashRedirect: true,
 }
