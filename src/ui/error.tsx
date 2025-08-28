@@ -23,7 +23,7 @@ export default function ErrorBoundary({
     l.error(
       {
         key: 'error_boundary',
-        error: serializeError(error),
+        sanitizedError: serializeError(error),
       },
       `${error.message}`
     )

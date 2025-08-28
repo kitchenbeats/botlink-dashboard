@@ -36,6 +36,7 @@ export const getTeamSandboxes = authActionClient
         }
       }
 
+      const includeTerminated = false
       const sandboxesRes = await infra.GET('/sandboxes', {
         headers: {
           ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
@@ -54,6 +55,7 @@ export const getTeamSandboxes = authActionClient
             user_id: session.user.id,
             context: {
               status,
+              includeTerminated,
             },
           },
           `Failed to get team sandboxes: ${sandboxesRes.error.message}`
