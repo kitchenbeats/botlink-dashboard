@@ -2,13 +2,12 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-
 import {
   envDetector,
   hostDetector,
   resourceFromAttributes,
 } from '@opentelemetry/resources'
-import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs'
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
@@ -18,6 +17,7 @@ import {
 } from '@opentelemetry/semantic-conventions'
 import { FetchInstrumentation } from '@vercel/otel'
 import { CompositeSpanProcessor } from './span-processor'
+import { VercelRuntimeSpanExporter } from './vercel/exporter'
 
 function parseResourceAttributes(
   resourceAttrs?: string
@@ -60,6 +60,7 @@ const sdk = new NodeSDK({
     // Parse additional resource attributes from environment
     ...parseResourceAttributes(OTEL_RESOURCE_ATTRIBUTES),
     // Vercel context
+    'vercel.runtime': process.env.NEXT_RUNTIME || 'nodejs',
     ...(VERCEL_ENV && { 'vercel.env': VERCEL_ENV }),
     ...(VERCEL_URL && { 'vercel.url': VERCEL_URL }),
     ...(VERCEL_PROJECT_PRODUCTION_URL && {
@@ -76,7 +77,10 @@ const sdk = new NodeSDK({
   }),
   spanProcessors: [
     new CompositeSpanProcessor(
-      [new BatchSpanProcessor(traceExporter)],
+      [
+        new BatchSpanProcessor(new VercelRuntimeSpanExporter()),
+        new BatchSpanProcessor(traceExporter),
+      ],
       undefined
     ),
   ],
@@ -86,7 +90,7 @@ const sdk = new NodeSDK({
     }),
   }),
   logRecordProcessors: [
-    new BatchLogRecordProcessor(
+    new SimpleLogRecordProcessor(
       new OTLPLogExporter({
         url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
       })
@@ -96,6 +100,9 @@ const sdk = new NodeSDK({
     getNodeAutoInstrumentations({
       // disable `instrumentation-fs` because it's bloating the traces
       '@opentelemetry/instrumentation-fs': {
+        enabled: false,
+      },
+      '@opentelemetry/instrumentation-http': {
         enabled: false,
       },
     }),

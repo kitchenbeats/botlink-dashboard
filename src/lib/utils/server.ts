@@ -8,7 +8,6 @@ import { createClient } from '@/lib/clients/supabase/server'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
 import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
-import { cache } from 'react'
 import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { infra } from '../clients/api'
@@ -45,16 +44,19 @@ export async function checkAuthenticated() {
   return { user: data.user, session, supabase }
 }
 
-export const getUserMemo = cache(
-  async (supabase: Awaited<ReturnType<typeof createClient>>) => {
-    l.debug(
-      { key: 'check_authenticated:get_user_memo' },
-      'Fetching user from Supabase'
-    )
-
+export const getUserMemo = async (
+  supabase: Awaited<ReturnType<typeof createClient>>
+) => {
+  if (process.env.NODE_ENV === 'test') {
     return await supabase.auth.getUser()
   }
-)
+
+  const cache = async (supabase: Awaited<ReturnType<typeof createClient>>) => {
+    return await supabase.auth.getUser()
+  }
+
+  return cache(supabase)
+}
 
 /*
  *  This function generates an e2b user access token for a given user.
