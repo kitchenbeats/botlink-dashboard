@@ -75,9 +75,12 @@ export const actionClient = createSafeActionClient({
     user_id: flattenClientInputValue(clientInput, 'userId'),
   }
 
-  s.setAttribute('action_type', type)
-  s.setAttribute('action_name', name)
-  s.setAttribute('duration_ms', baseLogPayload.server_function_duration_ms)
+  s.setAttribute('server_function_type', type)
+  s.setAttribute('server_function_name', name)
+  s.setAttribute(
+    'server_function_duration_ms',
+    baseLogPayload.server_function_duration_ms
+  )
   if (baseLogPayload.team_id) {
     s.setAttribute('team_id', baseLogPayload.team_id)
   }
