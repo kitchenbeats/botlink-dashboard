@@ -4,7 +4,7 @@ export async function register() {
   if (!process.env.OTEL_EXPORTER_OTLP_ENDPOINT) return
 
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('./instrumentation.node')
+    await import('./instrumentation/instrumentation.node')
   }
 
   if (process.env.NEXT_RUNTIME === 'edge') {

@@ -10,11 +10,13 @@ import {
 import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
 import { FetchInstrumentation } from '@vercel/otel'
+import { NextCompositeSpanProcessor } from './span-processor'
 
 function parseResourceAttributes(
   resourceAttrs?: string
@@ -46,6 +48,10 @@ const {
   VERCEL_GIT_COMMIT_SHA,
 } = process.env
 
+const traceExporter = new OTLPTraceExporter({
+  url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`,
+})
+
 const sdk = new NodeSDK({
   resource: resourceFromAttributes({
     [ATTR_SERVICE_NAME]: OTEL_SERVICE_NAME || 'e2b-dashboard',
@@ -67,9 +73,9 @@ const sdk = new NodeSDK({
       'vercel.git.commit_sha': VERCEL_GIT_COMMIT_SHA,
     }),
   }),
-  traceExporter: new OTLPTraceExporter({
-    url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`,
-  }),
+  spanProcessors: [
+    new NextCompositeSpanProcessor([new BatchSpanProcessor(traceExporter)]),
+  ],
   metricReader: new PeriodicExportingMetricReader({
     exporter: new OTLPMetricExporter({
       url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`,
