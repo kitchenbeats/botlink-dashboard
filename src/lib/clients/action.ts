@@ -75,23 +75,23 @@ export const actionClient = createSafeActionClient({
     user_id: flattenClientInputValue(clientInput, 'userId'),
   }
 
-  s.setAttribute('server_function_type', type)
-  s.setAttribute('server_function_name', name)
+  s.setAttribute('env.server_function_type', type)
+  s.setAttribute('env.server_function_name', name)
   s.setAttribute(
-    'server_function_duration_ms',
+    'env.server_function_duration_ms',
     baseLogPayload.server_function_duration_ms
   )
   if (baseLogPayload.team_id) {
-    s.setAttribute('team_id', baseLogPayload.team_id)
+    s.setAttribute('env.team_id', baseLogPayload.team_id)
   }
   if (baseLogPayload.template_id) {
-    s.setAttribute('template_id', baseLogPayload.template_id)
+    s.setAttribute('env.template_id', baseLogPayload.template_id)
   }
   if (baseLogPayload.sandbox_id) {
-    s.setAttribute('sandbox_id', baseLogPayload.sandbox_id)
+    s.setAttribute('env.sandbox_id', baseLogPayload.sandbox_id)
   }
   if (baseLogPayload.user_id) {
-    s.setAttribute('user_id', baseLogPayload.user_id)
+    s.setAttribute('env.user_id', baseLogPayload.user_id)
   }
 
   const error =
