@@ -1,4 +1,3 @@
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
@@ -7,9 +6,10 @@ import {
   hostDetector,
   resourceFromAttributes,
 } from '@opentelemetry/resources'
-import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs'
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
@@ -51,6 +51,33 @@ const {
   VERCEL_GIT_PROVIDER,
 } = process.env
 
+/**
+ * In serverless environments we want the data to be shipped out as quickly
+ * as possible before the platform freezes the process.  We therefore use a
+ * BatchSpanProcessor with aggressive timing values (1 s flush interval) and
+ * shorten the metric reader intervals as well.
+ */
+const spanProcessor = new BatchSpanProcessor(
+  new OTLPTraceExporter({
+    url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`,
+  }),
+  {
+    scheduledDelayMillis: 1_000,
+    exportTimeoutMillis: 3_000,
+    maxQueueSize: 2_048,
+    maxExportBatchSize: 512,
+  }
+)
+
+const metricReader = new PeriodicExportingMetricReader({
+  exporter: new OTLPMetricExporter({
+    url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`,
+  }),
+  // Push metrics every second so they are delivered before the function ends.
+  exportIntervalMillis: 1_000,
+  exportTimeoutMillis: 3_000,
+})
+
 const sdk = new NodeSDK({
   resource: resourceFromAttributes({
     [ATTR_SERVICE_NAME]: OTEL_SERVICE_NAME || 'e2b-dashboard',
@@ -85,30 +112,16 @@ const sdk = new NodeSDK({
     }),
     ...(VERCEL_GIT_PROVIDER && { 'vercel.git.provider': VERCEL_GIT_PROVIDER }),
   }),
-  traceExporter: new OTLPTraceExporter({
-    url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`,
-  }),
-  metricReader: new PeriodicExportingMetricReader({
-    exporter: new OTLPMetricExporter({
-      url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`,
-    }),
-  }),
+  spanProcessor: spanProcessor,
+  metricReader: metricReader,
   logRecordProcessors: [
-    new BatchLogRecordProcessor(
+    new SimpleLogRecordProcessor(
       new OTLPLogExporter({
         url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
       })
     ),
   ],
-  instrumentations: [
-    getNodeAutoInstrumentations({
-      // disable `instrumentation-fs` because it's bloating the traces
-      '@opentelemetry/instrumentation-fs': {
-        enabled: false,
-      },
-    }),
-    new FetchInstrumentation(),
-  ],
+  instrumentations: [new FetchInstrumentation()],
   resourceDetectors: [envDetector, hostDetector],
 })
 
