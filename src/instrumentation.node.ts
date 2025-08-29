@@ -1,3 +1,4 @@
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
@@ -73,9 +74,6 @@ const metricReader = new PeriodicExportingMetricReader({
   exporter: new OTLPMetricExporter({
     url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`,
   }),
-  // Push metrics every second so they are delivered before the function ends.
-  exportIntervalMillis: 1_000,
-  exportTimeoutMillis: 3_000,
 })
 
 const sdk = new NodeSDK({
@@ -121,7 +119,15 @@ const sdk = new NodeSDK({
       })
     ),
   ],
-  instrumentations: [new FetchInstrumentation()],
+  instrumentations: [
+    getNodeAutoInstrumentations({
+      // disable `instrumentation-fs` because it's bloating the traces
+      '@opentelemetry/instrumentation-fs': {
+        enabled: false,
+      },
+    }),
+    new FetchInstrumentation(),
+  ],
   resourceDetectors: [envDetector, hostDetector],
 })
 
