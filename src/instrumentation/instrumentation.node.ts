@@ -2,6 +2,7 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+
 import {
   envDetector,
   hostDetector,
@@ -16,7 +17,7 @@ import {
   ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
 import { FetchInstrumentation } from '@vercel/otel'
-import { NextCompositeSpanProcessor } from './span-processor'
+import { CompositeSpanProcessor } from './span-processor'
 
 function parseResourceAttributes(
   resourceAttrs?: string
@@ -74,7 +75,10 @@ const sdk = new NodeSDK({
     }),
   }),
   spanProcessors: [
-    new NextCompositeSpanProcessor([new BatchSpanProcessor(traceExporter)]),
+    new CompositeSpanProcessor(
+      [new BatchSpanProcessor(traceExporter)],
+      undefined
+    ),
   ],
   metricReader: new PeriodicExportingMetricReader({
     exporter: new OTLPMetricExporter({

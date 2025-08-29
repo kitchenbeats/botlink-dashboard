@@ -1,170 +1,137 @@
-import type { Attributes, Context, TextMapGetter } from '@opentelemetry/api'
-import { diag, SpanKind } from '@opentelemetry/api'
+import type { Attributes, Context } from '@opentelemetry/api'
+import { diag, SpanKind, TraceFlags } from '@opentelemetry/api'
 import type {
   ReadableSpan,
   Span,
   SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
+import type { AttributesFromHeaders } from '@vercel/otel'
+import { getVercelRequestContext } from './vercel/api'
+import { getVercelRequestContextAttributes } from './vercel/attributes'
 
-import { TraceFlags } from '@opentelemetry/api'
-
-type AttributesFromHeaderFunc = <Carrier = unknown>(
-  headers: Carrier,
-  getter: TextMapGetter<Carrier>
-) => Attributes | undefined
-
-type AttributesFromHeaders = Record<string, string> | AttributesFromHeaderFunc
-
-/**
- * Helper ────────────────────────────────────────────────────────────────────
- * Try to obtain the callback that extends the lifetime of the request so that
- * our exporter has time to flush.
- *
- * Priority:
- *   1. `after(cb)`   (Next.js 15)
- *   2. fallback      (best-effort `setTimeout`)
- */
-function scheduleAfterResponse(task: () => Promise<void>) {
-  try {
-    // avoid a hard dependency so this file can be imported outside a route.
-    // `require` is evaluated lazily – if Next isn't around it will throw.
-    // eslint-disable-next-line
-    const mod = require('next/server') as { after?: (cb: () => void) => void }
-
-    if (typeof mod.after === 'function') {
-      mod.after(() => {
-        // no await – Next treats sync or async the same,
-        // we just fire the promise and let it resolve.
-        void task()
-      })
-      return
-    }
-  } catch {
-    /* ignored – we're probably not inside a Next context */
-  }
-
-  // 2.  Node / local fallback – try our best and hope the
-  //     process stays alive long enough.
-  setTimeout(() => {
-    void task()
-  }, 0)
-}
-
-function isSampled(traceFlags: number): boolean {
-  // Use bitwise AND to inspect the sampled flag
+export function isSampled(traceFlags: number): boolean {
+  // eslint-disable-next-line no-bitwise
   return (traceFlags & TraceFlags.SAMPLED) !== 0
 }
 
-/** Custom CompositeSpanProcessor for Next.js */
-export class NextCompositeSpanProcessor implements SpanProcessor {
+/** @internal */
+export class CompositeSpanProcessor implements SpanProcessor {
   private readonly rootSpanIds = new Map<
     string,
     { rootSpanId: string; open: Span[] }
   >()
   private readonly waitSpanEnd = new Map<string, () => void>()
-  /** makes concurrent `forceFlush()` invocations queue instead of collide */
-  private flushInFlight: Promise<void> | null = null
 
   constructor(
-    private readonly processors: SpanProcessor[],
-    private readonly attributesFromHeaders?: AttributesFromHeaders
+    private processors: SpanProcessor[],
+    private attributesFromHeaders: AttributesFromHeaders | undefined
   ) {}
 
-  // ───────────────────────────── infrastructure ────────────────────────────
   forceFlush(): Promise<void> {
-    // Serialise: if a flush is already happening, share that promise.
-    if (this.flushInFlight) return this.flushInFlight
-
-    const flushPromise = Promise.all(
+    return Promise.all(
       this.processors.map((p) =>
         p.forceFlush().catch((e) => {
-          diag.error('forceFlush failed:', e)
+          diag.error('@vercel/otel: forceFlush failed:', e)
         })
       )
-    )
-      .then(() => undefined) // ensure Promise<void>
-      .catch(() => undefined) // already logged
-      .finally(() => {
-        this.flushInFlight = null
-      })
-
-    this.flushInFlight = flushPromise
-
-    return this.flushInFlight as Promise<void>
+    ).then(() => undefined)
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): Promise<void> {
     return Promise.all(
       this.processors.map((p) => p.shutdown().catch(() => undefined))
     ).then(() => undefined)
   }
 
-  // ────────────────────────────────── onStart ──────────────────────────────
   onStart(span: Span, parentContext: Context): void {
     const { traceId, spanId, traceFlags } = span.spanContext()
     const isRoot = !this.rootSpanIds.has(traceId)
-
     if (isRoot) {
       this.rootSpanIds.set(traceId, { rootSpanId: spanId, open: [] })
     } else {
       this.rootSpanIds.get(traceId)?.open.push(span)
     }
-
-    // Attach request-specific attributes only on the root span
     if (isRoot && isSampled(traceFlags)) {
-      // When the *response* (or prerender) is done, flush traces.
-      scheduleAfterResponse(async () => {
-        if (this.rootSpanIds.has(traceId)) {
-          // Root hasn’t finished yet – wait via onEnd().
-          const waiter = new Promise<void>((resolve) =>
-            this.waitSpanEnd.set(traceId, resolve)
-          )
-          let timer: NodeJS.Timeout | undefined
+      const vrc = getVercelRequestContext()
+      const vercelRequestContextAttrs = getVercelRequestContextAttributes(
+        vrc,
+        this.attributesFromHeaders
+      )
+      if (vercelRequestContextAttrs) {
+        span.setAttributes(vercelRequestContextAttrs)
+      }
 
-          await Promise.race([
-            waiter,
-            new Promise((res) => {
-              timer = setTimeout(() => {
-                this.waitSpanEnd.delete(traceId)
-                res(undefined)
-              }, 50) // same 50 ms guard as Vercel’s impl
-            }),
-          ])
-          if (timer) clearTimeout(timer)
-        }
-
-        await this.forceFlush()
-      })
+      // Flush the streams to avoid data loss.
+      if (vrc) {
+        vrc.waitUntil(async () => {
+          if (this.rootSpanIds.has(traceId)) {
+            // Not root has not completed yet, so no point in flushing.
+            // Need to wait for onEnd.
+            const promise = new Promise<void>((resolve) => {
+              this.waitSpanEnd.set(traceId, resolve)
+            })
+            let timer: NodeJS.Timeout | undefined
+            await Promise.race([
+              promise,
+              new Promise((resolve) => {
+                timer = setTimeout(() => {
+                  this.waitSpanEnd.delete(traceId)
+                  resolve(undefined)
+                }, 50)
+              }),
+            ])
+            if (timer) {
+              clearTimeout(timer)
+            }
+          }
+          return this.forceFlush()
+        })
+      }
     }
 
-    // Fan-out start to underlying processors
-    for (const p of this.processors) p.onStart(span, parentContext)
+    for (const spanProcessor of this.processors) {
+      spanProcessor.onStart(span, parentContext)
+    }
   }
 
-  // ─────────────────────────────────── onEnd ───────────────────────────────
   onEnd(span: ReadableSpan): void {
     const { traceId, spanId, traceFlags } = span.spanContext()
-    const root = this.rootSpanIds.get(traceId)
-    const isRoot = root?.rootSpanId === spanId
+    const sampled = isSampled(traceFlags)
+    const rootObj = this.rootSpanIds.get(traceId)
+    const isRoot = rootObj?.rootSpanId === spanId
 
-    // Datadog-style resource/operation name enrichment
-    if (isSampled(traceFlags)) {
-      const resAttrs = getResourceAttributes(span)
-      if (resAttrs) Object.assign(span.attributes, resAttrs)
+    if (sampled) {
+      const resourceAttributes = getResourceAttributes(span)
+      if (resourceAttributes) {
+        Object.assign(span.attributes, resourceAttributes)
+      }
     }
 
-    // Maintain open-span book-keeping
     if (isRoot) {
-      // Root finished: no need to force-end children; they will end naturally.
       this.rootSpanIds.delete(traceId)
-    } else if (root) {
-      root.open = root.open.filter((s) => s.spanContext().spanId !== spanId)
+      if (rootObj.open.length > 0) {
+        for (const openSpan of rootObj.open) {
+          if (!openSpan.ended && openSpan.spanContext().spanId !== spanId) {
+            try {
+              openSpan.end()
+            } catch (e) {
+              diag.error('@vercel/otel: onEnd failed:', e)
+            }
+          }
+        }
+      }
+    } else if (rootObj) {
+      for (let i = 0; i < rootObj.open.length; i++) {
+        if (rootObj.open[i]?.spanContext().spanId === spanId) {
+          rootObj.open.splice(i, 1)
+        }
+      }
     }
 
-    // Fan-out end
-    for (const p of this.processors) p.onEnd(span)
+    for (const spanProcessor of this.processors) {
+      spanProcessor.onEnd(span)
+    }
 
-    // Release waiter if anyone is waiting for the root span to finish
     if (isRoot) {
       const pending = this.waitSpanEnd.get(traceId)
       if (pending) {
@@ -175,8 +142,7 @@ export class NextCompositeSpanProcessor implements SpanProcessor {
   }
 }
 
-/* ───────────────────────── Helpers copied from Vercel impl ─────────────── */
-const SPAN_KIND_NAME: { [k in SpanKind]: string } = {
+const SPAN_KIND_NAME: { [key in SpanKind]: string } = {
   [SpanKind.INTERNAL]: 'internal',
   [SpanKind.SERVER]: 'server',
   [SpanKind.CLIENT]: 'client',
@@ -187,29 +153,41 @@ const SPAN_KIND_NAME: { [k in SpanKind]: string } = {
 function getResourceAttributes(span: ReadableSpan): Attributes | undefined {
   const { kind, attributes } = span
   const {
-    'operation.name': opName,
-    'resource.name': resName,
+    'operation.name': operationName,
+    'resource.name': resourceName,
     'span.type': spanTypeAttr,
     'next.span_type': nextSpanType,
     'http.method': httpMethod,
     'http.route': httpRoute,
   } = attributes
-  if (opName) return undefined
+  if (operationName) {
+    return undefined
+  }
 
-  const resourceName =
-    resName ??
-    (httpMethod && httpRoute ? `${httpMethod} ${httpRoute}` : httpRoute)
+  const resourceNameResolved =
+    resourceName ??
+    (httpMethod &&
+    typeof httpMethod === 'string' &&
+    httpRoute &&
+    typeof httpRoute === 'string'
+      ? `${httpMethod} ${httpRoute}`
+      : httpRoute)
 
   if (
-    kind === SpanKind.SERVER &&
+    span.kind === SpanKind.SERVER &&
+    httpMethod &&
+    httpRoute &&
     typeof httpMethod === 'string' &&
     typeof httpRoute === 'string'
   ) {
-    return { 'operation.name': 'web.request', 'resource.name': resourceName }
+    return {
+      'operation.name': 'web.request',
+      'resource.name': resourceNameResolved,
+    }
   }
 
   const spanType = nextSpanType ?? spanTypeAttr
-  if (typeof spanType === 'string') {
+  if (spanType && typeof spanType === 'string') {
     return httpRoute
       ? { 'operation.name': spanType, 'resource.name': resourceName }
       : { 'operation.name': spanType }
@@ -221,9 +199,13 @@ function getResourceAttributes(span: ReadableSpan): Attributes | undefined {
   }
 }
 
-function toOperationName(lib: string, name: string) {
-  if (!lib) return name
-  let clean = lib.replace(/[ @./]/g, '_')
-  if (clean.startsWith('_')) clean = clean.slice(1)
-  return name ? `${clean}.${name}` : clean
+function toOperationName(libraryName: string, name: string): string {
+  if (!libraryName) {
+    return name
+  }
+  let cleanLibraryName = libraryName.replace(/[ @./]/g, '_')
+  if (cleanLibraryName.startsWith('_')) {
+    cleanLibraryName = cleanLibraryName.slice(1)
+  }
+  return name ? `${cleanLibraryName}.${name}` : cleanLibraryName
 }
