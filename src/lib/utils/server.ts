@@ -8,10 +8,11 @@ import { createClient } from '@/lib/clients/supabase/server'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
 import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
+import { cache } from 'react'
 import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { infra } from '../clients/api'
-import { l } from '../clients/logger/logger'
+import { l } from '../clients/logger'
 import { returnServerError } from './action'
 
 /*
@@ -21,6 +22,8 @@ import { returnServerError } from './action'
  *  @params request - an optional NextRequest object to create a supabase client for route handlers
  */
 export async function checkAuthenticated() {
+  l.debug({ key: 'check_authenticated:called' }, 'Checking authentication')
+
   const supabase = await createClient()
 
   // retrieve session from storage medium (cookies)
@@ -33,17 +36,25 @@ export async function checkAuthenticated() {
     throw UnauthenticatedError()
   }
 
-  // now retrieve user from supabase to use further
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data } = await getUserMemo(supabase)
 
-  if (!user) {
+  if (!data.user) {
     throw UnauthenticatedError()
   }
 
-  return { user, session, supabase }
+  return { user: data.user, session, supabase }
 }
+
+export const getUserMemo = cache(
+  async (supabase: Awaited<ReturnType<typeof createClient>>) => {
+    l.debug(
+      { key: 'check_authenticated:get_user_memo' },
+      'Fetching user from Supabase'
+    )
+
+    return await supabase.auth.getUser()
+  }
+)
 
 /*
  *  This function generates an e2b user access token for a given user.
