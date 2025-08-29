@@ -7,7 +7,7 @@ import {
   hostDetector,
   resourceFromAttributes,
 } from '@opentelemetry/resources'
-import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node'
@@ -76,6 +76,18 @@ const metricReader = new PeriodicExportingMetricReader({
   }),
 })
 
+const logProcessor = new BatchLogRecordProcessor(
+  new OTLPLogExporter({
+    url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
+  }),
+  {
+    scheduledDelayMillis: 500,
+    exportTimeoutMillis: 3_000,
+    maxQueueSize: 2_048,
+    maxExportBatchSize: 512,
+  }
+)
+
 const sdk = new NodeSDK({
   resource: resourceFromAttributes({
     [ATTR_SERVICE_NAME]: OTEL_SERVICE_NAME || 'e2b-dashboard',
@@ -112,13 +124,7 @@ const sdk = new NodeSDK({
   }),
   spanProcessor: spanProcessor,
   metricReader: metricReader,
-  logRecordProcessors: [
-    new SimpleLogRecordProcessor(
-      new OTLPLogExporter({
-        url: `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
-      })
-    ),
-  ],
+  logRecordProcessors: [logProcessor],
   instrumentations: [
     getNodeAutoInstrumentations({
       // disable `instrumentation-fs` because it's bloating the traces
