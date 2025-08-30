@@ -4,9 +4,9 @@ import { serializeError } from 'serialize-error'
 import { ALLOW_SEO_INDEXING } from './configs/flags'
 import { l } from './lib/clients/logger/logger'
 import { getRewriteForPath } from './lib/utils/rewrites'
+import getUserMemo from './server/auth/get-user-memo'
 import {
   getAuthRedirect,
-  getUserSession,
   handleTeamResolution,
   isDashboardRoute,
   resolveTeamForDashboard,
@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
       }
     )
 
-    const { error, data } = await getUserSession(supabase)
+    const { error, data } = await getUserMemo(supabase)
 
     // Handle authentication redirects
     const authRedirect = getAuthRedirect(request, !error)

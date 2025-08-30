@@ -2,6 +2,7 @@ import { COOKIE_KEYS } from '@/configs/keys'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { createClient } from '@/lib/clients/supabase/server'
+import getUserMemo from '@/server/auth/get-user-memo'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
   // 2. Create Supabase client and get user
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.getUser()
+  const { data, error } = await getUserMemo(supabase)
 
   if (error || !data.user) {
     // Redirect to sign-in if not authenticated

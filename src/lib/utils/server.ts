@@ -4,7 +4,7 @@ import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
 import { kv } from '@/lib/clients/kv'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
-import { createClient } from '@/lib/clients/supabase/server'
+import getUserMemo from '@/server/auth/get-user-memo'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
 import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
@@ -12,6 +12,7 @@ import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { infra } from '../clients/api'
 import { l } from '../clients/logger/logger'
+import { createClient } from '../clients/supabase/server'
 import { returnServerError } from './action'
 
 /*
@@ -36,7 +37,7 @@ export async function checkAuthenticated() {
   // now retrieve user from supabase to use further
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await getUserMemo(supabase)
 
   if (!user) {
     throw UnauthenticatedError()
@@ -61,17 +62,20 @@ export async function generateE2BUserAccessToken(supabaseAccessToken: string) {
   })
 
   if (res.error) {
-    l.error({
-      key: 'GENERATE_E2B_USER_ACCESS_TOKEN:INFRA_ERROR',
-      message: res.error.message,
-      error: res.error,
-      context: {
-        status: res.response.status,
-        method: 'POST',
-        path: '/access-tokens',
-        name: TOKEN_NAME,
+    l.error(
+      {
+        key: 'GENERATE_E2B_USER_ACCESS_TOKEN:INFRA_ERROR',
+        message: res.error.message,
+        error: res.error,
+        context: {
+          status: res.response.status,
+          method: 'POST',
+          path: '/access-tokens',
+          name: TOKEN_NAME,
+        },
       },
-    })
+      'Failed to generate e2b user access token'
+    )
 
     return returnServerError(`Failed to generate e2b user access token`)
   }
@@ -166,14 +170,17 @@ export async function resolveTeamId(identifier: string): Promise<string> {
     .single()
 
   if (error || !team) {
-    l.error({
-      key: 'resolve_team_id:failed_to_resolve_team_id_from_slug',
-      message: error.message,
-      error: serializeError(error),
-      context: {
-        identifier,
+    l.error(
+      {
+        key: 'resolve_team_id:failed_to_resolve_team_id_from_slug',
+        message: error.message,
+        error: serializeError(error),
+        context: {
+          identifier,
+        },
       },
-    })
+      'Failed to resolve team ID from slug'
+    )
 
     throw new E2BError('INVALID_PARAMETERS', 'Invalid team identifier')
   }
@@ -207,13 +214,16 @@ export async function resolveTeamIdInServerComponent(identifier: string) {
     teamId = await resolveTeamId(identifier)
     cookiesStore.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId)
 
-    l.info({
-      key: 'resolve_team_id_in_server_component:resolving_team_id_from_data_sources',
-      team_id: teamId,
-      context: {
-        identifier,
+    l.info(
+      {
+        key: 'resolve_team_id_in_server_component:resolving_team_id_from_data_sources',
+        team_id: teamId,
+        context: {
+          identifier,
+        },
       },
-    })
+      'Resolved team ID from data sources'
+    )
   }
   return teamId
 }
