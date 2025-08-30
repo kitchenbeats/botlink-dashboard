@@ -1,17 +1,16 @@
 import 'server-only'
 
-import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import {
   MOCK_DEFAULT_TEMPLATES_DATA,
   MOCK_TEMPLATES_DATA,
 } from '@/configs/mock-data'
 import { actionClient, authActionClient } from '@/lib/clients/action'
-import { infra } from '@/lib/clients/api'
 import { l } from '@/lib/clients/logger/logger'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { handleDefaultInfraError } from '@/lib/utils/action'
 import { DefaultTemplate } from '@/types/api'
 import { z } from 'zod'
+import getTeamTemplatesMemo from './get-team-templates-memo'
 
 const GetTeamTemplatesSchema = z.object({
   teamId: z.string().uuid(),
@@ -31,16 +30,10 @@ export const getTeamTemplates = authActionClient
       }
     }
 
-    const res = await infra.GET('/templates', {
-      params: {
-        query: {
-          teamID: teamId,
-        },
-      },
-      headers: {
-        ...SUPABASE_AUTH_HEADERS(session.access_token),
-      },
-    })
+    const userId = session.user.id
+    const accessToken = session.access_token
+
+    const res = await getTeamTemplatesMemo(userId, teamId, accessToken)
 
     if (res.error) {
       const status = res.response.status
@@ -49,7 +42,7 @@ export const getTeamTemplates = authActionClient
           key: 'get_team_templates:infra_error',
           error: res.error,
           team_id: teamId,
-          user_id: session.user.id,
+          user_id: userId,
           context: {
             status,
           },
