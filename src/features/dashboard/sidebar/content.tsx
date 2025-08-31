@@ -4,12 +4,12 @@ import {
   DashboardNavLink,
   MAIN_DASHBOARD_LINKS,
 } from '@/configs/dashboard-navs'
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useMemo } from 'react'
 
 import { useIsMobile } from '@/lib/hooks/use-mobile'
+import { useTeam } from '@/lib/hooks/use-team'
 import {
   SIDEBAR_TRANSITION_CLASSNAMES,
   SidebarContent,
@@ -38,8 +38,8 @@ const createGroupedLinks = (links: DashboardNavLink[]): GroupedLinks => {
 }
 
 export default function DashboardSidebarContent() {
-  const selectedTeam = useSelectedTeam()
-  const selectedTeamIdentifier = selectedTeam?.slug ?? selectedTeam?.id
+  const { team } = useTeam()
+  const selectedTeamIdentifier = team?.slug ?? team?.id
   const pathname = usePathname()
   const isMobile = useIsMobile()
   const { setOpenMobile } = useSidebar()

@@ -2,7 +2,7 @@
 
 import { ALL_DASHBOARD_LINKS } from '@/configs/dashboard-navs'
 import useKeydown from '@/lib/hooks/use-keydown'
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import { cn } from '@/lib/utils'
 import {
   CommandDialog,
@@ -30,7 +30,7 @@ export default function DashboardSidebarCommand({
   className,
 }: DashboardSidebarCommandProps) {
   const [open, setOpen] = useState(false)
-  const selectedTeam = useSelectedTeam()
+  const { team } = useTeam()
   const router = useRouter()
 
   const { open: sidebarOpen, openMobile: sidebarOpenMobile } = useSidebar()
@@ -81,8 +81,7 @@ export default function DashboardSidebarCommand({
                 onSelect={() => {
                   router.push(
                     link.href({
-                      teamIdOrSlug:
-                        selectedTeam?.slug ?? selectedTeam?.id ?? undefined,
+                      teamIdOrSlug: team?.slug ?? team?.id ?? undefined,
                     })
                   )
                   setOpen(false)

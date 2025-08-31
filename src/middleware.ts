@@ -14,14 +14,30 @@ import {
 
 export async function middleware(request: NextRequest) {
   try {
-    // Catch-all route rewrite paths should not be handled by middleware
-    // NOTE: We don't handle this via config matchers, because nextjs configs need to be static
-    const { config: routeRewriteConfig } = getRewriteForPath(
-      request.nextUrl.pathname,
-      'route'
+    const pathname = request.nextUrl.pathname
+
+    l.debug(
+      {
+        key: 'middleware:start',
+        pathname,
+      },
+      'middleware - start'
     )
 
+    // Catch-all route rewrite paths should not be handled by middleware
+    // NOTE: We don't handle this via config matchers, because nextjs configs need to be static
+    const { config: routeRewriteConfig } = getRewriteForPath(pathname, 'route')
+
     if (routeRewriteConfig) {
+      l.debug(
+        {
+          key: 'middleware:route_rewrite',
+          pathname,
+          config: routeRewriteConfig,
+        },
+        'middleware - route rewrite'
+      )
+
       return NextResponse.next({
         request,
       })
@@ -29,11 +45,20 @@ export async function middleware(request: NextRequest) {
 
     // Check if the path should be rewritten by middleware
     const { config: middlewareRewriteConfig } = getRewriteForPath(
-      request.nextUrl.pathname,
+      pathname,
       'middleware'
     )
 
     if (middlewareRewriteConfig) {
+      l.debug(
+        {
+          key: 'middleware:middleware_rewrite',
+          pathname,
+          domain: middlewareRewriteConfig.domain,
+        },
+        'middleware - middleware rewrite'
+      )
+
       const rewriteUrl = new URL(request.url)
       rewriteUrl.hostname = middlewareRewriteConfig.domain
       rewriteUrl.protocol = 'https'
@@ -76,25 +101,72 @@ export async function middleware(request: NextRequest) {
 
     const { error, data } = await getUserMemo(supabase)
 
+    l.debug(
+      {
+        key: 'middleware:user_auth',
+        pathname,
+        hasUser: !!data?.user,
+        userId: data?.user?.id,
+        hasError: !!error,
+      },
+      'middleware - user auth'
+    )
+
     // Handle authentication redirects
     const authRedirect = getAuthRedirect(request, !error)
-    if (authRedirect) return authRedirect
+    if (authRedirect) {
+      l.debug(
+        {
+          key: 'middleware:auth_redirect',
+          pathname,
+          redirectTo: authRedirect.headers.get('location'),
+        },
+        'middleware - auth redirect'
+      )
+      return authRedirect
+    }
 
     // Early return for non-dashboard routes or no user
-    if (!data?.user || !isDashboardRoute(request.nextUrl.pathname)) {
+    if (!data?.user || !isDashboardRoute(pathname)) {
+      l.debug({
+        key: 'middleware:early_return',
+        pathname,
+        isDashboard: isDashboardRoute(pathname),
+        hasUser: !!data?.user,
+      })
       return response
     }
 
     // Handle team resolution for all dashboard routes
     const teamResult = await resolveTeamForDashboard(request, data.user.id)
 
+    l.debug(
+      {
+        key: 'middleware:team_resolution',
+        userId: data.user.id,
+        context: {
+          pathname,
+          teamResult: teamResult,
+          teamIdOrSlug: request.nextUrl.pathname.split('/')[2],
+        },
+      },
+      'middleware - resolved team for dashboard'
+    )
+
     // Process team resolution result
     return handleTeamResolution(request, response, teamResult)
   } catch (error) {
-    l.error({
-      key: 'middleware:unexpected_error',
-      error: serializeError(error),
-    })
+    l.error(
+      {
+        key: 'middleware:unexpected_error',
+        error: serializeError(error),
+        context: {
+          pathname: request.nextUrl.pathname,
+          teamIdOrSlug: request.nextUrl.pathname.split('/')[2],
+        },
+      },
+      'middleware - unexpected error'
+    )
     // Return a basic response to avoid infinite loops
     return NextResponse.next({
       request,

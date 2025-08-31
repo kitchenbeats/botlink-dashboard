@@ -1,6 +1,6 @@
 'use client'
 
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -36,7 +36,7 @@ interface AddMemberFormProps {
 export default function AddMemberForm({ className }: AddMemberFormProps) {
   'use no memo'
 
-  const selectedTeam = useSelectedTeam()
+  const { team } = useTeam()
   const { toast } = useToast()
 
   const form = useForm<AddMemberForm>({
@@ -57,12 +57,12 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
   })
 
   function onSubmit(data: AddMemberForm) {
-    if (!selectedTeam) {
+    if (!team) {
       return
     }
 
     execute({
-      teamId: selectedTeam.id,
+      teamId: team.id,
       email: data.email,
     })
   }

@@ -1,80 +1,52 @@
 'use client'
 
 import { PROTECTED_URLS } from '@/configs/urls'
-import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
-import { useUser } from '@/lib/hooks/use-user'
+import { useTeam } from '@/lib/hooks/use-team'
 import { cn } from '@/lib/utils'
 import { signOutAction } from '@/server/auth/auth-actions'
+import { ClientTeam } from '@/types/dashboard.types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/ui/primitives/dropdown-menu'
 import { SidebarMenuButton, SidebarMenuItem } from '@/ui/primitives/sidebar'
 import { Skeleton } from '@/ui/primitives/skeleton'
 import { ChevronsUpDown, LogOut, Plus, UserRoundCog } from 'lucide-react'
-import { PrefetchKind } from 'next/dist/client/components/router-reducer/router-reducer-types'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CreateTeamDialog } from './create-team-dialog'
+import DashboardSidebarMenuTeams from './menu-teams'
 
 interface DashboardSidebarMenuProps {
+  initialTeam?: ClientTeam
   className?: string
 }
 
 export default function DashboardSidebarMenu({
+  initialTeam,
   className,
 }: DashboardSidebarMenuProps) {
-  const { teams } = useTeams()
-  const { user } = useUser()
-  const selectedTeam = useSelectedTeam()
-  const router = useRouter()
+  const { team: selectedTeam } = useTeam({ initialData: initialTeam || null })
+
   const [createTeamOpen, setCreateTeamOpen] = useState(false)
-  const pathname = usePathname()
-
-  const handleTeamChange = async (teamId: string) => {
-    const team = teams.find((t) => t.id === teamId)
-
-    if (!team || !selectedTeam) return
-
-    await fetch('/api/team/state', {
-      method: 'POST',
-      body: JSON.stringify({ teamId: team.id, teamSlug: team.slug }),
-    })
-
-    router.push(
-      pathname
-        .replace(selectedTeam.slug, team.slug)
-        .replace(selectedTeam.id, team.id)
-    )
-    router.refresh()
-  }
 
   const handleLogout = () => {
     signOutAction()
   }
 
-  const handleMenuOpenChange = (open: boolean) => {
-    if (open && teams.length > 0) {
-      teams.forEach((team) => {
-        const url = PROTECTED_URLS.SANDBOXES(team.slug || team.id)
-        router.prefetch(url, { kind: PrefetchKind.FULL })
-      })
-    }
-  }
+  useEffect(() => {
+    console.log('selectedTeam', selectedTeam)
+  }, [selectedTeam])
 
   return (
     <>
       <SidebarMenuItem className="px-3 pb-2 group-data-[collapsible=icon]:p-2">
-        <DropdownMenu onOpenChange={handleMenuOpenChange}>
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               variant="outline"
@@ -123,35 +95,7 @@ export default function DashboardSidebarMenu({
             align="start"
             sideOffset={4}
           >
-            <DropdownMenuRadioGroup
-              value={selectedTeam?.id}
-              onValueChange={handleTeamChange}
-            >
-              {user?.email && (
-                <DropdownMenuLabel className="mb-2">
-                  {user.email}
-                </DropdownMenuLabel>
-              )}
-              {teams.length > 0 ? (
-                teams.map((team) => (
-                  <DropdownMenuRadioItem key={team.id} value={team.id}>
-                    <Avatar className="size-5 shrink-0 border-none">
-                      <AvatarImage
-                        src={team.profile_picture_url || undefined}
-                      />
-                      <AvatarFallback className="group-focus:text-accent-main-highlight text-fg-tertiary text-xs">
-                        {team.name?.charAt(0).toUpperCase() || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="flex-1 truncate font-sans prose-label-highlight">
-                      {team.transformed_default_name || team.name}
-                    </span>
-                  </DropdownMenuRadioItem>
-                ))
-              ) : (
-                <DropdownMenuItem disabled>No teams available</DropdownMenuItem>
-              )}
-            </DropdownMenuRadioGroup>
+            <DashboardSidebarMenuTeams />
 
             <DropdownMenuItem
               className="text-accent-main-highlight mt-1 font-sans prose-label-highlight"

@@ -1,7 +1,7 @@
 'use client'
 
 import { MOCK_METRICS_DATA } from '@/configs/mock-data'
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import { Sandboxes } from '@/types/api'
 import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
 import { useEffect, useMemo } from 'react'
@@ -27,7 +27,7 @@ export function useSandboxesMetrics({
   pollingInterval,
   debounceDelay = 1000,
 }: UseSandboxesMetricsProps) {
-  const teamId = useSelectedTeam()?.id
+  const { team } = useTeam()
 
   const sandboxIds = useMemo(
     () => sandboxes.map((sbx) => sbx.sandboxID),
@@ -38,7 +38,7 @@ export function useSandboxesMetrics({
 
   const { data, error, isLoading } = useSWR<MetricsResponse>(
     debouncedSandboxIds.length > 0
-      ? [`/api/teams/${teamId}/sandboxes/metrics`, debouncedSandboxIds]
+      ? [`/api/teams/${team?.id}/sandboxes/metrics`, debouncedSandboxIds]
       : null,
     async ([url, ids]: [string, string[]]) => {
       if (ids.length === 0) {

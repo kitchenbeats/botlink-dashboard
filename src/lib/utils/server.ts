@@ -2,12 +2,15 @@ import 'server-cli-only'
 
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
+import { PROTECTED_URLS } from '@/configs/urls'
 import { kv } from '@/lib/clients/kv'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import getUserMemo from '@/server/auth/get-user-memo'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
 import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { cache } from 'react'
 import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { infra } from '../clients/api'
@@ -212,30 +215,101 @@ export async function resolveTeamIdInServerComponent(identifier: string) {
   if (!teamId) {
     // Middleware should prevent this case, but just in case
     teamId = await resolveTeamId(identifier)
-    cookiesStore.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId)
-
+    // Cannot modify cookies inside a Server Component. We simply return the
+    // resolved ID; middleware / server actions are responsible for keeping
+    // the cookie state in sync.
     l.info(
       {
-        key: 'resolve_team_id_in_server_component:resolving_team_id_from_data_sources',
+        key: 'resolve_team_id_in_server_component:resolved_without_cookie',
         team_id: teamId,
         context: {
           identifier,
         },
       },
-      'Resolved team ID from data sources'
+      'Resolved team ID from data sources (cookie not set due to RSC restrictions)'
     )
   }
   return teamId
 }
 
 /**
- * Resolves a team slug from cookies.
- * If no slug is found, it returns null.
- *
- *
+ * Resolves team metadata from cookies.
+ * If no metadata is found, it redirects to the dashboard.
  */
-export async function resolveTeamSlugInServerComponent() {
-  const cookiesStore = await cookies()
+export const getTeamMetadataFromCookiesMemo = cache(
+  async (teamIdOrSlug: string) => {
+    const cookiesStore = await cookies()
 
-  return cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
-}
+    const id = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
+    const slug = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
+
+    l.debug(
+      {
+        key: 'get_team_metadata_from_cookies:start',
+        teamIdOrSlug,
+        hasId: !!id,
+        hasSlug: !!slug,
+        id,
+        slug,
+      },
+      'resolving team metadata from cookies'
+    )
+
+    if (!id || !slug) {
+      l.debug(
+        {
+          key: 'get_team_metadata_from_cookies:missing_data',
+          teamIdOrSlug,
+          hasId: !!id,
+          hasSlug: !!slug,
+        },
+        'missing team data in cookies, redirecting to dashboard'
+      )
+      throw redirect(PROTECTED_URLS.DASHBOARD)
+    }
+
+    const isSensical = id === teamIdOrSlug || slug === teamIdOrSlug
+    const isUUID = z.string().uuid().safeParse(id).success
+
+    l.debug(
+      {
+        key: 'get_team_metadata_from_cookies:validation',
+        teamIdOrSlug,
+        id,
+        slug,
+        isSensical,
+        isUUID,
+      },
+      'validating team metadata'
+    )
+
+    if (isUUID && isSensical) {
+      l.debug(
+        {
+          key: 'get_team_metadata_from_cookies:success',
+          teamIdOrSlug,
+          id,
+          slug,
+        },
+        'successfully resolved team metadata from cookies'
+      )
+      return {
+        id,
+        slug,
+      }
+    }
+
+    l.debug(
+      {
+        key: 'get_team_metadata_from_cookies:invalid_data',
+        teamIdOrSlug,
+        id,
+        slug,
+        isSensical,
+        isUUID,
+      },
+      'invalid team data, redirecting to dashboard'
+    )
+    throw redirect(PROTECTED_URLS.DASHBOARD)
+  }
+)

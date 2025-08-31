@@ -1,7 +1,7 @@
 'use client'
 
 import { USER_MESSAGES } from '@/configs/user-messages'
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -22,7 +22,7 @@ interface ProfilePictureCardProps {
 }
 
 export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
-  const team = useSelectedTeam()
+  const { team } = useTeam()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isHovered, setIsHovered] = useState(false)

@@ -1,7 +1,7 @@
 'use client'
 
 import { Tier } from '@/configs/tiers'
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import { defaultErrorToast, useToast } from '@/lib/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { redirectToCheckoutAction } from '@/server/billing/billing-actions'
@@ -18,7 +18,7 @@ interface BillingTierCardProps {
 
 const BillingTierCard = forwardRef<HTMLDivElement, BillingTierCardProps>(
   ({ tier, isHighlighted = false, className }, ref) => {
-    const team = useSelectedTeam()
+    const { team } = useTeam()
 
     const { toast } = useToast()
 

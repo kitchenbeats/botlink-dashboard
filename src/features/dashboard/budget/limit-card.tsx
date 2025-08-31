@@ -1,6 +1,6 @@
 'use client'
 
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import { BillingLimit } from '@/types/billing'
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card'
 import LimitForm from './limit-form'
@@ -11,7 +11,7 @@ interface LimitCardProps {
 }
 
 export default function LimitCard({ className, value }: LimitCardProps) {
-  const team = useSelectedTeam()
+  const { team } = useTeam()
 
   if (!team) return null
 

@@ -2,7 +2,6 @@ import { TIERS } from '@/configs/tiers'
 import CustomerPortalLink from '@/features/dashboard/billing/customer-portal-link'
 import BillingInvoicesTable from '@/features/dashboard/billing/invoices-table'
 import BillingTierCard from '@/features/dashboard/billing/tier-card'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import Frame from '@/ui/frame'
 import {
   Card,
@@ -18,9 +17,6 @@ export default async function BillingPage({
 }: {
   params: Promise<{ teamIdOrSlug: string }>
 }) {
-  const { teamIdOrSlug } = await params
-  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
-
   return (
     <Frame
       classNames={{
@@ -64,7 +60,9 @@ export default async function BillingPage({
 
         <CardContent>
           <div className="w-full overflow-x-auto">
-            <BillingInvoicesTable teamId={teamId} />
+            <Suspense fallback={null}>
+              <BillingInvoicesTable params={params} />
+            </Suspense>
           </div>
         </CardContent>
       </Card>

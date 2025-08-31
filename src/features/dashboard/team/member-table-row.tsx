@@ -1,7 +1,7 @@
 'use client'
 
 import { PROTECTED_URLS } from '@/configs/urls'
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -30,7 +30,7 @@ export default function MemberTableRow({
   index,
 }: TableRowProps) {
   const { toast } = useToast()
-  const selectedTeam = useSelectedTeam()
+  const { team } = useTeam()
   const router = useRouter()
   const { user } = useUser()
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
@@ -58,12 +58,12 @@ export default function MemberTableRow({
   )
 
   const handleRemoveMember = async (userId: string) => {
-    if (!selectedTeam) {
+    if (!team) {
       return
     }
 
     removeMember({
-      teamId: selectedTeam.id,
+      teamId: team.id,
       userId,
     })
   }

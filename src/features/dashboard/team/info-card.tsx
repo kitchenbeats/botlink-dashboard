@@ -1,6 +1,6 @@
 'use client'
 
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import CopyButton from '@/ui/copy-button'
 import { Badge } from '@/ui/primitives/badge'
 import {
@@ -17,7 +17,7 @@ interface InfoCardProps {
 }
 
 export function InfoCard({ className }: InfoCardProps) {
-  const team = useSelectedTeam()
+  const { team } = useTeam()
 
   return (
     <Card className={className}>

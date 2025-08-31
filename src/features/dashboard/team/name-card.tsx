@@ -1,7 +1,7 @@
 'use client'
 
 import { USER_MESSAGES } from '@/configs/user-messages'
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -38,7 +38,7 @@ interface NameCardProps {
 export function NameCard({ className }: NameCardProps) {
   'use no memo'
 
-  const team = useSelectedTeam()
+  const { team } = useTeam()
 
   const { toast } = useToast()
 

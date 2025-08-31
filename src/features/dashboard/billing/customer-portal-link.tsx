@@ -1,6 +1,6 @@
 'use client'
 
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import { redirectToCustomerPortal } from '@/server/billing/billing-actions'
 import ExternalIcon from '@/ui/external-icon'
 import { Button } from '@/ui/primitives/button'
@@ -14,7 +14,7 @@ interface CustomerPortalLinkProps {
 export default function CustomerPortalLink({
   className,
 }: CustomerPortalLinkProps) {
-  const team = useSelectedTeam()
+  const { team } = useTeam()
 
   const { isTransitioning, execute } = useAction(redirectToCustomerPortal)
 

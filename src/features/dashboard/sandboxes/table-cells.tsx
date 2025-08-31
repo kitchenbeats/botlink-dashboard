@@ -1,7 +1,7 @@
 'use client'
 
 import { PROTECTED_URLS } from '@/configs/urls'
-import { useServerContext } from '@/features/dashboard/server-context'
+import { useTeam } from '@/lib/hooks/use-team'
 import { Template } from '@/types/api'
 import { JsonPopover } from '@/ui/json-popover'
 import { Button } from '@/ui/primitives/button'
@@ -113,10 +113,10 @@ export function TemplateCell({
   const template: Template | undefined = table
     .getState()
     .templates?.find((t: Template) => t.templateID === templateId)
-  const { selectedTeamSlug, selectedTeamId } = useServerContext()
+  const { data: team } = useTeam()
   const router = useRouter()
 
-  if (!selectedTeamSlug || !selectedTeamId) return null
+  if (!team) return null
 
   return (
     <Button
@@ -127,9 +127,7 @@ export function TemplateCell({
         e.preventDefault()
 
         useTemplateTableStore.getState().setGlobalFilter(templateId)
-        router.push(
-          PROTECTED_URLS.TEMPLATES(selectedTeamSlug ?? selectedTeamId)
-        )
+        router.push(PROTECTED_URLS.TEMPLATES(team.slug ?? team.id))
       }}
     >
       {template?.aliases?.[0] ?? templateId}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useSelectedTeam } from '@/lib/hooks/use-teams'
+import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -47,7 +47,7 @@ export function ActionsCell({
   row,
 }: CellContext<Template | DefaultTemplate, unknown>) {
   const template = row.original
-  const selectedTeam = useSelectedTeam()
+  const { team } = useTeam()
   const { toast } = useToast()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -91,7 +91,7 @@ export function ActionsCell({
   )
 
   const togglePublish = async () => {
-    if (!selectedTeam) {
+    if (!team) {
       return
     }
 
@@ -104,7 +104,7 @@ export function ActionsCell({
   }
 
   const deleteTemplate = async () => {
-    if (!selectedTeam) {
+    if (!team) {
       return
     }
 

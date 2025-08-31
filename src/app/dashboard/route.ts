@@ -2,6 +2,7 @@ import { COOKIE_KEYS } from '@/configs/keys'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { createClient } from '@/lib/clients/supabase/server'
+import { getTeamMetadataFromCookiesMemo } from '@/lib/utils/server'
 import getUserMemo from '@/server/auth/get-user-memo'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
@@ -19,32 +20,31 @@ const TAB_URL_MAP: Record<string, (teamId: string) => string> = {
 }
 
 export async function GET(request: NextRequest) {
-  // 1. Get the tab parameter
   const searchParams = request.nextUrl.searchParams
   const tab = searchParams.get('tab')
 
   if (!tab || !TAB_URL_MAP[tab]) {
-    // Default to dashboard if no valid tab
-    return NextResponse.redirect(new URL(PROTECTED_URLS.DASHBOARD, request.url))
+    return NextResponse.redirect(
+      new URL(PROTECTED_URLS.SANDBOXES(request.url), request.url)
+    )
   }
 
-  // 2. Create Supabase client and get user
   const supabase = await createClient()
 
   const { data, error } = await getUserMemo(supabase)
 
   if (error || !data.user) {
-    // Redirect to sign-in if not authenticated
     return NextResponse.redirect(new URL('/sign-in', request.url))
   }
-  const cookieStore = await cookies()
 
-  // 3. Resolve team ID (first try cookie, then fetch default)
-  let teamId = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
-  let teamSlug = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
+  const metadata = await getTeamMetadataFromCookiesMemo(request.url)
 
-  if (!teamId) {
-    // No team in cookie, fetch user's default team
+  if (!metadata) {
+    const cookieStore = await cookies()
+
+    let teamId = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
+    let teamSlug = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
+
     const { data: teamsData } = await supabaseAdmin
       .from('users_teams')
       .select(
@@ -57,22 +57,18 @@ export async function GET(request: NextRequest) {
       .eq('user_id', data.user.id)
 
     if (!teamsData?.length) {
-      // No teams, redirect to new team creation
       return NextResponse.redirect(
         new URL(PROTECTED_URLS.NEW_TEAM, request.url)
       )
     }
 
-    // Use default team or first team
     const defaultTeam = teamsData.find((t) => t.is_default) || teamsData[0]!
     teamId = defaultTeam.team_id
     teamSlug = defaultTeam.team?.slug || defaultTeam.team_id
   }
 
-  // 4. Build the redirect URL using the tab mapping
   const urlGenerator = TAB_URL_MAP[tab]
-  const redirectPath = urlGenerator(teamSlug || teamId)
+  const redirectPath = urlGenerator(metadata.slug || metadata.id)
 
-  // 5. Redirect to the appropriate dashboard section
   return NextResponse.redirect(new URL(redirectPath, request.url))
 }
