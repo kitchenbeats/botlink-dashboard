@@ -1,7 +1,9 @@
+import { ENABLE_SIGN_UP_RATE_LIMITING } from '@/configs/flags'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { l } from '@/lib/clients/logger/logger'
 import { createClient } from '@/lib/clients/supabase/server'
 import { encodedRedirect } from '@/lib/utils/auth'
+import { incrementSignUpAttempts } from '@/server/auth/rate-limiting'
 import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
 import { serializeError } from 'serialize-error'
@@ -133,6 +135,17 @@ export async function GET(request: NextRequest) {
       redirectUrl.searchParams.set('reauth', '1')
 
       return NextResponse.redirect(redirectUrl.toString())
+    }
+
+    // increment counter for successful sign-up confirmations (rate limiting)
+    if (ENABLE_SIGN_UP_RATE_LIMITING && supabaseType === 'signup') {
+      const ip =
+        request.headers.get('x-forwarded-for') ||
+        request.headers.get('cf-connecting-ip') ||
+        request.headers.get('x-real-ip') ||
+        'unknown'
+
+      await incrementSignUpAttempts(ip)
     }
 
     l.info({

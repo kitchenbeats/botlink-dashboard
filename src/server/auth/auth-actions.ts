@@ -1,5 +1,6 @@
 'use server'
 
+import { ENABLE_SIGN_UP_RATE_LIMITING } from '@/configs/flags'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { USER_MESSAGES } from '@/configs/user-messages'
 import { actionClient } from '@/lib/clients/action'
@@ -17,6 +18,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
+import { isSignUpRateLimited } from './rate-limiting'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -93,6 +95,18 @@ export const signUpAction = actionClient
       }
     }
 
+    const ip =
+      (await headers()).get('x-forwarded-for') ||
+      (await headers()).get('cf-connecting-ip') ||
+      (await headers()).get('x-real-ip') ||
+      'unknown'
+
+    if (ENABLE_SIGN_UP_RATE_LIMITING && (await isSignUpRateLimited(ip))) {
+      return returnServerError(
+        'Too many sign-ups for now. Please try again later.'
+      )
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -112,6 +126,10 @@ export const signUpAction = actionClient
           return returnServerError(USER_MESSAGES.emailInUse.message)
         case 'weak_password':
           return returnServerError(USER_MESSAGES.passwordWeak.message)
+        case 'email_address_invalid':
+          return returnServerError(
+            USER_MESSAGES.signUpEmailValidationInvalid.message
+          )
         default:
           throw error
       }

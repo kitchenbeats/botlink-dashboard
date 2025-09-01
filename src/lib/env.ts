@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+const TruethyOrFalsy = z.enum(['1', '0'])
+
 export const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   INFRA_API_URL: z.string().url(),
@@ -9,6 +11,9 @@ export const serverSchema = z.object({
 
   BILLING_API_URL: z.string().url().optional(),
   ZEROBOUNCE_API_KEY: z.string().optional(),
+  ENABLE_SIGN_UP_RATE_LIMITING: TruethyOrFalsy.optional(),
+  SIGN_UP_LIMIT_PER_WINDOW: z.coerce.number().optional(),
+  SIGN_UP_WINDOW_HOURS: z.coerce.number().optional(),
 
   OTEL_SERVICE_NAME: z.string().optional(),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
@@ -41,10 +46,10 @@ export const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 
   NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
-  NEXT_PUBLIC_INCLUDE_BILLING: z.string().optional(),
-  NEXT_PUBLIC_SCAN: z.string().optional(),
-  NEXT_PUBLIC_MOCK_DATA: z.string().optional(),
-  NEXT_PUBLIC_VERBOSE: z.string().optional(),
+  NEXT_PUBLIC_INCLUDE_BILLING: TruethyOrFalsy.optional(),
+  NEXT_PUBLIC_SCAN: TruethyOrFalsy.optional(),
+  NEXT_PUBLIC_MOCK_DATA: TruethyOrFalsy.optional(),
+  NEXT_PUBLIC_VERBOSE: TruethyOrFalsy.optional(),
 })
 
 export const testEnvSchema = z.object({
