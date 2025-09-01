@@ -1,6 +1,5 @@
 import CreditsCard from '@/features/dashboard/budget/credits-card'
 import UsageLimits from '@/features/dashboard/budget/usage-limits'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import Frame from '@/ui/frame'
 
 interface BudgetPageProps {
@@ -8,9 +7,6 @@ interface BudgetPageProps {
 }
 
 export default async function BudgetPage({ params }: BudgetPageProps) {
-  const { teamIdOrSlug } = await params
-  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
-
   return (
     <Frame
       classNames={{
@@ -18,8 +14,8 @@ export default async function BudgetPage({ params }: BudgetPageProps) {
         wrapper: 'w-full max-md:p-0',
       }}
     >
-      <CreditsCard teamId={teamId} />
-      <UsageLimits teamId={teamId} />
+      <CreditsCard params={params} />
+      <UsageLimits params={params} />
     </Frame>
   )
 }

@@ -2,7 +2,6 @@
 
 import { ALL_DASHBOARD_LINKS } from '@/configs/dashboard-navs'
 import useKeydown from '@/lib/hooks/use-keydown'
-import { useTeam } from '@/lib/hooks/use-team'
 import { cn } from '@/lib/utils'
 import {
   CommandDialog,
@@ -21,6 +20,7 @@ import {
 import { ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useDashboard } from '../context'
 
 interface DashboardSidebarCommandProps {
   className?: string
@@ -30,7 +30,7 @@ export default function DashboardSidebarCommand({
   className,
 }: DashboardSidebarCommandProps) {
   const [open, setOpen] = useState(false)
-  const { team } = useTeam()
+  const { team } = useDashboard()
   const router = useRouter()
 
   const { open: sidebarOpen, openMobile: sidebarOpenMobile } = useSidebar()

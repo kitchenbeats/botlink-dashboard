@@ -1,4 +1,3 @@
-import { getTeamMetadataFromCookiesMemo } from '@/lib/utils/server'
 import { getTeam } from '@/server/team/get-team'
 import { SidebarHeader, SidebarMenu } from '@/ui/primitives/sidebar'
 import { Suspense } from 'react'
@@ -31,9 +30,7 @@ async function DashboardSidebarMenuResolver({
 }: DashboardSidebarMenuResolverProps) {
   const { teamIdOrSlug } = await params
 
-  const metadata = await getTeamMetadataFromCookiesMemo(teamIdOrSlug)
-
-  const res = await getTeam({ teamId: metadata.id })
+  const res = await getTeam({ teamIdOrSlug })
 
   const team = res?.data
 

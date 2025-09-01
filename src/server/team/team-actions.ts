@@ -2,17 +2,18 @@
 
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { KV_KEYS } from '@/configs/keys'
-import { authActionClient } from '@/lib/clients/action'
+import { authActionClient, withTeamIdResolution } from '@/lib/clients/action'
 import { l } from '@/lib/clients/logger/logger'
 import { deleteFile, getFiles, uploadFile } from '@/lib/clients/storage'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { returnServerError } from '@/lib/utils/action'
-import { checkUserTeamAuthorization } from '@/lib/utils/server'
 import { CreateTeamSchema, UpdateTeamNameSchema } from '@/server/team/types'
 import { CreateTeamsResponse } from '@/types/billing'
 import { kv } from '@vercel/kv'
 import { returnValidationErrors } from 'next-safe-action'
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
@@ -21,15 +22,11 @@ import { getTeam } from './get-team'
 export const updateTeamNameAction = authActionClient
   .schema(UpdateTeamNameSchema)
   .metadata({ actionName: 'updateTeamName' })
+
+  .use(withTeamIdResolution)
   .action(async ({ parsedInput, ctx }) => {
-    const { teamId, name } = parsedInput
-    const { user } = ctx
-
-    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
-
-    if (!isAuthorized) {
-      return returnServerError('User is not authorized to update this team')
-    }
+    const { name } = parsedInput
+    const { teamId } = ctx
 
     const { data, error } = await supabaseAdmin
       .from('teams')
@@ -48,22 +45,17 @@ export const updateTeamNameAction = authActionClient
   })
 
 const AddTeamMemberSchema = z.object({
-  teamId: z.string().uuid(),
+  teamIdOrSlug: TeamIdOrSlugSchema,
   email: z.string().email(),
 })
 
 export const addTeamMemberAction = authActionClient
   .schema(AddTeamMemberSchema)
   .metadata({ actionName: 'addTeamMember' })
+  .use(withTeamIdResolution)
   .action(async ({ parsedInput, ctx }) => {
-    const { teamId, email } = parsedInput
-    const { user } = ctx
-
-    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
-
-    if (!isAuthorized) {
-      return returnServerError('User is not authorized to add a team member')
-    }
+    const { email } = parsedInput
+    const { teamId, user } = ctx
 
     const { data: existingUsers, error: userError } = await supabaseAdmin
       .from('auth_users')
@@ -111,7 +103,7 @@ export const addTeamMemberAction = authActionClient
     revalidatePath(`/dashboard`, 'layout')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
-    getTeam({ teamId }).then(async (result) => {
+    getTeam({ teamIdOrSlug: teamId }).then(async (result) => {
       if (!result?.data || result.serverError || result.validationErrors) {
         return
       }
@@ -121,22 +113,17 @@ export const addTeamMemberAction = authActionClient
   })
 
 const RemoveTeamMemberSchema = z.object({
-  teamId: z.string().uuid(),
+  teamIdOrSlug: TeamIdOrSlugSchema,
   userId: z.string().uuid(),
 })
 
 export const removeTeamMemberAction = authActionClient
   .schema(RemoveTeamMemberSchema)
   .metadata({ actionName: 'removeTeamMember' })
+  .use(withTeamIdResolution)
   .action(async ({ parsedInput, ctx }) => {
-    const { teamId, userId } = parsedInput
-    const { user } = ctx
-
-    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
-
-    if (!isAuthorized) {
-      return returnServerError('User is not authorized to remove team members')
-    }
+    const { userId } = parsedInput
+    const { teamId, user } = ctx
 
     const { data: teamMemberData, error: teamMemberError } = await supabaseAdmin
       .from('users_teams')
@@ -183,7 +170,7 @@ export const removeTeamMemberAction = authActionClient
     revalidatePath(`/dashboard`, 'layout')
 
     await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamId))
-    getTeam({ teamId }).then(async (result) => {
+    getTeam({ teamIdOrSlug: teamId }).then(async (result) => {
       if (!result?.data || result.serverError || result.validationErrors) {
         return
       }
@@ -223,7 +210,7 @@ export const createTeamAction = authActionClient
 
 const UploadTeamProfilePictureSchema = zfd.formData(
   z.object({
-    teamId: zfd.text(),
+    teamIdOrSlug: zfd.text(),
     image: zfd.file(),
   })
 )
@@ -231,8 +218,10 @@ const UploadTeamProfilePictureSchema = zfd.formData(
 export const uploadTeamProfilePictureAction = authActionClient
   .schema(UploadTeamProfilePictureSchema)
   .metadata({ actionName: 'uploadTeamProfilePicture' })
+  .use(withTeamIdResolution)
   .action(async ({ parsedInput, ctx }) => {
-    const { teamId, image } = parsedInput
+    const { image } = parsedInput
+    const { teamId } = ctx
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml']
 
@@ -248,14 +237,6 @@ export const uploadTeamProfilePictureAction = authActionClient
       return returnValidationErrors(UploadTeamProfilePictureSchema, {
         image: { _errors: ['File size must be less than 5MB'] },
       })
-    }
-
-    const { user } = ctx
-
-    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
-
-    if (!isAuthorized) {
-      return returnServerError('User is not authorized to update this team')
     }
 
     const extension = image.name.split('.').pop() || 'png'
@@ -281,8 +262,7 @@ export const uploadTeamProfilePictureAction = authActionClient
     }
 
     // Clean up old profile pictures asynchronously in the background
-    // We don't await this promise, so it runs in the background
-    ;(async () => {
+    after(async () => {
       try {
         // Get the current file name from the path
         const currentFileName = fileName
@@ -311,7 +291,7 @@ export const uploadTeamProfilePictureAction = authActionClient
           },
         })
       }
-    })()
+    })
 
     revalidatePath(`/dashboard/[teamIdOrSlug]/general`, 'page')
     revalidatePath(`/dashboard`, 'layout')

@@ -1,15 +1,12 @@
-import 'server-cli-only'
-
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
-import { PROTECTED_URLS } from '@/configs/urls'
 import { kv } from '@/lib/clients/kv'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { getSessionInsecure } from '@/server/auth/get-session'
 import getUserMemo from '@/server/auth/get-user-memo'
+import getTeamIdFromSegmentMemo from '@/server/team/get-team-id-from-segment-memo'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
-import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { cache } from 'react'
 import { serializeError } from 'serialize-error'
 import { z } from 'zod'
@@ -27,12 +24,9 @@ import { returnServerError } from './action'
 export async function checkAuthenticated() {
   const supabase = await createClient()
 
-  // retrieve session from storage medium (cookies)
-  // if no stored session found, not authenticated
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const session = await getSessionInsecure(supabase)
 
+  // early return if user is no session already
   if (!session) {
     throw UnauthenticatedError()
   }
@@ -42,7 +36,7 @@ export async function checkAuthenticated() {
     data: { user },
   } = await getUserMemo(supabase)
 
-  if (!user) {
+  if (!user || !session) {
     throw UnauthenticatedError()
   }
 
@@ -94,13 +88,12 @@ export async function generateE2BUserAccessToken(supabaseAccessToken: string) {
  */
 export async function checkUserTeamAuthorization(
   userId: string,
-  teamId: string
+  teamIdOrSlug: string
 ) {
-  if (
-    !z.string().uuid().safeParse(userId).success ||
-    !z.string().uuid().safeParse(teamId).success
-  ) {
-    return false
+  const teamId = await getTeamIdFromSegmentMemo(teamIdOrSlug)
+
+  if (!teamId) {
+    return null
   }
 
   const { data: userTeamsRelationData, error: userTeamsRelationError } =
@@ -111,37 +104,22 @@ export async function checkUserTeamAuthorization(
       .eq('team_id', teamId)
 
   if (userTeamsRelationError) {
-    throw new Error(
+    l.error(
+      {
+        key: 'check_user_team_authorization:failed_to_fetch_users_teams_relation',
+        error: serializeError(userTeamsRelationError),
+        context: {
+          userId,
+          teamId,
+        },
+      },
       `Failed to fetch users_teams relation (user: ${userId}, team: ${teamId})`
     )
+
+    return null
   }
 
   return !!userTeamsRelationData.length
-}
-
-/**
- * Forces a component to be dynamically rendered at runtime.
- * This opts out of Partial Prerendering (PPR) for the component and its children.
- *
- * Use this when you need to ensure a component is rendered at request time,
- * for example when dealing with user authentication or dynamic data that
- * must be fresh on every request.
- *
- * IMPORTANT: When used in PPR scopes, this must be called before any try-catch blocks
- * to properly opt out of static optimization. Placing it inside try-catch blocks
- * may result in unexpected behavior.
- *
- * @example
- * // Correct usage - before try-catch
- * bailOutFromPPR();
- * try {
- *   // dynamic code
- * } catch (e) {}
- *
- * @see https://nextjs.org/docs/app/api-reference/functions/cookies
- */
-export function bailOutFromPPR() {
-  unstable_noStore()
 }
 
 /**
@@ -197,86 +175,25 @@ export async function resolveTeamId(identifier: string): Promise<string> {
 }
 
 /**
- * Resolves a team identifier (UUID or slug) to a team ID.
- * If the input is a valid UUID, returns it directly.
- * If it's a slug, attempts to resolve it to an ID using Redis cache first, then database.
- *
- * This function should be used in page components rather than client components for better performance,
- * as it avoids unnecessary database queries by checking cookies first.
- *
- * @param identifier - Team UUID or slug
- * @returns Promise<string> - Resolved team ID
- */
-export async function resolveTeamIdInServerComponent(identifier: string) {
-  const cookiesStore = await cookies()
-
-  let teamId = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
-
-  if (!teamId) {
-    // Middleware should prevent this case, but just in case
-    teamId = await resolveTeamId(identifier)
-    // Cannot modify cookies inside a Server Component. We simply return the
-    // resolved ID; middleware / server actions are responsible for keeping
-    // the cookie state in sync.
-    l.info(
-      {
-        key: 'resolve_team_id_in_server_component:resolved_without_cookie',
-        team_id: teamId,
-        context: {
-          identifier,
-        },
-      },
-      'Resolved team ID from data sources (cookie not set due to RSC restrictions)'
-    )
-  }
-  return teamId
-}
-
-/**
  * Resolves team metadata from cookies.
  * If no metadata is found, it redirects to the dashboard.
  */
-export const getTeamMetadataFromCookiesMemo = cache(
-  async (teamIdOrSlug: string) => {
-    const cookiesStore = await cookies()
-
-    const id = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
-    const slug = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
-
-    l.debug(
-      {
-        key: 'get_team_metadata_from_cookies:start',
-        teamIdOrSlug,
-        hasId: !!id,
-        hasSlug: !!slug,
-        id,
-        slug,
-      },
-      'resolving team metadata from cookies'
-    )
-
-    if (!id || !slug) {
-      l.debug(
-        {
-          key: 'get_team_metadata_from_cookies:missing_data',
-          teamIdOrSlug,
-          hasId: !!id,
-          hasSlug: !!slug,
-        },
-        'missing team data in cookies, redirecting to dashboard'
-      )
-      throw redirect(PROTECTED_URLS.DASHBOARD)
-    }
-
-    const isSensical = id === teamIdOrSlug || slug === teamIdOrSlug
-    const isUUID = z.string().uuid().safeParse(id).success
+export const getTeamMetadataFromCookiesCache = cache(
+  async (
+    teamIdOrSlug: string,
+    cookieTeamId: string,
+    cookieTeamSlug: string
+  ) => {
+    const isSensical =
+      cookieTeamId === teamIdOrSlug || cookieTeamSlug === teamIdOrSlug
+    const isUUID = z.string().uuid().safeParse(cookieTeamId).success
 
     l.debug(
       {
         key: 'get_team_metadata_from_cookies:validation',
         teamIdOrSlug,
-        id,
-        slug,
+        cookieTeamId,
+        cookieTeamSlug,
         isSensical,
         isUUID,
       },
@@ -288,14 +205,14 @@ export const getTeamMetadataFromCookiesMemo = cache(
         {
           key: 'get_team_metadata_from_cookies:success',
           teamIdOrSlug,
-          id,
-          slug,
+          cookieTeamId,
+          cookieTeamSlug,
         },
         'successfully resolved team metadata from cookies'
       )
       return {
-        id,
-        slug,
+        id: cookieTeamId,
+        slug: cookieTeamSlug,
       }
     }
 
@@ -303,13 +220,57 @@ export const getTeamMetadataFromCookiesMemo = cache(
       {
         key: 'get_team_metadata_from_cookies:invalid_data',
         teamIdOrSlug,
-        id,
-        slug,
+        cookieTeamId,
+        cookieTeamSlug,
         isSensical,
         isUUID,
       },
-      'invalid team data, redirecting to dashboard'
+      'invalid team data, returning null'
     )
-    throw redirect(PROTECTED_URLS.DASHBOARD)
+    return null
   }
 )
+
+export const getTeamMetadataFromCookiesMemo = async (teamIdOrSlug: string) => {
+  const cookiesStore = await cookies()
+
+  l.debug(
+    {
+      key: 'get_team_metadata_from_cookies:start',
+      cookiesStore: cookiesStore.getAll(),
+    },
+    'resolving team metadata from cookies'
+  )
+
+  const cookieTeamId = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
+  const cookieTeamSlug = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
+
+  l.debug(
+    {
+      key: 'get_team_metadata_from_cookies:start',
+      hasId: !!cookieTeamId,
+      hasSlug: !!cookieTeamSlug,
+      cookieTeamId,
+      cookieTeamSlug,
+    },
+    'resolving team metadata from cookies'
+  )
+
+  if (!cookieTeamId || !cookieTeamSlug) {
+    l.debug(
+      {
+        key: 'get_team_metadata_from_cookies:missing_data',
+        hasId: !!cookieTeamId,
+        hasSlug: !!cookieTeamSlug,
+      },
+      'missing team data in cookies, returning null'
+    )
+    return null
+  }
+
+  return getTeamMetadataFromCookiesCache(
+    teamIdOrSlug,
+    cookieTeamId,
+    cookieTeamSlug
+  )
+}

@@ -3,7 +3,6 @@ import { SandboxInspectProvider } from '@/features/dashboard/sandbox/inspect/con
 import SandboxInspectFilesystem from '@/features/dashboard/sandbox/inspect/filesystem'
 import SandboxInspectViewer from '@/features/dashboard/sandbox/inspect/viewer'
 import { cn } from '@/lib/utils'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { getSandboxRoot } from '@/server/sandboxes/get-sandbox-root'
 import ClientOnly from '@/ui/client-only'
 import { cookies } from 'next/headers'
@@ -26,17 +25,14 @@ export default async function SandboxInspectPage({
 
   const { teamIdOrSlug, sandboxId } = await params
 
-  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
-
   const res = await getSandboxRoot({
-    teamId,
+    teamIdOrSlug,
     sandboxId,
     rootPath,
   })
 
   return (
     <SandboxInspectProvider
-      teamId={teamId}
       rootPath={rootPath}
       seedEntries={res?.data?.entries ?? []}
     >

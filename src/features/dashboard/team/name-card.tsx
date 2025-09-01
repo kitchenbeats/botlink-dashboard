@@ -1,7 +1,6 @@
 'use client'
 
 import { USER_MESSAGES } from '@/configs/user-messages'
-import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -30,6 +29,7 @@ import { Skeleton } from '@/ui/primitives/skeleton'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useHookFormOptimisticAction } from '@next-safe-action/adapter-react-hook-form/hooks'
 import { AnimatePresence, motion } from 'motion/react'
+import { useDashboard } from '../context'
 
 interface NameCardProps {
   className?: string
@@ -38,7 +38,7 @@ interface NameCardProps {
 export function NameCard({ className }: NameCardProps) {
   'use no memo'
 
-  const { team } = useTeam()
+  const { team } = useDashboard()
 
   const { toast } = useToast()
 
@@ -52,7 +52,7 @@ export function NameCard({ className }: NameCardProps) {
     {
       formProps: {
         defaultValues: {
-          teamId: team?.id ?? '',
+          teamIdOrSlug: team?.id ?? '',
           name: team?.name ?? '',
         },
       },

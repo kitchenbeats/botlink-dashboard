@@ -9,7 +9,6 @@ import Link from 'next/link'
 import { useMemo } from 'react'
 
 import { useIsMobile } from '@/lib/hooks/use-mobile'
-import { useTeam } from '@/lib/hooks/use-team'
 import {
   SIDEBAR_TRANSITION_CLASSNAMES,
   SidebarContent,
@@ -21,6 +20,7 @@ import {
   useSidebar,
 } from '@/ui/primitives/sidebar'
 import { usePathname } from 'next/navigation'
+import { useDashboard } from '../context'
 
 type GroupedLinks = {
   [key: string]: DashboardNavLink[]
@@ -38,8 +38,9 @@ const createGroupedLinks = (links: DashboardNavLink[]): GroupedLinks => {
 }
 
 export default function DashboardSidebarContent() {
-  const { team } = useTeam()
+  const { team } = useDashboard()
   const selectedTeamIdentifier = team?.slug ?? team?.id
+
   const pathname = usePathname()
   const isMobile = useIsMobile()
   const { setOpenMobile } = useSidebar()
@@ -91,8 +92,8 @@ export default function DashboardSidebarContent() {
                   >
                     <Link
                       suppressHydrationWarning
+                      prefetch={!!team}
                       href={href}
-                      prefetch
                       onClick={
                         isMobile
                           ? () => {

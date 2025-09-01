@@ -1,10 +1,13 @@
-import { UnknownError } from '@/types/errors'
+import getTeamIdFromSegmentMemo from '@/server/team/get-team-id-from-segment-memo'
+import { UnauthenticatedError, UnknownError } from '@/types/errors'
 import { SpanStatusCode, trace } from '@opentelemetry/api'
-import { createSafeActionClient } from 'next-safe-action'
+import { Session, SupabaseClient, User } from '@supabase/supabase-js'
+import { createMiddleware, createSafeActionClient } from 'next-safe-action'
+import { unauthorized } from 'next/navigation'
 import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { ActionError, flattenClientInputValue } from '../utils/action'
-import { checkAuthenticated } from '../utils/server'
+import { checkAuthenticated, checkUserTeamAuthorization } from '../utils/server'
 import { l } from './logger/logger'
 import { getTracer } from './tracer'
 
@@ -131,5 +134,62 @@ export const actionClient = createSafeActionClient({
 export const authActionClient = actionClient.use(async ({ next }) => {
   const { user, session, supabase } = await checkAuthenticated()
 
+  if (!session) {
+    throw UnauthenticatedError()
+  }
+
   return next({ ctx: { user, session, supabase } })
+})
+
+/**
+ * Middleware that automatically resolves team ID from teamIdOrSlug.
+ *
+ * This middleware:
+ * 1. Requires that the client input contains a 'teamIdOrSlug' property
+ * 2. Resolves the teamIdOrSlug to an actual team ID using getTeamIdFromSegmentMemo
+ * 3. Throws unauthorized() if the team ID cannot be resolved (team doesn't exist or user lacks access)
+ * 4. Adds the resolved teamId to the context for use in the action handler
+ * 5. Throws an error if no teamIdOrSlug is provided
+ *
+ * @example
+ * ```ts
+ * const myAction = authActionClient
+ *   .use(withTeamIdResolution)
+ *   .schema(z.object({ teamIdOrSlug: z.string(), ... }))
+ *   .action(async ({ parsedInput, ctx }) => {
+ *     // ctx.teamId is now available and guaranteed to be valid
+ *     const { teamId } = ctx
+ *   })
+ * ```
+ */
+export const withTeamIdResolution = createMiddleware<{
+  ctx: { user: User; session: Session; supabase: SupabaseClient }
+}>().define(async ({ next, clientInput, ctx }) => {
+  if (
+    !clientInput ||
+    typeof clientInput !== 'object' ||
+    !('teamIdOrSlug' in clientInput)
+  ) {
+    throw new Error(
+      'teamIdOrSlug is required when using withTeamIdResolution middleware'
+    )
+  }
+
+  const teamId = await getTeamIdFromSegmentMemo(
+    clientInput.teamIdOrSlug as string
+  )
+
+  if (!teamId) {
+    throw unauthorized()
+  }
+
+  const isAuthorized = await checkUserTeamAuthorization(ctx.user.id, teamId)
+
+  if (!isAuthorized) {
+    throw unauthorized()
+  }
+
+  return next({
+    ctx: { teamId },
+  })
 })

@@ -10,11 +10,14 @@ import { Suspense } from 'react'
 import BillingCreditsContent from '../billing/credits-content'
 
 interface CreditsCardProps {
-  teamId: string
+  params: Promise<{ teamIdOrSlug: string }>
   className?: string
 }
 
-export default function CreditsCard({ teamId, className }: CreditsCardProps) {
+export default async function CreditsCard({
+  params,
+  className,
+}: CreditsCardProps) {
   return (
     <Card className={className}>
       <CardHeader>
@@ -26,7 +29,7 @@ export default function CreditsCard({ teamId, className }: CreditsCardProps) {
       </CardHeader>
       <CardContent className="max-w-[500px] text-xs">
         <Suspense fallback={<Loader className="text-xl" />}>
-          <BillingCreditsContent teamId={teamId} />
+          <BillingCreditsContent params={params} />
         </Suspense>
       </CardContent>
     </Card>

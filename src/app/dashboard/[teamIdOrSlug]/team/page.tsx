@@ -2,7 +2,6 @@ import { InfoCard } from '@/features/dashboard/team/info-card'
 import { MemberCard } from '@/features/dashboard/team/member-card'
 import { NameCard } from '@/features/dashboard/team/name-card'
 import { ProfilePictureCard } from '@/features/dashboard/team/profile-picture-card'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import Frame from '@/ui/frame'
 import Scanline from '@/ui/scanline'
 import { Suspense } from 'react'
@@ -14,9 +13,6 @@ interface GeneralPageProps {
 }
 
 export default async function GeneralPage({ params }: GeneralPageProps) {
-  const { teamIdOrSlug } = await params
-  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
-
   return (
     <Frame
       classNames={{
@@ -39,7 +35,7 @@ export default async function GeneralPage({ params }: GeneralPageProps) {
           <div className="relative h-2 border-b">
             <Scanline />
           </div>
-          <MemberCard teamId={teamId} className="" />
+          <MemberCard params={params} />
         </section>
       </div>
     </Frame>

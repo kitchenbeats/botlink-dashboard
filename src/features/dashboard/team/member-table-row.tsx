@@ -1,13 +1,11 @@
 'use client'
 
 import { PROTECTED_URLS } from '@/configs/urls'
-import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
   useToast,
 } from '@/lib/hooks/use-toast'
-import { useUser } from '@/lib/hooks/use-user'
 import { removeTeamMemberAction } from '@/server/team/team-actions'
 import { TeamMember } from '@/server/team/types'
 import { AlertDialog } from '@/ui/alert-dialog'
@@ -17,6 +15,7 @@ import { TableCell, TableRow } from '@/ui/primitives/table'
 import { useAction } from 'next-safe-action/hooks'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useDashboard } from '../context'
 
 interface TableRowProps {
   member: TeamMember
@@ -30,9 +29,9 @@ export default function MemberTableRow({
   index,
 }: TableRowProps) {
   const { toast } = useToast()
-  const { team } = useTeam()
+  const { team } = useDashboard()
   const router = useRouter()
-  const { user } = useUser()
+  const { user } = useDashboard()
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
 
   const { execute: removeMember, isExecuting: isRemoving } = useAction(
@@ -63,7 +62,7 @@ export default function MemberTableRow({
     }
 
     removeMember({
-      teamId: team.id,
+      teamIdOrSlug: team.id,
       userId,
     })
   }

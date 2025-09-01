@@ -28,7 +28,7 @@ export default async function AccountPage({
       </Suspense>
 
       <Suspense fallback={null}>
-        <PasswordSettingsServer searchParams={await searchParams} />
+        <PasswordSettingsServer searchParams={searchParams} />
       </Suspense>
     </div>
   )

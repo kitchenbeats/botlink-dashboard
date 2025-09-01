@@ -1,7 +1,6 @@
 'use client'
 
 import { PROTECTED_URLS } from '@/configs/urls'
-import { useTeam } from '@/lib/hooks/use-team'
 import { cn } from '@/lib/utils'
 import { signOutAction } from '@/server/auth/auth-actions'
 import { ClientTeam } from '@/types/dashboard.types'
@@ -18,7 +17,8 @@ import { SidebarMenuButton, SidebarMenuItem } from '@/ui/primitives/sidebar'
 import { Skeleton } from '@/ui/primitives/skeleton'
 import { ChevronsUpDown, LogOut, Plus, UserRoundCog } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { useDashboard } from '../context'
 import { CreateTeamDialog } from './create-team-dialog'
 import DashboardSidebarMenuTeams from './menu-teams'
 
@@ -31,17 +31,21 @@ export default function DashboardSidebarMenu({
   initialTeam,
   className,
 }: DashboardSidebarMenuProps) {
-  const { team: selectedTeam } = useTeam({ initialData: initialTeam || null })
+  const hasSetInitialteam = useRef(false)
+  const { setTeam, team } = useDashboard()
+
+  useLayoutEffect(() => {
+    if (!hasSetInitialteam.current && initialTeam) {
+      setTeam(initialTeam)
+      hasSetInitialteam.current = true
+    }
+  }, [initialTeam, setTeam])
 
   const [createTeamOpen, setCreateTeamOpen] = useState(false)
 
   const handleLogout = () => {
     signOutAction()
   }
-
-  useEffect(() => {
-    console.log('selectedTeam', selectedTeam)
-  }, [selectedTeam])
 
   return (
     <>
@@ -57,36 +61,42 @@ export default function DashboardSidebarMenu({
                 className
               )}
             >
-              <Avatar
-                className={cn(
-                  'shrink-0 transition-all duration-100 ease-in-out',
-                  'group-data-[collapsible=icon]:block group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-[5px]',
-                  {
-                    'drop-shadow-sm filter': selectedTeam?.profile_picture_url,
-                  }
-                )}
-              >
-                <AvatarImage
-                  src={selectedTeam?.profile_picture_url || undefined}
-                  className="group-data-[collapsible=icon]:size-full object-cover object-center"
-                />
-                <AvatarFallback className="bg-bg-hover border-0">
-                  {selectedTeam?.name?.charAt(0).toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left  leading-tight">
-                <span className="text-fg-tertiary font-mono truncate prose-label">
-                  TEAM
-                </span>
-                {selectedTeam ? (
-                  <span className="text-fg truncate prose-body-highlight normal-case">
-                    {selectedTeam.transformed_default_name || selectedTeam.name}
-                  </span>
-                ) : (
-                  <Skeleton className="h-4 w-full" />
-                )}
-              </div>
-              <ChevronsUpDown className="text-fg-tertiary ml-auto size-4" />
+              {team ? (
+                <>
+                  <Avatar
+                    className={cn(
+                      'shrink-0 transition-all duration-100 ease-in-out',
+                      'group-data-[collapsible=icon]:block group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-[5px]',
+                      {
+                        'drop-shadow-sm filter': team?.profile_picture_url,
+                      }
+                    )}
+                  >
+                    <AvatarImage
+                      src={team?.profile_picture_url || undefined}
+                      className="group-data-[collapsible=icon]:size-full object-cover object-center"
+                    />
+                    <AvatarFallback className="bg-bg-hover border-0">
+                      {team?.name?.charAt(0).toUpperCase() || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left  leading-tight">
+                    <span className="text-fg-tertiary font-mono truncate prose-label">
+                      TEAM
+                    </span>
+                    {team ? (
+                      <span className="text-fg truncate prose-body-highlight normal-case">
+                        {team.transformed_default_name || team.name}
+                      </span>
+                    ) : (
+                      <Skeleton className="h-4 w-full" />
+                    )}
+                  </div>
+                  <ChevronsUpDown className="text-fg-tertiary ml-auto size-4" />
+                </>
+              ) : (
+                <Skeleton className="h-14 w-full" />
+              )}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

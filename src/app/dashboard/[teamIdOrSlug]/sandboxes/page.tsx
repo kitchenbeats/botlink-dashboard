@@ -1,5 +1,4 @@
 import SandboxesTable from '@/features/dashboard/sandboxes/table'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { getTeamSandboxes } from '@/server/sandboxes/get-team-sandboxes'
 import { getTeamSandboxesMetrics } from '@/server/sandboxes/get-team-sandboxes-metrics'
 import {
@@ -25,11 +24,9 @@ interface PageContentProps {
 }
 
 async function PageContent({ teamIdOrSlug }: PageContentProps) {
-  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
-
   const [sandboxesRes, templatesRes, defaultTemplateRes] = await Promise.all([
-    getTeamSandboxes({ teamId }),
-    getTeamTemplates({ teamId }),
+    getTeamSandboxes({ teamIdOrSlug }),
+    getTeamTemplates({ teamIdOrSlug }),
     getDefaultTemplates(),
   ])
 
@@ -58,7 +55,7 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
   const maxSandboxesToFetchInitially = 100
 
   const metricsRes = await getTeamSandboxesMetrics({
-    teamId,
+    teamIdOrSlug,
     sandboxIds: sandboxesRes.data.sandboxes
       .map((sandbox) => sandbox.sandboxID)
       .slice(0, maxSandboxesToFetchInitially),

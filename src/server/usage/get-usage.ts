@@ -1,7 +1,8 @@
 import 'server-only'
 
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
-import { authActionClient } from '@/lib/clients/action'
+import { authActionClient, withTeamIdResolution } from '@/lib/clients/action'
+import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { returnServerError } from '@/lib/utils/action'
 import {
   ComputeUsageMonthDelta,
@@ -13,7 +14,7 @@ import { cache } from 'react'
 import { z } from 'zod'
 
 const GetUsageAuthActionSchema = z.object({
-  teamId: z.string().uuid(),
+  teamIdOrSlug: TeamIdOrSlugSchema,
 })
 
 async function _fetchTeamUsageDataLogic(teamId: string, accessToken: string) {
@@ -89,8 +90,9 @@ export const getAndCacheTeamUsageData = cache(_fetchTeamUsageDataLogic)
 export const getUsageThroughReactCache = authActionClient
   .schema(GetUsageAuthActionSchema)
   .metadata({ serverFunctionName: 'getUsage' })
-  .action(async ({ parsedInput, ctx }) => {
-    const { teamId } = parsedInput
+  .use(withTeamIdResolution)
+  .action(async ({ ctx }) => {
+    const { teamId } = ctx
     const accessToken = ctx.session.access_token
 
     const result = await getAndCacheTeamUsageData(teamId, accessToken)

@@ -2,7 +2,6 @@ import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { infra } from '@/lib/clients/api'
 
 export const getTeamTemplatesPure = async (
-  userId: string,
   teamId: string,
   access_token: string
 ) => {
@@ -18,3 +17,4 @@ export const getTeamTemplatesPure = async (
   })
 
   return res
+}

@@ -1,6 +1,5 @@
 'use client'
 
-import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -24,6 +23,7 @@ import { MoreHorizontal } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useAction } from 'next-safe-action/hooks'
 import { useState } from 'react'
+import { useDashboard } from '../context'
 
 interface TableRowProps {
   apiKey: TeamAPIKey
@@ -37,7 +37,7 @@ export default function ApiKeyTableRow({
   className,
 }: TableRowProps) {
   const { toast } = useToast()
-  const { team } = useTeam()
+  const { team } = useDashboard()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [hoveredRowIndex, setHoveredRowIndex] = useState(-1)
   const [dropDownOpen, setDropDownOpen] = useState(false)
@@ -66,7 +66,7 @@ export default function ApiKeyTableRow({
     }
 
     executeDeleteKey({
-      teamId: team.id,
+      teamIdOrSlug: team.id,
       apiKeyId: apiKey.id,
     })
   }

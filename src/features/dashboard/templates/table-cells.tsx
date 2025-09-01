@@ -1,6 +1,5 @@
 'use client'
 
-import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -31,6 +30,7 @@ import { Lock, LockOpen, MoreVertical } from 'lucide-react'
 import { useAction } from 'next-safe-action/hooks'
 import { useMemo, useState } from 'react'
 import ResourceUsage from '../common/resource-usage'
+import { useDashboard } from '../context'
 
 function E2BTemplateBadge() {
   return (
@@ -47,7 +47,7 @@ export function ActionsCell({
   row,
 }: CellContext<Template | DefaultTemplate, unknown>) {
   const template = row.original
-  const { team } = useTeam()
+  const { team } = useDashboard()
   const { toast } = useToast()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -96,6 +96,7 @@ export function ActionsCell({
     }
 
     executeUpdateTemplate({
+      teamIdOrSlug: team.slug ?? team.id,
       templateId: template.templateID,
       props: {
         Public: !template.public,
@@ -109,6 +110,7 @@ export function ActionsCell({
     }
 
     executeDeleteTemplate({
+      teamIdOrSlug: team.slug ?? team.id,
       templateId: template.templateID,
     })
   }

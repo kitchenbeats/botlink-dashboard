@@ -1,7 +1,6 @@
 'use client'
 
 import { PROTECTED_URLS } from '@/configs/urls'
-import { useTeam } from '@/lib/hooks/use-team'
 import { Template } from '@/types/api'
 import { JsonPopover } from '@/ui/json-popover'
 import { Button } from '@/ui/primitives/button'
@@ -10,6 +9,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React, { useMemo } from 'react'
 import ResourceUsage from '../common/resource-usage'
+import { useDashboard } from '../context'
 import { useTemplateTableStore } from '../templates/stores/table-store'
 import { useSandboxMetricsStore } from './stores/metrics-store'
 import { SandboxWithMetrics } from './table-config'
@@ -113,7 +113,7 @@ export function TemplateCell({
   const template: Template | undefined = table
     .getState()
     .templates?.find((t: Template) => t.templateID === templateId)
-  const { data: team } = useTeam()
+  const { team } = useDashboard()
   const router = useRouter()
 
   if (!team) return null

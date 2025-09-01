@@ -14,6 +14,7 @@ const config = {
     serverActions: {
       bodySizeLimit: '5mb',
     },
+    authInterrupts: true,
   },
   logging: {
     fetches: {

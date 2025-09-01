@@ -1,6 +1,4 @@
 import { UserTeamsResponse } from '@/app/api/teams/user/types'
-import { useTeam } from '@/lib/hooks/use-team'
-import { useUser } from '@/lib/hooks/use-user'
 import { ClientTeam } from '@/types/dashboard.types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import {
@@ -10,15 +8,16 @@ import {
   DropdownMenuRadioItem,
 } from '@/ui/primitives/dropdown-menu'
 import { Loader } from '@/ui/primitives/loader'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCallback } from 'react'
 import useSWR from 'swr'
+import { useDashboard } from '../context'
 
 export default function DashboardSidebarMenuTeams() {
+  const pathname = usePathname()
   const router = useRouter()
 
-  const { user } = useUser()
-  const { team } = useTeam()
+  const { user, team, setTeam } = useDashboard()
 
   const { data: teams, isLoading } = useSWR<ClientTeam[] | null>(
     ['/api/teams/user', user?.id],
@@ -47,28 +46,33 @@ export default function DashboardSidebarMenuTeams() {
     }
   )
 
+  const generateTeamLink = useCallback(
+    (team: ClientTeam) => {
+      const splitPath = pathname.split('/')
+      splitPath[2] = team.slug
+
+      return splitPath.join('/')
+    },
+    [pathname]
+  )
+
+  const handleValueChange = useCallback(
+    (value: string) => {
+      const team = teams?.find((t) => t.id === value)
+      if (team) {
+        setTeam(team)
+        router.push(generateTeamLink(team))
+      }
+    },
+    [teams, generateTeamLink, router, setTeam]
+  )
+
   if (isLoading) {
     return <Loader />
   }
 
-  const handleTeamChange = useCallback(
-    async (teamId: string) => {
-      const team = teams?.find((t) => t.id === teamId)
-
-      if (!team) return
-
-      await fetch('/api/team/state', {
-        method: 'POST',
-        body: JSON.stringify({ teamId: team.id, teamSlug: team.slug }),
-      })
-
-      router.refresh()
-    },
-    [teams, router]
-  )
-
   return (
-    <DropdownMenuRadioGroup value={team?.id} onValueChange={handleTeamChange}>
+    <DropdownMenuRadioGroup value={team?.id} onValueChange={handleValueChange}>
       {user?.email && (
         <DropdownMenuLabel className="mb-2">{user.email}</DropdownMenuLabel>
       )}

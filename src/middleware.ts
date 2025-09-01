@@ -5,12 +5,7 @@ import { ALLOW_SEO_INDEXING } from './configs/flags'
 import { l } from './lib/clients/logger/logger'
 import { getRewriteForPath } from './lib/utils/rewrites'
 import getUserMemo from './server/auth/get-user-memo'
-import {
-  getAuthRedirect,
-  handleTeamResolution,
-  isDashboardRoute,
-  resolveTeamForDashboard,
-} from './server/middleware'
+import { getAuthRedirect } from './server/middleware'
 
 export async function middleware(request: NextRequest) {
   try {
@@ -126,35 +121,36 @@ export async function middleware(request: NextRequest) {
       return authRedirect
     }
 
-    // Early return for non-dashboard routes or no user
-    if (!data?.user || !isDashboardRoute(pathname)) {
-      l.debug({
-        key: 'middleware:early_return',
-        pathname,
-        isDashboard: isDashboardRoute(pathname),
-        hasUser: !!data?.user,
-      })
-      return response
-    }
+    // // Early return for non-dashboard routes or no user
+    // if (!data?.user || !isDashboardRoute(pathname)) {
+    //   l.debug({
+    //     key: 'middleware:early_return',
+    //     pathname,
+    //     isDashboard: isDashboardRoute(pathname),
+    //     hasUser: !!data?.user,
+    //   })
+    //   return response
+    // }
 
-    // Handle team resolution for all dashboard routes
-    const teamResult = await resolveTeamForDashboard(request, data.user.id)
+    // // Handle team resolution for all dashboard routes
+    // const teamResult = await resolveTeamForDashboard(request, data.user.id)
 
-    l.debug(
-      {
-        key: 'middleware:team_resolution',
-        userId: data.user.id,
-        context: {
-          pathname,
-          teamResult: teamResult,
-          teamIdOrSlug: request.nextUrl.pathname.split('/')[2],
-        },
-      },
-      'middleware - resolved team for dashboard'
-    )
+    // l.debug(
+    //   {
+    //     key: 'middleware:team_resolution',
+    //     userId: data.user.id,
+    //     context: {
+    //       pathname,
+    //       teamResult: teamResult,
+    //       teamIdOrSlug: request.nextUrl.pathname.split('/')[2],
+    //     },
+    //   },
+    //   'middleware - resolved team for dashboard'
+    // )
 
-    // Process team resolution result
-    return handleTeamResolution(request, response, teamResult)
+    // // Process team resolution result
+    // return handleTeamResolution(request, response, teamResult)
+    return response
   } catch (error) {
     l.error(
       {

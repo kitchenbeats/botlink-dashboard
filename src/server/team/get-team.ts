@@ -1,22 +1,22 @@
 import 'server-cli-only'
 
-import { authActionClient } from '@/lib/clients/action'
+import { authActionClient, withTeamIdResolution } from '@/lib/clients/action'
+import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { returnServerError } from '@/lib/utils/action'
-import getUserTeamsMemo from './get-user-teams-memo'
-
 import { z } from 'zod'
 import getTeamMemo from './get-team-memo'
+import getUserTeamsMemo from './get-user-teams-memo'
 
 const GetTeamSchema = z.object({
-  teamId: z.string().uuid(),
+  teamIdOrSlug: TeamIdOrSlugSchema,
 })
 
 export const getTeam = authActionClient
   .schema(GetTeamSchema)
   .metadata({ serverFunctionName: 'getTeam' })
-  .action(async ({ parsedInput, ctx }) => {
-    const { teamId } = parsedInput
-    const { user } = ctx
+  .use(withTeamIdResolution)
+  .action(async ({ ctx }) => {
+    const { teamId, user } = ctx
 
     const team = await getTeamMemo(user.id, teamId)
 

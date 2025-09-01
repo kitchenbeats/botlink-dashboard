@@ -1,4 +1,3 @@
-import { getTeamMetadataFromCookiesMemo } from '@/lib/utils/server'
 import { getInvoices } from '@/server/billing/get-invoices'
 import { ErrorIndicator } from '@/ui/error-indicator'
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
@@ -35,8 +34,14 @@ function LoadingFallback() {
   )
 }
 
-async function InvoicesTableContent({ teamId }: { teamId: string }) {
-  const res = await getInvoices({ teamId })
+async function InvoicesTableContent({
+  params,
+}: {
+  params: Promise<{ teamIdOrSlug: string }>
+}) {
+  const { teamIdOrSlug } = await params
+
+  const res = await getInvoices({ teamIdOrSlug })
 
   if (!res?.data || res.serverError || res.validationErrors) {
     return (
@@ -92,10 +97,6 @@ async function InvoicesTableContent({ teamId }: { teamId: string }) {
 export default async function BillingInvoicesTable({
   params,
 }: BillingInvoicesTableProps) {
-  const { teamIdOrSlug } = await params
-
-  const { id: teamId } = await getTeamMetadataFromCookiesMemo(teamIdOrSlug)
-
   return (
     <Table className="animate-in fade-in w-full min-w-[800px]">
       <TableHeader>
@@ -108,7 +109,7 @@ export default async function BillingInvoicesTable({
       </TableHeader>
       <TableBody>
         <Suspense fallback={<LoadingFallback />}>
-          <InvoicesTableContent teamId={teamId} />
+          <InvoicesTableContent params={params} />
         </Suspense>
       </TableBody>
     </Table>

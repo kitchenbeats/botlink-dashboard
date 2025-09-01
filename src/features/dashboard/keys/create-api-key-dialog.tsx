@@ -26,6 +26,7 @@ import { Input } from '@/ui/primitives/input'
 import { Label } from '@/ui/primitives/label'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAction } from 'next-safe-action/hooks'
+import { useParams } from 'next/navigation'
 import { usePostHog } from 'posthog-js/react'
 import { FC, ReactNode, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -42,15 +43,13 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 interface CreateApiKeyDialogProps {
-  teamId: string
   children?: ReactNode
 }
 
-const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
-  teamId,
-  children,
-}) => {
+const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({ children }) => {
   'use no memo'
+
+  const { teamIdOrSlug } = useParams() as { teamIdOrSlug: string }
 
   const [open, setOpen] = useState(false)
   const [createdApiKey, setCreatedApiKey] = useState<string | null>(null)
@@ -99,7 +98,7 @@ const CreateApiKeyDialog: FC<CreateApiKeyDialogProps> = ({
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit((values) =>
-                createApiKey({ teamId, name: values.name })
+                createApiKey({ teamIdOrSlug, name: values.name })
               )}
               className="flex flex-col gap-6"
             >

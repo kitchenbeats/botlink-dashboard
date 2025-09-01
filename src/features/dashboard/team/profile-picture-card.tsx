@@ -1,7 +1,6 @@
 'use client'
 
 import { USER_MESSAGES } from '@/configs/user-messages'
-import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -16,13 +15,14 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronsUp, ImagePlusIcon, Loader2, Pencil } from 'lucide-react'
 import { useAction } from 'next-safe-action/hooks'
 import { useRef, useState } from 'react'
+import { useDashboard } from '../context'
 
 interface ProfilePictureCardProps {
   className?: string
 }
 
 export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
-  const { team } = useTeam()
+  const { team } = useDashboard()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -77,7 +77,7 @@ export function ProfilePictureCard({ className }: ProfilePictureCardProps) {
       formData.append('image', file)
 
       uploadProfilePicture({
-        teamId: team.id,
+        teamIdOrSlug: team.id,
         image: file,
       })
     }

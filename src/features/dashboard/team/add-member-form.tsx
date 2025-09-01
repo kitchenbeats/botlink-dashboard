@@ -1,6 +1,5 @@
 'use client'
 
-import { useTeam } from '@/lib/hooks/use-team'
 import {
   defaultErrorToast,
   defaultSuccessToast,
@@ -22,6 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useAction } from 'next-safe-action/hooks'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { useDashboard } from '../context'
 
 const addMemberSchema = z.object({
   email: z.string().email(),
@@ -36,7 +36,7 @@ interface AddMemberFormProps {
 export default function AddMemberForm({ className }: AddMemberFormProps) {
   'use no memo'
 
-  const { team } = useTeam()
+  const { team } = useDashboard()
   const { toast } = useToast()
 
   const form = useForm<AddMemberForm>({
@@ -62,7 +62,7 @@ export default function AddMemberForm({ className }: AddMemberFormProps) {
     }
 
     execute({
-      teamId: team.id,
+      teamIdOrSlug: team.id,
       email: data.email,
     })
   }

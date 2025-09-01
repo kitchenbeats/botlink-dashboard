@@ -4,24 +4,29 @@ import {
   MOCK_DEFAULT_TEMPLATES_DATA,
   MOCK_TEMPLATES_DATA,
 } from '@/configs/mock-data'
-import { actionClient, authActionClient } from '@/lib/clients/action'
+import {
+  actionClient,
+  authActionClient,
+  withTeamIdResolution,
+} from '@/lib/clients/action'
 import { l } from '@/lib/clients/logger/logger'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { handleDefaultInfraError } from '@/lib/utils/action'
 import { DefaultTemplate } from '@/types/api'
 import { z } from 'zod'
 import getTeamTemplatesMemo from './get-team-templates-memo'
 
 const GetTeamTemplatesSchema = z.object({
-  teamId: z.string().uuid(),
+  teamIdOrSlug: TeamIdOrSlugSchema,
 })
 
 export const getTeamTemplates = authActionClient
   .schema(GetTeamTemplatesSchema)
+  .use(withTeamIdResolution)
   .metadata({ serverFunctionName: 'getTeamTemplates' })
-  .action(async ({ parsedInput, ctx }) => {
-    const { teamId } = parsedInput
-    const { session } = ctx
+  .action(async ({ ctx }) => {
+    const { session, teamId } = ctx
 
     if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -33,7 +38,7 @@ export const getTeamTemplates = authActionClient
     const userId = session.user.id
     const accessToken = session.access_token
 
-    const res = await getTeamTemplatesMemo(userId, teamId, accessToken)
+    const res = await getTeamTemplatesMemo(teamId, accessToken)
 
     if (res.error) {
       const status = res.response.status

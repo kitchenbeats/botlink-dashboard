@@ -8,19 +8,18 @@ interface UseTeamProps {
   initialData: ClientTeam | null
 }
 
-export const useTeam = (
-  { initialData }: UseTeamProps = { initialData: null }
-) => {
+export const useTeam = (props?: UseTeamProps) => {
+  const initialData = props?.initialData
+
   // at the moment we only refetch via initial (server) revalidation
   // swr is a good global state management solution for this
   const swr = useSWR<ClientTeam | null>(
     ['user-team', initialData?.id],
-    async () => {
-      return initialData
+    async ([, teamId]) => {
+      return initialData || null
     },
     {
       fallbackData: initialData,
-      keepPreviousData: true,
     }
   )
 

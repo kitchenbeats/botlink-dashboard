@@ -1,12 +1,12 @@
 'use client'
 
 import { MOCK_METRICS_DATA } from '@/configs/mock-data'
-import { useTeam } from '@/lib/hooks/use-team'
 import { Sandboxes } from '@/types/api'
 import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
 import { useEffect, useMemo } from 'react'
 import useSWR from 'swr'
 import { useDebounceValue } from 'usehooks-ts'
+import { useDashboard } from '../../context'
 import { useSandboxMetricsStore } from '../stores/metrics-store'
 
 interface MetricsResponse {
@@ -27,7 +27,7 @@ export function useSandboxesMetrics({
   pollingInterval,
   debounceDelay = 1000,
 }: UseSandboxesMetricsProps) {
-  const { team } = useTeam()
+  const { team } = useDashboard()
 
   const sandboxIds = useMemo(
     () => sandboxes.map((sbx) => sbx.sandboxID),

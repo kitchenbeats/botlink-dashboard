@@ -1,5 +1,4 @@
 import { CLI_GENERATED_KEY_NAME } from '@/configs/api'
-import { bailOutFromPPR } from '@/lib/utils/server'
 import { getTeamApiKeys } from '@/server/keys/get-api-keys'
 import { ErrorIndicator } from '@/ui/error-indicator'
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
@@ -7,15 +6,15 @@ import { TableCell, TableRow } from '@/ui/primitives/table'
 import ApiKeyTableRow from './table-row'
 
 interface TableBodyContentProps {
-  teamId: string
+  params: Promise<{ teamIdOrSlug: string }>
 }
 
 export default async function TableBodyContent({
-  teamId,
+  params,
 }: TableBodyContentProps) {
-  bailOutFromPPR()
+  const { teamIdOrSlug } = await params
 
-  const result = await getTeamApiKeys({ teamId })
+  const result = await getTeamApiKeys({ teamIdOrSlug })
 
   if (!result?.data || result.serverError || result.validationErrors) {
     return (

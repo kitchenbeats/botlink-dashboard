@@ -13,11 +13,11 @@ import { FC, Suspense } from 'react'
 import TableBodyContent from './table-body'
 
 interface ApiKeysTableProps {
-  teamId: string
+  params: Promise<{ teamIdOrSlug: string }>
   className?: string
 }
 
-const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId, className }) => {
+const ApiKeysTable: FC<ApiKeysTableProps> = ({ params, className }) => {
   return (
     <>
       <Table className={cn('w-full animate-in fade-in', className)}>
@@ -45,7 +45,7 @@ const ApiKeysTable: FC<ApiKeysTableProps> = ({ teamId, className }) => {
               </TableRow>
             }
           >
-            <TableBodyContent teamId={teamId} />
+            <TableBodyContent params={params} />
           </Suspense>
         </TableBody>
       </Table>

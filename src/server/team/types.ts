@@ -1,3 +1,4 @@
+import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { Database } from '@/types/database.types'
 import { z } from 'zod'
 
@@ -30,7 +31,7 @@ export const TeamNameSchema = z
 // Shared schemas
 
 const UpdateTeamNameSchema = z.object({
-  teamId: z.string().uuid(),
+  teamIdOrSlug: TeamIdOrSlugSchema,
   name: TeamNameSchema,
 })
 

@@ -2,20 +2,23 @@ import 'server-cli-only'
 
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { MOCK_SANDBOXES_DATA } from '@/configs/mock-data'
-import { authActionClient } from '@/lib/clients/action'
+import { authActionClient, withTeamIdResolution } from '@/lib/clients/action'
 import { infra } from '@/lib/clients/api'
 import { l } from '@/lib/clients/logger/logger'
+import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { handleDefaultInfraError } from '@/lib/utils/action'
 import { Sandbox } from '@/types/api'
+import { unauthorized } from 'next/navigation'
 import { z } from 'zod'
 
 const GetTeamSandboxesSchema = z.object({
-  teamId: z.string().uuid(),
+  teamIdOrSlug: TeamIdOrSlugSchema,
 })
 
 export const getTeamSandboxes = authActionClient
   .schema(GetTeamSandboxesSchema)
   .metadata({ serverFunctionName: 'getTeamSandboxes' })
+  .use(withTeamIdResolution)
   .action(
     async ({
       parsedInput,
@@ -23,8 +26,15 @@ export const getTeamSandboxes = authActionClient
     }): Promise<{
       sandboxes: Sandbox[]
     }> => {
-      const { teamId } = parsedInput
-      const { session } = ctx
+      const { session, teamId } = ctx
+
+      if (!teamId) {
+        throw unauthorized()
+      }
+
+      if (!teamId) {
+        throw unauthorized()
+      }
 
       if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
         await new Promise((resolve) => setTimeout(resolve, 200))

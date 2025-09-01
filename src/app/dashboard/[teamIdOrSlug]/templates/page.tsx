@@ -1,5 +1,4 @@
 import TemplatesTable from '@/features/dashboard/templates/table'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import {
   getDefaultTemplates,
   getTeamTemplates,
@@ -23,10 +22,8 @@ interface PageContentProps {
 }
 
 async function PageContent({ teamIdOrSlug }: PageContentProps) {
-  const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
-
   const res = await getTeamTemplates({
-    teamId,
+    teamIdOrSlug,
   })
 
   const defaultRes = await getDefaultTemplates()
