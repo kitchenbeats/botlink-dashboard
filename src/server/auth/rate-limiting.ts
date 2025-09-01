@@ -72,29 +72,3 @@ export async function incrementSignUpAttempts(
     })
   }
 }
-
-/**
- * Reset the successful sign-up counter for an identifier (if needed)
- * @param identifier - IP address to reset counter for
- */
-export async function resetSignUpAttempts(identifier: string): Promise<void> {
-  try {
-    const key = KV_KEYS.SIGN_UP_RATE_LIMIT(identifier)
-    await kv.del(key)
-
-    l.debug({
-      key: 'sign_up_rate_limit:reset',
-      context: {
-        identifier,
-      },
-    })
-  } catch (error) {
-    l.error({
-      key: 'sign_up_rate_limit:reset_error',
-      error: serializeError(error),
-      context: {
-        identifier,
-      },
-    })
-  }
-}
