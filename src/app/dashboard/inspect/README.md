@@ -38,7 +38,7 @@ graph LR
 
 1. **Input Validation**: Validates sandbox ID format with Zod
 2. **Authentication**: Verifies user session and gets access token
-3. **Team Discovery**: Fetches user's teams with optimized query
+3. **Team Discovery**: Fetches user's teams directly with `supabaseAdmin`
 4. **Smart Search**: Checks cookie team first, then all teams
 5. **Slug Resolution**: Resolves and caches team slug
 6. **Safe Redirect**: Updates cookies and redirects to team URL
@@ -75,6 +75,12 @@ The route will automatically:
 - **Full search**: ~100ms × number of teams
 
 ## Architecture Highlights
+
+### Direct Database Access
+- Uses `supabaseAdmin` for direct database queries
+- Optimized queries fetching only necessary fields (`id`, `slug`, `is_default`)
+- Efficient team discovery with inner join on teams table
+- Consistent error handling and logging
 
 ### Validation Layer
 ```typescript

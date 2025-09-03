@@ -176,6 +176,7 @@ function setupAuthenticatedUser(
 function setupUserTeams(teams: Array<{ id: string; slug: string | null }>) {
   const mockTeamsData = teams.map((team) => ({
     teams: team,
+    is_default: false,
   }))
 
   vi.mocked(supabaseAdmin.from).mockImplementation(

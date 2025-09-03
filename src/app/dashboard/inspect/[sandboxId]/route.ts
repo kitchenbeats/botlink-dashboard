@@ -65,18 +65,23 @@ interface RouteParams {
 }
 
 /**
- * Team data structure from database
+ * Minimal team data for routing
  */
-interface Team {
+interface MinimalTeam {
   id: string
   slug: string | null
+  is_default?: boolean
 }
 
 /**
- * User team relationship from database join
+ * User team relationship from database
  */
-interface UserTeam {
-  teams: Team
+interface UserTeamData {
+  is_default?: boolean
+  teams: {
+    id: string
+    slug: string | null
+  }
 }
 
 /**
@@ -89,7 +94,7 @@ type SandboxDetails = InfraComponents['schemas']['SandboxDetail']
  */
 interface SandboxSearchResult {
   found: boolean
-  team?: Team
+  team?: MinimalTeam
   sandbox?: SandboxDetails
 }
 
@@ -196,14 +201,14 @@ async function findSandboxInTeam(
  */
 async function searchSandboxInTeams(
   sandboxId: string,
-  usersTeams: UserTeam[],
+  usersTeams: MinimalTeam[],
   cookieTeamId: string | undefined,
   accessToken: string
 ): Promise<SandboxSearchResult> {
   // Optimization: Try cookie team first if it exists
   // This handles the common case where user is working within one team
   if (cookieTeamId) {
-    const cookieTeam = usersTeams.find((t) => t.teams.id === cookieTeamId)
+    const cookieTeam = usersTeams.find((t) => t.id === cookieTeamId)
     if (cookieTeam) {
       const sandboxDetails = await findSandboxInTeam(
         sandboxId,
@@ -214,7 +219,7 @@ async function searchSandboxInTeams(
       if (sandboxDetails) {
         return {
           found: true,
-          team: cookieTeam.teams,
+          team: cookieTeam,
           sandbox: sandboxDetails,
         }
       }
@@ -223,22 +228,22 @@ async function searchSandboxInTeams(
 
   // Fall back to searching all teams
   // This handles team switching and first-time access scenarios
-  for (const userTeam of usersTeams) {
+  for (const team of usersTeams) {
     // Skip if we already checked this team above
-    if (userTeam.teams.id === cookieTeamId) {
+    if (team.id === cookieTeamId) {
       continue
     }
 
     const sandboxDetails = await findSandboxInTeam(
       sandboxId,
-      userTeam.teams.id,
+      team.id,
       accessToken
     )
 
     if (sandboxDetails) {
       return {
         found: true,
-        team: userTeam.teams,
+        team: team,
         sandbox: sandboxDetails,
       }
     }
@@ -254,7 +259,7 @@ async function searchSandboxInTeams(
  * @param team - Team object with ID and possible slug
  * @returns Resolved team identifier for URL
  */
-async function resolveAndCacheTeamSlug(team: Team): Promise<string> {
+async function resolveAndCacheTeamSlug(team: MinimalTeam): Promise<string> {
   // Use existing slug if available
   if (team.slug) {
     // Cache bidirectional mapping for future lookups
@@ -303,7 +308,7 @@ async function resolveAndCacheTeamSlug(team: Team): Promise<string> {
  */
 function updateTeamCookies(
   response: NextResponse,
-  team: Team,
+  team: MinimalTeam,
   teamSlug: string
 ): void {
   const cookieOptions = {
@@ -397,24 +402,36 @@ export async function GET(
     const accessToken = sessionData.session.access_token
 
     // ========================================================================
-    // Step 3: Fetch user's teams with optimized query
+    // Step 3: Fetch user's teams using supabaseAdmin
     // ========================================================================
 
     const { data: usersTeamsData, error: teamsError } = await supabaseAdmin
       .from('users_teams')
-      .select('teams!inner(id, slug)') // Only fetch needed fields
+      .select('is_default, teams!inner(id, slug)')
       .eq('user_id', userId)
 
     if (teamsError || !usersTeamsData || usersTeamsData.length === 0) {
-      return redirectToDashboard(request, 'inspect_sandbox:no_teams', {
+      l.warn({
+        key: 'inspect_sandbox:teams_fetch_error',
         user_id: userId,
         sandbox_id: sandboxId,
         error: teamsError,
       })
+
+      return redirectToDashboard(request, 'inspect_sandbox:no_teams', {
+        user_id: userId,
+        sandbox_id: sandboxId,
+      })
     }
 
-    // Type assertion safe because of !inner join
-    const typedTeams = usersTeamsData as unknown as UserTeam[]
+    // Transform to MinimalTeam format
+    const usersTeams: MinimalTeam[] = (usersTeamsData as UserTeamData[]).map(
+      (userTeam) => ({
+        id: userTeam.teams.id,
+        slug: userTeam.teams.slug,
+        is_default: userTeam.is_default,
+      })
+    )
 
     // ========================================================================
     // Step 4: Get team preference from cookies for optimization
@@ -429,7 +446,7 @@ export async function GET(
 
     const searchResult = await searchSandboxInTeams(
       sandboxId,
-      typedTeams,
+      usersTeams,
       cookieTeamId,
       accessToken
     )
@@ -438,7 +455,7 @@ export async function GET(
       return redirectToDashboard(request, 'inspect_sandbox:not_found', {
         user_id: userId,
         sandbox_id: sandboxId,
-        teams_checked: typedTeams.map((t) => t.teams.id),
+        teams_checked: usersTeams.map((t) => t.id),
       })
     }
 
