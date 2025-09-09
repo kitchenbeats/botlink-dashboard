@@ -18,7 +18,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
-import { isSignUpRateLimited } from './rate-limiting'
+import { isSignUpAttemptRateLimited } from './rate-limiting'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -118,19 +118,22 @@ export const signUpAction = actionClient
       'Sign-up attempt'
     )
 
-    if (ENABLE_SIGN_UP_RATE_LIMITING && (await isSignUpRateLimited(ip))) {
+    if (
+      ENABLE_SIGN_UP_RATE_LIMITING &&
+      (await isSignUpAttemptRateLimited(ip))
+    ) {
       l.debug(
         {
-          key: 'sign_up_rate_limited',
+          key: 'sign_up_attempt_rate_limited',
           context: {
             ip: ip,
           },
         },
-        'Sign-up rate limited'
+        'Sign-up attempt rate limited'
       )
 
       return returnServerError(
-        'Too many sign-ups for now. Please try again later.'
+        'Too many sign-up attempts. Please try again later.'
       )
     }
 

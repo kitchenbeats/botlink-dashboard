@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const TruethyOrFalsy = z.enum(['1', '0'])
+const NumericBoolean = z.enum(['1', '0'])
 
 export const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
@@ -11,7 +11,10 @@ export const serverSchema = z.object({
 
   BILLING_API_URL: z.string().url().optional(),
   ZEROBOUNCE_API_KEY: z.string().optional(),
-  ENABLE_SIGN_UP_RATE_LIMITING: TruethyOrFalsy.optional(),
+
+  ENABLE_SIGN_UP_RATE_LIMITING: NumericBoolean.optional(),
+  SIGN_UP_ATTEMPTS_LIMIT: z.coerce.number().optional(),
+  SIGN_UP_ATTEMPTS_WINDOW_HOURS: z.coerce.number().optional(),
   SIGN_UP_LIMIT_PER_WINDOW: z.coerce.number().optional(),
   SIGN_UP_WINDOW_HOURS: z.coerce.number().optional(),
 
@@ -46,10 +49,10 @@ export const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 
   NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
-  NEXT_PUBLIC_INCLUDE_BILLING: TruethyOrFalsy.optional(),
-  NEXT_PUBLIC_SCAN: TruethyOrFalsy.optional(),
-  NEXT_PUBLIC_MOCK_DATA: TruethyOrFalsy.optional(),
-  NEXT_PUBLIC_VERBOSE: TruethyOrFalsy.optional(),
+  NEXT_PUBLIC_INCLUDE_BILLING: NumericBoolean.optional(),
+  NEXT_PUBLIC_SCAN: NumericBoolean.optional(),
+  NEXT_PUBLIC_MOCK_DATA: NumericBoolean.optional(),
+  NEXT_PUBLIC_VERBOSE: NumericBoolean.optional(),
 })
 
 export const testEnvSchema = z.object({

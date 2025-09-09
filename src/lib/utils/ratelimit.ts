@@ -17,7 +17,7 @@ export interface RateLimitResult {
  * @returns RateLimitResult with success status and rate limit metadata
  */
 export default async function ratelimit(
-  key: string | null,
+  key: string,
   maxRequests: number,
   window: Duration
 ): Promise<RateLimitResult | null> {
@@ -28,7 +28,8 @@ export default async function ratelimit(
       limiter: Ratelimit.slidingWindow(maxRequests, window),
     })
 
-    const result = await ratelimit.limit(`ratelimit_${key}`)
+    // the package applie "@upstash/ratelimit" prefixed to the key
+    const result = await ratelimit.limit(key)
 
     return {
       success: result.success,

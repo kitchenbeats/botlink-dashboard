@@ -3,16 +3,72 @@ import { Duration } from '@/lib/utils/duration'
 import ratelimit from '@/lib/utils/ratelimit'
 import { serializeError } from 'serialize-error'
 
-// Configuration from environment variables
+// Configuration for sign-up attempts (prevent spam)
+const SIGN_UP_ATTEMPTS_LIMIT = Number(process.env.SIGN_UP_ATTEMPTS_LIMIT) || 10
+const SIGN_UP_ATTEMPTS_WINDOW_HOURS =
+  Number(process.env.SIGN_UP_ATTEMPTS_WINDOW_HOURS) || 1
+
+// Configuration for actual sign-ups (limit account creation)
 const SIGN_UP_LIMIT_PER_WINDOW =
   Number(process.env.SIGN_UP_LIMIT_PER_WINDOW) || 1
 const SIGN_UP_WINDOW_HOURS = Number(process.env.SIGN_UP_WINDOW_HOURS) || 24
 
-// Convert hours to Duration format
+// Convert to Duration format
+const SIGN_UP_ATTEMPTS_WINDOW: Duration = `${SIGN_UP_ATTEMPTS_WINDOW_HOURS}h`
 const SIGN_UP_WINDOW: Duration = `${SIGN_UP_WINDOW_HOURS}h`
 
 /**
- * Check if an identifier (IP address) has exceeded the successful sign-up limit
+ * Check if an identifier (IP address) has exceeded the sign-up attempts limit
+ * This prevents spam/abuse of the sign-up endpoint
+ * @param identifier - IP address to check rate limiting for
+ * @returns Promise<boolean> - true if rate limited, false if allowed
+ */
+export async function isSignUpAttemptRateLimited(
+  identifier: string
+): Promise<boolean> {
+  try {
+    const result = await ratelimit(
+      `signup-attempt:${identifier}`,
+      SIGN_UP_ATTEMPTS_LIMIT,
+      SIGN_UP_ATTEMPTS_WINDOW
+    )
+
+    // If rate limiting is not configured, allow the request
+    if (!result) {
+      return false
+    }
+
+    const isRateLimited = !result.success
+
+    if (isRateLimited) {
+      l.debug({
+        key: 'sign_up_attempt_rate_limit:blocked',
+        context: {
+          identifier,
+          limit: result.limit,
+          remaining: result.remaining,
+          reset: result.reset,
+        },
+      })
+    }
+
+    return isRateLimited
+  } catch (error) {
+    l.error({
+      key: 'sign_up_attempt_rate_limit:check_error',
+      error: serializeError(error),
+      context: {
+        identifier,
+      },
+    })
+    // on error, allow the request to proceed
+    return false
+  }
+}
+
+/**
+ * Check if an identifier (IP address) has exceeded the actual sign-up limit
+ * This limits the number of confirmed accounts created per time window
  * @param identifier - IP address to check rate limiting for
  * @returns Promise<boolean> - true if rate limited, false if allowed
  */
@@ -57,4 +113,23 @@ export async function isSignUpRateLimited(
     // on error, allow the request to proceed
     return false
   }
+}
+
+/**
+ * Log rate limit configuration on startup (for debugging)
+ */
+export function logRateLimitConfiguration() {
+  l.info({
+    key: 'rate_limit_configuration',
+    context: {
+      sign_up_attempts: {
+        limit: SIGN_UP_ATTEMPTS_LIMIT,
+        window: SIGN_UP_ATTEMPTS_WINDOW,
+      },
+      sign_ups: {
+        limit: SIGN_UP_LIMIT_PER_WINDOW,
+        window: SIGN_UP_WINDOW,
+      },
+    },
+  })
 }
