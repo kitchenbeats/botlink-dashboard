@@ -95,13 +95,40 @@ export const signUpAction = actionClient
       }
     }
 
+    const headersStore = await headers()
+
     const ip =
-      (await headers()).get('x-forwarded-for') ||
-      (await headers()).get('cf-connecting-ip') ||
-      (await headers()).get('x-real-ip') ||
+      headersStore.get('x-forwarded-for') ||
+      headersStore.get('cf-connecting-ip') ||
+      headersStore.get('x-real-ip') ||
       'unknown'
 
+    l.debug(
+      {
+        key: 'sign_up_attempt',
+        context: {
+          header: {
+            'x-forwarded-for': headersStore.get('x-forwarded-for'),
+            'cf-connecting-ip': headersStore.get('cf-connecting-ip'),
+            'x-real-ip': headersStore.get('x-real-ip'),
+          },
+          ip: ip,
+        },
+      },
+      'Sign-up attempt'
+    )
+
     if (ENABLE_SIGN_UP_RATE_LIMITING && (await isSignUpRateLimited(ip))) {
+      l.debug(
+        {
+          key: 'sign_up_rate_limited',
+          context: {
+            ip: ip,
+          },
+        },
+        'Sign-up rate limited'
+      )
+
       return returnServerError(
         'Too many sign-ups for now. Please try again later.'
       )

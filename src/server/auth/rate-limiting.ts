@@ -1,11 +1,15 @@
-import { KV_KEYS } from '@/configs/keys'
-import { kv } from '@/lib/clients/kv'
 import { l } from '@/lib/clients/logger/logger'
+import { Duration } from '@/lib/utils/duration'
+import ratelimit from '@/lib/utils/ratelimit'
 import { serializeError } from 'serialize-error'
 
+// Configuration from environment variables
 const SIGN_UP_LIMIT_PER_WINDOW =
   Number(process.env.SIGN_UP_LIMIT_PER_WINDOW) || 1
 const SIGN_UP_WINDOW_HOURS = Number(process.env.SIGN_UP_WINDOW_HOURS) || 24
+
+// Convert hours to Duration format
+const SIGN_UP_WINDOW: Duration = `${SIGN_UP_WINDOW_HOURS}h`
 
 /**
  * Check if an identifier (IP address) has exceeded the successful sign-up limit
@@ -16,15 +20,32 @@ export async function isSignUpRateLimited(
   identifier: string
 ): Promise<boolean> {
   try {
-    const key = KV_KEYS.SIGN_UP_RATE_LIMIT(identifier)
-    const attempts = await kv.get(key)
+    const result = await ratelimit(
+      `signup:${identifier}`,
+      SIGN_UP_LIMIT_PER_WINDOW,
+      SIGN_UP_WINDOW
+    )
 
-    if (!attempts) {
+    // If rate limiting is not configured, allow the request
+    if (!result) {
       return false
     }
 
-    const attemptCount = parseInt(attempts as string, 10)
-    return attemptCount >= SIGN_UP_LIMIT_PER_WINDOW
+    const isRateLimited = !result.success
+
+    if (isRateLimited) {
+      l.debug({
+        key: 'sign_up_rate_limit:blocked',
+        context: {
+          identifier,
+          limit: result.limit,
+          remaining: result.remaining,
+          reset: result.reset,
+        },
+      })
+    }
+
+    return isRateLimited
   } catch (error) {
     l.error({
       key: 'sign_up_rate_limit:check_error',
@@ -35,40 +56,5 @@ export async function isSignUpRateLimited(
     })
     // on error, allow the request to proceed
     return false
-  }
-}
-
-/**
- * Increment the successful sign-up counter for an identifier (IP)
- * @param identifier - IP address to increment counter for
- */
-export async function incrementSignUpAttempts(
-  identifier: string
-): Promise<void> {
-  try {
-    const key = KV_KEYS.SIGN_UP_RATE_LIMIT(identifier)
-    const current = await kv.get(key)
-    const currentCount = current ? parseInt(current as string, 10) : 0
-    const newCount = currentCount + 1
-
-    await kv.set(key, newCount.toString(), {
-      ex: SIGN_UP_WINDOW_HOURS * 3600,
-    })
-
-    l.debug({
-      key: 'sign_up_rate_limit:increment',
-      context: {
-        identifier,
-        attempts: newCount,
-      },
-    })
-  } catch (error) {
-    l.error({
-      key: 'sign_up_rate_limit:increment_error',
-      error: serializeError(error),
-      context: {
-        identifier,
-      },
-    })
   }
 }

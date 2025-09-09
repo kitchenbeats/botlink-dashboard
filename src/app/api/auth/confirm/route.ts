@@ -3,7 +3,7 @@ import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { l } from '@/lib/clients/logger/logger'
 import { createClient } from '@/lib/clients/supabase/server'
 import { encodedRedirect } from '@/lib/utils/auth'
-import { incrementSignUpAttempts } from '@/server/auth/rate-limiting'
+import { isSignUpRateLimited } from '@/server/auth/rate-limiting'
 import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
 import { serializeError } from 'serialize-error'
@@ -138,14 +138,47 @@ export async function GET(request: NextRequest) {
     }
 
     // increment counter for successful sign-up confirmations (rate limiting)
-    if (ENABLE_SIGN_UP_RATE_LIMITING && supabaseType === 'signup') {
+    if (ENABLE_SIGN_UP_RATE_LIMITING && supabaseType === 'email') {
       const ip =
         request.headers.get('x-forwarded-for') ||
         request.headers.get('cf-connecting-ip') ||
         request.headers.get('x-real-ip') ||
         'unknown'
 
-      await incrementSignUpAttempts(ip)
+      l.debug(
+        {
+          key: 'sign_up_rate_limit:check',
+          context: {
+            ip: ip,
+            header: {
+              'x-forwarded-for': request.headers.get('x-forwarded-for'),
+              'cf-connecting-ip': request.headers.get('cf-connecting-ip'),
+              'x-real-ip': request.headers.get('x-real-ip'),
+            },
+          },
+        },
+        'Sign-up rate limit check'
+      )
+
+      const isRateLimited = await isSignUpRateLimited(ip)
+
+      if (isRateLimited) {
+        l.debug(
+          {
+            key: 'sign_up_rate_limited',
+            context: {
+              ip: ip,
+            },
+          },
+          'Sign-up rate limited'
+        )
+
+        return encodedRedirect(
+          'error',
+          dashboardSignInUrl.toString(),
+          'Too many sign-ups for now. Please try again later.'
+        )
+      }
     }
 
     l.info({
