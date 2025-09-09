@@ -2,9 +2,7 @@ import { z } from 'zod'
 
 const NumericBoolean = z.enum(['1', '0'])
 
-// Custom string type that validates as a positive number but remains a string
-// We keep it as string because we don't actually use the validated values directly,
-// but only validate that they can be parsed as positive numbers
+// string that must parse as a positive number
 const StringPositiveNumber = z.string().refine(
   (val) => {
     const num = Number(val)

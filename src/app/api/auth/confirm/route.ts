@@ -3,6 +3,7 @@ import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { l } from '@/lib/clients/logger/logger'
 import { createClient } from '@/lib/clients/supabase/server'
 import { encodedRedirect } from '@/lib/utils/auth'
+import { extractClientIp, isDevelopmentIp } from '@/lib/utils/ip-extraction'
 import { isSignUpRateLimited } from '@/server/auth/rate-limiting'
 import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
@@ -96,49 +97,23 @@ export async function GET(request: NextRequest) {
 
     const redirectUrl = new URL(next)
 
-    // increment counter for successful sign-up confirmations (rate limiting)
+    // check rate limit for email confirmations
     if (ENABLE_SIGN_UP_RATE_LIMITING && supabaseType === 'email') {
-      const ip =
-        request.headers.get('x-forwarded-for') ||
-        request.headers.get('cf-connecting-ip') ||
-        request.headers.get('x-real-ip')
+      const ip = extractClientIp(request.headers)
 
-      if (!ip) {
-        return encodedRedirect(
-          'error',
-          dashboardSignInUrl.toString(),
-          'Invalid IP address.'
-        )
-      }
-
-      l.debug(
-        {
-          key: 'sign_up_rate_limit:check',
+      // log error if no ip headers found in production
+      if (isDevelopmentIp(ip) && process.env.NODE_ENV === 'production') {
+        l.error({
+          key: 'sign_up_confirm:no_ip_headers',
           context: {
-            ip: ip,
-            header: {
-              'x-forwarded-for': request.headers.get('x-forwarded-for'),
-              'cf-connecting-ip': request.headers.get('cf-connecting-ip'),
-              'x-real-ip': request.headers.get('x-real-ip'),
-            },
+            message: 'no ip headers found in production',
           },
-        },
-        'Sign-up rate limit check'
-      )
+        })
+      }
 
       const isRateLimited = await isSignUpRateLimited(ip)
 
       if (isRateLimited) {
-        l.debug(
-          {
-            key: 'sign_up_rate_limited',
-            context: {
-              ip: ip,
-            },
-          },
-          'Sign-up rate limited'
-        )
-
         return encodedRedirect(
           'error',
           dashboardSignInUrl.toString(),

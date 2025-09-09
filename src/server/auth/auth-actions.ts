@@ -9,6 +9,7 @@ import { createClient } from '@/lib/clients/supabase/server'
 import { relativeUrlSchema } from '@/lib/schemas/url'
 import { returnServerError } from '@/lib/utils/action'
 import { encodedRedirect } from '@/lib/utils/auth'
+import { extractClientIp, isDevelopmentIp } from '@/lib/utils/ip-extraction'
 import {
   shouldWarnAboutAlternateEmail,
   validateEmail,
@@ -96,45 +97,26 @@ export const signUpAction = actionClient
     }
 
     const headersStore = await headers()
+    const ip = extractClientIp(headersStore)
 
-    const ip =
-      headersStore.get('x-forwarded-for') ||
-      headersStore.get('cf-connecting-ip') ||
-      headersStore.get('x-real-ip')
-
-    if (!ip) {
-      return returnServerError('Invalid IP address.')
-    }
-
-    l.debug(
-      {
-        key: 'sign_up_attempt',
+    // log error if no ip headers found
+    if (
+      isDevelopmentIp(ip) &&
+      ENABLE_SIGN_UP_RATE_LIMITING &&
+      process.env.NODE_ENV === 'production'
+    ) {
+      l.error({
+        key: 'sign_up_attempt:no_ip_headers',
         context: {
-          header: {
-            'x-forwarded-for': headersStore.get('x-forwarded-for'),
-            'cf-connecting-ip': headersStore.get('cf-connecting-ip'),
-            'x-real-ip': headersStore.get('x-real-ip'),
-          },
-          ip: ip,
+          message: 'no ip headers found in production',
         },
-      },
-      'Sign-up attempt'
-    )
+      })
+    }
 
     if (
       ENABLE_SIGN_UP_RATE_LIMITING &&
       (await isSignUpAttemptRateLimited(ip))
     ) {
-      l.debug(
-        {
-          key: 'sign_up_attempt_rate_limited',
-          context: {
-            ip: ip,
-          },
-        },
-        'Sign-up attempt rate limited'
-      )
-
       return returnServerError(
         'Too many sign-up attempts. Please try again later.'
       )

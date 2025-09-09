@@ -21,14 +21,13 @@ export default async function ratelimit(
   maxRequests: number,
   window: Duration
 ): Promise<RateLimitResult | null> {
-  // Only apply rate limiting if KV is configured
+  // only apply rate limiting if kv is configured
   if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
     const ratelimit = new Ratelimit({
       redis: kv,
       limiter: Ratelimit.slidingWindow(maxRequests, window),
     })
 
-    // the package applie "@upstash/ratelimit" prefixed to the key
     const result = await ratelimit.limit(key)
 
     return {
@@ -39,6 +38,6 @@ export default async function ratelimit(
     }
   }
 
-  // If rate limiting is not configured, allow all requests
+  // if rate limiting is not configured, allow all requests
   return null
 }

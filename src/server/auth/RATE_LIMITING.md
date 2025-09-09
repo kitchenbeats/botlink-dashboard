@@ -1,6 +1,10 @@
 # Rate Limiting Documentation
 
-This system implements two separate rate limiters for the sign-up flow to prevent different types of abuse:
+This system implements two separate rate limiters for the sign-up flow to prevent different types of abuse.
+
+## Important: Development Environment Support
+
+The rate limiting system now works seamlessly in development environments without proxy headers. When IP headers are missing, the system falls back to a development identifier that still allows rate limiting to function properly.
 
 ## 1. Sign-Up Attempts Rate Limiter
 
@@ -65,9 +69,25 @@ The rate limiters use different Redis key prefixes to track separate counters:
 
 This ensures the two rate limiters operate independently.
 
+## IP Address Handling
+
+The system properly handles various IP header formats:
+
+1. **x-forwarded-for**: Parsed to extract the first IP from comma-separated list (client IP)
+2. **cf-connecting-ip**: Used directly (Cloudflare header)
+3. **x-real-ip**: Used directly (generic proxy header)
+4. **Development fallback**: Uses 'development-no-ip' when no headers are present
+
+This ensures the rate limiting works in:
+- Production environments with proxies/CDNs
+- Development environments without proxy headers
+- Local testing scenarios
+
 ## Benefits
 
 - **Better User Experience**: Users can retry if they make mistakes (e.g., wrong password format)
 - **Enhanced Security**: Prevents both spam attempts and mass account creation
 - **Flexible Configuration**: Each rate limiter can be tuned independently
 - **Clear Separation**: Different Redis keys prevent interference between the two systems
+- **Development Support**: Works seamlessly in local development without proxy configuration
+- **Proper IP Parsing**: Correctly handles multi-IP headers from proxy chains
