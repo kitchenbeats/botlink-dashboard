@@ -100,8 +100,11 @@ export const signUpAction = actionClient
     const ip =
       headersStore.get('x-forwarded-for') ||
       headersStore.get('cf-connecting-ip') ||
-      headersStore.get('x-real-ip') ||
-      'unknown'
+      headersStore.get('x-real-ip')
+
+    if (!ip) {
+      return returnServerError('Invalid IP address.')
+    }
 
     l.debug(
       {

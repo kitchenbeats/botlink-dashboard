@@ -101,8 +101,15 @@ export async function GET(request: NextRequest) {
       const ip =
         request.headers.get('x-forwarded-for') ||
         request.headers.get('cf-connecting-ip') ||
-        request.headers.get('x-real-ip') ||
-        'unknown'
+        request.headers.get('x-real-ip')
+
+      if (!ip) {
+        return encodedRedirect(
+          'error',
+          dashboardSignInUrl.toString(),
+          'Invalid IP address.'
+        )
+      }
 
       l.debug(
         {
