@@ -9,7 +9,7 @@ This system implements two separate rate limiters for the sign-up flow to preven
 **When Applied**: During the initial sign-up request (before email confirmation)
 
 **Configuration**:
-- `SIGN_UP_ATTEMPTS_LIMIT` - Maximum number of sign-up attempts allowed (default: 10)
+- `SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW` - Maximum number of sign-up attempts allowed (default: 10)
 - `SIGN_UP_ATTEMPTS_WINDOW_HOURS` - Time window in hours for attempt limiting (default: 1)
 
 **Example**: With defaults, allows 10 sign-up attempts per hour per IP address.
@@ -39,7 +39,7 @@ KV_REST_API_URL=your_kv_url
 KV_REST_API_TOKEN=your_kv_token
 
 # Sign-up attempts rate limiting
-SIGN_UP_ATTEMPTS_LIMIT=10        # Max attempts per window
+SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW=10        # Max attempts per window
 SIGN_UP_ATTEMPTS_WINDOW_HOURS=1  # Window size in hours
 
 # Actual sign-ups rate limiting

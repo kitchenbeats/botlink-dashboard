@@ -13,7 +13,7 @@ export const serverSchema = z.object({
   ZEROBOUNCE_API_KEY: z.string().optional(),
 
   ENABLE_SIGN_UP_RATE_LIMITING: NumericBoolean.optional(),
-  SIGN_UP_ATTEMPTS_LIMIT: z.coerce.number().optional(),
+  SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW: z.coerce.number().optional(),
   SIGN_UP_ATTEMPTS_WINDOW_HOURS: z.coerce.number().optional(),
   SIGN_UP_LIMIT_PER_WINDOW: z.coerce.number().optional(),
   SIGN_UP_WINDOW_HOURS: z.coerce.number().optional(),

@@ -4,7 +4,8 @@ import ratelimit from '@/lib/utils/ratelimit'
 import { serializeError } from 'serialize-error'
 
 // Configuration for sign-up attempts (prevent spam)
-const SIGN_UP_ATTEMPTS_LIMIT = Number(process.env.SIGN_UP_ATTEMPTS_LIMIT) || 10
+const SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW =
+  Number(process.env.SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW) || 10
 const SIGN_UP_ATTEMPTS_WINDOW_HOURS =
   Number(process.env.SIGN_UP_ATTEMPTS_WINDOW_HOURS) || 1
 
@@ -29,7 +30,7 @@ export async function isSignUpAttemptRateLimited(
   try {
     const result = await ratelimit(
       `signup-attempt:${identifier}`,
-      SIGN_UP_ATTEMPTS_LIMIT,
+      SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW,
       SIGN_UP_ATTEMPTS_WINDOW
     )
 
@@ -123,7 +124,7 @@ export function logRateLimitConfiguration() {
     key: 'rate_limit_configuration',
     context: {
       sign_up_attempts: {
-        limit: SIGN_UP_ATTEMPTS_LIMIT,
+        limit: SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW,
         window: SIGN_UP_ATTEMPTS_WINDOW,
       },
       sign_ups: {
