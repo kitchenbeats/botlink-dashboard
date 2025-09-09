@@ -3,16 +3,53 @@ import { Duration } from '@/lib/utils/duration'
 import ratelimit from '@/lib/utils/ratelimit'
 import { serializeError } from 'serialize-error'
 
+// Helper function to parse and validate positive numbers
+function parsePositiveNumber(
+  value: string | undefined,
+  defaultValue: number,
+  name: string
+): number {
+  if (!value) return defaultValue
+
+  const parsed = Number(value)
+  if (isNaN(parsed) || parsed <= 0) {
+    l.warn({
+      key: 'rate_limit_config:invalid_value',
+      context: {
+        variable: name,
+        value,
+        defaultUsed: defaultValue,
+      },
+    })
+    return defaultValue
+  }
+
+  return parsed
+}
+
 // Configuration for sign-up attempts (prevent spam)
-const SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW =
-  Number(process.env.SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW) || 10
-const SIGN_UP_ATTEMPTS_WINDOW_HOURS =
-  Number(process.env.SIGN_UP_ATTEMPTS_WINDOW_HOURS) || 1
+const SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW = parsePositiveNumber(
+  process.env.SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW as string | undefined,
+  10,
+  'SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW'
+)
+const SIGN_UP_ATTEMPTS_WINDOW_HOURS = parsePositiveNumber(
+  process.env.SIGN_UP_ATTEMPTS_WINDOW_HOURS as string | undefined,
+  1,
+  'SIGN_UP_ATTEMPTS_WINDOW_HOURS'
+)
 
 // Configuration for actual sign-ups (limit account creation)
-const SIGN_UP_LIMIT_PER_WINDOW =
-  Number(process.env.SIGN_UP_LIMIT_PER_WINDOW) || 1
-const SIGN_UP_WINDOW_HOURS = Number(process.env.SIGN_UP_WINDOW_HOURS) || 24
+const SIGN_UP_LIMIT_PER_WINDOW = parsePositiveNumber(
+  process.env.SIGN_UP_LIMIT_PER_WINDOW as string | undefined,
+  1,
+  'SIGN_UP_LIMIT_PER_WINDOW'
+)
+const SIGN_UP_WINDOW_HOURS = parsePositiveNumber(
+  process.env.SIGN_UP_WINDOW_HOURS as string | undefined,
+  24,
+  'SIGN_UP_WINDOW_HOURS'
+)
 
 // Convert to Duration format
 const SIGN_UP_ATTEMPTS_WINDOW: Duration = `${SIGN_UP_ATTEMPTS_WINDOW_HOURS}h`

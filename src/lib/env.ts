@@ -2,6 +2,19 @@ import { z } from 'zod'
 
 const NumericBoolean = z.enum(['1', '0'])
 
+// Custom string type that validates as a positive number but remains a string
+// We keep it as string because we don't actually use the validated values directly,
+// but only validate that they can be parsed as positive numbers
+const StringPositiveNumber = z.string().refine(
+  (val) => {
+    const num = Number(val)
+    return !isNaN(num) && num > 0
+  },
+  {
+    message: 'Must be a string that can be parsed as a positive number',
+  }
+)
+
 export const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   INFRA_API_URL: z.string().url(),
@@ -13,10 +26,10 @@ export const serverSchema = z.object({
   ZEROBOUNCE_API_KEY: z.string().optional(),
 
   ENABLE_SIGN_UP_RATE_LIMITING: NumericBoolean.optional(),
-  SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW: z.coerce.number().optional(),
-  SIGN_UP_ATTEMPTS_WINDOW_HOURS: z.coerce.number().optional(),
-  SIGN_UP_LIMIT_PER_WINDOW: z.coerce.number().optional(),
-  SIGN_UP_WINDOW_HOURS: z.coerce.number().optional(),
+  SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW: StringPositiveNumber.optional(),
+  SIGN_UP_ATTEMPTS_WINDOW_HOURS: StringPositiveNumber.optional(),
+  SIGN_UP_LIMIT_PER_WINDOW: StringPositiveNumber.optional(),
+  SIGN_UP_WINDOW_HOURS: StringPositiveNumber.optional(),
 
   OTEL_SERVICE_NAME: z.string().optional(),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
