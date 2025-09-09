@@ -96,47 +96,6 @@ export async function GET(request: NextRequest) {
 
     const redirectUrl = new URL(next)
 
-    const supabase = await createClient()
-
-    const { error, data } = await supabase.auth.verifyOtp({
-      type: supabaseType,
-      token_hash: supabaseTokenHash,
-    })
-
-    if (error) {
-      l.error({
-        key: 'auth_confirm:supabase_error',
-        message: error.message,
-        error: serializeError(error),
-        context: {
-          supabase_token_hash: supabaseTokenHash
-            ? `${supabaseTokenHash.slice(0, 10)}...`
-            : null,
-          supabaseType,
-          supabaseRedirectTo,
-          redirectUrl: redirectUrl.toString(),
-        },
-      })
-
-      let errorMessage = 'Invalid Token'
-      if (error.status === 403 && error.code === 'otp_expired') {
-        errorMessage = 'Email link has expired. Please request a new one.'
-      }
-
-      return encodedRedirect(
-        'error',
-        dashboardSignInUrl.toString(),
-        errorMessage
-      )
-    }
-
-    // handle re-auth
-    if (redirectUrl.pathname === PROTECTED_URLS.ACCOUNT_SETTINGS) {
-      redirectUrl.searchParams.set('reauth', '1')
-
-      return NextResponse.redirect(redirectUrl.toString())
-    }
-
     // increment counter for successful sign-up confirmations (rate limiting)
     if (ENABLE_SIGN_UP_RATE_LIMITING && supabaseType === 'email') {
       const ip =
@@ -179,6 +138,47 @@ export async function GET(request: NextRequest) {
           'Too many sign-ups for now. Please try again later.'
         )
       }
+    }
+
+    const supabase = await createClient()
+
+    const { error, data } = await supabase.auth.verifyOtp({
+      type: supabaseType,
+      token_hash: supabaseTokenHash,
+    })
+
+    if (error) {
+      l.error({
+        key: 'auth_confirm:supabase_error',
+        message: error.message,
+        error: serializeError(error),
+        context: {
+          supabase_token_hash: supabaseTokenHash
+            ? `${supabaseTokenHash.slice(0, 10)}...`
+            : null,
+          supabaseType,
+          supabaseRedirectTo,
+          redirectUrl: redirectUrl.toString(),
+        },
+      })
+
+      let errorMessage = 'Invalid Token'
+      if (error.status === 403 && error.code === 'otp_expired') {
+        errorMessage = 'Email link has expired. Please request a new one.'
+      }
+
+      return encodedRedirect(
+        'error',
+        dashboardSignInUrl.toString(),
+        errorMessage
+      )
+    }
+
+    // handle re-auth
+    if (redirectUrl.pathname === PROTECTED_URLS.ACCOUNT_SETTINGS) {
+      redirectUrl.searchParams.set('reauth', '1')
+
+      return NextResponse.redirect(redirectUrl.toString())
     }
 
     l.info({
