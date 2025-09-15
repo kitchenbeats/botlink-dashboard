@@ -1,6 +1,6 @@
 'use client'
 
-import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { ClientSandboxesMetrics } from '@/types/sandboxes'
 import { create } from 'zustand'
 
 interface SandboxMetricsState {

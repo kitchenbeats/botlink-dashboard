@@ -4,7 +4,7 @@ import { infra } from '@/lib/clients/api'
 import { l } from '@/lib/clients/logger/logger'
 import { handleDefaultInfraError } from '@/lib/utils/action'
 import { transformMetricsToClientMetrics } from '@/lib/utils/sandboxes'
-import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { ClientSandboxesMetrics } from '@/types/sandboxes'
 import { z } from 'zod'
 
 const GetTeamSandboxesMetricsSchema = z.object({

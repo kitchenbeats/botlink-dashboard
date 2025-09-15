@@ -3,7 +3,7 @@
 import { MetricsResponse } from '@/app/api/teams/[teamId]/sandboxes/metrics/types'
 import { SANDBOXES_DETAILS_METRICS_POLLING_MS } from '@/configs/intervals'
 import { SandboxInfo } from '@/types/api'
-import { ClientSandboxMetric } from '@/types/sandboxes.types'
+import { ClientSandboxMetric } from '@/types/sandboxes'
 import {
   createContext,
   ReactNode,

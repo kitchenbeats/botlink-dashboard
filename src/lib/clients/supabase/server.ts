@@ -1,6 +1,6 @@
 import 'server-cli-only'
 
-import { Database } from '@/types/database.types'
+import { Database } from '@/types/database.gen'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 

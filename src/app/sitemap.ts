@@ -13,7 +13,7 @@ import {
   LANDING_PAGE_DOMAIN,
   ROUTE_REWRITE_CONFIG,
 } from '@/configs/rewrites'
-import { DomainConfig } from '@/types/rewrites.types'
+import { DomainConfig } from '@/types/rewrites'
 import { XMLParser } from 'fast-xml-parser'
 import { MetadataRoute } from 'next'
 

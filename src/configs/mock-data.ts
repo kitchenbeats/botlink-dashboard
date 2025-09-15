@@ -1,6 +1,6 @@
 import { MetricsResponse } from '@/app/api/teams/[teamId]/sandboxes/metrics/types'
 import { DefaultTemplate, Sandbox, Sandboxes, Template } from '@/types/api'
-import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { ClientSandboxesMetrics } from '@/types/sandboxes'
 import { addHours, subHours } from 'date-fns'
 import { nanoid } from 'nanoid'
 

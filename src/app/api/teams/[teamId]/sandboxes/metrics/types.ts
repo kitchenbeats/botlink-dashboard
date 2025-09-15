@@ -1,4 +1,4 @@
-import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { ClientSandboxesMetrics } from '@/types/sandboxes'
 import { z } from 'zod'
 
 export const MetricsRequestSchema = z.object({

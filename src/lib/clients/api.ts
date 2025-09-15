@@ -1,4 +1,4 @@
-import type { paths as InfraPaths } from '@/types/infra-api'
+import type { paths as InfraPaths } from '@/types/api.gen'
 import createClient from 'openapi-fetch'
 
 export const infra = createClient<InfraPaths>({

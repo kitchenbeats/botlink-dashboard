@@ -3,7 +3,7 @@ import {
   RewriteConfigType,
   ROUTE_REWRITE_CONFIG,
 } from '@/configs/rewrites'
-import { RewriteConfig } from '@/types/rewrites.types'
+import { RewriteConfig } from '@/types/rewrites'
 import * as cheerio from 'cheerio'
 import { serializeError } from 'serialize-error'
 import { l } from '../clients/logger/logger'

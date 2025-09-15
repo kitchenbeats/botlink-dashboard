@@ -3,7 +3,7 @@
 import { MOCK_METRICS_DATA } from '@/configs/mock-data'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { Sandboxes } from '@/types/api'
-import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { ClientSandboxesMetrics } from '@/types/sandboxes'
 import { useEffect, useMemo } from 'react'
 import useSWR from 'swr'
 import { useDebounceValue } from 'usehooks-ts'

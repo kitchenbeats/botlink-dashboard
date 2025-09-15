@@ -1,5 +1,5 @@
 import { SandboxesMetricsRecord } from '@/types/api'
-import { ClientSandboxesMetrics } from '@/types/sandboxes.types'
+import { ClientSandboxesMetrics } from '@/types/sandboxes'
 
 export function transformMetricsToClientMetrics(
   metrics: SandboxesMetricsRecord

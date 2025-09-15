@@ -1,4 +1,4 @@
-import { DomainConfig } from '@/types/rewrites.types'
+import { DomainConfig } from '@/types/rewrites'
 
 export const LANDING_PAGE_DOMAIN = 'www.e2b-landing-page.com'
 export const DOCS_NEXT_DOMAIN = 'e2b-docs.vercel.app'

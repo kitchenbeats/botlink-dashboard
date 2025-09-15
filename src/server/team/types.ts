@@ -1,4 +1,4 @@
-import { Database } from '@/types/database.types'
+import { Database } from '@/types/database.gen'
 import { z } from 'zod'
 
 export type TeamMemberInfo = {

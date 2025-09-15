@@ -1,4 +1,4 @@
-import { Database } from '@/types/database.types'
+import { Database } from '@/types/database.gen'
 import { ReactNode } from 'react'
 
 // NOTE: local object of public tiers present in the database
