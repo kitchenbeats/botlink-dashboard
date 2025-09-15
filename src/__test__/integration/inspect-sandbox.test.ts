@@ -23,7 +23,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Import the route handler
 const getRouteHandler = async () => {
-  const { GET } = await import('@/app/dashboard/inspect/[sandboxId]/route')
+  const { GET } = await import(
+    '@/app/dashboard/(resolvers)/inspect/sandbox/[sandboxId]/route'
+  )
 
   return GET
 }
