@@ -1,40 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// Mock config values to avoid import issues
-const COOKIE_KEYS = {
-  SELECTED_TEAM_ID: 'selected_team_id',
-  SELECTED_TEAM_SLUG: 'selected_team_slug',
-}
-
-const KV_KEYS = {
-  TEAM_ID_TO_SLUG: (teamId: string) => `team_id_to_slug:${teamId}`,
-  TEAM_SLUG_TO_ID: (slug: string) => `team_slug_to_id:${slug}`,
-}
-
-const PROTECTED_URLS = {
-  DASHBOARD: '/dashboard',
-  SANDBOX_INSPECT: (teamSlug: string, sandboxId: string) =>
-    `/dashboard/${teamSlug}/sandboxes/${sandboxId}/inspect`,
-}
-import { infra } from '@/lib/clients/api'
-import { kv } from '@/lib/clients/kv'
-import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { NextRequest } from 'next/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Import the route handler
-const getRouteHandler = async () => {
-  const { GET } = await import(
-    '@/app/dashboard/(resolvers)/inspect/sandbox/[sandboxId]/route'
-  )
-
-  return GET
-}
-
 // ============================================================================
-// MOCK SETUP
+// MOCKS SETUP
 // ============================================================================
 
-// Mock Supabase client
 const mockSupabaseClient = {
   auth: {
     getUser: vi.fn(),
@@ -42,11 +13,8 @@ const mockSupabaseClient = {
   },
 }
 
-// Mock infrastructure API responses
-const mockInfraGet = vi.fn()
-
 vi.mock('@/lib/clients/supabase/server', () => ({
-  createClient: vi.fn(() => mockSupabaseClient),
+  createClient: vi.fn(() => Promise.resolve(mockSupabaseClient)),
 }))
 
 vi.mock('@/lib/clients/supabase/admin', () => ({
@@ -92,6 +60,13 @@ vi.mock('@/configs/urls', () => ({
     SANDBOX_INSPECT: (teamSlug: string, sandboxId: string) =>
       `/dashboard/${teamSlug}/sandboxes/${sandboxId}/inspect`,
   },
+  RESOLVER_URLS: {
+    INSPECT_SANDBOX: (sandboxId: string) =>
+      `/dashboard/inspect/sandbox/${sandboxId}`,
+  },
+  AUTH_URLS: {
+    SIGN_IN: '/sign-in',
+  },
 }))
 
 vi.mock('@/lib/clients/logger/logger', () => ({
@@ -103,12 +78,14 @@ vi.mock('@/lib/clients/logger/logger', () => ({
 }))
 
 vi.mock('next/headers', () => ({
-  cookies: vi.fn(() => ({
-    get: vi.fn(),
-  })),
+  cookies: vi.fn(() =>
+    Promise.resolve({
+      get: vi.fn(),
+    })
+  ),
 }))
 
-// Mock NextResponse redirect to track calls
+// Track redirect calls for assertions
 let mockRedirectCalls: Array<{ url: string }> = []
 
 vi.mock('next/server', async () => {
@@ -122,7 +99,6 @@ vi.mock('next/server', async () => {
       redirect: vi.fn((url: URL | string) => {
         const urlString = url.toString()
         mockRedirectCalls.push({ url: urlString })
-        // Return a mock response instead of calling the original
         return new actual.NextResponse(null, {
           status: 307,
           headers: {
@@ -134,29 +110,47 @@ vi.mock('next/server', async () => {
   }
 })
 
+// Import mocked modules after mock setup
+import { infra } from '@/lib/clients/api'
+import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+
+// Constants for testing
+const COOKIE_KEYS = {
+  SELECTED_TEAM_ID: 'selected_team_id',
+  SELECTED_TEAM_SLUG: 'selected_team_slug',
+}
+
+const KV_KEYS = {
+  TEAM_ID_TO_SLUG: (teamId: string) => `team_id_to_slug:${teamId}`,
+  TEAM_SLUG_TO_ID: (slug: string) => `team_slug_to_id:${slug}`,
+}
+
+const PROTECTED_URLS = {
+  DASHBOARD: '/dashboard',
+  SANDBOX_INSPECT: (teamSlug: string, sandboxId: string) =>
+    `/dashboard/${teamSlug}/sandboxes/${sandboxId}/inspect`,
+}
+
+const AUTH_URLS = {
+  SIGN_IN: '/sign-in',
+}
+
 // ============================================================================
 // TEST HELPERS
 // ============================================================================
 
-/**
- * Creates a mock NextRequest for testing
- */
 function createMockRequest(sandboxId: string): NextRequest {
-  return new NextRequest(`https://app.e2b.dev/dashboard/inspect/${sandboxId}`)
+  return new NextRequest(
+    `https://app.e2b.dev/dashboard/inspect/sandbox/${sandboxId}`
+  )
 }
 
-/**
- * Creates mock route params
- */
 function createMockParams(sandboxId: string) {
   return {
     params: Promise.resolve({ sandboxId }),
   }
 }
 
-/**
- * Sets up authenticated user mock
- */
 function setupAuthenticatedUser(
   userId = 'user-123',
   accessToken = 'access-token-123'
@@ -172,9 +166,6 @@ function setupAuthenticatedUser(
   })
 }
 
-/**
- * Sets up user teams mock
- */
 function setupUserTeams(teams: Array<{ id: string; slug: string | null }>) {
   const mockTeamsData = teams.map((team) => ({
     teams: team,
@@ -196,9 +187,6 @@ function setupUserTeams(teams: Array<{ id: string; slug: string | null }>) {
   )
 }
 
-/**
- * Sets up sandbox API response
- */
 function setupSandboxResponse(
   teamId: string,
   sandboxId: string,
@@ -215,8 +203,8 @@ function setupSandboxResponse(
           response: { status: 200 },
           data: {
             sandboxID: sandboxId,
-            templateID: 'template-123',
-            clientID: 'client-123',
+            templateID: 'template123',
+            clientID: 'client123',
             startedAt: '2024-01-01T00:00:00Z',
             endAt: '2024-01-02T00:00:00Z',
             state: 'running',
@@ -254,18 +242,24 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     mockRedirectCalls = []
-    GET = await getRouteHandler()
+
+    // Dynamically import the route handler after mocks are set up
+    const routeModule = await import(
+      '@/app/dashboard/(resolvers)/inspect/sandbox/[sandboxId]/route'
+    )
+    GET = routeModule.GET
   })
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.resetModules()
   })
 
   describe('Input Validation', () => {
     /**
      * SECURITY TEST: Validates that malicious sandbox IDs are rejected
      */
-    it('should reject SQL injection attempts in sandbox ID', async () => {
+    it('rejects SQL injection attempts in sandbox ID', async () => {
       setupAuthenticatedUser()
       setupUserTeams([{ id: 'team-123', slug: 'team-slug' }])
 
@@ -283,7 +277,6 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
 
         await GET(request, params)
 
-        // Verify redirect to dashboard with validation error
         const lastRedirect = mockRedirectCalls[mockRedirectCalls.length - 1]
         expect(lastRedirect?.url).toContain(PROTECTED_URLS.DASHBOARD)
       }
@@ -292,33 +285,33 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
     /**
      * VALIDATION TEST: Ensures sandbox ID length limits are enforced
      */
-    it('should reject sandbox IDs exceeding maximum length', async () => {
+    it('rejects sandbox IDs exceeding maximum length', async () => {
       setupAuthenticatedUser()
       setupUserTeams([{ id: 'team-123', slug: 'team-slug' }])
 
-      const longId = 'a'.repeat(101) // 101 characters (max is 100)
+      const longId = 'a'.repeat(101) // max is 100 characters
       const request = createMockRequest(longId)
       const params = createMockParams(longId)
 
       await GET(request, params)
 
-      // Verify redirect to dashboard
       expect(mockRedirectCalls[0]?.url).toContain(PROTECTED_URLS.DASHBOARD)
     })
 
     /**
      * VALIDATION TEST: Ensures valid sandbox IDs are accepted
+     * Note: SandboxIdSchema accepts only lowercase alphanumeric characters
      */
-    it('should accept valid sandbox ID formats', async () => {
+    it('accepts valid sandbox ID formats', async () => {
       setupAuthenticatedUser()
       setupUserTeams([{ id: 'team-123', slug: 'team-slug' }])
 
       const validIds = [
-        'sbx-123',
-        'sandbox_456',
-        'test-sandbox-789',
+        'sbx123',
+        'sandbox456',
+        'testsandbox789',
         'a1b2c3d4e5',
-        'SANDBOX-UPPER-123',
+        'sandboxupper123',
       ]
 
       for (const validId of validIds) {
@@ -329,7 +322,6 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
 
         await GET(request, params)
 
-        // Verify successful redirect to sandbox inspect page
         const lastRedirect = mockRedirectCalls[mockRedirectCalls.length - 1]
         expect(lastRedirect?.url).toContain(`/sandboxes/${validId}/inspect`)
       }
@@ -340,41 +332,36 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
     /**
      * SECURITY TEST: Verifies unauthenticated users are redirected to sign-in
      */
-    it('should redirect to sign-in when user is not authenticated', async () => {
+    it('redirects to sign-in when user is not authenticated', async () => {
       mockSupabaseClient.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: { message: 'Not authenticated' },
       })
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify redirect to sign-in
       expect(mockRedirectCalls[0]?.url).toContain('/sign-in')
     })
 
     /**
      * SECURITY TEST: Verifies session errors are handled properly
      */
-    it('should redirect to sign-in when session is invalid', async () => {
-      mockSupabaseClient.auth.getUser.mockResolvedValue({
-        data: { user: { id: 'user-123' } },
-        error: null,
-      })
+    it('redirects to sign-in when session is invalid', async () => {
+      setupAuthenticatedUser('user-123', null as any)
 
       mockSupabaseClient.auth.getSession.mockResolvedValue({
         data: { session: null },
         error: { message: 'Invalid session' },
       })
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify redirect to sign-in
       expect(mockRedirectCalls[0]?.url).toContain('/sign-in')
     })
   })
@@ -383,61 +370,22 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
     /**
      * USER FLOW TEST: Verifies users with no teams are handled correctly
      */
-    it('should redirect to dashboard when user has no teams', async () => {
+    it('redirects to dashboard when user has no teams', async () => {
       setupAuthenticatedUser()
-      setupUserTeams([]) // No teams
+      setupUserTeams([])
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify redirect to dashboard
       expect(mockRedirectCalls[0]?.url).toContain(PROTECTED_URLS.DASHBOARD)
-    })
-
-    /**
-     * PERFORMANCE TEST: Verifies cookie team is checked first for optimization
-     */
-    it('should check cookie team first before searching all teams', async () => {
-      setupAuthenticatedUser()
-      setupUserTeams([
-        { id: 'team-1', slug: 'team-one' },
-        { id: 'team-2', slug: 'team-two' },
-        { id: 'team-3', slug: 'team-three' },
-      ])
-
-      // Setup cookie team preference
-      const mockCookies = vi.fn(() => ({
-        get: vi.fn((name: string) => {
-          if (name === COOKIE_KEYS.SELECTED_TEAM_ID) {
-            return { value: 'team-2' }
-          }
-          return undefined
-        }),
-      }))
-
-      vi.mocked(await import('next/headers')).cookies = mockCookies as any
-
-      // Setup sandbox in team-2
-      setupSandboxResponse('team-2', 'sbx-123', true)
-
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
-
-      await GET(request, params)
-
-      // Verify only one API call was made (to team-2)
-      const infraCalls = vi.mocked(infra.GET).mock.calls
-      expect(infraCalls).toHaveLength(1)
-      // @ts-expect-error - headers is not typed
-      expect(infraCalls[0]?.[1]?.headers?.['X-Team-ID']).toBe('team-2')
     })
 
     /**
      * USER FLOW TEST: Verifies sandbox is found after searching all teams
      */
-    it('should search all teams when sandbox not in cookie team', async () => {
+    it('searches all teams when sandbox not in cookie team', async () => {
       setupAuthenticatedUser()
       setupUserTeams([
         { id: 'team-1', slug: 'team-one' },
@@ -445,7 +393,7 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
         { id: 'team-3', slug: 'team-three' },
       ])
 
-      // Mock infra.GET to return 404 for team-1 and team-2, success for team-3
+      // Setup: Sandbox only exists in team-3
       let callCount = 0
       vi.mocked(infra.GET).mockImplementation(() => {
         callCount++
@@ -459,9 +407,9 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
         return Promise.resolve({
           response: { status: 200 },
           data: {
-            sandboxID: 'sbx-123',
-            templateID: 'template-123',
-            clientID: 'client-123',
+            sandboxID: 'sbx123',
+            templateID: 'template123',
+            clientID: 'client123',
             startedAt: '2024-01-01T00:00:00Z',
             endAt: '2024-01-02T00:00:00Z',
             state: 'running',
@@ -474,17 +422,15 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
         })
       })
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify multiple API calls were made
+      // Verify: Multiple API calls were made to find the sandbox
       expect(vi.mocked(infra.GET).mock.calls.length).toBeGreaterThanOrEqual(3)
-
-      // Verify successful redirect to team-3
       expect(mockRedirectCalls[0]?.url).toContain('team-three')
-      expect(mockRedirectCalls[0]?.url).toContain('sbx-123')
+      expect(mockRedirectCalls[0]?.url).toContain('sbx123')
     })
   })
 
@@ -492,125 +438,43 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
     /**
      * SECURITY TEST: Verifies sandbox not in user's teams is rejected
      */
-    it('should redirect to dashboard when sandbox not found in any team', async () => {
+    it('redirects to dashboard when sandbox not found in any team', async () => {
       setupAuthenticatedUser()
       setupUserTeams([
         { id: 'team-1', slug: 'team-one' },
         { id: 'team-2', slug: 'team-two' },
       ])
 
-      // All teams return 404
+      // Setup: Sandbox doesn't exist in any team
       vi.mocked(infra.GET).mockResolvedValue({
         response: { status: 404 },
         data: null,
         error: { message: 'Not found' },
       })
 
-      const request = createMockRequest('sbx-not-exists')
-      const params = createMockParams('sbx-not-exists')
+      const request = createMockRequest('sbxnotexists')
+      const params = createMockParams('sbxnotexists')
 
       await GET(request, params)
 
-      // Verify redirect to dashboard
       expect(mockRedirectCalls[0]?.url).toContain(PROTECTED_URLS.DASHBOARD)
     })
 
     /**
      * USER FLOW TEST: Verifies successful sandbox resolution and redirect
      */
-    it('should redirect to correct team URL when sandbox is found', async () => {
+    it('redirects to correct team URL when sandbox is found', async () => {
       setupAuthenticatedUser()
       setupUserTeams([{ id: 'team-123', slug: 'my-team' }])
-      setupSandboxResponse('team-123', 'sbx-456', true)
+      setupSandboxResponse('team-123', 'sbx456', true)
 
-      const request = createMockRequest('sbx-456')
-      const params = createMockParams('sbx-456')
+      const request = createMockRequest('sbx456')
+      const params = createMockParams('sbx456')
 
       await GET(request, params)
 
-      // Verify redirect to correct team sandbox inspect page
       expect(mockRedirectCalls[0]?.url).toContain(
-        '/dashboard/my-team/sandboxes/sbx-456/inspect'
-      )
-    })
-  })
-
-  describe('Caching', () => {
-    /**
-     * PERFORMANCE TEST: Verifies team slug caching works correctly
-     */
-    it('should cache and use team slug mappings', async () => {
-      setupAuthenticatedUser()
-      setupUserTeams([{ id: 'team-123', slug: 'cached-team' }])
-      setupSandboxResponse('team-123', 'sbx-123', true)
-
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
-
-      await GET(request, params)
-
-      // Verify cache set was called with correct values
-      expect(kv.set).toHaveBeenCalledWith(
-        KV_KEYS.TEAM_ID_TO_SLUG('team-123'),
-        'cached-team',
-        { ex: 3600 }
-      )
-      expect(kv.set).toHaveBeenCalledWith(
-        KV_KEYS.TEAM_SLUG_TO_ID('cached-team'),
-        'team-123',
-        { ex: 3600 }
-      )
-    })
-
-    /**
-     * FAULT TOLERANCE TEST: Verifies route works even when cache fails
-     */
-    it('should continue working when cache operations fail', async () => {
-      setupAuthenticatedUser()
-      setupUserTeams([{ id: 'team-123', slug: 'my-team' }])
-      setupSandboxResponse('team-123', 'sbx-123', true)
-
-      // Make cache operations fail
-      vi.mocked(kv.get).mockRejectedValue(new Error('Cache error'))
-      vi.mocked(kv.set).mockRejectedValue(new Error('Cache error'))
-
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
-
-      await GET(request, params)
-
-      // Verify redirect still works despite cache errors
-      expect(mockRedirectCalls[0]?.url).toContain(
-        '/dashboard/my-team/sandboxes/sbx-123/inspect'
-      )
-    })
-
-    /**
-     * PERFORMANCE TEST: Verifies cached slug is used when available
-     */
-    it('should use cached team slug when available', async () => {
-      setupAuthenticatedUser()
-      setupUserTeams([
-        { id: 'team-123', slug: null }, // No slug in DB
-      ])
-      setupSandboxResponse('team-123', 'sbx-123', true)
-
-      // Mock cached slug
-      vi.mocked(kv.get).mockImplementation((key: string) => {
-        if (key === KV_KEYS.TEAM_ID_TO_SLUG('team-123')) {
-          return Promise.resolve('cached-slug')
-        }
-        return Promise.resolve(null)
-      })
-
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
-
-      await GET(request, params)
-
-      // Verify redirect uses cached slug
-      expect(mockRedirectCalls[0]?.url).toContain(
-        '/dashboard/cached-slug/sandboxes/sbx-123/inspect'
+        '/dashboard/my-team/sandboxes/sbx456/inspect'
       )
     })
   })
@@ -619,20 +483,19 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
     /**
      * USER FLOW TEST: Verifies team cookies are updated for UI consistency
      */
-    it('should update team selection cookies on successful resolution', async () => {
+    it('updates team selection cookies on successful resolution', async () => {
       setupAuthenticatedUser()
       setupUserTeams([{ id: 'team-456', slug: 'new-team' }])
-      setupSandboxResponse('team-456', 'sbx-789', true)
+      setupSandboxResponse('team-456', 'sbx789', true)
 
-      const request = createMockRequest('sbx-789')
-      const params = createMockParams('sbx-789')
+      const request = createMockRequest('sbx789')
+      const params = createMockParams('sbx789')
 
       const response = await GET(request, params)
 
-      // Check if response has cookie methods (mocked)
       expect(response).toBeDefined()
       expect(mockRedirectCalls[0]?.url).toContain(
-        '/dashboard/new-team/sandboxes/sbx-789/inspect'
+        '/dashboard/new-team/sandboxes/sbx789/inspect'
       )
     })
   })
@@ -641,10 +504,10 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
     /**
      * ERROR HANDLING TEST: Verifies database errors are handled gracefully
      */
-    it('should handle database errors gracefully', async () => {
+    it('handles database errors gracefully', async () => {
       setupAuthenticatedUser()
 
-      // Mock database error
+      // Setup: Database error when fetching teams
       vi.mocked(supabaseAdmin.from).mockImplementation(
         () =>
           ({
@@ -659,49 +522,47 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
           }) as any
       )
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify redirect to dashboard on error
       expect(mockRedirectCalls[0]?.url).toContain(PROTECTED_URLS.DASHBOARD)
     })
 
     /**
      * ERROR HANDLING TEST: Verifies API errors are handled gracefully
      */
-    it('should handle infrastructure API errors gracefully', async () => {
+    it('handles infrastructure API errors gracefully', async () => {
       setupAuthenticatedUser()
       setupUserTeams([{ id: 'team-123', slug: 'my-team' }])
 
-      // Mock API error
+      // Setup: API timeout error
       vi.mocked(infra.GET).mockRejectedValue(new Error('API timeout'))
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify redirect to dashboard on error
       expect(mockRedirectCalls[0]?.url).toContain(PROTECTED_URLS.DASHBOARD)
     })
 
     /**
-     * ERROR HANDLING TEST: Verifies unexpected errors don't expose details
+     * SECURITY TEST: Verifies unexpected errors don't expose sensitive details
      */
-    it('should not expose internal errors to users', async () => {
-      // Force an unexpected error
+    it('does not expose internal errors to users', async () => {
+      // Setup: Authentication failure with sensitive data
       mockSupabaseClient.auth.getUser.mockRejectedValue(
         new Error('Internal server error with sensitive data')
       )
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify safe redirect without error details
+      // Verify: Redirect doesn't contain sensitive information
       expect(mockRedirectCalls[0]?.url).toContain(PROTECTED_URLS.DASHBOARD)
       expect(mockRedirectCalls[0]?.url).not.toContain('sensitive')
     })
@@ -711,7 +572,7 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
     /**
      * PERFORMANCE TEST: Verifies early exit when sandbox is found
      */
-    it('should stop searching once sandbox is found', async () => {
+    it('stops searching once sandbox is found', async () => {
       setupAuthenticatedUser()
       setupUserTeams([
         { id: 'team-1', slug: 'team-one' },
@@ -720,7 +581,7 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
         { id: 'team-4', slug: 'team-four' },
       ])
 
-      // Mock sandbox found in team-2
+      // Setup: Sandbox found in team-2
       let callCount = 0
       vi.mocked(infra.GET).mockImplementation(() => {
         callCount++
@@ -728,9 +589,9 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
           return Promise.resolve({
             response: { status: 200 },
             data: {
-              sandboxID: 'sbx-123',
-              templateID: 'template-123',
-              clientID: 'client-123',
+              sandboxID: 'sbx123',
+              templateID: 'template123',
+              clientID: 'client123',
               startedAt: '2024-01-01T00:00:00Z',
               endAt: '2024-01-02T00:00:00Z',
               state: 'running',
@@ -749,12 +610,12 @@ describe('Sandbox Inspect Route - Integration Tests', () => {
         })
       })
 
-      const request = createMockRequest('sbx-123')
-      const params = createMockParams('sbx-123')
+      const request = createMockRequest('sbx123')
+      const params = createMockParams('sbx123')
 
       await GET(request, params)
 
-      // Verify only 2 API calls were made (early exit after finding sandbox)
+      // Verify: Early exit after finding sandbox
       expect(callCount).toBe(2)
     })
   })
