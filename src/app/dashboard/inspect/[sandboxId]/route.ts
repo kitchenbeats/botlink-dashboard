@@ -29,21 +29,17 @@
  */
 
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
-import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
-import { PROTECTED_URLS } from '@/configs/urls'
+import { COOKIE_KEYS } from '@/configs/keys'
+import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { infra } from '@/lib/clients/api'
-import { kv } from '@/lib/clients/kv'
 import { l } from '@/lib/clients/logger/logger'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { createClient } from '@/lib/clients/supabase/server'
-import { components as InfraComponents } from '@/types/infra-api'
+import { SandboxIdSchema } from '@/lib/schemas/api'
+import { SandboxInfo } from '@/types/api'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-
-// ============================================================================
-// Route Config
-// ============================================================================
+import { serializeError } from 'serialize-error'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -51,71 +47,22 @@ export const fetchCache = 'force-no-store'
 export const revalidate = 0
 export const maxDuration = 60 // seconds
 
-// ============================================================================
-// Type Definitions
-// ============================================================================
-
-/**
- * Route parameters with async params for Next.js App Router
- */
 interface RouteParams {
   params: Promise<{
     sandboxId: string
   }>
 }
 
-/**
- * Minimal team data for routing
- */
 interface MinimalTeam {
   id: string
-  slug: string | null
+  slug: string
   is_default?: boolean
 }
 
-/**
- * User team relationship from database
- */
-interface UserTeamData {
-  is_default?: boolean
-  teams: {
-    id: string
-    slug: string | null
-  }
-}
-
-/**
- * Sandbox details from infrastructure API
- */
-type SandboxDetails = InfraComponents['schemas']['SandboxDetail']
-
-/**
- * Result of sandbox search operation
- */
 interface SandboxSearchResult {
-  found: boolean
-  team?: MinimalTeam
-  sandbox?: SandboxDetails
+  team: MinimalTeam
+  sandbox: SandboxInfo
 }
-
-// ============================================================================
-// Validation Schemas
-// ============================================================================
-
-/**
- * Sandbox ID validation schema
- * Accepts standard sandbox ID format (alphanumeric with hyphens/underscores)
- * Maximum length of 100 characters to prevent DoS attacks
- */
-const SandboxIdSchema = z
-  .string()
-  .min(1, 'Sandbox ID is required')
-  .max(100, 'Sandbox ID too long')
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/, 'Invalid sandbox ID format')
-
-// ============================================================================
-// Error Response Helpers
-// ============================================================================
 
 /**
  * Creates a redirect response to the dashboard with error logging
@@ -129,19 +76,19 @@ function redirectToDashboard(
     key: logKey,
     ...context,
   })
-  return NextResponse.redirect(new URL(PROTECTED_URLS.DASHBOARD, request.url))
+  return NextResponse.redirect(
+    new URL(PROTECTED_URLS.DASHBOARD, request.nextUrl.origin)
+  )
 }
 
 /**
  * Creates a redirect response to sign-in page
  */
 function redirectToSignIn(request: NextRequest): NextResponse {
-  return NextResponse.redirect(new URL('/sign-in', request.url))
+  return NextResponse.redirect(
+    new URL(AUTH_URLS.SIGN_IN, request.nextUrl.origin)
+  )
 }
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
 
 /**
  * Attempts to find a sandbox in a specific team
@@ -155,7 +102,7 @@ async function findSandboxInTeam(
   sandboxId: string,
   teamId: string,
   accessToken: string
-): Promise<SandboxDetails | null> {
+): Promise<SandboxInfo | null> {
   try {
     const res = await infra.GET('/sandboxes/{sandboxID}', {
       params: {
@@ -166,17 +113,17 @@ async function findSandboxInTeam(
       headers: {
         ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
       },
-      cache: 'no-store', // Always fetch fresh data for security
+      cache: 'no-store', // always fetch fresh data for security
     })
 
-    // Only return data if request was successful
+    // only return sandbox data if request was successful
     if (res.response?.status === 200 && res.data) {
       return res.data
     }
 
     return null
   } catch (error) {
-    // Log non-404 errors as they might indicate infrastructure issues
+    // log non-404 errors as they might indicate infrastructure issues
     if (error instanceof Error && !error.message.includes('404')) {
       l.error({
         key: 'find_sandbox_in_team:error',
@@ -204,9 +151,9 @@ async function searchSandboxInTeams(
   usersTeams: MinimalTeam[],
   cookieTeamId: string | undefined,
   accessToken: string
-): Promise<SandboxSearchResult> {
-  // Optimization: Try cookie team first if it exists
-  // This handles the common case where user is working within one team
+): Promise<SandboxSearchResult | null> {
+  // optimization: try cookie team first if it exists
+  // this handles the common case where user is working within one team
   if (cookieTeamId) {
     const cookieTeam = usersTeams.find((t) => t.id === cookieTeamId)
     if (cookieTeam) {
@@ -218,7 +165,6 @@ async function searchSandboxInTeams(
 
       if (sandboxDetails) {
         return {
-          found: true,
           team: cookieTeam,
           sandbox: sandboxDetails,
         }
@@ -226,10 +172,10 @@ async function searchSandboxInTeams(
     }
   }
 
-  // Fall back to searching all teams
-  // This handles team switching and first-time access scenarios
+  // fall back to searching all teams
+  // this handles team switching and first-time access scenarios
   for (const team of usersTeams) {
-    // Skip if we already checked this team above
+    // skip if we already checked this team above
     if (team.id === cookieTeamId) {
       continue
     }
@@ -242,61 +188,13 @@ async function searchSandboxInTeams(
 
     if (sandboxDetails) {
       return {
-        found: true,
         team: team,
         sandbox: sandboxDetails,
       }
     }
   }
 
-  return { found: false }
-}
-
-/**
- * Resolves and caches team slug
- * Falls back to team ID if slug is not available
- *
- * @param team - Team object with ID and possible slug
- * @returns Resolved team identifier for URL
- */
-async function resolveAndCacheTeamSlug(team: MinimalTeam): Promise<string> {
-  // Use existing slug if available
-  if (team.slug) {
-    // Cache bidirectional mapping for future lookups
-    await Promise.all([
-      kv.set(KV_KEYS.TEAM_ID_TO_SLUG(team.id), team.slug, {
-        ex: 60 * 60, // 1 hour TTL
-      }),
-      kv.set(KV_KEYS.TEAM_SLUG_TO_ID(team.slug), team.id, {
-        ex: 60 * 60,
-      }),
-    ]).catch((error) => {
-      // Log but don't fail - caching is optimization, not critical
-      l.warn({
-        key: 'resolve_team_slug:cache_error',
-        error,
-        team_id: team.id,
-      })
-    })
-    return team.slug
-  }
-
-  // Try to get slug from cache
-  try {
-    const cachedSlug = await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(team.id))
-    if (cachedSlug) {
-      return cachedSlug
-    }
-  } catch (error) {
-    l.warn({
-      key: 'resolve_team_slug:cache_read_error',
-      error,
-      team_id: team.id,
-    })
-  }
-
-  // Fall back to team ID if no slug available
-  return team.id
+  return null
 }
 
 /**
@@ -318,10 +216,10 @@ function updateTeamCookies(
     maxAge: 60 * 60 * 24 * 30, // 30 days
   }
 
-  // Always set team ID cookie
+  // always set team ID cookie
   response.cookies.set(COOKIE_KEYS.SELECTED_TEAM_ID, team.id, cookieOptions)
 
-  // Only set slug cookie if it's different from ID
+  // only set slug cookie if it's different from ID
   if (teamSlug !== team.id) {
     response.cookies.set(
       COOKIE_KEYS.SELECTED_TEAM_SLUG,
@@ -330,10 +228,6 @@ function updateTeamCookies(
     )
   }
 }
-
-// ============================================================================
-// Main Route Handler
-// ============================================================================
 
 /**
  * GET /dashboard/inspect/[sandboxId]
@@ -349,13 +243,11 @@ export async function GET(
   { params }: RouteParams
 ): Promise<NextResponse> {
   try {
-    // ========================================================================
-    // Step 1: Validate and sanitize input
-    // ========================================================================
+    // validate and sanitize input
 
     const { sandboxId: rawSandboxId } = await params
 
-    // Validate sandbox ID format to prevent injection attacks
+    // validate sandbox ID format to prevent injection attacks
     const validationResult = SandboxIdSchema.safeParse(rawSandboxId)
 
     if (!validationResult.success) {
@@ -367,9 +259,7 @@ export async function GET(
 
     const sandboxId = validationResult.data
 
-    // ========================================================================
-    // Step 2: Authenticate user
-    // ========================================================================
+    // authenticate user
 
     const supabase = await createClient()
     const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -385,7 +275,7 @@ export async function GET(
 
     const userId = authData.user.id
 
-    // Get session for API access token
+    // get session for API access token
     const { data: sessionData, error: sessionError } =
       await supabase.auth.getSession()
 
@@ -401,9 +291,7 @@ export async function GET(
 
     const accessToken = sessionData.session.access_token
 
-    // ========================================================================
-    // Step 3: Fetch user's teams using supabaseAdmin
-    // ========================================================================
+    // fetch user's teams using supabaseAdmin
 
     const { data: usersTeamsData, error: teamsError } = await supabaseAdmin
       .from('users_teams')
@@ -424,25 +312,20 @@ export async function GET(
       })
     }
 
-    // Transform to MinimalTeam format
-    const usersTeams: MinimalTeam[] = (usersTeamsData as UserTeamData[]).map(
-      (userTeam) => ({
-        id: userTeam.teams.id,
-        slug: userTeam.teams.slug,
-        is_default: userTeam.is_default,
-      })
-    )
+    // transform to MinimalTeam format
 
-    // ========================================================================
-    // Step 4: Get team preference from cookies for optimization
-    // ========================================================================
+    const usersTeams: MinimalTeam[] = usersTeamsData.map((userTeam) => ({
+      id: userTeam.teams.id,
+      slug: userTeam.teams.slug,
+      is_default: userTeam.is_default,
+    }))
+
+    // get team preference from cookies for optimization
 
     const cookieStore = await cookies()
     const cookieTeamId = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
 
-    // ========================================================================
-    // Step 5: Search for sandbox across teams
-    // ========================================================================
+    // search for sandbox across teams
 
     const searchResult = await searchSandboxInTeams(
       sandboxId,
@@ -451,7 +334,7 @@ export async function GET(
       accessToken
     )
 
-    if (!searchResult.found || !searchResult.team || !searchResult.sandbox) {
+    if (!searchResult) {
       return redirectToDashboard(request, 'inspect_sandbox:not_found', {
         user_id: userId,
         sandbox_id: sandboxId,
@@ -459,11 +342,9 @@ export async function GET(
       })
     }
 
-    // ========================================================================
-    // Step 6: Resolve team slug and prepare redirect
-    // ========================================================================
+    // resolve team slug and prepare redirect
 
-    const teamSlug = await resolveAndCacheTeamSlug(searchResult.team)
+    const teamSlug = searchResult.team.slug
 
     const redirectUrl = new URL(
       PROTECTED_URLS.SANDBOX_INSPECT(teamSlug, sandboxId),
@@ -472,38 +353,46 @@ export async function GET(
 
     const response = NextResponse.redirect(redirectUrl)
 
-    // ========================================================================
-    // Step 7: Update cookies for UI consistency
-    // ========================================================================
+    // update cookies for UI consistency
 
     updateTeamCookies(response, searchResult.team, teamSlug)
 
-    // ========================================================================
-    // Step 8: Log successful resolution for monitoring
-    // ========================================================================
-
-    l.info({
-      key: 'inspect_sandbox:success',
-      user_id: userId,
-      sandbox_id: sandboxId,
-      team_id: searchResult.team.id,
-      team_slug: teamSlug,
-      redirect_url: redirectUrl.pathname,
-    })
+    l.info(
+      {
+        key: 'inspect_sandbox_route_handler:success',
+        user_id: userId,
+        sandbox_id: sandboxId,
+        team_id: searchResult.team.id,
+        context: {
+          redirect_url: redirectUrl.pathname,
+          team_slug: teamSlug,
+        },
+      },
+      `INSPECT_SANDBOX_ROUTE_HANDLER: Redirecting to ${redirectUrl.pathname}`
+    )
 
     return response
   } catch (error) {
-    // ========================================================================
-    // Global error handler - ensures we never expose internal errors
-    // ========================================================================
+    // global error handler - ensures we never expose internal errors
 
-    l.error({
-      key: 'inspect_sandbox:unexpected_error',
-      error: error as Error,
+    const sE = serializeError(error)
+    const errorMessage =
+      typeof sE === 'object' && sE !== null && 'message' in sE
+        ? String(sE.message)
+        : 'Unknown error'
+
+    l.error(
+      {
+        key: 'inspect_sandbox_route_handler:unexpected_error',
+        error: sE,
+        sandbox_id: (await params).sandboxId,
+      },
+      `INSPECT_SANDBOX_ROUTE_HANDLER: Unexpected error: ${errorMessage}`
+    )
+
+    // always redirect to dashboard on unexpected errors for security
+    return redirectToDashboard(request, 'inspect_sandbox:unexpected_error', {
       sandbox_id: (await params).sandboxId,
     })
-
-    // Always redirect to dashboard on unexpected errors for security
-    return NextResponse.redirect(new URL(PROTECTED_URLS.DASHBOARD, request.url))
   }
 }
