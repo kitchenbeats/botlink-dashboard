@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
 
 const badgeVariants = cva(
-  'inline-flex items-center cursor-default justify-center prose-label-highlight focus-visible:ring-1 w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none ![&>svg]:pl-0.75 aria-invalid:ring-accent-error-highlight/20 aria-invalid:border-accent-error-highlight transition-[color,box-shadow] overflow-hidden',
+  'inline-flex items-center cursor-default justify-center focus-visible:ring-1 w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none ![&>svg]:pl-0.75 aria-invalid:ring-accent-error-highlight/20 aria-invalid:border-accent-error-highlight transition-[color,box-shadow] overflow-hidden',
   {
     variants: {
       variant: {
@@ -12,6 +12,7 @@ const badgeVariants = cva(
         positive: 'bg-accent-positive-bg text-accent-positive-highlight',
         warning: 'bg-accent-warning-bg text-accent-warning-highlight',
         info: 'bg-accent-info-bg text-accent-info-highlight',
+        main: 'bg-accent-main-bg text-accent-main-highlight',
         error: 'bg-accent-error-bg text-accent-error-highlight',
         code: 'bg-bg-1 ring-1 ring-stroke text-fg-secondary font-mono',
       },
@@ -24,11 +25,16 @@ const badgeVariants = cva(
         none: '',
         hover: 'hover:ring-1 ring-[currentColor]',
       },
+      typography: {
+        highlight: 'prose-label-highlight',
+        regular: 'prose-label',
+      },
     },
     defaultVariants: {
       variant: 'default',
       size: 'default',
       can: 'none',
+      typography: 'regular',
     },
   }
 )
