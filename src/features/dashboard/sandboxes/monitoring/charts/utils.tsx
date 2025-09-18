@@ -83,43 +83,26 @@ export function calculateYAxisMax(
 
   const maxDataValue = Math.max(...data.map((d) => d.y || 0))
 
+  const snapToAxis = (value: number): number => {
+    if (value < 10) return Math.ceil(value)
+    if (value < 100) return Math.ceil(value / 10) * 10
+    if (value < 1000) return Math.ceil(value / 50) * 50
+    if (value < 10000) return Math.ceil(value / 100) * 100
+    return Math.ceil(value / 1000) * 1000
+  }
+
   if (limit !== undefined) {
-    const limitVisibilityThreshold = limit * 0.8
-
-    if (maxDataValue >= limitVisibilityThreshold) {
-      return Math.round(limit * limitPadding)
+    // when data exceeds limit, show max data value with padding and snapping
+    if (maxDataValue > limit) {
+      return snapToAxis(maxDataValue * limitPadding)
     }
 
-    // snap to fine-grained divisions for clean axis values
-    const scaledValue = maxDataValue * scaleFactor
-
-    // use 1/20th of limit for more granular steps
-    const divisionValue = limit / 20
-    const numberOfDivisions = Math.ceil(scaledValue / divisionValue)
-    const snappedValue = numberOfDivisions * divisionValue
-
-    // never snap exactly to limit - apply padding instead
-    // this prevents limit line being cut off by the chart constraints
-    if (snappedValue >= limit) {
-      return Math.round(limit * limitPadding)
-    }
-
-    return snappedValue
+    // when data is below limit, always show limit with padding
+    return Math.round(limit * limitPadding)
   }
 
-  const scaledValue = maxDataValue * scaleFactor
-
-  if (scaledValue < 10) {
-    return Math.ceil(scaledValue)
-  } else if (scaledValue < 100) {
-    return Math.ceil(scaledValue / 10) * 10
-  } else if (scaledValue < 1000) {
-    return Math.ceil(scaledValue / 50) * 50
-  } else if (scaledValue < 10000) {
-    return Math.ceil(scaledValue / 100) * 100
-  } else {
-    return Math.ceil(scaledValue / 1000) * 1000
-  }
+  // no limit defined - use scaling value with snapping
+  return snapToAxis(maxDataValue * scaleFactor)
 }
 
 export function createMonitoringChartOptions({
