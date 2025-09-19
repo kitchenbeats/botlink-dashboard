@@ -1,6 +1,7 @@
 import 'server-cli-only'
 
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
+import { USE_MOCK_DATA } from '@/configs/flags'
 import { MOCK_SANDBOXES_DATA } from '@/configs/mock-data'
 import { authActionClient, withTeamIdResolution } from '@/lib/clients/action'
 import { infra } from '@/lib/clients/api'
@@ -36,7 +37,7 @@ export const getTeamSandboxes = authActionClient
         throw unauthorized()
       }
 
-      if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
+      if (USE_MOCK_DATA) {
         await new Promise((resolve) => setTimeout(resolve, 200))
 
         const sandboxes = MOCK_SANDBOXES_DATA()

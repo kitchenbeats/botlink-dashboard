@@ -2,6 +2,7 @@ import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
 import { kv } from '@/lib/clients/kv'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
+import { createClient } from '@/lib/clients/supabase/server'
 import { getSessionInsecure } from '@/server/auth/get-session'
 import getUserMemo from '@/server/auth/get-user-memo'
 import getTeamIdFromSegmentMemo from '@/server/team/get-team-id-from-segment-memo'
@@ -12,7 +13,6 @@ import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { infra } from '../clients/api'
 import { l } from '../clients/logger/logger'
-import { createClient } from '../clients/supabase/server'
 import { returnServerError } from './action'
 
 /*
@@ -24,6 +24,10 @@ import { returnServerError } from './action'
 export async function checkAuthenticated() {
   const supabase = await createClient()
 
+  // retrieve session from storage medium (cookies)
+  // if no stored session found, not authenticated
+
+  // it's fine to use the "insecure" cookie session here, since we only use it for quick denial and do a proper auth check (auth.getUser) afterwards.
   const session = await getSessionInsecure(supabase)
 
   // early return if user is no session already
@@ -274,3 +278,17 @@ export const getTeamMetadataFromCookiesMemo = async (teamIdOrSlug: string) => {
     cookieTeamSlug
   )
 }
+
+/**
+ * Returns a consistent "now" timestamp for the entire request.
+ * Memoized using React cache() to ensure all server components
+ * in the same request tree get the exact same timestamp.
+ *
+ * The timestamp is rounded to the nearest 5 seconds for better cache alignment
+ * and to reduce cache fragmentation.
+ */
+export const getNowMemo = cache(() => {
+  const now = Date.now()
+  // round to nearest 5 seconds for better cache alignment
+  return Math.floor(now / 5000) * 5000
+})

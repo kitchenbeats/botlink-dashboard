@@ -1,7 +1,5 @@
-'use server'
-
 import { createClient } from '@/lib/clients/supabase/server'
-import { SupabaseClient } from '@supabase/supabase-js'
+import 'server-cli-only'
 
 /**
  * Retrieves the current user session from Supabase authentication in an insecure way.
@@ -18,8 +16,10 @@ import { SupabaseClient } from '@supabase/supabase-js'
  *
  * @see https://github.com/supabase/auth-js/issues/873 - Known issue with getSession() warnings
  */
-export async function getSessionInsecure(supabase?: SupabaseClient) {
-  const supabaseClient = supabase ?? (await createClient())
+export async function getSessionInsecure(
+  supabase?: Awaited<ReturnType<typeof createClient>>
+) {
+  const client = supabase ?? (await createClient())
 
   // Store original console functions
   const originalWarn = console.warn
@@ -60,7 +60,7 @@ export async function getSessionInsecure(supabase?: SupabaseClient) {
 
   const {
     data: { session },
-  } = await supabaseClient.auth.getSession()
+  } = await client.auth.getSession()
 
   return session
 }

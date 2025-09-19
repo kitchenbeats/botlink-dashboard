@@ -1,7 +1,7 @@
 import getTeamIdFromSegmentMemo from '@/server/team/get-team-id-from-segment-memo'
 import { UnauthenticatedError, UnknownError } from '@/types/errors'
 import { SpanStatusCode, trace } from '@opentelemetry/api'
-import { Session, SupabaseClient, User } from '@supabase/supabase-js'
+import { Session, User } from '@supabase/supabase-js'
 import { createMiddleware, createSafeActionClient } from 'next-safe-action'
 import { unauthorized } from 'next/navigation'
 import { serializeError } from 'serialize-error'
@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { ActionError, flattenClientInputValue } from '../utils/action'
 import { checkAuthenticated, checkUserTeamAuthorization } from '../utils/server'
 import { l } from './logger/logger'
+import type { createClient } from './supabase/server'
 import { getTracer } from './tracer'
 
 export const actionClient = createSafeActionClient({
@@ -163,7 +164,11 @@ export const authActionClient = actionClient.use(async ({ next }) => {
  * ```
  */
 export const withTeamIdResolution = createMiddleware<{
-  ctx: { user: User; session: Session; supabase: SupabaseClient }
+  ctx: {
+    user: User
+    session: Session
+    supabase: Awaited<ReturnType<typeof createClient>>
+  }
 }>().define(async ({ next, clientInput, ctx }) => {
   if (
     !clientInput ||

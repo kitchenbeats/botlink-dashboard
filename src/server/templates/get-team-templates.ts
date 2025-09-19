@@ -1,5 +1,6 @@
 import 'server-only'
 
+import { USE_MOCK_DATA } from '@/configs/flags'
 import {
   MOCK_DEFAULT_TEMPLATES_DATA,
   MOCK_TEMPLATES_DATA,
@@ -22,13 +23,13 @@ const GetTeamTemplatesSchema = z.object({
 })
 
 export const getTeamTemplates = authActionClient
+  .metadata({ serverFunctionName: 'getTeamTemplates' })
   .schema(GetTeamTemplatesSchema)
   .use(withTeamIdResolution)
-  .metadata({ serverFunctionName: 'getTeamTemplates' })
   .action(async ({ ctx }) => {
     const { session, teamId } = ctx
 
-    if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
+    if (USE_MOCK_DATA) {
       await new Promise((resolve) => setTimeout(resolve, 500))
       return {
         templates: MOCK_TEMPLATES_DATA,
@@ -66,7 +67,7 @@ export const getTeamTemplates = authActionClient
 export const getDefaultTemplates = actionClient
   .metadata({ serverFunctionName: 'getDefaultTemplates' })
   .action(async () => {
-    if (process.env.NEXT_PUBLIC_MOCK_DATA === '1') {
+    if (USE_MOCK_DATA) {
       await new Promise((resolve) => setTimeout(resolve, 500))
       return {
         templates: MOCK_DEFAULT_TEMPLATES_DATA,

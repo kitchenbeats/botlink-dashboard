@@ -8,16 +8,16 @@ import {
   DropdownMenuRadioItem,
 } from '@/ui/primitives/dropdown-menu'
 import { Loader } from '@/ui/primitives/loader'
-import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 import useSWR from 'swr'
 import { useDashboard } from '../context'
 
 export default function DashboardSidebarMenuTeams() {
   const pathname = usePathname()
-  const router = useRouter()
 
-  const { user, team, setTeam } = useDashboard()
+  const { user, team: selectedTeam, setTeam } = useDashboard()
 
   const { data: teams, isLoading } = useSWR<ClientTeam[] | null>(
     ['/api/teams/user', user?.id],
@@ -46,7 +46,7 @@ export default function DashboardSidebarMenuTeams() {
     }
   )
 
-  const generateTeamLink = useCallback(
+  const getNextUrl = useCallback(
     (team: ClientTeam) => {
       const splitPath = pathname.split('/')
       splitPath[2] = team.slug
@@ -56,15 +56,14 @@ export default function DashboardSidebarMenuTeams() {
     [pathname]
   )
 
-  const handleValueChange = useCallback(
+  const handleTeamChange = useCallback(
     (value: string) => {
       const team = teams?.find((t) => t.id === value)
       if (team) {
         setTeam(team)
-        router.push(generateTeamLink(team))
       }
     },
-    [teams, generateTeamLink, router, setTeam]
+    [teams, setTeam]
   )
 
   if (isLoading) {
@@ -72,22 +71,27 @@ export default function DashboardSidebarMenuTeams() {
   }
 
   return (
-    <DropdownMenuRadioGroup value={team?.id} onValueChange={handleValueChange}>
+    <DropdownMenuRadioGroup
+      value={selectedTeam?.id}
+      onValueChange={handleTeamChange}
+    >
       {user?.email && (
         <DropdownMenuLabel className="mb-2">{user.email}</DropdownMenuLabel>
       )}
-      {teams?.length && teams.length > 0 ? (
+      {teams && teams.length > 0 ? (
         teams.map((team) => (
-          <DropdownMenuRadioItem key={team.id} value={team.id}>
-            <Avatar className="size-5 shrink-0 border-none">
-              <AvatarImage src={team.profile_picture_url || undefined} />
-              <AvatarFallback className="group-focus:text-accent-main-highlight text-fg-tertiary text-xs">
-                {team.name?.charAt(0).toUpperCase() || '?'}
-              </AvatarFallback>
-            </Avatar>
-            <span className="flex-1 truncate font-sans prose-label-highlight">
-              {team.transformed_default_name || team.name}
-            </span>
+          <DropdownMenuRadioItem key={team.id} value={team.id} asChild>
+            <Link href={getNextUrl(team)}>
+              <Avatar className="size-5 shrink-0 border-none">
+                <AvatarImage src={team.profile_picture_url || undefined} />
+                <AvatarFallback className="group-focus:text-accent-main-highlight text-fg-tertiary text-xs">
+                  {team.name?.charAt(0).toUpperCase() || '?'}
+                </AvatarFallback>
+              </Avatar>
+              <span className="flex-1 truncate font-sans prose-label-highlight">
+                {team.transformed_default_name || team.name}
+              </span>
+            </Link>
           </DropdownMenuRadioItem>
         ))
       ) : (
