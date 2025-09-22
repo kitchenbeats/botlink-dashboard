@@ -29,7 +29,23 @@ export const updateUserAction = authActionClient
   .schema(UpdateUserSchema)
   .metadata({ actionName: 'updateUser' })
   .action(async ({ parsedInput, ctx }) => {
-    const { supabase } = ctx
+    const { supabase, user } = ctx
+
+    // basic security check, that password does not equal e-mail
+    if (parsedInput.password) {
+      const passwordAsUserEmail =
+        parsedInput.password.toLowerCase() === user?.email?.toLowerCase()
+      const passwordAsEmail =
+        parsedInput.password.toLowerCase() === parsedInput.email?.toLowerCase()
+
+      if (passwordAsUserEmail || passwordAsEmail) {
+        return returnValidationErrors(UpdateUserSchema, {
+          password: {
+            _errors: ['Password is too weak.'],
+          },
+        })
+      }
+    }
 
     const origin = (await headers()).get('origin')
 
