@@ -5,8 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/primitives/card'
-import { Loader } from '@/ui/primitives/loader'
-import { Suspense } from 'react'
+import { cacheLife } from 'next/dist/server/use-cache/cache-life'
 import BillingCreditsContent from '../billing/credits-content'
 
 interface CreditsCardProps {
@@ -18,6 +17,9 @@ export default async function CreditsCard({
   params,
   className,
 }: CreditsCardProps) {
+  'use cache'
+  cacheLife('default')
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -28,9 +30,7 @@ export default async function CreditsCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="max-w-[500px] text-xs">
-        <Suspense fallback={<Loader className="text-xl" />}>
-          <BillingCreditsContent params={params} />
-        </Suspense>
+        <BillingCreditsContent params={params} />
       </CardContent>
     </Card>
   )

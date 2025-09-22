@@ -14,16 +14,16 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
+  return (
+    <div className="flex flex-1 flex-col md:overflow-hidden">
+      <PageContent params={params} />
+    </div>
+  )
+}
+
+async function PageContent({ params }: PageProps) {
   const { teamIdOrSlug } = await params
 
-  return <PageContent teamIdOrSlug={teamIdOrSlug} />
-}
-
-interface PageContentProps {
-  teamIdOrSlug: string
-}
-
-async function PageContent({ teamIdOrSlug }: PageContentProps) {
   const [sandboxesRes, templatesRes, defaultTemplateRes] = await Promise.all([
     getTeamSandboxes({ teamIdOrSlug }),
     getTeamTemplates({ teamIdOrSlug }),
@@ -70,12 +70,10 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
   ]
 
   return (
-    <div className="flex flex-1 flex-col md:overflow-hidden">
-      <SandboxesTable
-        sandboxes={sandboxes}
-        templates={templates}
-        initialMetrics={metricsRes?.data?.metrics || null}
-      />
-    </div>
+    <SandboxesTable
+      templates={templates}
+      initialSandboxes={sandboxes}
+      initialMetrics={metricsRes?.data?.metrics || null}
+    />
   )
 }

@@ -10,13 +10,15 @@ import {
 import { Suspense } from 'react'
 import { SandboxesChart } from './sandboxes-chart'
 
-export function SandboxesCard({
+export async function SandboxesCard({
   className,
   params,
 }: {
   className?: string
   params: Promise<{ teamIdOrSlug: string }>
 }) {
+  'use cache'
+
   return (
     <Card className={className}>
       <CardHeader>

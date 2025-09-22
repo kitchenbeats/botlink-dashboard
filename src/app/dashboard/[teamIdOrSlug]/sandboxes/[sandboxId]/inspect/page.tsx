@@ -7,10 +7,6 @@ import { getSandboxRoot } from '@/server/sandboxes/get-sandbox-root'
 import ClientOnly from '@/ui/client-only'
 import { cookies } from 'next/headers'
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-export const revalidate = 0
-
 const DEFAULT_ROOT_PATH = '/home/user'
 
 export default async function SandboxInspectPage({

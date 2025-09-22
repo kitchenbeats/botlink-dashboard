@@ -18,6 +18,13 @@ export async function GET() {
 
     return Response.json({ teams } satisfies UserTeamsResponse)
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('During prerendering')
+    ) {
+      throw error
+    }
+
     console.error('Error fetching user teams:', error)
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }

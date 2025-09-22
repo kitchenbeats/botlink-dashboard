@@ -9,13 +9,19 @@ import {
 } from '@/lib/utils/rewrites'
 import { NextRequest } from 'next/server'
 import { serializeError } from 'serialize-error'
-
-export const revalidate = 900
-export const dynamic = 'force-static'
+import { unstable_cacheLife as cacheLife } from 'next/cache'
 
 const REVALIDATE_TIME = 900 // 15 minutes ttl
 
 export async function GET(request: NextRequest): Promise<Response> {
+  "use cache"
+
+  cacheLife({
+    stale: 3600, // 1 hour
+    revalidate: REVALIDATE_TIME,
+    expire: 86400, // 1 day
+  })
+
   const url = new URL(request.url)
 
   const requestHostname = url.hostname
@@ -48,10 +54,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       ...(notFound
         ? { cache: 'no-store' }
         : {
-            next: {
-              revalidate: REVALIDATE_TIME,
-            },
-          }),
+          next: {
+            revalidate: REVALIDATE_TIME,
+          },
+        }),
     })
 
     const contentType = res.headers.get('Content-Type')

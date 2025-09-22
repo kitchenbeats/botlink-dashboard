@@ -1,4 +1,4 @@
-import getTeamIdFromSegmentMemo from '@/server/team/get-team-id-from-segment-memo'
+import { getTeamIdFromSegment } from '@/server/team/get-team-id-from-segment'
 import { UnauthenticatedError, UnknownError } from '@/types/errors'
 import { SpanStatusCode, trace } from '@opentelemetry/api'
 import { Session, User } from '@supabase/supabase-js'
@@ -180,9 +180,7 @@ export const withTeamIdResolution = createMiddleware<{
     )
   }
 
-  const teamId = await getTeamIdFromSegmentMemo(
-    clientInput.teamIdOrSlug as string
-  )
+  const teamId = await getTeamIdFromSegment(clientInput.teamIdOrSlug as string)
 
   if (!teamId) {
     throw unauthorized()

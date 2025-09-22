@@ -6,6 +6,7 @@ import { infra } from '@/lib/clients/api'
 import { l } from '@/lib/clients/logger/logger'
 import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { handleDefaultInfraError } from '@/lib/utils/action'
+import { unstable_cacheLife, unstable_cacheTag } from 'next/cache'
 import { z } from 'zod'
 
 const GetApiKeysSchema = z.object({
@@ -17,6 +18,10 @@ export const getTeamApiKeys = authActionClient
   .metadata({ serverFunctionName: 'getTeamApiKeys' })
   .use(withTeamIdResolution)
   .action(async ({ ctx }) => {
+    'use cache'
+    unstable_cacheLife('default')
+    unstable_cacheTag(`api-keys-${ctx.teamId}`)
+
     const { session, teamId } = ctx
 
     const accessToken = session.access_token

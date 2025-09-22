@@ -3,10 +3,16 @@ import 'server-cli-only'
 import { l } from '@/lib/clients/logger/logger'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
+import { cacheLife } from 'next/dist/server/use-cache/cache-life'
+import { cacheTag } from 'next/dist/server/use-cache/cache-tag'
 import { serializeError } from 'serialize-error'
 import z from 'zod'
 
 export const getTeamIdFromSegment = async (segment: string) => {
+  'use cache'
+  cacheLife('default')
+  cacheTag(`team-id-from-segment-${segment}`)
+
   if (!TeamIdOrSlugSchema.safeParse(segment).success) {
     l.warn(
       {
@@ -21,7 +27,7 @@ export const getTeamIdFromSegment = async (segment: string) => {
     return null
   }
 
-  if (z.string().uuid().safeParse(segment).success) {
+  if (z.string().uuid(segment).safeParse(segment).success) {
     return segment
   }
 

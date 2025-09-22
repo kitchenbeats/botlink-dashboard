@@ -1,36 +1,31 @@
 'use client'
 
+import { useDashboard } from '@/features/dashboard/context'
 import { ClientTeam } from '@/types/dashboard.types'
 import { useEffect } from 'react'
-import useSWR from 'swr'
+import { useDebounceCallback } from 'usehooks-ts'
 
-interface UseTeamProps {
-  initialData: ClientTeam | null
-}
+export const useTeamCookieManager = () => {
+  const { team } = useDashboard()
 
-export const useTeam = (props?: UseTeamProps) => {
-  const initialData = props?.initialData
-
-  // at the moment we only refetch via initial (server) revalidation
-  // swr is a good global state management solution for this
-  const swr = useSWR<ClientTeam | null>(
-    ['user-team', initialData?.id],
-    async ([, teamId]) => {
-      return initialData || null
+  const updateTeamCookieState = useDebounceCallback(
+    async (iTeam: ClientTeam) => {
+      await fetch('/api/team/state', {
+        method: 'POST',
+        body: JSON.stringify({
+          teamId: iTeam.id,
+          teamSlug: iTeam.slug,
+        }),
+      })
     },
-    {
-      fallbackData: initialData,
-    }
+    1000
   )
 
-  console.log('initialData', initialData)
-
   useEffect(() => {
-    console.log('swr.data', swr.data)
-  }, [swr.data])
+    if (!team) {
+      return
+    }
 
-  return {
-    ...swr,
-    team: swr.data,
-  }
+    updateTeamCookieState(team)
+  }, [updateTeamCookieState, team])
 }

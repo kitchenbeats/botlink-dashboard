@@ -12,16 +12,24 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
-  const { teamIdOrSlug } = await params
+  'use cache'
 
-  return <PageContent teamIdOrSlug={teamIdOrSlug} />
+  return (
+    <div className="flex flex-1 flex-col">
+      <PageContent params={params} />
+    </div>
+  )
 }
 
 interface PageContentProps {
-  teamIdOrSlug: string
+  params: Promise<{
+    teamIdOrSlug: string
+  }>
 }
 
-async function PageContent({ teamIdOrSlug }: PageContentProps) {
+async function PageContent({ params }: PageContentProps) {
+  const { teamIdOrSlug } = await params
+
   const res = await getTeamTemplates({
     teamIdOrSlug,
   })

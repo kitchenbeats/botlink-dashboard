@@ -13,7 +13,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import Head from 'next/head'
 import { Metadata } from 'next/types'
 import { Suspense } from 'react'
-import { Body } from './layout.client'
+import { Body } from './body'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -33,11 +33,13 @@ export const metadata: Metadata = {
   robots: ALLOW_SEO_INDEXING ? 'index, follow' : 'noindex, nofollow',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  'use cache'
+
   return (
     <html lang="en" suppressHydrationWarning>
       <Head>

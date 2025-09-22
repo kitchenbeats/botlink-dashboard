@@ -1,4 +1,5 @@
 import { UserTeamsResponse } from '@/app/api/teams/user/types'
+import { useTeamCookieManager } from '@/lib/hooks/use-team'
 import { ClientTeam } from '@/types/dashboard.types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import {
@@ -18,6 +19,8 @@ export default function DashboardSidebarMenuTeams() {
   const pathname = usePathname()
 
   const { user, team: selectedTeam, setTeam } = useDashboard()
+
+  useTeamCookieManager()
 
   const { data: teams, isLoading } = useSWR<ClientTeam[] | null>(
     ['/api/teams/user', user?.id],

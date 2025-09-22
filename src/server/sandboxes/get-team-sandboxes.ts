@@ -33,10 +33,6 @@ export const getTeamSandboxes = authActionClient
         throw unauthorized()
       }
 
-      if (!teamId) {
-        throw unauthorized()
-      }
-
       if (USE_MOCK_DATA) {
         await new Promise((resolve) => setTimeout(resolve, 200))
 

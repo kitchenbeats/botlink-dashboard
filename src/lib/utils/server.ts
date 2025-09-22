@@ -5,8 +5,9 @@ import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { createClient } from '@/lib/clients/supabase/server'
 import { getSessionInsecure } from '@/server/auth/get-session'
 import getUserMemo from '@/server/auth/get-user-memo'
-import getTeamIdFromSegmentMemo from '@/server/team/get-team-id-from-segment-memo'
+import { getTeamIdFromSegment } from '@/server/team/get-team-id-from-segment'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
+import { unstable_cacheLife } from 'next/cache'
 import { cookies } from 'next/headers'
 import { cache } from 'react'
 import { serializeError } from 'serialize-error'
@@ -94,7 +95,10 @@ export async function checkUserTeamAuthorization(
   userId: string,
   teamIdOrSlug: string
 ) {
-  const teamId = await getTeamIdFromSegmentMemo(teamIdOrSlug)
+  'use cache'
+  unstable_cacheLife('minutes')
+
+  const teamId = await getTeamIdFromSegment(teamIdOrSlug)
 
   if (!teamId) {
     return null

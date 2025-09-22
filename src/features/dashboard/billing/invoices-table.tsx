@@ -11,8 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/ui/primitives/table'
+import { cacheLife } from 'next/dist/server/use-cache/cache-life'
 import Link from 'next/link'
-import { Suspense } from 'react'
 
 interface BillingInvoicesTableProps {
   params: Promise<{ teamIdOrSlug: string }>
@@ -97,6 +97,10 @@ async function InvoicesTableContent({
 export default async function BillingInvoicesTable({
   params,
 }: BillingInvoicesTableProps) {
+  'use cache'
+
+  cacheLife('default')
+
   return (
     <Table className="animate-in fade-in w-full min-w-[800px]">
       <TableHeader>
@@ -108,9 +112,7 @@ export default async function BillingInvoicesTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        <Suspense fallback={<LoadingFallback />}>
-          <InvoicesTableContent params={params} />
-        </Suspense>
+        <InvoicesTableContent params={params} />
       </TableBody>
     </Table>
   )

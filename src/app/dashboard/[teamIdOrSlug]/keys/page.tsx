@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from '@/ui/primitives/card'
 import { Plus } from 'lucide-react'
-import { Suspense } from 'react'
 
 interface KeysPageClientProps {
   params: Promise<{
@@ -37,13 +36,11 @@ export default async function KeysPage({ params }: KeysPageClientProps) {
               </CardDescription>
             </div>
 
-            <Suspense fallback={null}>
-              <CreateApiKeyDialog>
-                <Button className="w-full sm:w-auto sm:self-start">
-                  <Plus className="size-4" /> CREATE KEY
-                </Button>
-              </CreateApiKeyDialog>
-            </Suspense>
+            <CreateApiKeyDialog>
+              <Button className="w-full sm:w-auto sm:self-start">
+                <Plus className="size-4" /> CREATE KEY
+              </Button>
+            </CreateApiKeyDialog>
           </div>
         </CardHeader>
 

@@ -17,6 +17,8 @@ export default async function BillingPage({
 }: {
   params: Promise<{ teamIdOrSlug: string }>
 }) {
+  'use cache'
+
   return (
     <Frame
       classNames={{
@@ -33,7 +35,7 @@ export default async function BillingPage({
         </CardHeader>
 
         <CardContent>
-          <Suspense fallback={null}>
+          <Suspense>
             <CustomerPortalLink className="bg-bg w-fit" />
           </Suspense>
 
@@ -60,9 +62,7 @@ export default async function BillingPage({
 
         <CardContent>
           <div className="w-full overflow-x-auto">
-            <Suspense fallback={null}>
-              <BillingInvoicesTable params={params} />
-            </Suspense>
+            <BillingInvoicesTable params={params} />
           </div>
         </CardContent>
       </Card>

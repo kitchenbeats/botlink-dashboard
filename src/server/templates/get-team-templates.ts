@@ -15,6 +15,7 @@ import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { TeamIdOrSlugSchema } from '@/lib/schemas/team'
 import { handleDefaultInfraError } from '@/lib/utils/action'
 import { DefaultTemplate } from '@/types/api'
+import { unstable_cacheLife, unstable_cacheTag } from 'next/cache'
 import { z } from 'zod'
 import getTeamTemplatesMemo from './get-team-templates-memo'
 
@@ -27,6 +28,14 @@ export const getTeamTemplates = authActionClient
   .schema(GetTeamTemplatesSchema)
   .use(withTeamIdResolution)
   .action(async ({ ctx }) => {
+    'use cache'
+    unstable_cacheLife({
+      stale: 3600, // 1 hour
+      revalidate: 86400, // 1 day
+      expire: 604800, // 1 week
+    })
+    unstable_cacheTag(`templates-${ctx.teamId}`)
+
     const { session, teamId } = ctx
 
     if (USE_MOCK_DATA) {
@@ -67,6 +76,14 @@ export const getTeamTemplates = authActionClient
 export const getDefaultTemplates = actionClient
   .metadata({ serverFunctionName: 'getDefaultTemplates' })
   .action(async () => {
+    'use cache'
+    unstable_cacheLife({
+      stale: 3600, // 1 hour
+      revalidate: 86400, // 1 day
+      expire: 604800, // 1 week
+    })
+    unstable_cacheTag('default-templates')
+
     if (USE_MOCK_DATA) {
       await new Promise((resolve) => setTimeout(resolve, 500))
       return {

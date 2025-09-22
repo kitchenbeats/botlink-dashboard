@@ -3,8 +3,6 @@ import SandboxDetailsHeader from '@/features/dashboard/sandbox/header/header'
 import SandboxLayoutClient from '@/features/dashboard/sandbox/layout'
 import { getSandboxDetails } from '@/server/sandboxes/get-sandbox-details'
 
-export const fetchCache = 'force-no-store'
-
 interface SandboxLayoutProps {
   children: React.ReactNode
   params: Promise<{ teamIdOrSlug: string; sandboxId: string }>

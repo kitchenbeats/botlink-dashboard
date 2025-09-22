@@ -21,7 +21,6 @@ export default async function DashboardLayout({
 }: DashboardLayoutProps) {
   const supabase = await createClient()
   const cookieStore = await cookies()
-
   const user = await getUserMemo(supabase)
 
   const sidebarState = cookieStore.get(COOKIE_KEYS.SIDEBAR_STATE)?.value

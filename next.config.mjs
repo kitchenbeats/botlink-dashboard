@@ -7,6 +7,7 @@ const config = {
   experimental: {
     reactCompiler: true,
     ppr: true,
+    useCache: true,
     staleTimes: {
       dynamic: 180,
       static: 180,
@@ -15,6 +16,14 @@ const config = {
       bodySizeLimit: '5mb',
     },
     authInterrupts: true,
+    cacheComponents: true,
+    cacheLife: {
+      teamSettings: {
+        stale: 180,
+        revalidate: 3600,
+        expire: 86400,
+      },
+    }
   },
   logging: {
     fetches: {

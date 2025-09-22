@@ -10,6 +10,7 @@ export async function PasswordSettingsServer({
   className,
   searchParams,
 }: PasswordSettingsServerProps) {
+  'use cache'
   const showPasswordChangeForm = (await searchParams).reauth === '1'
 
   return (
