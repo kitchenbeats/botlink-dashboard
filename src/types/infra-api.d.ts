@@ -123,6 +123,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/teams/{teamID}/metrics/max": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Get the maximum metrics for the team in the given interval */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Unix timestamp for the start of the interval, in seconds, for which the metrics */
+                    start?: number;
+                    end?: number;
+                    /** @description Metric to retrieve the maximum value for */
+                    metric: "concurrent_sandboxes" | "sandbox_start_rate";
+                };
+                header?: never;
+                path: {
+                    teamID: components["parameters"]["teamID"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully returned the team metrics */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MaxTeamMetric"];
+                    };
+                };
+                400: components["responses"]["400"];
+                401: components["responses"]["401"];
+                403: components["responses"]["403"];
+                500: components["responses"]["500"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandboxes": {
         parameters: {
             query?: never;
@@ -1040,7 +1088,10 @@ export interface paths {
         /** @description Get node info */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Identifier of the cluster */
+                    clusterID?: string;
+                };
                 header?: never;
                 path: {
                     nodeID: components["parameters"]["nodeID"];
@@ -1397,9 +1448,15 @@ export interface components {
         SandboxMetric: {
             /**
              * Format: date-time
+             * @deprecated
              * @description Timestamp of the metric entry
              */
             timestamp: string;
+            /**
+             * Format: int64
+             * @description Timestamp of the metric entry in Unix time (seconds since epoch)
+             */
+            timestampUnix: number;
             /**
              * Format: int32
              * @description Number of CPU cores
@@ -1545,18 +1602,24 @@ export interface components {
              */
             timeout: number;
             /**
+             * @deprecated
              * @description Automatically pauses the sandbox after the timeout
-             * @default false
              */
-            autoPause: boolean;
+            autoPause?: boolean;
         };
         /** @description Team metric with timestamp */
         TeamMetric: {
             /**
              * Format: date-time
+             * @deprecated
              * @description Timestamp of the metric entry
              */
             timestamp: string;
+            /**
+             * Format: int64
+             * @description Timestamp of the metric entry in Unix time (seconds since epoch)
+             */
+            timestampUnix: number;
             /**
              * Format: int32
              * @description The number of concurrent sandboxes for the team
@@ -1567,6 +1630,22 @@ export interface components {
              * @description Number of sandboxes started per second
              */
             sandboxStartRate: number;
+        };
+        /** @description Team metric with timestamp */
+        MaxTeamMetric: {
+            /**
+             * Format: date-time
+             * @deprecated
+             * @description Timestamp of the metric entry
+             */
+            timestamp: string;
+            /**
+             * Format: int64
+             * @description Timestamp of the metric entry in Unix time (seconds since epoch)
+             */
+            timestampUnix: number;
+            /** @description The maximum value of the requested metric in the given interval */
+            value: number;
         };
         Template: {
             /** @description Identifier of the template */
@@ -1579,7 +1658,7 @@ export interface components {
             /** @description Whether the template is public or only accessible by the team */
             public: boolean;
             /** @description Aliases of the template */
-            aliases?: string[];
+            aliases: string[];
             /**
              * Format: date-time
              * @description Time when the template was created
@@ -1595,7 +1674,7 @@ export interface components {
              * Format: date-time
              * @description Time when the template was last used
              */
-            lastSpawnedAt: string;
+            lastSpawnedAt: string | null;
             /**
              * Format: int64
              * @description Number of times the template was used
@@ -1647,11 +1726,46 @@ export interface components {
             cpuCount?: components["schemas"]["CPUCount"];
             memoryMB?: components["schemas"]["MemoryMB"];
         };
+        FromImageRegistry: components["schemas"]["AWSRegistry"] | components["schemas"]["GCPRegistry"] | components["schemas"]["GeneralRegistry"];
+        AWSRegistry: {
+            /**
+             * @description Type of registry authentication (enum property replaced by openapi-typescript)
+             * @enum {string}
+             */
+            type: "aws";
+            /** @description AWS Access Key ID for ECR authentication */
+            awsAccessKeyId: string;
+            /** @description AWS Secret Access Key for ECR authentication */
+            awsSecretAccessKey: string;
+            /** @description AWS Region where the ECR registry is located */
+            awsRegion: string;
+        };
+        GCPRegistry: {
+            /**
+             * @description Type of registry authentication (enum property replaced by openapi-typescript)
+             * @enum {string}
+             */
+            type: "gcp";
+            /** @description Service Account JSON for GCP authentication */
+            serviceAccountJson: string;
+        };
+        GeneralRegistry: {
+            /**
+             * @description Type of registry authentication (enum property replaced by openapi-typescript)
+             * @enum {string}
+             */
+            type: "registry";
+            /** @description Username to use for the registry */
+            username: string;
+            /** @description Password to use for the registry */
+            password: string;
+        };
         TemplateBuildStartV2: {
             /** @description Image to use as a base for the template build */
             fromImage?: string;
             /** @description Template to use as a base for the template build */
             fromTemplate?: string;
+            fromImageRegistry?: components["schemas"]["FromImageRegistry"];
             /**
              * @description Whether the whole build should be forced to run regardless of the cache
              * @default false
@@ -1688,6 +1802,12 @@ export interface components {
             message: string;
             level: components["schemas"]["LogLevel"];
         };
+        BuildStatusReason: {
+            /** @description Message with the status reason, currently reporting only for error status */
+            message: string;
+            /** @description Step that failed */
+            step?: string;
+        };
         TemplateBuild: {
             /**
              * @description Build logs
@@ -1708,8 +1828,7 @@ export interface components {
              * @enum {string}
              */
             status: "building" | "waiting" | "ready" | "error";
-            /** @description Message with the status reason, currently reporting only for error status */
-            reason?: string;
+            reason?: components["schemas"]["BuildStatusReason"];
         };
         /**
          * @description Status of the node
@@ -1717,6 +1836,11 @@ export interface components {
          */
         NodeStatus: "ready" | "draining" | "connecting" | "unhealthy";
         NodeStatusChange: {
+            /**
+             * Format: uuid
+             * @description Identifier of the cluster
+             */
+            clusterID?: string;
             status: components["schemas"]["NodeStatus"];
         };
         DiskMetrics: {
@@ -1777,8 +1901,15 @@ export interface components {
             version: string;
             /** @description Commit of the orchestrator */
             commit: string;
-            /** @description Identifier of the node */
+            /**
+             * @deprecated
+             * @description Identifier of the nomad node
+             */
             nodeID: string;
+            /** @description Identifier of the node */
+            id: string;
+            /** @description Service instance identifier of the node */
+            serviceInstanceID: string;
             /** @description Identifier of the cluster */
             clusterID: string;
             status: components["schemas"]["NodeStatus"];
@@ -1812,6 +1943,13 @@ export interface components {
             /** @description Commit of the orchestrator */
             commit: string;
             /** @description Identifier of the node */
+            id: string;
+            /** @description Service instance identifier of the node */
+            serviceInstanceID: string;
+            /**
+             * @deprecated
+             * @description Identifier of the nomad node
+             */
             nodeID: string;
             status: components["schemas"]["NodeStatus"];
             /** @description List of sandboxes running on the node */
