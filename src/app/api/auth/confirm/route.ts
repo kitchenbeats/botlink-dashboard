@@ -1,10 +1,7 @@
-import { ENABLE_SIGN_UP_RATE_LIMITING } from '@/configs/flags'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { l } from '@/lib/clients/logger/logger'
 import { createClient } from '@/lib/clients/supabase/server'
 import { encodedRedirect } from '@/lib/utils/auth'
-import { extractClientIp } from '@/lib/utils/ip-extraction'
-import { checkSignUpRateLimit } from '@/server/auth/rate-limiting'
 import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
 import { serializeError } from 'serialize-error'
@@ -96,36 +93,6 @@ export async function GET(request: NextRequest) {
         : supabaseRedirectTo
 
     const redirectUrl = new URL(next)
-
-    // RATE LIMITING
-
-    if (
-      ENABLE_SIGN_UP_RATE_LIMITING &&
-      process.env.NODE_ENV === 'production' &&
-      supabaseType === 'email'
-    ) {
-      const ip = extractClientIp(request.headers)
-
-      if (ip && (await checkSignUpRateLimit(ip))) {
-        return encodedRedirect(
-          'error',
-          dashboardSignInUrl.toString(),
-          'Too many sign-ups for now. Please try again later.'
-        )
-      }
-
-      if (!ip) {
-        l.warn(
-          {
-            key: 'sign_up_confirm:no_ip_headers',
-            context: {
-              message: 'no ip headers found in production',
-            },
-          },
-          'Tried to rate limit, but no ip headers were found in production.'
-        )
-      }
-    }
 
     const supabase = await createClient()
 
