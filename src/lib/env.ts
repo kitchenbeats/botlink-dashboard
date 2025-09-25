@@ -24,8 +24,6 @@ export const serverSchema = z.object({
   ZEROBOUNCE_API_KEY: z.string().optional(),
 
   ENABLE_SIGN_UP_RATE_LIMITING: NumericBoolean.optional(),
-  SIGN_UP_ATTEMPTS_LIMIT_PER_WINDOW: StringPositiveNumber.optional(),
-  SIGN_UP_ATTEMPTS_WINDOW_HOURS: StringPositiveNumber.optional(),
   SIGN_UP_LIMIT_PER_WINDOW: StringPositiveNumber.optional(),
   SIGN_UP_WINDOW_HOURS: StringPositiveNumber.optional(),
 

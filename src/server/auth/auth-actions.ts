@@ -9,7 +9,7 @@ import { createClient } from '@/lib/clients/supabase/server'
 import { relativeUrlSchema } from '@/lib/schemas/url'
 import { returnServerError } from '@/lib/utils/action'
 import { encodedRedirect } from '@/lib/utils/auth'
-import { extractClientIp, isDevelopmentIp } from '@/lib/utils/ip-extraction'
+import { extractClientIp } from '@/lib/utils/ip-extraction'
 import {
   shouldWarnAboutAlternateEmail,
   validateEmail,
@@ -20,7 +20,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
-import { isSignUpAttemptRateLimited } from './rate-limiting'
+import { applySignUpRateLimit, checkSignUpRateLimit } from './rate-limiting'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -81,7 +81,11 @@ export const signUpAction = actionClient
   .metadata({ actionName: 'signUp' })
   .action(async ({ parsedInput: { email, password, returnTo = '' } }) => {
     const supabase = await createClient()
-    const origin = (await headers()).get('origin') || ''
+    const headersStore = await headers()
+
+    const origin = headersStore.get('origin') || ''
+
+    // EMAIL VALIDATION
 
     // basic security check, that password does not equal e-mail
     if (password && email && password.toLowerCase() === email.toLowerCase()) {
@@ -106,31 +110,31 @@ export const signUpAction = actionClient
       }
     }
 
-    const headersStore = await headers()
+    // RATE LIMITING
+
     const ip = extractClientIp(headersStore)
 
-    // log error if no ip headers found
-    if (
-      isDevelopmentIp(ip) &&
-      ENABLE_SIGN_UP_RATE_LIMITING &&
-      process.env.NODE_ENV === 'production'
-    ) {
-      l.error({
-        key: 'sign_up_attempt:no_ip_headers',
-        context: {
-          message: 'no ip headers found in production',
-        },
-      })
+    if (ENABLE_SIGN_UP_RATE_LIMITING && process.env.NODE_ENV === 'production') {
+      if (ip && (await checkSignUpRateLimit(ip))) {
+        return returnServerError(
+          'Too many sign-up attempts. Please try again later.'
+        )
+      }
+
+      if (!ip) {
+        l.warn(
+          {
+            key: 'sign_up_rate_limit:no_ip_headers',
+            context: {
+              message: 'no ip headers found in production',
+            },
+          },
+          'Tried to rate limit, but no ip headers were found in production.'
+        )
+      }
     }
 
-    if (
-      ENABLE_SIGN_UP_RATE_LIMITING &&
-      (await isSignUpAttemptRateLimited(ip))
-    ) {
-      return returnServerError(
-        'Too many sign-up attempts. Please try again later.'
-      )
-    }
+    // SIGN UP
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -158,6 +162,14 @@ export const signUpAction = actionClient
         default:
           throw error
       }
+    }
+
+    if (
+      ENABLE_SIGN_UP_RATE_LIMITING &&
+      process.env.NODE_ENV === 'production' &&
+      ip
+    ) {
+      await applySignUpRateLimit(ip)
     }
   })
 

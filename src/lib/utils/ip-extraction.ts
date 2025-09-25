@@ -1,6 +1,4 @@
-export function extractClientIp(headers: {
-  get(name: string): string | null
-}): string {
+export function extractClientIp(headers: Headers): string | null {
   const xForwardedFor = headers.get('x-forwarded-for')
   const cfConnectingIp = headers.get('cf-connecting-ip')
   const xRealIp = headers.get('x-real-ip')
@@ -21,10 +19,5 @@ export function extractClientIp(headers: {
     return xRealIp
   }
 
-  // fallback for development
-  return 'development-no-ip'
-}
-
-export function isDevelopmentIp(ip: string): boolean {
-  return ip === 'development-no-ip'
+  return null
 }
