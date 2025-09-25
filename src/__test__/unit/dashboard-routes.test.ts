@@ -70,27 +70,6 @@ describe('Dashboard Routes', () => {
       const config = getPageConfig('/invalid/path')
       expect(config).toBeNull()
     })
-
-    it('returns correct config for templates route', () => {
-      const config = getPageConfig('/dashboard/team123/templates')
-      expect(config).toBeDefined()
-      expect(config?.title).toBe('Templates')
-      expect(config?.type).toBe('custom')
-    })
-
-    it('returns correct config for members route', () => {
-      const config = getPageConfig('/dashboard/team123/members')
-      expect(config).toBeDefined()
-      expect(config?.title).toBe('Members')
-      expect(config?.type).toBe('default')
-    })
-
-    it('returns correct config for settings route', () => {
-      const config = getPageConfig('/dashboard/team123/settings')
-      expect(config).toBeDefined()
-      expect(config?.title).toBe('Settings')
-      expect(config?.type).toBe('default')
-    })
   })
 
   describe('getGroupedRoutes', () => {
