@@ -31,10 +31,35 @@ interface CreateTeamsResponse {
   slug: string
 }
 
+// ORDERS
+
+interface OrderItem {
+  name: string
+  count: number
+}
+
+interface Order {
+  id: string
+  amount: number
+  items: OrderItem[]
+}
+
+interface TeamOrdersPostRequest {
+  items: OrderItem[]
+}
+
+interface TeamOrdersPostResponse {
+  client_secret: string
+}
+
 export type {
   BillingLimit,
   CreateTeamsResponse,
   CustomerPortalResponse,
   Invoice,
+  Order,
+  OrderItem,
+  TeamOrdersPostRequest,
+  TeamOrdersPostResponse,
   UsageResponse,
 }

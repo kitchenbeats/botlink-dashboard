@@ -40,6 +40,7 @@ export const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 
+  NEXT_PUBLIC_STRIPE_PK: z.string().min(1).optional(),
   NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_INCLUDE_BILLING: z.string().optional(),
   NEXT_PUBLIC_SCAN: z.string().optional(),

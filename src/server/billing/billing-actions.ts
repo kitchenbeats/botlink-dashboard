@@ -3,7 +3,13 @@
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { authActionClient } from '@/lib/clients/action'
 import { handleDefaultInfraError, returnServerError } from '@/lib/utils/action'
-import { CustomerPortalResponse } from '@/types/billing'
+import {
+  CustomerPortalResponse,
+  Order,
+  OrderItem,
+  TeamOrdersPostRequest,
+  TeamOrdersPostResponse,
+} from '@/types/billing'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -154,4 +160,67 @@ export const redirectToCustomerPortal = authActionClient
     const data = (await res.json()) as CustomerPortalResponse
 
     throw redirect(data.url)
+  })
+
+// ADD-ONS
+
+const CreateOrderPaymentIntentParamsSchema = z.object({
+  teamId: z.string().uuid(),
+  order: z.enum(['addon_500_sandboxes']).default('addon_500_sandboxes'),
+})
+
+export const createOrderPaymentIntentAction = authActionClient
+  .schema(CreateOrderPaymentIntentParamsSchema)
+  .metadata({ actionName: 'createOrderPaymentIntent' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId, order } = parsedInput
+    const { session } = ctx
+
+    const items: OrderItem[] = [
+      {
+        name: order,
+        count: 1,
+      },
+    ]
+
+    const body: TeamOrdersPostRequest = {
+      items,
+    }
+
+    const res = await fetch(
+      `${process.env.BILLING_API_URL}/teams/${teamId}/orders`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
+        },
+        body: JSON.stringify(body),
+      }
+    )
+
+    if (!res.ok) {
+      return handleDefaultInfraError(res.status)
+    }
+
+    const data: Order = await res.json()
+
+    const intentRes = await fetch(
+      `${process.env.BILLING_API_URL}/teams/${teamId}/orders/${data.id}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...SUPABASE_AUTH_HEADERS(session.access_token, teamId),
+        },
+      }
+    )
+
+    if (!intentRes.ok) {
+      return handleDefaultInfraError(intentRes.status)
+    }
+
+    const intentData: TeamOrdersPostResponse = await intentRes.json()
+
+    return { order: data, clientSecret: intentData.client_secret }
   })
