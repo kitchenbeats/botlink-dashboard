@@ -1,8 +1,7 @@
 import 'server-cli-only'
 
 import { l } from '@/lib/clients/logger/logger'
-import { Duration } from '@/lib/utils/duration'
-import { Ratelimit } from '@upstash/ratelimit'
+import { Duration, Ratelimit } from '@upstash/ratelimit'
 import { kv } from '@vercel/kv'
 
 const SIGN_UP_LIMIT_PER_WINDOW = parseInt(

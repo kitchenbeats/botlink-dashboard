@@ -20,7 +20,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
-import { incrementSignUpRateLimit, isSignUpRateLimited } from './rate-limiting'
+import { incrementSignUpRateLimit, isSignUpRateLimited } from './ratelimit'
 
 export const signInWithOAuthAction = actionClient
   .schema(
