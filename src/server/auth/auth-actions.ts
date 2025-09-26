@@ -20,7 +20,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
-import { incrementSignUpRateLimit, isSignUpRateLimited } from './ratelimit'
+import { resetSignUpRateLimit, signUpRateLimit } from './ratelimit'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -114,24 +114,31 @@ export const signUpAction = actionClient
 
     const ip = ipAddress(headersStore)
 
-    if (ENABLE_SIGN_UP_RATE_LIMITING && process.env.NODE_ENV === 'production') {
-      if (ip && (await isSignUpRateLimited(ip))) {
-        return returnServerError(
-          'Too many sign-up attempts. Please try again later.'
-        )
-      }
+    const shouldRateLimit =
+      ENABLE_SIGN_UP_RATE_LIMITING &&
+      process.env.NODE_ENV === 'production' &&
+      ip
 
-      if (!ip) {
-        l.warn(
-          {
-            key: 'sign_up_rate_limit:no_ip_headers',
-            context: {
-              message: 'no ip headers found in production',
-            },
+    if (
+      ENABLE_SIGN_UP_RATE_LIMITING &&
+      process.env.NODE_ENV === 'production' &&
+      !ip
+    ) {
+      l.warn(
+        {
+          key: 'sign_up_rate_limit:no_ip_headers',
+          context: {
+            message: 'no ip headers found in production',
           },
-          'Tried to rate limit, but no ip headers were found in production.'
-        )
-      }
+        },
+        'Tried to rate limit, but no ip headers were found in production.'
+      )
+    }
+
+    if (shouldRateLimit && (await signUpRateLimit(ip))) {
+      return returnServerError(
+        'Too many sign-up attempts. Please try again later.'
+      )
     }
 
     // SIGN UP
@@ -150,6 +157,12 @@ export const signUpAction = actionClient
     })
 
     if (error) {
+      // we reset the sign up rate limit on failure,
+      // since no account got registered in the end.
+      if (shouldRateLimit) {
+        resetSignUpRateLimit(ip)
+      }
+
       switch (error.code) {
         case 'email_exists':
           return returnServerError(USER_MESSAGES.emailInUse.message)
@@ -162,14 +175,6 @@ export const signUpAction = actionClient
         default:
           throw error
       }
-    }
-
-    if (
-      ENABLE_SIGN_UP_RATE_LIMITING &&
-      process.env.NODE_ENV === 'production' &&
-      ip
-    ) {
-      await incrementSignUpRateLimit(ip)
     }
   })
 

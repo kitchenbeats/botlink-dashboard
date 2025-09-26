@@ -1,6 +1,5 @@
 import 'server-cli-only'
 
-import { l } from '@/lib/clients/logger/logger'
 import { Duration, Ratelimit } from '@upstash/ratelimit'
 import { kv } from '@vercel/kv'
 
@@ -16,30 +15,27 @@ const _ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(SIGN_UP_LIMIT_PER_WINDOW, SIGN_UP_WINDOW),
 })
 
-export async function incrementSignUpRateLimit(
-  identifier: string
-): Promise<boolean> {
+/**
+ * Checks if the sign-up rate limit has been reached for the given identifier.
+ *
+ * @param identifier - The unique identifier (e.g., IP address, user ID) to check rate limit for
+ * @returns Promise<boolean> - Returns true if the rate limit has been reached (no more attempts allowed),
+ *                            false if more attempts are available or if there was an error checking the limit
+ */
+export async function signUpRateLimit(identifier: string): Promise<boolean> {
   const result = await _ratelimit.limit(identifier)
 
-  if (!result.success) {
-    l.error({
-      key: 'sign_up_rate_limit_increment:limit_error',
-      context: {
-        identifier,
-        result,
-      },
-    })
-
-    return false
-  }
-
-  return result.remaining === 0
+  // we return:
+  // - true (is rate limited)
+  // - false (is not rate limited)
+  return !result.success
 }
 
-export async function isSignUpRateLimited(
-  identifier: string
-): Promise<boolean> {
-  const result = await _ratelimit.getRemaining(identifier)
-
-  return result.remaining === 0
+/**
+ * Resets the rate limit counter for the given identifier, allowing them to make new attempts.
+ *
+ * @param identifier - The unique identifier whose rate limit should be reset
+ */
+export async function resetSignUpRateLimit(identifier: string) {
+  await _ratelimit.resetUsedTokens(identifier)
 }
