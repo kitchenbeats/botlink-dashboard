@@ -9,18 +9,18 @@ import { createClient } from '@/lib/clients/supabase/server'
 import { relativeUrlSchema } from '@/lib/schemas/url'
 import { returnServerError } from '@/lib/utils/action'
 import { encodedRedirect } from '@/lib/utils/auth'
-import { extractClientIp } from '@/lib/utils/ip-extraction'
 import {
   shouldWarnAboutAlternateEmail,
   validateEmail,
 } from '@/server/auth/validate-email'
 import { Provider } from '@supabase/supabase-js'
+import { ipAddress } from '@vercel/functions'
 import { returnValidationErrors } from 'next-safe-action'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
-import { applySignUpRateLimit, checkSignUpRateLimit } from './rate-limiting'
+import { incrementSignUpRateLimit, isSignUpRateLimited } from './rate-limiting'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -112,10 +112,10 @@ export const signUpAction = actionClient
 
     // RATE LIMITING
 
-    const ip = extractClientIp(headersStore)
+    const ip = ipAddress(headersStore)
 
     if (ENABLE_SIGN_UP_RATE_LIMITING && process.env.NODE_ENV === 'production') {
-      if (ip && (await checkSignUpRateLimit(ip))) {
+      if (ip && (await isSignUpRateLimited(ip))) {
         return returnServerError(
           'Too many sign-up attempts. Please try again later.'
         )
@@ -169,7 +169,7 @@ export const signUpAction = actionClient
       process.env.NODE_ENV === 'production' &&
       ip
     ) {
-      await applySignUpRateLimit(ip)
+      await incrementSignUpRateLimit(ip)
     }
   })
 

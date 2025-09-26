@@ -1,93 +1,46 @@
+import 'server-cli-only'
+
 import { l } from '@/lib/clients/logger/logger'
 import { Duration } from '@/lib/utils/duration'
-import { applyRateLimit, checkRateLimit } from '@/lib/utils/ratelimit'
-import { serializeError } from 'serialize-error'
+import { Ratelimit } from '@upstash/ratelimit'
+import { kv } from '@vercel/kv'
 
-// helper to parse and validate positive numbers
-function parsePositiveNumber(
-  value: string | undefined,
-  defaultValue: number,
-  name: string
-): number {
-  if (!value) return defaultValue
-
-  const parsed = Number(value)
-  if (isNaN(parsed) || parsed <= 0) {
-    l.warn({
-      key: 'rate_limit_config:invalid_value',
-      context: {
-        variable: name,
-        value,
-        defaultUsed: defaultValue,
-      },
-    })
-    return defaultValue
-  }
-
-  return parsed
-}
-
-// actual sign-ups configuration (limit account creation)
-const SIGN_UP_LIMIT_PER_WINDOW = parsePositiveNumber(
-  process.env.SIGN_UP_LIMIT_PER_WINDOW as string | undefined,
-  1,
-  'SIGN_UP_LIMIT_PER_WINDOW'
+const SIGN_UP_LIMIT_PER_WINDOW = parseInt(
+  process.env.SIGN_UP_LIMIT_PER_WINDOW || '1'
 )
-const SIGN_UP_WINDOW_HOURS = parsePositiveNumber(
-  process.env.SIGN_UP_WINDOW_HOURS as string | undefined,
-  24,
-  'SIGN_UP_WINDOW_HOURS'
-)
+const SIGN_UP_WINDOW_HOURS = parseInt(process.env.SIGN_UP_WINDOW_HOURS || '24')
 
-// convert to duration format
 const SIGN_UP_WINDOW: Duration = `${SIGN_UP_WINDOW_HOURS}h`
 
-export async function applySignUpRateLimit(
+const _ratelimit = new Ratelimit({
+  redis: kv,
+  limiter: Ratelimit.slidingWindow(SIGN_UP_LIMIT_PER_WINDOW, SIGN_UP_WINDOW),
+})
+
+export async function incrementSignUpRateLimit(
   identifier: string
 ): Promise<boolean> {
-  try {
-    const result = await applyRateLimit(
-      `signup:${identifier}`,
-      SIGN_UP_LIMIT_PER_WINDOW,
-      SIGN_UP_WINDOW
-    )
+  const result = await _ratelimit.limit(identifier)
 
-    if (!result) {
-      return false
-    }
-
-    return !result.success
-  } catch (error) {
+  if (!result.success) {
     l.error({
-      key: 'sign_up_rate_limit:check_error',
-      error: serializeError(error),
+      key: 'sign_up_rate_limit_increment:limit_error',
+      context: {
+        identifier,
+        result,
+      },
     })
-    // on error, allow the request to proceed
+
     return false
   }
+
+  return result.remaining === 0
 }
 
-export async function checkSignUpRateLimit(
+export async function isSignUpRateLimited(
   identifier: string
 ): Promise<boolean> {
-  try {
-    const result = await checkRateLimit(
-      `signup:${identifier}`,
-      SIGN_UP_LIMIT_PER_WINDOW,
-      SIGN_UP_WINDOW
-    )
+  const result = await _ratelimit.getRemaining(identifier)
 
-    if (!result) {
-      return false
-    }
-
-    return !result.success
-  } catch (error) {
-    l.error({
-      key: 'sign_up_rate_limit:check_error',
-      error: serializeError(error),
-    })
-    // on error, allow the request to proceed
-    return false
-  }
+  return result.remaining === 0
 }
