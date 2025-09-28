@@ -25,14 +25,14 @@ export default function DashboardLayoutHeader({
         'sticky top-0 z-50 bg-bg/40 backdrop-blur-md min-h-13 flex items-center md:items-end gap-2',
         {
           'border-b p-3 md:p-6': config.type === 'default',
-          'pb-0 px-3 md:px-6': config.type === 'custom',
+          'px-3 md:px-6': config.type === 'custom',
         },
         className
       )}
     >
       <SidebarTrigger className="w-7 h-7 md:hidden -translate-x-1" />
 
-      <h1 className="mr-auto">{config?.title}</h1>
+      <h1 className="mr-auto">{config.title}</h1>
 
       {/* custom content if provided via parallel route */}
       {headerInjectable && <>{headerInjectable}</>}

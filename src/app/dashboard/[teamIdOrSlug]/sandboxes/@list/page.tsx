@@ -50,7 +50,7 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
               'Unknown error',
           } satisfies Error
         }
-        description={'Could not load sandboxes'}
+        description="Could not load sandboxes"
       />
     )
   }

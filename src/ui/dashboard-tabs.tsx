@@ -32,77 +32,46 @@ export function DashboardTabs({
   const searchParams = useSearchParams()
   const pathname = usePathname()
 
-  const tabsClassName = cn('min-h-0 w-full flex-1 h-full', className)
-  const tabsListClassName = cn('bg-bg z-30 w-full justify-start pl-3 md:pl-6')
-  const tabsTriggerClassName = cn('w-fit flex-none')
-
-  // QUERY BASED TABS
-
-  if (type === 'query') {
-    // for query-based tabs, use current pathname as base
-    const basePath = pathname
-
-    const tabs = tabChildren.map((child) => ({
-      id: child.props.id,
-      label: child.props.label,
-      icon: child.props.icon,
-      href: `${basePath}?tab=${child.props.id}`,
-    }))
-
-    const defaultTab = tabs[0]!
-    const activeTabId = searchParams.get('tab') || defaultTab?.id
-
-    return (
-      <Tabs value={activeTabId} className={tabsClassName}>
-        <TabsList className={tabsListClassName}>
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.id}
-              layoutkey={layoutKey}
-              value={tab.id}
-              className={tabsTriggerClassName}
-              asChild
-            >
-              <Link href={tab.href} prefetch>
-                {tab.icon}
-                {tab.label}
-              </Link>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {children}
-      </Tabs>
-    )
-  }
-
-  // PATH BASED TABS
-
+  // build tab models once
   const tabs = tabChildren.map((child) => ({
     id: child.props.id,
     label: child.props.label,
     icon: child.props.icon,
   }))
 
-  const basePath = inferBasePathForPathTabs(pathname, tabs)
+  // derive hrefs and active tab based on `type`
+  let hrefForId = (id: string) => ''
+  let activeTabId: string | undefined
+
+  if (type === 'query') {
+    const basePath = pathname
+    hrefForId = (id: string) => `${basePath}?tab=${id}`
+    const defaultTabId = tabs[0]?.id
+    activeTabId = searchParams.get('tab') || defaultTabId
+  } else {
+    const basePath = inferBasePathForPathTabs(pathname, tabs)
+    hrefForId = (id: string) => `${basePath}/${id}`
+    activeTabId =
+      tabs.find((tab) => pathname.endsWith(tab.id))?.id || tabs[0]?.id
+  }
 
   const tabsWithHrefs = tabs.map((tab) => ({
     ...tab,
-    href: `${basePath}/${tab.id}`,
+    href: hrefForId(tab.id),
   }))
 
-  const activeTabId =
-    tabs.find((tab) => pathname.endsWith(tab.id))?.id || tabs[0]?.id
-
   return (
-    <Tabs value={activeTabId} className={tabsClassName}>
-      <TabsList className={tabsListClassName}>
+    <Tabs
+      value={activeTabId}
+      className={cn('min-h-0 w-full flex-1 h-full', className)}
+    >
+      <TabsList className="bg-bg z-30 w-full justify-start">
         {tabsWithHrefs.map((tab) => (
           <TabsTrigger
             key={tab.id}
             layoutkey={layoutKey}
             value={tab.id}
-            className={tabsTriggerClassName}
+            className="w-fit flex-none"
             asChild
           >
             <Link href={tab.href} prefetch>
