@@ -1,9 +1,9 @@
 'use client'
 
-import { getRouteById } from '@/configs/dashboard-routes'
-import { DashboardTabs } from '@/ui/dashboard-tabs'
+import { DashboardTab, DashboardTabs } from '@/ui/dashboard-tabs'
+import { ListIcon, TrendIcon } from '@/ui/primitives/icons'
 import micromatch from 'micromatch'
-import { useParams, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { ReactNode } from 'react'
 
 interface SandboxesTabsProps {
@@ -18,37 +18,32 @@ export default function SandboxesTabs({
   inspectContent,
 }: SandboxesTabsProps) {
   const pathname = usePathname()
-  const { teamIdOrSlug } = useParams<{ teamIdOrSlug: string }>()
 
-  const isInspectRoute = micromatch.isMatch(pathname, '*/**/sandboxes/**/*')
+  const isInspectRoute = micromatch.isMatch(
+    pathname,
+    'dashbhoard/*/sandboxes/**/*'
+  )
 
   if (isInspectRoute) {
     return inspectContent
   }
 
-  // get sandboxes route config with tabs
-  const sandboxesRoute = getRouteById('sandboxes')
-  if (!sandboxesRoute || !sandboxesRoute.tabs) {
-    // fallback if config is missing
-    return monitoringContent
-  }
-
-  const basePath = sandboxesRoute.path(teamIdOrSlug)
-
-  // map parallel segments to content
-  const tabContentMap: Record<string, ReactNode> = {
-    '@monitoring': monitoringContent,
-    '@list': listContent,
-  }
-
   return (
-    <DashboardTabs
-      type="query"
-      tabs={sandboxesRoute.tabs}
-      basePath={basePath}
-      layoutKey="tabs-indicator-sandboxes"
-    >
-      {tabContentMap}
+    <DashboardTabs type="query" layoutKey="tabs-indicator-sandboxes">
+      <DashboardTab
+        id="monitoring"
+        label="Monitoring"
+        icon={<TrendIcon className="size-4" />}
+      >
+        {monitoringContent}
+      </DashboardTab>
+      <DashboardTab
+        id="list"
+        label="List"
+        icon={<ListIcon className="size-4" />}
+      >
+        {listContent}
+      </DashboardTab>
     </DashboardTabs>
   )
 }

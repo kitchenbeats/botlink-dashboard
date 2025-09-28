@@ -73,7 +73,7 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
   ]
 
   return (
-    <div className="flex flex-1 flex-col md:overflow-hidden">
+    <div className="flex flex-col h-full relative min-h-0 md:overflow-hidden">
       <SandboxesTable
         sandboxes={sandboxes}
         templates={templates}

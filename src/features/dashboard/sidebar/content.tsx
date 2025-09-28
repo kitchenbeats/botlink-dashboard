@@ -1,6 +1,6 @@
 'use client'
 
-import { getGroupedRoutes } from '@/configs/dashboard-routes'
+import { SIDEBAR_MAIN_LINKS, SidebarNavItem } from '@/configs/sidebar'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { cn } from '@/lib/utils'
 import micromatch from 'micromatch'
@@ -20,6 +20,21 @@ import {
 } from '@/ui/primitives/sidebar'
 import { usePathname } from 'next/navigation'
 
+type GroupedLinks = {
+  [key: string]: SidebarNavItem[]
+}
+
+const createGroupedLinks = (links: SidebarNavItem[]): GroupedLinks => {
+  return links.reduce((acc, link) => {
+    const group = link.group || 'ungrouped'
+    if (!acc[group]) {
+      acc[group] = []
+    }
+    acc[group].push(link)
+    return acc
+  }, {} as GroupedLinks)
+}
+
 export default function DashboardSidebarContent() {
   const selectedTeam = useSelectedTeam()
   const selectedTeamIdentifier = selectedTeam?.slug ?? selectedTeam?.id
@@ -27,39 +42,36 @@ export default function DashboardSidebarContent() {
   const isMobile = useIsMobile()
   const { setOpenMobile } = useSidebar()
 
-  const groupedRoutes = useMemo(() => getGroupedRoutes(), [])
+  const groupedNavLinks = useMemo(
+    () => createGroupedLinks(SIDEBAR_MAIN_LINKS),
+    []
+  )
 
-  const isActive = (pattern: string) => {
-    if (!pathname) return false
-    return micromatch.isMatch(pathname, pattern)
+  const isActive = (link: SidebarNavItem) => {
+    if (!pathname || !link.activeMatch) return false
+
+    return micromatch.isMatch(pathname, link.activeMatch)
   }
 
   return (
     <SidebarContent className="overflow-x-hidden gap-0">
-      {Object.entries(groupedRoutes).map(([group, routes]) => (
+      {Object.entries(groupedNavLinks).map(([group, links], ix) => (
         <SidebarGroup key={group}>
           {group !== 'ungrouped' && (
             <SidebarGroupLabel>{group}</SidebarGroupLabel>
           )}
           <SidebarMenu>
-            {routes.map((route) => {
-              // handle default tab if route has tabs
-              let href = route.path(selectedTeamIdentifier ?? '')
-              if (route.tabs) {
-                const defaultTab = route.tabs.find((t) => t.isDefault)
-                if (defaultTab) {
-                  href = `${href}?tab=${defaultTab.id}`
-                }
-              }
+            {links.map((item) => {
+              const href = item.href({
+                teamIdOrSlug: selectedTeamIdentifier ?? undefined,
+              })
 
               return (
-                <SidebarMenuItem key={route.id}>
+                <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
-                    variant={
-                      isActive(route.activePattern) ? 'active' : 'default'
-                    }
+                    variant={isActive(item) ? 'active' : 'default'}
                     asChild
-                    tooltip={route.label}
+                    tooltip={item.label}
                   >
                     <Link
                       suppressHydrationWarning
@@ -73,15 +85,14 @@ export default function DashboardSidebarContent() {
                           : undefined
                       }
                     >
-                      <route.icon
+                      <item.icon
                         className={cn(
                           'group-data-[collapsible=icon]:size-5 transition-[size,color]',
                           SIDEBAR_TRANSITION_CLASSNAMES,
-                          isActive(route.activePattern) &&
-                            'text-accent-main-highlight'
+                          isActive(item) && 'text-accent-main-highlight'
                         )}
                       />
-                      <span>{route.label}</span>
+                      <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

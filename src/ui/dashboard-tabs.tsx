@@ -1,125 +1,160 @@
 'use client'
 
-import { RouteTab } from '@/configs/dashboard-routes'
 import { cn } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/primitives/tabs'
-import { LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { ReactNode } from 'react'
+import { ReactElement, ReactNode, useMemo } from 'react'
 
-// query param based tabs (for dashboard routes with parallel segments)
-interface QueryParamTabsProps {
-  type: 'query'
-  tabs: RouteTab[]
-  basePath: string
-  children: Record<string, ReactNode> // keyed by tab parallelSegment
+type DashboardTabElement = ReactElement<DashboardTabProps, typeof DashboardTab>
+
+export interface DashboardTabsProps {
+  layoutKey: string
+  type: 'query' | 'path'
+  children: Array<DashboardTabElement> | DashboardTabElement
   className?: string
-  layoutKey?: string
 }
 
-// path based tabs (for detail pages like sandbox inspect)
-interface PathBasedTabsProps {
-  type: 'path'
-  tabs: Array<{
-    id: string
-    label: string
-    icon?: LucideIcon
-    href: string
-  }>
-  children: Record<string, ReactNode> // keyed by tab id
-  className?: string
-  layoutKey?: string
-}
+// COMPONENT
 
-export type DashboardTabsProps = QueryParamTabsProps | PathBasedTabsProps
+export function DashboardTabs({
+  layoutKey,
+  type,
+  children,
+  className,
+}: DashboardTabsProps) {
+  // ensure children is an array
+  const tabChildren = useMemo(
+    () => (Array.isArray(children) ? children : [children]),
+    [children]
+  )
 
-export function DashboardTabs(props: DashboardTabsProps) {
   const searchParams = useSearchParams()
   const pathname = usePathname()
 
-  if (props.type === 'query') {
-    const {
-      tabs,
-      basePath,
-      children,
-      className,
-      layoutKey = 'tabs-indicator',
-    } = props
-    const defaultTab = tabs.find((t) => t.isDefault)
-    const activeTabId = searchParams.get('tab') || defaultTab?.id || tabs[0]?.id
+  const tabsClassName = cn('min-h-0 w-full flex-1 h-full', className)
+  const tabsListClassName = cn('bg-bg z-30 w-full justify-start pl-3 md:pl-6')
+  const tabsTriggerClassName = cn('w-fit flex-none')
+
+  // QUERY BASED TABS
+
+  if (type === 'query') {
+    // for query-based tabs, use current pathname as base
+    const basePath = pathname
+
+    const tabs = tabChildren.map((child) => ({
+      id: child.props.id,
+      label: child.props.label,
+      icon: child.props.icon,
+      href: `${basePath}?tab=${child.props.id}`,
+    }))
+
+    const defaultTab = tabs[0]!
+    const activeTabId = searchParams.get('tab') || defaultTab?.id
 
     return (
-      <Tabs
-        value={activeTabId}
-        className={cn('min-h-0 w-full flex-1 pt-3.5 h-full', className)}
-      >
-        <TabsList className="bg-bg z-30 w-full justify-start pl-6">
+      <Tabs value={activeTabId} className={tabsClassName}>
+        <TabsList className={tabsListClassName}>
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.id}
               layoutkey={layoutKey}
               value={tab.id}
-              className="w-fit flex-none"
+              className={tabsTriggerClassName}
               asChild
             >
-              <Link href={`${basePath}?tab=${tab.id}`} prefetch>
-                {tab.icon && <tab.icon className="size-3.5" />}
+              <Link href={tab.href} prefetch>
+                {tab.icon}
                 {tab.label}
               </Link>
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {tabs.map((tab) => (
-          <TabsContent
-            key={tab.id}
-            value={tab.id}
-            className="flex flex-1 flex-col overflow-hidden"
-          >
-            {children[tab.parallelSegment]}
-          </TabsContent>
-        ))}
+        {children}
       </Tabs>
     )
   }
 
-  // path based tabs
-  const { tabs, children, className, layoutKey = 'tabs-indicator' } = props
+  // PATH BASED TABS
+
+  const tabs = tabChildren.map((child) => ({
+    id: child.props.id,
+    label: child.props.label,
+    icon: child.props.icon,
+  }))
+
+  const basePath = inferBasePathForPathTabs(pathname, tabs)
+
+  const tabsWithHrefs = tabs.map((tab) => ({
+    ...tab,
+    href: `${basePath}/${tab.id}`,
+  }))
+
   const activeTabId =
     tabs.find((tab) => pathname.endsWith(tab.id))?.id || tabs[0]?.id
 
   return (
-    <Tabs
-      value={activeTabId}
-      className={cn('min-h-0 w-full flex-1', className)}
-    >
-      <TabsList className="bg-bg z-30 w-full justify-start pl-3 md:pl-6">
-        {tabs.map((tab) => (
+    <Tabs value={activeTabId} className={tabsClassName}>
+      <TabsList className={tabsListClassName}>
+        {tabsWithHrefs.map((tab) => (
           <TabsTrigger
             key={tab.id}
             layoutkey={layoutKey}
             value={tab.id}
-            className="w-fit flex-none"
+            className={tabsTriggerClassName}
             asChild
           >
             <Link href={tab.href} prefetch>
-              {tab.icon && <tab.icon className="size-3.5" />}
+              {tab.icon}
               {tab.label}
             </Link>
           </TabsTrigger>
         ))}
       </TabsList>
 
-      {tabs.map((tab) => (
-        <TabsContent
-          key={tab.id}
-          value={tab.id}
-          className={cn('flex flex-1 flex-col md:overflow-hidden')}
-        >
-          {children[tab.id]}
-        </TabsContent>
-      ))}
+      {children}
     </Tabs>
   )
+}
+
+export interface DashboardTabProps {
+  id: string
+  label: string
+  icon: ReactNode
+  children: ReactNode
+  className?: string
+}
+
+export function DashboardTab(props: DashboardTabProps) {
+  return (
+    <TabsContent
+      value={props.id}
+      className={cn(
+        'flex-1 min-h-0 h-full w-full overflow-hidden',
+        props.className
+      )}
+    >
+      {props.children}
+    </TabsContent>
+  )
+}
+
+// HELPERS
+
+/**
+ * Infers the base path for path-based tabs by checking if the current
+ * pathname ends with a tab ID. If it does, removes that segment to get the base.
+ */
+function inferBasePathForPathTabs(
+  pathname: string,
+  tabs: Array<{ id: string }>
+): string {
+  const pathSegments = pathname.split('/')
+  const lastSegment = pathSegments[pathSegments.length - 1]
+
+  // if last segment is a tab id, remove it to get base path
+  const isTabSegment = tabs.some((tab) => tab.id === lastSegment)
+
+  return isTabSegment ? pathSegments.slice(0, -1).join('/') : pathname
 }

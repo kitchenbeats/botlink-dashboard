@@ -12,10 +12,10 @@ export default async function MembersPage({ params }: MembersPageProps) {
     <Frame
       classNames={{
         wrapper: 'w-full max-md:p-0',
-        frame: 'max-md:border-none',
+        frame: 'max-md:border-none max-md:p-0',
       }}
     >
-      <section className="col-span-full border-t">
+      <section className="col-span-full">
         <MemberCard params={params} className="" />
       </section>
     </Frame>

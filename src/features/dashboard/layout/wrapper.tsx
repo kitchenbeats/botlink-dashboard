@@ -1,6 +1,6 @@
 'use client'
 
-import { getPageConfig } from '@/configs/dashboard-routes'
+import { getDashboardLayoutConfig } from '@/configs/layout'
 import { CatchErrorBoundary } from '@/ui/error'
 import { usePathname } from 'next/navigation'
 
@@ -10,9 +10,9 @@ export default function DashboardLayoutWrapper({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const config = getPageConfig(pathname)
+  const config = getDashboardLayoutConfig(pathname)
 
-  if (config?.type === 'default') {
+  if (config.type === 'default') {
     return (
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto p-0 md:p-8 2xl:p-24 h-min w-full">
