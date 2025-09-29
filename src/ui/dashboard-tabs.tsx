@@ -6,7 +6,12 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { ReactElement, ReactNode, useMemo } from 'react'
 
-type DashboardTabElement = ReactElement<DashboardTabProps, typeof DashboardTab>
+type CoreDashboardTabElement = ReactElement<
+  DashboardTabProps,
+  typeof DashboardTab
+>
+
+export type DashboardTabElement = CoreDashboardTabElement | false
 
 export interface DashboardTabsProps {
   layoutKey: string
@@ -23,9 +28,12 @@ export function DashboardTabs({
   children,
   className,
 }: DashboardTabsProps) {
-  // ensure children is an array
+  // ensure children is an array && remove falsy values
   const tabChildren = useMemo(
-    () => (Array.isArray(children) ? children : [children]),
+    () =>
+      (Array.isArray(children) ? children : [children]).filter(
+        Boolean
+      ) as CoreDashboardTabElement[],
     [children]
   )
 

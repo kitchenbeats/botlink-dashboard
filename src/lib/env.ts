@@ -5,7 +5,6 @@ export const serverSchema = z.object({
   INFRA_API_URL: z.string().url(),
   KV_REST_API_TOKEN: z.string().min(1),
   KV_REST_API_URL: z.string().url(),
-  NEXT_PUBLIC_E2B_DOMAIN: z.string(),
 
   BILLING_API_URL: z.string().url().optional(),
   ZEROBOUNCE_API_KEY: z.string().optional(),
@@ -39,9 +38,11 @@ export const serverSchema = z.object({
 export const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  NEXT_PUBLIC_E2B_DOMAIN: z.string(),
 
   NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
   NEXT_PUBLIC_INCLUDE_BILLING: z.string().optional(),
+  NEXT_PUBLIC_INCLUDE_ARGUS: z.string().optional(),
   NEXT_PUBLIC_SCAN: z.string().optional(),
   NEXT_PUBLIC_MOCK_DATA: z.string().optional(),
   NEXT_PUBLIC_VERBOSE: z.string().optional(),
