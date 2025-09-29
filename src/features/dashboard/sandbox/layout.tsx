@@ -21,7 +21,7 @@ export default function SandboxLayout({
 }: SandboxLayoutProps) {
   const { sandboxInfo } = useSandboxContext()
 
-  const isEnvdVersionIncompatibleForInspect = Boolean(
+  const isEnvdVersionCompatibleForInspect = Boolean(
     sandboxInfo?.envdVersion &&
       isVersionCompatible(
         sandboxInfo.envdVersion,
@@ -43,13 +43,13 @@ export default function SandboxLayout({
           label="Inspect"
           icon={<SearchIcon className="size-4" />}
         >
-          {isEnvdVersionIncompatibleForInspect ? (
+          {isEnvdVersionCompatibleForInspect ? (
+            children
+          ) : (
             <SandboxInspectIncompatible
               templateNameOrId={sandboxInfo.alias || sandboxInfo.templateID}
               teamIdOrSlug={teamIdOrSlug}
             />
-          ) : (
-            children
           )}
         </DashboardTab>
       </DashboardTabs>
