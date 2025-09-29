@@ -3,7 +3,7 @@
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { authActionClient } from '@/lib/clients/action'
 import { handleDefaultInfraError, returnServerError } from '@/lib/utils/action'
-import { CustomerPortalResponse } from '@/types/billing'
+import { CustomerPortalResponse } from '@/types/billing.types'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'

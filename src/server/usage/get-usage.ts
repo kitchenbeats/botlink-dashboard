@@ -8,7 +8,7 @@ import {
   SandboxesUsageDelta,
   UsageData,
 } from '@/server/usage/types'
-import { UsageResponse } from '@/types/billing'
+import { UsageResponse } from '@/types/billing.types'
 import { cache } from 'react'
 import { z } from 'zod'
 

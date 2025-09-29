@@ -1,4 +1,4 @@
-import { Template } from '@/types/api'
+import { Template } from '@/types/api.types'
 import { PollingButton } from '@/ui/polling-button'
 import { Badge } from '@/ui/primitives/badge'
 import { Circle, ListFilter } from 'lucide-react'

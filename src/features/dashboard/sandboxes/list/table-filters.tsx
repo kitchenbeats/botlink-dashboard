@@ -1,7 +1,7 @@
 import { useSandboxTableStore } from '@/features/dashboard/sandboxes/list/stores/table-store'
 import { cn } from '@/lib/utils'
 import { formatCPUCores, formatMemory } from '@/lib/utils/formatting'
-import { Template } from '@/types/api'
+import { Template } from '@/types/api.types'
 import { NumberInput } from '@/ui/number-input'
 import { Button } from '@/ui/primitives/button'
 import {
