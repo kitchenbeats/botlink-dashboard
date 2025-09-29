@@ -63,7 +63,7 @@ export function DashboardTabs({
   return (
     <Tabs
       value={activeTabId}
-      className={cn('min-h-0 w-full flex-1 h-full', className)}
+      className={cn('min-h-0 w-full flex-1 h-full md:mt-2', className)}
     >
       <TabsList className="bg-bg z-30 w-full justify-start">
         {tabsWithHrefs.map((tab) => (
