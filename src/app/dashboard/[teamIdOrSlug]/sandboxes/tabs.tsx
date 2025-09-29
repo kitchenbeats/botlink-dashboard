@@ -21,7 +21,7 @@ export default function SandboxesTabs({
 
   const isInspectRoute = micromatch.isMatch(
     pathname,
-    'dashbhoard/*/sandboxes/**/*'
+    'dashboard/*/sandboxes/**/*'
   )
 
   if (isInspectRoute) {
