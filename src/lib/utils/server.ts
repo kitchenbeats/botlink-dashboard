@@ -206,17 +206,13 @@ export async function resolveTeamIdInServerComponent(identifier?: string) {
 
   let teamId = cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
 
-  if (!teamId && !identifier) {
-    throw redirect(PROTECTED_URLS.DASHBOARD)
-  }
-
   if (!teamId) {
     if (!identifier) {
       throw redirect(PROTECTED_URLS.DASHBOARD)
     }
 
     // Middleware should prevent this case, but just in case
-    teamId = await resolveTeamId(identifier!)
+    teamId = await resolveTeamId(identifier)
     cookiesStore.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId)
 
     l.info({
