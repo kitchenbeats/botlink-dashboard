@@ -6,10 +6,12 @@ import { PROTECTED_URLS } from '@/configs/urls'
 import { kv } from '@/lib/clients/kv'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { createClient } from '@/lib/clients/supabase/server'
+import { getSessionInsecure } from '@/server/auth/get-session'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
 import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
 import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { infra } from '../clients/api'
@@ -27,9 +29,9 @@ export async function checkAuthenticated() {
 
   // retrieve session from storage medium (cookies)
   // if no stored session found, not authenticated
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+
+  // it's fine to use the "insecure" cookie session here, since we only use it for quick denial and do a proper auth check (auth.getUser) afterwards.
+  const session = await getSessionInsecure(supabase)
 
   if (!session) {
     throw UnauthenticatedError()
@@ -209,6 +211,10 @@ export async function resolveTeamIdInServerComponent(identifier?: string) {
   }
 
   if (!teamId) {
+    if (!identifier) {
+      throw redirect(PROTECTED_URLS.DASHBOARD)
+    }
+
     // Middleware should prevent this case, but just in case
     teamId = await resolveTeamId(identifier!)
     cookiesStore.set(COOKIE_KEYS.SELECTED_TEAM_ID, teamId)
@@ -236,3 +242,17 @@ export async function resolveTeamSlugInServerComponent() {
 
   return cookiesStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
 }
+
+/**
+ * Returns a consistent "now" timestamp for the entire request.
+ * Memoized using React cache() to ensure all server components
+ * in the same request tree get the exact same timestamp.
+ *
+ * The timestamp is rounded to the nearest 5 seconds for better cache alignment
+ * and to reduce cache fragmentation.
+ */
+export const getNowMemo = cache(() => {
+  const now = Date.now()
+  // round to nearest 5 seconds for better cache alignment
+  return Math.floor(now / 5000) * 5000
+})
