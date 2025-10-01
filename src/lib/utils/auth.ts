@@ -31,6 +31,7 @@ export function getUserProviders(user: User) {
 
 /**
  * Checks if a user's email is verified based on their OAuth provider's identity data.
+ * Intended for use at signup when user has exactly one identity.
  * @param {User} user - The Supabase user object
  * @returns {{ verified: boolean, provider?: string, reason?: string }} - Verification status and details
  */
@@ -52,46 +53,55 @@ export function isOAuthEmailVerified(user: User): {
     }
   }
 
-  // Check each identity for email verification
-  for (const identity of identities) {
-    const provider = identity.provider
-    const identityData = identity.identity_data
+  // Check the first identity (at signup, there's only one)
+  const identity = identities[0]
+  if (!identity) {
+    return { verified: false, reason: 'No identity found' }
+  }
 
-    if (!identityData) continue
+  const provider = identity.provider
+  const identityData = identity.identity_data
 
-    switch (provider) {
-      case 'google':
-        // Google provides email_verified field
-        // Require explicit true - fail closed if undefined/null/false
-        if (identityData.email_verified !== true) {
-          return {
-            verified: false,
-            provider: 'google',
-            reason: 'Google email not verified',
-          }
-        }
-        break
-
-      case 'github':
-        // GitHub provides verified field (for email verification)
-        // Note: GitHub returns the primary email's verification status
-        // Require explicit true - fail closed if undefined/null/false
-        if (identityData.verified !== true) {
-          return {
-            verified: false,
-            provider: 'github',
-            reason: 'GitHub email not verified',
-          }
-        }
-        break
-
-      // Add other providers as needed
-      default:
-        // For other OAuth providers, assume verified if they have an email
-        break
+  if (!identityData) {
+    return {
+      verified: false,
+      provider,
+      reason: 'No identity data available',
     }
   }
 
-  // If we get here, all checks passed
-  return { verified: true }
+  switch (provider) {
+    case 'google':
+      // Google provides email_verified field
+      // Require explicit true - fail closed if undefined/null/false
+      if (identityData.email_verified !== true) {
+        return {
+          verified: false,
+          provider: 'google',
+          reason: 'Google email not verified',
+        }
+      }
+      break
+
+    case 'github':
+      // GitHub provides verified field (for email verification)
+      // Note: GitHub returns the primary email's verification status
+      // Require explicit true - fail closed if undefined/null/false
+      if (identityData.verified !== true) {
+        return {
+          verified: false,
+          provider: 'github',
+          reason: 'GitHub email not verified',
+        }
+      }
+      break
+
+    // Add other providers as needed
+    default:
+      // For other OAuth providers, assume verified if they have an email
+      break
+  }
+
+  // If we get here, the check passed
+  return { verified: true, provider }
 }

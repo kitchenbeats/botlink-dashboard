@@ -59,47 +59,60 @@ export async function GET(request: Request) {
         `OTP successfully exchanged for user session`
       )
 
-      // Check if the user's OAuth email is verified
-      const emailVerification = isOAuthEmailVerified(data.user)
+      // Check email verification only for new users (signup)
+      // Existing users with linked identities can sign in with any provider
+      const isNewUser = data.user.identities?.length === 1
 
-      if (!emailVerification.verified) {
-        l.warn(
-          {
-            key: 'auth_callback:email_not_verified',
-            user_id: data.user.id,
-            provider: emailVerification.provider,
-            reason: emailVerification.reason,
-          },
-          `User OAuth email not verified: ${emailVerification.reason}`
-        )
+      if (isNewUser) {
+        const emailVerification = isOAuthEmailVerified(data.user)
 
-        // Sign out the user since they don't have a verified email
-        await supabase.auth.signOut()
+        if (!emailVerification.verified) {
+          l.warn(
+            {
+              key: 'auth_callback:email_not_verified',
+              user_id: data.user.id,
+              provider: emailVerification.provider,
+              reason: emailVerification.reason,
+            },
+            `User OAuth email not verified: ${emailVerification.reason}`
+          )
 
-        // Redirect with appropriate error message based on provider
-        let errorMessage: string
-        if (emailVerification.provider === 'google') {
-          errorMessage = USER_MESSAGES.googleEmailNotVerified.message
-        } else if (emailVerification.provider === 'github') {
-          errorMessage =
-            'Your GitHub email is not verified. Please verify your email with GitHub and try again.'
-        } else if (emailVerification.provider) {
-          errorMessage = `Your ${emailVerification.provider} email is not verified. Please verify your email and try again.`
-        } else {
-          errorMessage =
-            'Your email is not verified. Please verify your email and try again.'
+          // Sign out the user since they don't have a verified email
+          await supabase.auth.signOut()
+
+          // Redirect with appropriate error message based on provider
+          let errorMessage: string
+          if (emailVerification.provider === 'google') {
+            errorMessage = USER_MESSAGES.googleEmailNotVerified.message
+          } else if (emailVerification.provider === 'github') {
+            errorMessage =
+              'Your GitHub email is not verified. Please verify your email with GitHub and try again.'
+          } else if (emailVerification.provider) {
+            errorMessage = `Your ${emailVerification.provider} email is not verified. Please verify your email and try again.`
+          } else {
+            errorMessage =
+              'Your email is not verified. Please verify your email and try again.'
+          }
+
+          throw encodedRedirect('error', AUTH_URLS.SIGN_IN, errorMessage)
         }
 
-        throw encodedRedirect('error', AUTH_URLS.SIGN_IN, errorMessage)
+        l.info(
+          {
+            key: 'auth_callback:email_verified',
+            user_id: data.user.id,
+          },
+          `User OAuth email verified successfully`
+        )
+      } else {
+        l.info(
+          {
+            key: 'auth_callback:existing_user',
+            user_id: data.user.id,
+          },
+          `Existing user sign-in, skipping email verification check`
+        )
       }
-
-      l.info(
-        {
-          key: 'auth_callback:email_verified',
-          user_id: data.user.id,
-        },
-        `User OAuth email verified successfully`
-      )
     }
   }
 
