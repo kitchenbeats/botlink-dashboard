@@ -7,13 +7,13 @@ import { handleDefaultInfraError } from '@/lib/utils/action'
 import { SandboxWebhooksPayloadGet } from '@/types/argus.types'
 import { z } from 'zod'
 
-const GetWebhooksSchema = z.object({
+const GetWebhookSchema = z.object({
   teamId: z.string({ required_error: 'Team ID is required' }).uuid(),
 })
 
 export const getWebhook = authActionClient
-  .schema(GetWebhooksSchema)
-  .metadata({ serverFunctionName: 'getWebhooks' })
+  .schema(GetWebhookSchema)
+  .metadata({ serverFunctionName: 'getWebhook' })
   .action(async ({ parsedInput, ctx }) => {
     const { teamId } = parsedInput
     const { session } = ctx
@@ -38,7 +38,7 @@ export const getWebhook = authActionClient
 
       l.error(
         {
-          key: 'get_webhooks:infra_error',
+          key: 'get_webhook:infra_error',
           error: `${status}: ${text}`,
           team_id: teamId,
           user_id: session.user.id,
@@ -47,7 +47,7 @@ export const getWebhook = authActionClient
             teamId,
           },
         },
-        `Failed to get webhooks: ${text}`
+        `Failed to get webhook: ${text}`
       )
 
       return handleDefaultInfraError(status)
