@@ -22,14 +22,6 @@ const config = {
   },
   serverExternalPackages: ['pino'],
   trailingSlash: false,
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.node$/,
-      use: 'node-loader',
-    })
-
-    return config
-  },
   headers: async () => [
     {
       source: '/(.*)',
