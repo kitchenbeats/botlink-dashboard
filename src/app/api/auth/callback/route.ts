@@ -1,7 +1,8 @@
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
+import { USER_MESSAGES } from '@/configs/user-messages'
 import { l } from '@/lib/clients/logger/logger'
 import { createClient } from '@/lib/clients/supabase/server'
-import { encodedRedirect } from '@/lib/utils/auth'
+import { encodedRedirect, isOAuthEmailVerified } from '@/lib/utils/auth'
 import { redirect } from 'next/navigation'
 import { serializeError } from 'serialize-error'
 
@@ -56,6 +57,40 @@ export async function GET(request: Request) {
           user_id: data.user.id,
         },
         `OTP successfully exchanged for user session`
+      )
+
+      // Check if the user's OAuth email is verified
+      const emailVerification = isOAuthEmailVerified(data.user)
+
+      if (!emailVerification.verified) {
+        l.warn(
+          {
+            key: 'auth_callback:email_not_verified',
+            user_id: data.user.id,
+            provider: emailVerification.provider,
+            reason: emailVerification.reason,
+          },
+          `User OAuth email not verified: ${emailVerification.reason}`
+        )
+
+        // Sign out the user since they don't have a verified email
+        await supabase.auth.signOut()
+
+        // Redirect with appropriate error message based on provider
+        const errorMessage =
+          emailVerification.provider === 'google'
+            ? USER_MESSAGES.googleEmailNotVerified.message
+            : `Your ${emailVerification.provider || 'OAuth'} email is not verified. Please verify your email and try again.`
+
+        throw encodedRedirect('error', AUTH_URLS.SIGN_IN, errorMessage)
+      }
+
+      l.info(
+        {
+          key: 'auth_callback:email_verified',
+          user_id: data.user.id,
+        },
+        `User OAuth email verified successfully`
       )
     }
   }

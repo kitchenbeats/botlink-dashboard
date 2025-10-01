@@ -28,3 +28,68 @@ export function encodedRedirect(
 export function getUserProviders(user: User) {
   return user.app_metadata.providers as string[] | undefined
 }
+
+/**
+ * Checks if a user's email is verified based on their OAuth provider's identity data.
+ * @param {User} user - The Supabase user object
+ * @returns {{ verified: boolean, provider?: string, reason?: string }} - Verification status and details
+ */
+export function isOAuthEmailVerified(user: User): {
+  verified: boolean
+  provider?: string
+  reason?: string
+} {
+  // Get the user's identities (OAuth providers they've signed in with)
+  const identities = user.identities || []
+
+  if (identities.length === 0) {
+    // Email/password user - consider verified if email_confirmed_at is set
+    return {
+      verified: !!user.email_confirmed_at,
+      reason: user.email_confirmed_at
+        ? 'Email confirmed'
+        : 'Email not confirmed',
+    }
+  }
+
+  // Check each identity for email verification
+  for (const identity of identities) {
+    const provider = identity.provider
+    const identityData = identity.identity_data
+
+    if (!identityData) continue
+
+    switch (provider) {
+      case 'google':
+        // Google provides email_verified field
+        if (identityData.email_verified === false) {
+          return {
+            verified: false,
+            provider: 'google',
+            reason: 'Google email not verified',
+          }
+        }
+        break
+
+      case 'github':
+        // GitHub provides verified field (for email verification)
+        // Note: GitHub returns the primary email's verification status
+        if (identityData.verified === false) {
+          return {
+            verified: false,
+            provider: 'github',
+            reason: 'GitHub email not verified',
+          }
+        }
+        break
+
+      // Add other providers as needed
+      default:
+        // For other OAuth providers, assume verified if they have an email
+        break
+    }
+  }
+
+  // If we get here, all checks passed
+  return { verified: true }
+}
