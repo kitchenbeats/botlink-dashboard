@@ -77,10 +77,18 @@ export async function GET(request: Request) {
         await supabase.auth.signOut()
 
         // Redirect with appropriate error message based on provider
-        const errorMessage =
-          emailVerification.provider === 'google'
-            ? USER_MESSAGES.googleEmailNotVerified.message
-            : `Your ${emailVerification.provider || 'OAuth'} email is not verified. Please verify your email and try again.`
+        let errorMessage: string
+        if (emailVerification.provider === 'google') {
+          errorMessage = USER_MESSAGES.googleEmailNotVerified.message
+        } else if (emailVerification.provider === 'github') {
+          errorMessage =
+            'Your GitHub email is not verified. Please verify your email with GitHub and try again.'
+        } else if (emailVerification.provider) {
+          errorMessage = `Your ${emailVerification.provider} email is not verified. Please verify your email and try again.`
+        } else {
+          errorMessage =
+            'Your email is not verified. Please verify your email and try again.'
+        }
 
         throw encodedRedirect('error', AUTH_URLS.SIGN_IN, errorMessage)
       }
