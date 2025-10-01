@@ -5,9 +5,9 @@
   "scripts": {
     "<<<<<<< Next.js": "",
     "dev": "bun scripts:check-app-env && next dev --turbopack | pino-pretty --colorize",
-    "build": "next build",
+    "build": "next build --turbopack",
     "start": "next start",
-    "preview": "next build && next start | pino-pretty --colorize",
+    "preview": "next build --turbopack && next start | pino-pretty --colorize",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
