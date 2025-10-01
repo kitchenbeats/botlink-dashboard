@@ -62,7 +62,8 @@ export function isOAuthEmailVerified(user: User): {
     switch (provider) {
       case 'google':
         // Google provides email_verified field
-        if (identityData.email_verified === false) {
+        // Require explicit true - fail closed if undefined/null/false
+        if (identityData.email_verified !== true) {
           return {
             verified: false,
             provider: 'google',
@@ -74,7 +75,8 @@ export function isOAuthEmailVerified(user: User): {
       case 'github':
         // GitHub provides verified field (for email verification)
         // Note: GitHub returns the primary email's verification status
-        if (identityData.verified === false) {
+        // Require explicit true - fail closed if undefined/null/false
+        if (identityData.verified !== true) {
           return {
             verified: false,
             provider: 'github',
