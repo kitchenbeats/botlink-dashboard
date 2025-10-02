@@ -1,4 +1,4 @@
-import CreateApiKeyDialog from '@/features/dashboard/settings/keys/create-api-key-dialog'
+import { AddWebhookDialog } from '@/features/dashboard/settings/webhooks/add-webhook-dialog'
 import Frame from '@/ui/frame'
 import { Button } from '@/ui/primitives/button'
 import {
@@ -34,11 +34,11 @@ export default async function WebhooksPage({
               send a POST request to the URL you provide.
             </CardDescription>
 
-            <CreateApiKeyDialog params={params}>
+            <AddWebhookDialog>
               <Button className="w-full sm:w-auto sm:self-start">
                 <Plus className="size-4" /> ADD WEBHOOK
               </Button>
-            </CreateApiKeyDialog>
+            </AddWebhookDialog>
           </div>
         </CardHeader>
 
