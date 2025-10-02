@@ -21,7 +21,7 @@ export default function SandboxesTabs({
 
   const isInspectRoute = micromatch.isMatch(
     pathname,
-    'dashboard/*/sandboxes/**/*'
+    '/dashboard/*/sandboxes/**/*'
   )
 
   if (isInspectRoute) {
@@ -29,7 +29,11 @@ export default function SandboxesTabs({
   }
 
   return (
-    <DashboardTabs type="query" layoutKey="tabs-indicator-sandboxes">
+    <DashboardTabs
+      type="query"
+      layoutKey="tabs-indicator-sandboxes"
+      className="mt-2 md:mt-3"
+    >
       <DashboardTab
         id="monitoring"
         label="Monitoring"

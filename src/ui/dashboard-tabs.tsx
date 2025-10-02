@@ -63,7 +63,7 @@ export function DashboardTabs({
   return (
     <Tabs
       value={activeTabId}
-      className={cn('min-h-0 w-full flex-1 h-full md:mt-2', className)}
+      className={cn('min-h-0 w-full flex-1 h-full', className)}
     >
       <TabsList className="bg-bg z-30 w-full justify-start">
         {tabsWithHrefs.map((tab) => (
@@ -90,8 +90,8 @@ export function DashboardTabs({
 export interface DashboardTabProps {
   id: string
   label: string
-  icon: ReactNode
   children: ReactNode
+  icon?: ReactNode
   className?: string
 }
 

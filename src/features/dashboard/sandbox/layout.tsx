@@ -3,7 +3,6 @@
 import { SANDBOX_INSPECT_MINIMUM_ENVD_VERSION } from '@/configs/versioning'
 import { isVersionCompatible } from '@/lib/utils/version'
 import { DashboardTab, DashboardTabs } from '@/ui/dashboard-tabs'
-import { SearchIcon } from '@/ui/primitives/icons'
 import { notFound } from 'next/navigation'
 import { useSandboxContext } from './context'
 import SandboxInspectIncompatible from './inspect/incompatible'
@@ -38,11 +37,7 @@ export default function SandboxLayout({
       {header}
 
       <DashboardTabs type="path" layoutKey="tabs-indicator-sandbox">
-        <DashboardTab
-          id="inspect"
-          label="Inspect"
-          icon={<SearchIcon className="size-4" />}
-        >
+        <DashboardTab id="inspect" label="Inspect">
           {isEnvdVersionCompatibleForInspect ? (
             children
           ) : (

@@ -22,24 +22,27 @@ export default function DashboardLayoutHeader({
   return (
     <div
       className={cn(
-        'sticky top-0 z-50 bg-bg/40 backdrop-blur-md min-h-13 flex items-center md:items-end gap-2',
+        'sticky top-0 z-50 bg-bg/40 backdrop-blur-md p-3 md:p-6 flex items-end gap-2',
         {
-          'border-b p-3 md:p-6': config.type === 'default',
-          'px-3 md:px-6': config.type === 'custom',
+          'border-b min-h-[var(--height-protected-nav)+12px] md:min-h-[var(--height-protected-nav)+24px] max-h-min':
+            config.type === 'default',
+          '!pb-0 min-h-protected-nav max-h-min': config.type === 'custom',
         },
         className
       )}
     >
-      <SidebarTrigger className="w-7 h-7 md:hidden -translate-x-1" />
+      <div className="flex items-center gap-2 w-full relative">
+        <SidebarTrigger className="w-7 h-7 md:hidden -translate-x-1" />
 
-      <h1 className="mr-auto">{config.title}</h1>
+        <h1 className="mr-auto align-middle">{config.title}</h1>
 
-      {/* custom content if provided via parallel route */}
-      {headerInjectable && <>{headerInjectable}</>}
+        {/* custom content if provided via parallel route */}
+        {headerInjectable && <>{headerInjectable}</>}
 
-      <ClientOnly>
-        <ThemeSwitcher />
-      </ClientOnly>
+        <ClientOnly>
+          <ThemeSwitcher />
+        </ClientOnly>
+      </div>
     </div>
   )
 }
