@@ -85,13 +85,11 @@ export async function GET(request: Request) {
           if (emailVerification.provider === 'google') {
             errorMessage = USER_MESSAGES.googleEmailNotVerified.message
           } else if (emailVerification.provider === 'github') {
-            errorMessage =
-              'Your GitHub email is not verified. Please verify your email with GitHub and try again.'
+            errorMessage = USER_MESSAGES.githubEmailNotVerified.message
           } else if (emailVerification.provider) {
-            errorMessage = `Your ${emailVerification.provider} email is not verified. Please verify your email and try again.`
+            errorMessage = USER_MESSAGES.oauthEmailNotVerified.message
           } else {
-            errorMessage =
-              'Your email is not verified. Please verify your email and try again.'
+            errorMessage = USER_MESSAGES.genericEmailNotVerified.message
           }
 
           throw encodedRedirect('error', AUTH_URLS.SIGN_IN, errorMessage)
