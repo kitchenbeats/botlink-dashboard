@@ -1,34 +1,23 @@
 'use client'
 
 import { calculateStepForDuration } from '@/features/dashboard/sandboxes/monitoring/utils'
-import { useCssVars } from '@/lib/hooks/use-css-vars'
 import { cn } from '@/lib/utils'
-import { createSingleValueTooltipFormatter } from '@/lib/utils/chart'
-import {
-  formatAxisNumber,
-  formatCompactDate,
-  formatDecimal,
-} from '@/lib/utils/formatting'
+import { formatCompactDate, formatDecimal } from '@/lib/utils/formatting'
 import {
   TIME_RANGES,
   TimeRangeKey,
   formatTimeframeAsISO8601Interval,
 } from '@/lib/utils/timeframe'
-import { ClientTeamMetric } from '@/types/sandboxes.types'
-import LineChart from '@/ui/charts/line-chart'
 import CopyButton from '@/ui/copy-button'
 import { ReactiveLiveBadge } from '@/ui/live'
 import { Button } from '@/ui/primitives/button'
 import { useMemo } from 'react'
 import { useTeamMetricsCharts } from '../charts-context'
 import { TimePicker } from '../time-picker'
-import {
+import TeamMetricsChart, {
   calculateCentralTendency,
-  calculateYAxisMax,
-  createChartSeries,
-  createMonitoringChartOptions,
-  transformMetricsToLineData,
-} from './utils'
+  transformMetrics,
+} from './team-metrics-chart'
 
 const CHART_RANGE_MAP = {
   custom: null,
@@ -55,28 +44,15 @@ export default function ConcurrentChartClient({
     setCustomRange,
   } = useTeamMetricsCharts()
 
-  const lineData = useMemo(() => {
-    if (!data?.metrics || !data?.step) {
-      return []
-    }
+  const chartData = useMemo(() => {
+    if (!data?.metrics) return []
+    return transformMetrics(data.metrics, 'concurrentSandboxes')
+  }, [data?.metrics])
 
-    return transformMetricsToLineData<ClientTeamMetric>(
-      data.metrics,
-      (d) => d.timestamp,
-      (d) => d.concurrentSandboxes
-    )
-  }, [data?.metrics, data?.step])
-
-  const centralTendency = useMemo(
-    () => calculateCentralTendency(lineData, 'average'),
-    [lineData]
+  const centralValue = useMemo(
+    () => calculateCentralTendency(chartData, 'average'),
+    [chartData]
   )
-
-  const cssVars = useCssVars([
-    '--accent-positive-highlight',
-    '--graph-area-accent-positive-from',
-    '--graph-area-accent-positive-to',
-  ] as const)
 
   const currentRange = useMemo(() => {
     const currentDuration = timeframe.duration
@@ -111,17 +87,6 @@ export default function ConcurrentChartClient({
     setTimeRange(range as TimeRangeKey)
   }
 
-  const tooltipFormatter = useMemo(
-    () =>
-      createSingleValueTooltipFormatter({
-        step: data?.step || 0,
-        label: (value: number) =>
-          value === 1 ? 'concurrent sandbox' : 'concurrent sandboxes',
-        valueClassName: 'text-accent-positive-highlight',
-      }),
-    [data?.step]
-  )
-
   if (!data) return null
 
   return (
@@ -137,7 +102,7 @@ export default function ConcurrentChartClient({
           </span>
           <div className="inline-flex items-end gap-2 md:gap-3 mt-1 md:mt-2">
             <span className="prose-value-big max-md:text-2xl">
-              {formatDecimal(centralTendency.value, 1)}
+              {formatDecimal(centralValue, 1)}
             </span>
             <span className="label-tertiary max-md:text-xs">
               <span className="max-md:hidden">average over range</span>
@@ -238,70 +203,14 @@ export default function ConcurrentChartClient({
         </div>
       </div>
 
-      <LineChart
+      <TeamMetricsChart
+        type="concurrent"
+        metrics={data.metrics}
+        step={data.step}
+        timeframe={timeframe}
+        concurrentLimit={concurrentInstancesLimit}
+        onZoomEnd={(from, end) => setStaticMode(from, end)}
         className="mt-3 md:mt-4 flex-1 max-md:min-h-[30dvh]"
-        onZoomEnd={(from, end) => {
-          setStaticMode(from, end)
-        }}
-        yAxisLimit={concurrentInstancesLimit}
-        group="sandboxes-monitoring"
-        duration={timeframe.duration}
-        syncAxisPointers={true}
-        showTooltip={true}
-        tooltipFormatter={tooltipFormatter}
-        option={{
-          ...createMonitoringChartOptions({
-            timeframe: {
-              start:
-                lineData.length > 0
-                  ? (lineData[0]?.x as number)
-                  : timeframe.start,
-              end:
-                lineData.length > 0
-                  ? (lineData[lineData.length - 1]?.x as number)
-                  : timeframe.end,
-              isLive: timeframe.isLive,
-            },
-          }),
-          yAxis: {
-            splitNumber: 2,
-            max: calculateYAxisMax(lineData, concurrentInstancesLimit),
-            axisLabel: {
-              formatter: (value: number) => {
-                // Hide labels that are too close to the limit line
-                if (concurrentInstancesLimit !== undefined) {
-                  const tolerance = concurrentInstancesLimit * 0.1 // 10% tolerance
-                  const minDistance = Math.max(
-                    tolerance,
-                    concurrentInstancesLimit * 0.05
-                  ) // At least 5% distance
-
-                  if (
-                    Math.abs(value - concurrentInstancesLimit) <= minDistance
-                  ) {
-                    return '' // Hide the label
-                  }
-                }
-                return formatAxisNumber(value)
-              },
-            },
-          },
-          grid: {
-            left: 40,
-          },
-        }}
-        data={[
-          createChartSeries({
-            id: 'concurrent-sandboxes',
-            name: 'Running Sandboxes',
-            data: lineData,
-            lineColor: cssVars['--accent-positive-highlight'],
-            areaColors: {
-              from: cssVars['--graph-area-accent-positive-from'],
-              to: cssVars['--graph-area-accent-positive-to'],
-            },
-          }),
-        ]}
       />
     </div>
   )

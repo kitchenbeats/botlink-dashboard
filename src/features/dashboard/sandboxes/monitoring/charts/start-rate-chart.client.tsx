@@ -1,55 +1,25 @@
 'use client'
 
-import { useCssVars } from '@/lib/hooks/use-css-vars'
-import { createSingleValueTooltipFormatter } from '@/lib/utils/chart'
 import { formatDecimal } from '@/lib/utils/formatting'
-import { ClientTeamMetric } from '@/types/sandboxes.types'
-import LineChart from '@/ui/charts/line-chart'
 import { ReactiveLiveBadge } from '@/ui/live'
 import { useMemo } from 'react'
 import { useTeamMetricsCharts } from '../charts-context'
-import {
+import TeamMetricsChart, {
   calculateCentralTendency,
-  calculateYAxisMax,
-  createChartSeries,
-  createMonitoringChartOptions,
-  transformMetricsToLineData,
-} from './utils'
+  transformMetrics,
+} from './team-metrics-chart'
 
 export default function StartRateChartClient() {
   const { data, isPolling, timeframe } = useTeamMetricsCharts()
 
-  const lineData = useMemo(() => {
-    if (!data?.metrics || !data?.step) {
-      return []
-    }
+  const chartData = useMemo(() => {
+    if (!data?.metrics) return []
+    return transformMetrics(data.metrics, 'sandboxStartRate')
+  }, [data?.metrics])
 
-    return transformMetricsToLineData<ClientTeamMetric>(
-      data.metrics,
-      (d) => d.timestamp,
-      (d) => d.sandboxStartRate
-    )
-  }, [data?.metrics, data?.step])
-
-  const centralTendency = useMemo(
-    () => calculateCentralTendency(lineData, 'median'),
-    [lineData]
-  )
-
-  const cssVars = useCssVars([
-    '--bg-inverted',
-    '--graph-area-fg-from',
-    '--graph-area-fg-to',
-  ] as const)
-
-  const tooltipFormatter = useMemo(
-    () =>
-      createSingleValueTooltipFormatter({
-        step: data?.step || 0,
-        label: 'sandboxes/s',
-        valueClassName: 'text-fg',
-      }),
-    [data?.step]
+  const centralValue = useMemo(
+    () => calculateCentralTendency(chartData, 'median'),
+    [chartData]
   )
 
   if (!data) return null
@@ -66,7 +36,7 @@ export default function StartRateChartClient() {
         </span>
         <div className="inline-flex items-end gap-2 md:gap-3 mt-1 md:mt-2">
           <span className="prose-value-big max-md:text-2xl">
-            {formatDecimal(centralTendency.value, 3)}
+            {formatDecimal(centralValue, 3)}
           </span>
           <span className="label-tertiary max-md:text-xs">
             <span className="max-md:hidden">median over range</span>
@@ -75,47 +45,12 @@ export default function StartRateChartClient() {
         </div>
       </div>
 
-      <LineChart
+      <TeamMetricsChart
+        type="start-rate"
+        metrics={data.metrics}
+        step={data.step}
+        timeframe={timeframe}
         className="mt-3 md:mt-4 flex-1 max-md:min-h-[30dvh]"
-        group="sandboxes-monitoring"
-        duration={timeframe.duration}
-        syncAxisPointers={true}
-        showTooltip={true}
-        tooltipFormatter={tooltipFormatter}
-        option={{
-          ...createMonitoringChartOptions({
-            timeframe: {
-              start:
-                lineData.length > 0
-                  ? (lineData[0]?.x as number)
-                  : timeframe.start,
-              end:
-                lineData.length > 0
-                  ? (lineData[lineData.length - 1]?.x as number)
-                  : timeframe.end,
-              isLive: timeframe.isLive,
-            },
-          }),
-          yAxis: {
-            splitNumber: 2,
-            max: calculateYAxisMax(lineData, undefined, 1.5),
-          },
-          grid: {
-            left: 40,
-          },
-        }}
-        data={[
-          createChartSeries({
-            id: 'rate',
-            name: 'Rate',
-            data: lineData,
-            lineColor: cssVars['--bg-inverted'],
-            areaColors: {
-              from: cssVars['--graph-area-fg-from'],
-              to: cssVars['--graph-area-fg-to'],
-            },
-          }),
-        ]}
       />
     </div>
   )
