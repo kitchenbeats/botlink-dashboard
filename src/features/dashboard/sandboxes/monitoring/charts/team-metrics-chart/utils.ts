@@ -196,7 +196,7 @@ export function createLiveIndicators(
           borderWidth: 1,
           shadowBlur: 8,
           shadowColor: lineColor,
-          opacity: 0.3,
+          opacity: 0.4,
         },
         emphasis: { disabled: true },
         label: { show: false },
@@ -208,7 +208,7 @@ export function createLiveIndicators(
         symbolSize: 10,
         itemStyle: {
           color: lineColor,
-          opacity: 0.5,
+          opacity: 0.3,
           borderWidth: 0,
         },
         emphasis: { disabled: true },
@@ -279,7 +279,7 @@ export function createLimitLine(
         },
         lineStyle: {
           color: config.errorHighlightColor,
-          opacity: 0.5,
+          opacity: 0.8,
           type: 'dashed' as const,
           width: 1,
         },

@@ -7,9 +7,25 @@ import {
   formatTimeAxisLabel,
 } from '@/lib/utils/formatting'
 import { format } from 'date-fns'
-import * as echarts from 'echarts'
+// Import the echarts core module
 import { EChartsOption } from 'echarts'
-import ReactECharts from 'echarts-for-react'
+import * as echarts from 'echarts/core'
+// Import only the charts we need
+import { LineChart } from 'echarts/charts'
+// Import only the components we need
+import {
+  AxisPointerComponent,
+  DataZoomComponent,
+  GridComponent,
+  MarkLineComponent,
+  MarkPointComponent,
+  ToolboxComponent,
+  TooltipComponent,
+} from 'echarts/components'
+// Import canvas renderer
+import { CanvasRenderer } from 'echarts/renderers'
+// Import core ReactECharts for tree-shaking
+import ReactEChartsCore from 'echarts-for-react/lib/core'
 import { useTheme } from 'next-themes'
 import { useCallback, useMemo, useRef } from 'react'
 import {
@@ -29,6 +45,19 @@ import {
   hasLiveData,
   transformMetrics,
 } from './utils'
+
+// Register only the components we use
+echarts.use([
+  LineChart,
+  GridComponent,
+  TooltipComponent,
+  ToolboxComponent,
+  DataZoomComponent,
+  MarkPointComponent,
+  MarkLineComponent,
+  AxisPointerComponent,
+  CanvasRenderer,
+])
 
 /**
  * Create x-axis label formatter
@@ -65,7 +94,7 @@ export default function TeamMetricsChart({
   concurrentLimit,
   onZoomEnd,
 }: TeamMetricsChartProps) {
-  const chartRef = useRef<ReactECharts | null>(null)
+  const chartRef = useRef<ReactEChartsCore | null>(null)
   const chartInstanceRef = useRef<echarts.ECharts | null>(null)
   const { resolvedTheme } = useTheme()
 
@@ -147,9 +176,9 @@ export default function TeamMetricsChart({
 
     // set group for syncing
     chart.group = 'sandboxes-monitoring'
-    setTimeout(() => {
-      echarts.connect('sandboxes-monitoring')
-    }, 0)
+    // setTimeout(() => {
+    //   echarts.connect('sandboxes-monitoring')
+    // }, 0)
   }, [])
 
   // build complete echarts option once
@@ -229,6 +258,12 @@ export default function TeamMetricsChart({
     // build complete option object
     return {
       ...STATIC_ECHARTS_CONFIG,
+      grid: {
+        top: 0,
+        right: 5,
+        bottom: 0,
+        left: 40,
+      },
       tooltip: {
         show: true,
         trigger: 'axis',
@@ -261,10 +296,9 @@ export default function TeamMetricsChart({
           show: true,
           color: fgTertiary,
           fontFamily: fontMono,
-          fontSize: 14,
+          fontSize: 12,
           hideOverlap: true,
           rotate: 0,
-          interval: 'preserveStart',
           formatter: createXAxisFormatter(),
         },
         axisPointer: {
@@ -275,12 +309,13 @@ export default function TeamMetricsChart({
             type: 'dashed',
           },
           label: {
+            textMargin: [4, 0],
             show: true,
             backgroundColor: bgHighlight,
             color: fg,
             fontFamily: fontMono,
             borderRadius: 0,
-            fontSize: 14,
+            fontSize: 12,
             formatter: (params: { value: unknown }) =>
               formatChartTimestampLocal(params.value as string | number),
           },
@@ -333,11 +368,14 @@ export default function TeamMetricsChart({
         ...STATIC_ECHARTS_CONFIG.toolbox,
         feature: {
           dataZoom: {
+            yAxisIndex: 'none',
             brushStyle: {
+              // background with 0.2 opacity
+              color: bgInverted,
+              opacity: 0.2,
+              borderType: 'solid',
               borderWidth: 1,
-              color: resolvedTheme === 'dark' ? '#f2f2f244' : '#1f1f1f44',
               borderColor: bgInverted,
-              opacity: 0.6,
             },
           },
         },
@@ -363,11 +401,10 @@ export default function TeamMetricsChart({
     errorHighlight,
     errorBg,
     bg1,
-    resolvedTheme,
   ])
 
   return (
-    <ReactECharts
+    <ReactEChartsCore
       ref={chartRef}
       key={resolvedTheme}
       echarts={echarts}

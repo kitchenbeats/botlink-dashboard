@@ -10,7 +10,7 @@ import TeamMetricsChart, {
 } from './team-metrics-chart'
 
 export default function StartRateChartClient() {
-  const { data, isPolling, timeframe } = useTeamMetricsCharts()
+  const { data, isPolling, timeframe, setCustomRange } = useTeamMetricsCharts()
 
   const chartData = useMemo(() => {
     if (!data?.metrics) return []
@@ -50,6 +50,7 @@ export default function StartRateChartClient() {
         step={data.step}
         timeframe={timeframe}
         className="mt-3 md:mt-4 flex-1 max-md:min-h-[30dvh]"
+        onZoomEnd={(from, end) => setCustomRange(from, end)}
       />
     </div>
   )

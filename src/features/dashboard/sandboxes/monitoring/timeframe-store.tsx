@@ -244,12 +244,10 @@ export const useTimeframe = () => {
 
   const setTimeRange = useTeamMetricsStore((state) => state.setTimeRange)
   const setCustomRange = useTeamMetricsStore((state) => state.setCustomRange)
+  const updateLiveEnd = useTeamMetricsStore((state) => state.updateLiveEnd)
 
   // set up browser history listener
   useMetricsHistoryListener()
-
-  // manage live updates lifecycle
-  useLiveUpdates()
 
   // compute derived state with stable reference
   const timeframe = useMemo(() => {
@@ -270,48 +268,22 @@ export const useTimeframe = () => {
     }
   }, [start, end])
 
+  // manage live polling directly in React (single interval per component tree)
+  useEffect(() => {
+    if (!timeframe.isLive) return
+
+    const interval = setInterval(() => {
+      updateLiveEnd()
+    }, TEAM_METRICS_TIMEFRAME_UPDATE_MS)
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [timeframe.isLive, updateLiveEnd])
+
   return {
     timeframe,
     setTimeRange,
     setCustomRange,
-    // compatibility methods for smooth transition
-    setLiveMode: (range: number) => {
-      const now = getStableNow()
-      setCustomRange(now - range, now)
-    },
-    setStaticMode: setCustomRange,
   }
-}
-
-let liveUpdateInterval: ReturnType<typeof setInterval> | null = null
-let subscriberCount = 0
-
-const startLiveUpdates = () => {
-  if (!liveUpdateInterval && typeof window !== 'undefined') {
-    liveUpdateInterval = setInterval(() => {
-      useTeamMetricsStore.getState().updateLiveEnd()
-    }, TEAM_METRICS_TIMEFRAME_UPDATE_MS)
-  }
-}
-
-const stopLiveUpdates = () => {
-  if (liveUpdateInterval) {
-    clearInterval(liveUpdateInterval)
-    liveUpdateInterval = null
-  }
-}
-
-export const useLiveUpdates = () => {
-  useEffect(() => {
-    subscriberCount++
-    startLiveUpdates()
-
-    return () => {
-      subscriberCount--
-
-      if (subscriberCount === 0) {
-        stopLiveUpdates()
-      }
-    }
-  }, [])
 }

@@ -36,12 +36,6 @@ export const CHART_CONFIGS: Record<ChartType, TeamMetricChartConfig> = {
 export const STATIC_ECHARTS_CONFIG = {
   backgroundColor: 'transparent',
   animation: false, // disable animations for performance
-  grid: {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 40,
-  },
   toolbox: {
     id: 'toolbox',
     show: true,

@@ -2,7 +2,7 @@
 
 import { calculateStepForDuration } from '@/features/dashboard/sandboxes/monitoring/utils'
 import { cn } from '@/lib/utils'
-import { formatCompactDate, formatDecimal } from '@/lib/utils/formatting'
+import { formatAxisNumber, formatCompactDate } from '@/lib/utils/formatting'
 import {
   TIME_RANGES,
   TimeRangeKey,
@@ -35,14 +35,8 @@ interface ConcurrentChartProps {
 export default function ConcurrentChartClient({
   concurrentInstancesLimit,
 }: ConcurrentChartProps) {
-  const {
-    data,
-    isPolling,
-    timeframe,
-    setStaticMode,
-    setTimeRange,
-    setCustomRange,
-  } = useTeamMetricsCharts()
+  const { data, isPolling, timeframe, setTimeRange, setCustomRange } =
+    useTeamMetricsCharts()
 
   const chartData = useMemo(() => {
     if (!data?.metrics) return []
@@ -94,14 +88,12 @@ export default function ConcurrentChartClient({
       <div className="flex flex-col gap-2">
         <div className="prose-label-highlight uppercase max-md:text-sm flex justify-between items-center">
           <span>Concurrent sandboxes</span>
-          <ReactiveLiveBadge
-            show={isPolling}
-          />
+          <ReactiveLiveBadge show={isPolling} />
         </div>
         <div className="flex justify-between max-md:flex-col max-md:gap-2">
           <div className="inline-flex items-end gap-2">
             <span className="prose-value-big max-md:text-2xl">
-              {formatAxisNumber(centralTendency.value)}
+              {formatAxisNumber(centralValue)}
             </span>
             <span className="label-tertiary max-md:text-xs">
               <span className="max-md:hidden">average over range</span>
@@ -140,14 +132,14 @@ export default function ConcurrentChartClient({
             <div className="flex items-center gap-2 md:gap-4 max-md:-ml-1.5 max-md:pr-3 max-md:-mr-3 max-md:-mt-0.5 max-md:overflow-x-auto [&::-webkit-scrollbar]:hidden">
               <TimePicker
                 value={{
-                  mode: syncedTimeframe.isLive ? 'live' : 'static',
-                  range: syncedTimeframe.duration,
-                  start: syncedTimeframe.start,
-                  end: syncedTimeframe.end,
+                  mode: timeframe.isLive ? 'live' : 'static',
+                  range: timeframe.duration,
+                  start: timeframe.start,
+                  end: timeframe.end,
                 }}
                 onValueChange={(value) => {
                   if (value.mode === 'static' && value.start && value.end) {
-                    setStaticMode(value.start, value.end)
+                    setCustomRange(value.start, value.end)
                   } else if (value.mode === 'live' && value.range) {
                     const matchingRange = Object.entries(TIME_RANGES).find(
                       ([_, rangeMs]) => rangeMs === value.range
@@ -168,7 +160,8 @@ export default function ConcurrentChartClient({
                   className={cn(
                     'text-fg-tertiary hover:text-fg-secondary py-0.5 max-md:text-[11px] max-md:px-1.5 flex-shrink-0 prose-label',
                     {
-                      'text-fg prose-label-highlight': currentRange === 'custom',
+                      'text-fg prose-label-highlight':
+                        currentRange === 'custom',
                     }
                   )}
                 >
@@ -207,7 +200,7 @@ export default function ConcurrentChartClient({
         step={data.step}
         timeframe={timeframe}
         concurrentLimit={concurrentInstancesLimit}
-        onZoomEnd={(from, end) => setStaticMode(from, end)}
+        onZoomEnd={(from, end) => setCustomRange(from, end)}
         className="mt-3 md:mt-4 flex-1 max-md:min-h-[30dvh]"
       />
     </div>
