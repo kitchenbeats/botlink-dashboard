@@ -5,13 +5,8 @@ import ReactECharts from 'echarts-for-react'
 import { useTheme } from 'next-themes'
 import { useMemo, useRef } from 'react'
 
-import 'echarts/lib/chart/line'
-import 'echarts/lib/component/brush'
-import 'echarts/lib/component/dataZoom'
-import 'echarts/lib/component/dataZoomInside'
-import 'echarts/lib/component/title'
+import * as echarts from 'echarts'
 
-import { useBreakpoint } from '@/lib/hooks/use-breakpoint'
 import { useCssVars } from '@/lib/hooks/use-css-vars'
 import { TOOLTIP_TRANSITION_DURATION } from './constants'
 import {
@@ -25,13 +20,30 @@ import {
   useAxisPointerSync,
   useChartInstance,
   useChartZoom,
-  useResponsiveChartConfig,
   useYValueFinder,
 } from './hooks'
 import { defaultLineChartOption } from './options'
 import { buildSeriesWithEnhancements } from './series'
 import type { LineChartProps } from './types'
 import { calculateYAxisMax, mergeReplaceArrays } from './utils'
+
+const VARS = [
+  '--stroke',
+  '--stroke-active',
+  '--fg',
+  '--fg-secondary',
+  '--fg-tertiary',
+  '--bg-1',
+  '--bg-hover',
+  '--bg-highlight',
+  '--bg-inverted',
+  '--font-mono',
+  '--accent-error-highlight',
+  '--accent-error-bg',
+  '--accent-warning-highlight',
+  '--accent-warning-bg',
+  '--accent-positive-highlight',
+] as const
 
 export default function LineChart({
   data,
@@ -42,35 +54,13 @@ export default function LineChart({
   style,
   onChartReady,
   group,
-  duration,
   syncAxisPointers = false,
   showTooltip = false,
   tooltipFormatter,
 }: LineChartProps) {
   const ref = useRef<ReactECharts | null>(null)
   const { resolvedTheme } = useTheme()
-  const breakpoint = useBreakpoint()
-
-  const cssVars = useCssVars([
-    '--stroke',
-    '--stroke-active',
-    '--fg',
-    '--fg-secondary',
-    '--fg-tertiary',
-    '--bg-1',
-    '--bg-hover',
-    '--bg-highlight',
-    '--bg-inverted',
-    '--font-mono',
-    '--accent-error-highlight',
-    '--accent-error-bg',
-    '--accent-warning-highlight',
-    '--accent-warning-bg',
-    '--accent-positive-highlight',
-  ] as const)
-
-  // get responsive configuration
-  const responsiveConfig = useResponsiveChartConfig(duration)
+  const cssVars = useCssVars(VARS)
 
   // chart instance management
   const { chartInstanceRef, handleChartReady } = useChartInstance(
@@ -89,14 +79,6 @@ export default function LineChart({
 
   // build chart options
   const option = useMemo<EChartsOption>(() => {
-    // build series with all enhancements
-    const series = buildSeriesWithEnhancements(
-      data,
-      cssVars,
-      showTooltip,
-      yAxisLimit
-    )
-
     // determine x-axis type from user options
     const xAxisType = userOption?.xAxis
       ? (userOption.xAxis as { type?: string }).type
@@ -121,10 +103,8 @@ export default function LineChart({
           shadowColor: 'transparent',
           textStyle: {
             color: cssVars['--fg'],
-            fontSize: responsiveConfig.fontSize,
           },
-          formatter:
-            tooltipFormatter || createDefaultTooltipFormatter(responsiveConfig),
+          formatter: tooltipFormatter || createDefaultTooltipFormatter(),
         }
       : {
           backgroundColor: 'transparent',
@@ -144,13 +124,14 @@ export default function LineChart({
       xAxis: {
         axisLine: { lineStyle: { color: cssVars['--stroke'] } },
         axisLabel: {
-          show: responsiveConfig.showAxisLabels,
+          show: true,
           color: cssVars['--fg-tertiary'],
           fontFamily: cssVars['--font-mono'],
-          fontSize: responsiveConfig.fontSize,
-          rotate: responsiveConfig.xAxisRotate,
-          interval: responsiveConfig.xAxisInterval,
-          formatter: createXAxisFormatter(xAxisType, responsiveConfig),
+          fontSize: 14,
+          hideOverlap: true,
+          rotate: 0,
+          interval: 'preserveStart',
+          formatter: createXAxisFormatter(xAxisType),
         },
         axisPointer: {
           lineStyle: {
@@ -162,7 +143,7 @@ export default function LineChart({
             color: cssVars['--fg'],
             fontFamily: cssVars['--font-mono'],
             borderRadius: 0,
-            fontSize: responsiveConfig.fontSize,
+            fontSize: 14,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter: createAxisPointerFormatter(xAxisType) as any,
           },
@@ -171,19 +152,19 @@ export default function LineChart({
         splitLine: {
           lineStyle: { color: cssVars['--stroke'] },
         },
-        splitNumber: responsiveConfig.xAxisSplitNumber,
+        splitNumber: 2,
       },
       yAxis: {
         axisLine: { lineStyle: { color: cssVars['--stroke'] } },
         axisLabel: {
-          show: responsiveConfig.showAxisLabels,
+          show: true,
           color: cssVars['--fg-tertiary'],
           fontFamily: cssVars['--font-mono'],
-          fontSize: responsiveConfig.fontSize,
+          fontSize: 14,
           formatter: createYAxisFormatter(yAxisLimit),
           overflow: 'truncate' as const,
           ellipsis: '…',
-          width: breakpoint.isSmDown ? 30 : 40,
+          width: 40,
         },
         axisPointer: {
           show: false,
@@ -197,7 +178,7 @@ export default function LineChart({
             fontFamily: cssVars['--font-mono'],
             position: 'top',
             borderRadius: 0,
-            fontSize: responsiveConfig.fontSize,
+            fontSize: 14,
           },
           snap: !syncAxisPointers, // disable snap when syncing
         },
@@ -205,10 +186,7 @@ export default function LineChart({
           lineStyle: { color: cssVars['--stroke'], type: 'dashed' },
           interval: createSplitLineInterval(yAxisLimit),
         },
-        splitNumber: responsiveConfig.yAxisSplitNumber,
-        max: function (value: { max: number }) {
-          return calculateYAxisMax(data, yAxisLimit)
-        },
+        splitNumber: 2,
       },
       toolbox: {
         feature: {
@@ -222,33 +200,54 @@ export default function LineChart({
           },
         },
       },
-      series,
     })
 
     return userOption
       ? mergeReplaceArrays(themedDefaults, userOption)
       : themedDefaults
   }, [
-    data,
     cssVars,
     userOption,
     yAxisLimit,
     resolvedTheme,
-    responsiveConfig,
-    breakpoint.isSmDown,
     syncAxisPointers,
     showTooltip,
     tooltipFormatter,
   ])
 
+  const optionsWithData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return option
+    }
+
+    const series = buildSeriesWithEnhancements(
+      data,
+      cssVars,
+      showTooltip,
+      yAxisLimit
+    )
+
+    const max = calculateYAxisMax(data, yAxisLimit)
+
+    return {
+      ...option,
+      series,
+      yAxis: {
+        ...option.yAxis,
+        max,
+      },
+    }
+  }, [option, data, cssVars, showTooltip, yAxisLimit])
+
   return (
     <ReactECharts
       ref={ref}
       key={resolvedTheme}
-      option={option}
+      echarts={echarts}
+      option={optionsWithData}
       notMerge={true}
-      style={{ width: '100%', height: '100%' }}
       lazyUpdate={true}
+      style={{ width: '100%', height: '100%', ...style }}
       onChartReady={handleChartReady}
       className={className}
       onEvents={{

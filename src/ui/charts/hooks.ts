@@ -2,54 +2,10 @@
  * Custom hooks for line chart functionality
  */
 
-import { useBreakpoint } from '@/lib/hooks/use-breakpoint'
 import { formatNumber } from '@/lib/utils/formatting'
 import { ECharts } from 'echarts'
 import { useCallback, useEffect, useRef } from 'react'
-import {
-  RESPONSIVE_CONFIG,
-  TIME_LABEL_HIDE_SECONDS_THRESHOLD_MS,
-} from './constants'
-import type {
-  DataZoomEvent,
-  LineSeries,
-  ResponsiveAxisConfig,
-  UpdateAxisPointerEvent,
-} from './types'
-
-/**
- * Hook to get responsive chart configuration based on viewport size
- */
-export function useResponsiveChartConfig(
-  duration?: number
-): ResponsiveAxisConfig {
-  const breakpoint = useBreakpoint()
-
-  // hide seconds when timespan is 30 minutes or more
-  const shouldHideSeconds = duration
-    ? duration >= TIME_LABEL_HIDE_SECONDS_THRESHOLD_MS
-    : false
-
-  const config = breakpoint.isXs
-    ? RESPONSIVE_CONFIG.xs
-    : breakpoint.isSm
-      ? RESPONSIVE_CONFIG.sm
-      : breakpoint.isMd
-        ? RESPONSIVE_CONFIG.md
-        : RESPONSIVE_CONFIG.lg
-
-  return {
-    xAxisSplitNumber: config.xAxisSplitNumber,
-    yAxisSplitNumber: config.yAxisSplitNumber,
-    showAxisLabels: true, // always show labels - fixes safari issue
-    fontSize: config.fontSize,
-    xAxisRotate: 0, // no rotation as requested
-    xAxisInterval: config.xAxisInterval,
-    isCompactTimeFormat: breakpoint.isSmDown,
-    isVeryCompactTimeFormat: breakpoint.isXs,
-    shouldHideSeconds,
-  }
-}
+import type { DataZoomEvent, LineSeries, UpdateAxisPointerEvent } from './types'
 
 /**
  * Hook to find y-value for given x-value using binary search

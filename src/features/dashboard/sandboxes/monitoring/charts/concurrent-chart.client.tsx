@@ -1,7 +1,6 @@
 'use client'
 
 import { calculateStepForDuration } from '@/features/dashboard/sandboxes/monitoring/utils'
-import { useChartRegistry } from '@/lib/contexts/chart-registry-context'
 import { useCssVars } from '@/lib/hooks/use-css-vars'
 import { cn } from '@/lib/utils'
 import { createSingleValueTooltipFormatter } from '@/lib/utils/chart'
@@ -20,8 +19,7 @@ import LineChart from '@/ui/charts/line-chart'
 import CopyButton from '@/ui/copy-button'
 import { ReactiveLiveBadge } from '@/ui/live'
 import { Button } from '@/ui/primitives/button'
-import { ECharts } from 'echarts'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { useTeamMetricsCharts } from '../charts-context'
 import { TimePicker } from '../time-picker'
 import {
@@ -48,10 +46,6 @@ interface ConcurrentChartProps {
 export default function ConcurrentChartClient({
   concurrentInstancesLimit,
 }: ConcurrentChartProps) {
-  const chartRef = useRef<ECharts | null>(null)
-  const isRegisteredRef = useRef(false)
-
-  const { registerChart, unregisterChart } = useChartRegistry()
   const {
     data,
     isPolling,
@@ -60,17 +54,6 @@ export default function ConcurrentChartClient({
     setTimeRange,
     setCustomRange,
   } = useTeamMetricsCharts()
-
-  // cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (chartRef.current && isRegisteredRef.current) {
-        unregisterChart(chartRef.current)
-        chartRef.current = null
-        isRegisteredRef.current = false
-      }
-    }
-  }, [unregisterChart])
 
   const lineData = useMemo(() => {
     if (!data?.metrics || !data?.step) {
@@ -262,24 +245,6 @@ export default function ConcurrentChartClient({
         }}
         yAxisLimit={concurrentInstancesLimit}
         group="sandboxes-monitoring"
-        onChartReady={(chart) => {
-          // if we have a previous chart instance that's different, unregister it
-          if (
-            chartRef.current?.id &&
-            chartRef.current?.id !== chart.id &&
-            isRegisteredRef.current
-          ) {
-            unregisterChart(chartRef.current)
-            isRegisteredRef.current = false
-          }
-
-          // only register if this is a new chart instance
-          if (!isRegisteredRef.current || chartRef.current?.id !== chart.id) {
-            chartRef.current = chart
-            registerChart(chart)
-            isRegisteredRef.current = true
-          }
-        }}
         duration={timeframe.duration}
         syncAxisPointers={true}
         showTooltip={true}

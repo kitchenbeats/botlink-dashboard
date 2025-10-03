@@ -12,35 +12,36 @@ import { format } from 'date-fns'
 import { renderToString } from 'react-dom/server'
 import { LIMIT_LINE_MIN_DISTANCE, LIMIT_LINE_TOLERANCE } from './constants'
 import DefaultTooltip from './tooltips'
-import type { ResponsiveAxisConfig, TooltipFormatterParamsArray } from './types'
+import type { TooltipFormatterParamsArray } from './types'
 
 /**
  * Creates a formatter for x-axis labels
  */
-export function createXAxisFormatter(
-  axisType: string | undefined,
-  responsiveConfig: ResponsiveAxisConfig
-) {
+export function createXAxisFormatter(axisType: string | undefined) {
   return (value: string | number): string => {
     // if this is a time axis, format using our utility
     if (axisType === 'time') {
       const date = new Date(value)
       const isNewDay = date.getHours() === 0 && date.getMinutes() === 0
 
+      const isVeryCompactTimeFormat = window.innerWidth < 768
+      const isCompactTimeFormat = window.innerWidth < 1024
+      const shouldHideSeconds = window.innerWidth < 1280
+
       // use compact formats for small viewports
-      if (responsiveConfig.isVeryCompactTimeFormat) {
+      if (isVeryCompactTimeFormat) {
         // very compact: just time without seconds or period (e.g., "12:45")
         if (isNewDay) {
           return format(date, 'MMM d')
         }
         return format(date, 'HH:mm')
-      } else if (responsiveConfig.isCompactTimeFormat) {
+      } else if (isCompactTimeFormat) {
         // compact: time with period but no seconds (e.g., "12:45 PM")
         if (isNewDay) {
           return format(date, 'MMM d')
         }
         return format(date, 'h:mm a')
-      } else if (responsiveConfig.shouldHideSeconds) {
+      } else if (shouldHideSeconds) {
         // hide seconds for long timespans (30 minutes or more)
         if (isNewDay) {
           return format(date, 'MMM d')
@@ -109,9 +110,7 @@ export function createAxisPointerFormatter(axisType?: string) {
 /**
  * Creates the default tooltip formatter
  */
-export function createDefaultTooltipFormatter(
-  responsiveConfig: ResponsiveAxisConfig
-) {
+export function createDefaultTooltipFormatter() {
   return (params: TooltipFormatterParamsArray): string => {
     const paramArray = Array.isArray(params) ? params : [params]
     const validParams = paramArray.filter(
