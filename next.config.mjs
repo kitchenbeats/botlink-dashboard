@@ -40,7 +40,7 @@ const config = {
           value: 'SAMEORIGIN',
         },
       ],
-    },
+    }, 
   ],
   rewrites: async () => [
     {
@@ -77,28 +77,6 @@ const config = {
       source: '/ai-agents/:path*',
       destination: '/',
       permanent: true,
-    },
-    // Campaigns
-    {
-      source: '/start',
-      destination:
-        '/careers?utm_source=billboard&utm_medium=outdoor&utm_campaign=launch_2025&utm_content=start_ooh',
-      permanent: false,
-      statusCode: 302,
-    },
-    {
-      source: '/machines',
-      destination:
-        '/enterprise?utm_source=billboard&utm_medium=outdoor&utm_campaign=launch_2025&utm_content=machines_ooh',
-      permanent: false,
-      statusCode: 302,
-    },
-    {
-      source: '/humans',
-      destination:
-        '/enterprise?utm_source=billboard&utm_medium=outdoor&utm_campaign=launch_2025&utm_content=humans_ooh',
-      permanent: false,
-      statusCode: 302,
     },
   ],
   skipTrailingSlashRedirect: true,
