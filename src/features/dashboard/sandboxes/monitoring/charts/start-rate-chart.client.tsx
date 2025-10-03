@@ -1,18 +1,15 @@
 'use client'
 
+import { useChartRegistry } from '@/lib/contexts/chart-registry-context'
 import { useCssVars } from '@/lib/hooks/use-css-vars'
 import { createSingleValueTooltipFormatter } from '@/lib/utils/chart'
 import { formatDecimal } from '@/lib/utils/formatting'
-import { getTeamMetrics } from '@/server/sandboxes/get-team-metrics'
 import { ClientTeamMetric } from '@/types/sandboxes.types'
 import LineChart from '@/ui/charts/line-chart'
 import { ReactiveLiveBadge } from '@/ui/live'
 import { ECharts } from 'echarts/types/dist/echarts'
-import { InferSafeActionFnResult } from 'next-safe-action'
 import { useEffect, useMemo, useRef } from 'react'
-import { NonUndefined } from 'react-hook-form'
-import { useSyncedMetrics } from '../hooks/use-synced-metrics'
-import { useTeamMetrics } from '../store'
+import { useTeamMetricsCharts } from '../charts-context'
 import {
   calculateCentralTendency,
   calculateYAxisMax,
@@ -21,20 +18,12 @@ import {
   transformMetricsToLineData,
 } from './utils'
 
-interface StartRateChartProps {
-  teamId: string
-  initialData: NonUndefined<
-    InferSafeActionFnResult<typeof getTeamMetrics>['data']
-  >
-}
-
-export default function StartRateChartClient({
-  teamId,
-  initialData,
-}: StartRateChartProps) {
+export default function StartRateChartClient() {
   const chartRef = useRef<ECharts | null>(null)
   const isRegisteredRef = useRef(false)
-  const { timeframe, registerChart, unregisterChart } = useTeamMetrics()
+
+  const { registerChart, unregisterChart } = useChartRegistry()
+  const { data, isPolling, timeframe } = useTeamMetricsCharts()
 
   // cleanup on unmount
   useEffect(() => {
@@ -46,24 +35,6 @@ export default function StartRateChartClient({
       }
     }
   }, [unregisterChart])
-
-  // create a complete timeframe object for the hook
-  // always use store timeframe as it's the source of truth
-  const syncedTimeframe = useMemo(() => {
-    return {
-      start: timeframe.start,
-      end: timeframe.end,
-      isLive: timeframe.isLive,
-      duration: timeframe.end - timeframe.start,
-    }
-  }, [timeframe.start, timeframe.end, timeframe.isLive])
-
-  // use synced metrics hook for consistent fetching
-  const { data, isPolling } = useSyncedMetrics({
-    teamId,
-    timeframe: syncedTimeframe,
-    initialData,
-  })
 
   const lineData = useMemo(() => {
     if (!data?.metrics || !data?.step) {
@@ -145,7 +116,7 @@ export default function StartRateChartClient({
             isRegisteredRef.current = true
           }
         }}
-        duration={syncedTimeframe.duration}
+        duration={timeframe.duration}
         syncAxisPointers={true}
         showTooltip={true}
         tooltipFormatter={tooltipFormatter}
@@ -160,7 +131,7 @@ export default function StartRateChartClient({
                 lineData.length > 0
                   ? (lineData[lineData.length - 1]?.x as number)
                   : timeframe.end,
-              isLive: syncedTimeframe.isLive,
+              isLive: timeframe.isLive,
             },
           }),
           yAxis: {

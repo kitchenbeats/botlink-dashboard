@@ -1,6 +1,7 @@
 'use client'
 
 import { calculateStepForDuration } from '@/features/dashboard/sandboxes/monitoring/utils'
+import { useChartRegistry } from '@/lib/contexts/chart-registry-context'
 import { useCssVars } from '@/lib/hooks/use-css-vars'
 import { cn } from '@/lib/utils'
 import { createSingleValueTooltipFormatter } from '@/lib/utils/chart'
@@ -14,18 +15,14 @@ import {
   TimeRangeKey,
   formatTimeframeAsISO8601Interval,
 } from '@/lib/utils/timeframe'
-import { getTeamMetrics } from '@/server/sandboxes/get-team-metrics'
 import { ClientTeamMetric } from '@/types/sandboxes.types'
 import LineChart from '@/ui/charts/line-chart'
 import CopyButton from '@/ui/copy-button'
 import { ReactiveLiveBadge } from '@/ui/live'
 import { Button } from '@/ui/primitives/button'
 import { ECharts } from 'echarts'
-import { InferSafeActionFnResult } from 'next-safe-action'
 import { useEffect, useMemo, useRef } from 'react'
-import { NonUndefined } from 'react-hook-form'
-import { useSyncedMetrics } from '../hooks/use-synced-metrics'
-import { useTeamMetrics } from '../store'
+import { useTeamMetricsCharts } from '../charts-context'
 import { TimePicker } from '../time-picker'
 import {
   calculateCentralTendency,
@@ -45,29 +42,24 @@ const CHART_RANGE_MAP_KEYS = Object.keys(CHART_RANGE_MAP) as Array<
 >
 
 interface ConcurrentChartProps {
-  teamId: string
-  initialData: NonUndefined<
-    InferSafeActionFnResult<typeof getTeamMetrics>['data']
-  >
   concurrentInstancesLimit?: number
 }
 
 export default function ConcurrentChartClient({
-  teamId,
-  initialData,
   concurrentInstancesLimit,
 }: ConcurrentChartProps) {
   const chartRef = useRef<ECharts | null>(null)
   const isRegisteredRef = useRef(false)
 
+  const { registerChart, unregisterChart } = useChartRegistry()
   const {
+    data,
+    isPolling,
     timeframe,
     setStaticMode,
     setTimeRange,
     setCustomRange,
-    registerChart,
-    unregisterChart,
-  } = useTeamMetrics()
+  } = useTeamMetricsCharts()
 
   // cleanup on unmount
   useEffect(() => {
@@ -79,24 +71,6 @@ export default function ConcurrentChartClient({
       }
     }
   }, [unregisterChart])
-
-  // create a complete timeframe object for the hook
-  // always use store timeframe as it's the source of truth
-  const syncedTimeframe = useMemo(() => {
-    return {
-      start: timeframe.start,
-      end: timeframe.end,
-      isLive: timeframe.isLive,
-      duration: timeframe.end - timeframe.start,
-    }
-  }, [timeframe.start, timeframe.end, timeframe.isLive])
-
-  // use synced metrics hook for consistent fetching
-  const { data, isPolling } = useSyncedMetrics({
-    teamId,
-    timeframe: syncedTimeframe,
-    initialData,
-  })
 
   const lineData = useMemo(() => {
     if (!data?.metrics || !data?.step) {
@@ -122,7 +96,7 @@ export default function ConcurrentChartClient({
   ] as const)
 
   const currentRange = useMemo(() => {
-    const currentDuration = syncedTimeframe.duration
+    const currentDuration = timeframe.duration
 
     // calculate tolerance to account for rounding errors
     const step = calculateStepForDuration(currentDuration)
@@ -133,34 +107,21 @@ export default function ConcurrentChartClient({
     )
 
     return matchingRange ? matchingRange[0] : 'custom'
-  }, [syncedTimeframe.duration])
+  }, [timeframe.duration])
 
   const customRangeLabel = useMemo(() => {
-    if (!syncedTimeframe.isLive || currentRange === 'custom') {
-      return `${formatCompactDate(syncedTimeframe.start)} - ${formatCompactDate(syncedTimeframe.end)}`
+    if (!timeframe.isLive || currentRange === 'custom') {
+      return `${formatCompactDate(timeframe.start)} - ${formatCompactDate(timeframe.end)}`
     }
     return null
-  }, [
-    currentRange,
-    syncedTimeframe.start,
-    syncedTimeframe.end,
-    syncedTimeframe.isLive,
-  ])
+  }, [currentRange, timeframe.start, timeframe.end, timeframe.isLive])
 
   const customRangeCopyValue = useMemo(() => {
-    if (!syncedTimeframe.isLive || currentRange === 'custom') {
-      return formatTimeframeAsISO8601Interval(
-        syncedTimeframe.start,
-        syncedTimeframe.end
-      )
+    if (!timeframe.isLive || currentRange === 'custom') {
+      return formatTimeframeAsISO8601Interval(timeframe.start, timeframe.end)
     }
     return null
-  }, [
-    currentRange,
-    syncedTimeframe.start,
-    syncedTimeframe.end,
-    syncedTimeframe.isLive,
-  ])
+  }, [currentRange, timeframe.start, timeframe.end, timeframe.isLive])
 
   const handleRangeChange = (range: keyof typeof CHART_RANGE_MAP) => {
     if (range === 'custom') return
@@ -234,10 +195,10 @@ export default function ConcurrentChartClient({
           <div className="flex items-center gap-2 md:gap-4 max-md:-ml-1.5 max-md:pr-3 max-md:-mr-3 max-md:-mt-0.5 max-md:overflow-x-auto [&::-webkit-scrollbar]:hidden">
             <TimePicker
               value={{
-                mode: syncedTimeframe.isLive ? 'live' : 'static',
-                range: syncedTimeframe.duration,
-                start: syncedTimeframe.start,
-                end: syncedTimeframe.end,
+                mode: timeframe.isLive ? 'live' : 'static',
+                range: timeframe.duration,
+                start: timeframe.start,
+                end: timeframe.end,
               }}
               onValueChange={(value) => {
                 if (value.mode === 'static' && value.start && value.end) {
@@ -304,8 +265,8 @@ export default function ConcurrentChartClient({
         onChartReady={(chart) => {
           // if we have a previous chart instance that's different, unregister it
           if (
-            chartRef.current &&
-            chartRef.current !== chart &&
+            chartRef.current?.id &&
+            chartRef.current?.id !== chart.id &&
             isRegisteredRef.current
           ) {
             unregisterChart(chartRef.current)
@@ -313,13 +274,13 @@ export default function ConcurrentChartClient({
           }
 
           // only register if this is a new chart instance
-          if (!isRegisteredRef.current || chartRef.current !== chart) {
+          if (!isRegisteredRef.current || chartRef.current?.id !== chart.id) {
             chartRef.current = chart
             registerChart(chart)
             isRegisteredRef.current = true
           }
         }}
-        duration={syncedTimeframe.duration}
+        duration={timeframe.duration}
         syncAxisPointers={true}
         showTooltip={true}
         tooltipFormatter={tooltipFormatter}
@@ -334,7 +295,7 @@ export default function ConcurrentChartClient({
                 lineData.length > 0
                   ? (lineData[lineData.length - 1]?.x as number)
                   : timeframe.end,
-              isLive: syncedTimeframe.isLive,
+              isLive: timeframe.isLive,
             },
           }),
           yAxis: {
