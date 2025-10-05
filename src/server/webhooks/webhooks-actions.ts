@@ -6,40 +6,42 @@ import { authActionClient } from '@/lib/clients/action'
 import { l } from '@/lib/clients/logger/logger'
 import { handleDefaultInfraError } from '@/lib/utils/action'
 import {
-  SandboxWebhooksPayloadGet,
   SandboxWebhooksPayloadPatch,
   SandboxWebhooksPayloadPost,
 } from '@/types/argus.types'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import {
-  CreateWebhookSchema,
   DeleteWebhookSchema,
   TestWebhookSchema,
-  UpdateWebhookSchema,
+  UpsertWebhookSchema,
 } from './schema'
 
-export const createWebhookAction = authActionClient
-  .schema(CreateWebhookSchema)
-  .metadata({ actionName: 'createWebhook' })
+// Upsert Webhook (Create or Update)
+
+export const upsertWebhookAction = authActionClient
+  .schema(UpsertWebhookSchema)
+  .metadata({ actionName: 'upsertWebhook' })
   .action(async ({ parsedInput, ctx }) => {
-    const { teamId, url, events } = parsedInput
+    const { teamId, mode, url, events } = parsedInput
     const { session } = ctx
 
     const accessToken = session.access_token
+    const isEdit = mode === 'edit'
 
     const response = await fetch(
       `${process.env.INFRA_API_URL}/events/webhooks/sandboxes`,
       {
-        method: 'POST',
+        method: isEdit ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
         },
-        body: JSON.stringify({
-          url,
-          events,
-        } satisfies SandboxWebhooksPayloadPost),
+        body: JSON.stringify(
+          isEdit
+            ? ({ url, events } satisfies SandboxWebhooksPayloadPatch)
+            : ({ url, events } satisfies SandboxWebhooksPayloadPost)
+        ),
       }
     )
 
@@ -49,18 +51,19 @@ export const createWebhookAction = authActionClient
 
       l.error(
         {
-          key: 'create_webhook:infra_error',
+          key: `${isEdit ? 'update' : 'create'}_webhook:infra_error`,
           error: `${status}: ${text}`,
           team_id: teamId,
           user_id: session.user.id,
           context: {
             status,
             teamId,
+            mode,
             url,
             events,
           },
         },
-        `Failed to create webhook: ${text}`
+        `Failed to ${isEdit ? 'update' : 'create'} webhook: ${text}`
       )
 
       return handleDefaultInfraError(status)
@@ -73,61 +76,6 @@ export const createWebhookAction = authActionClient
     revalidatePath(`/dashboard/${teamSlug}/settings?tab=webhooks`, 'page')
 
     return { success: true }
-  })
-
-// Update Webhook
-
-export const updateWebhookAction = authActionClient
-  .schema(UpdateWebhookSchema)
-  .metadata({ actionName: 'updateWebhook' })
-  .action(async ({ parsedInput, ctx }) => {
-    const { teamId, url, events } = parsedInput
-    const { session } = ctx
-
-    const accessToken = session.access_token
-
-    const body: SandboxWebhooksPayloadPatch = {}
-    if (url !== undefined) body.url = url
-    if (events !== undefined) body.events = events
-
-    const response = await fetch(
-      `${process.env.INFRA_API_URL}/events/webhooks/sandboxes`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
-        },
-        body: JSON.stringify(body),
-      }
-    )
-
-    if (!response.ok) {
-      const status = response.status
-      const text = await response.text()
-
-      l.error(
-        {
-          key: 'update_webhook:infra_error',
-          error: `${status}: ${text}`,
-          team_id: teamId,
-          user_id: session.user.id,
-          context: {
-            status,
-            teamId,
-            url,
-            events,
-          },
-        },
-        `Failed to update webhook: ${text}`
-      )
-
-      return handleDefaultInfraError(status)
-    }
-
-    const data = (await response.json()) as SandboxWebhooksPayloadGet
-
-    return { webhook: data }
   })
 
 // Delete Webhook

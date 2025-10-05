@@ -1,16 +1,18 @@
 'use client'
 
+import { useShikiTheme } from '@/configs/shiki'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import {
   defaultErrorToast,
   defaultSuccessToast,
   toast,
 } from '@/lib/hooks/use-toast'
-import { CreateWebhookSchema } from '@/server/webhooks/schema'
+import { UpsertWebhookSchema } from '@/server/webhooks/schema'
 import {
-  createWebhookAction,
   testWebhookAction,
+  upsertWebhookAction,
 } from '@/server/webhooks/webhooks-actions'
+import { SandboxWebhooksPayloadGet } from '@/types/argus.types'
 import { Button } from '@/ui/primitives/button'
 import { Checkbox } from '@/ui/primitives/checkbox'
 import {
@@ -29,49 +31,80 @@ import {
   FormLabel,
   FormMessage,
 } from '@/ui/primitives/form'
+import { CheckIcon } from '@/ui/primitives/icons'
 import { Input } from '@/ui/primitives/input'
 import { Label } from '@/ui/primitives/label'
+import { ScrollArea, ScrollBar } from '@/ui/primitives/scroll-area'
+import { Separator } from '@/ui/primitives/separator'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks'
 import { useAction } from 'next-safe-action/hooks'
 import { useState } from 'react'
+import ShikiHighlighter from 'react-shiki'
 import {
   WEBHOOK_EVENTS,
   WEBHOOK_EVENT_LABELS,
   WEBHOOK_EXAMPLE_PAYLOAD,
 } from './constants'
 
-interface AddWebhookDialogProps {
-  children: React.ReactNode
-}
+type WebhookAddEditDialogProps =
+  | {
+      children: React.ReactNode
+      mode: 'add'
+      webhook?: undefined
+    }
+  | {
+      children: React.ReactNode
+      mode: 'edit'
+      webhook: SandboxWebhooksPayloadGet
+    }
 
-export function AddWebhookDialog({ children: trigger }: AddWebhookDialogProps) {
+export default function WebhookAddEditDialog({
+  children: trigger,
+  mode,
+  webhook,
+}: WebhookAddEditDialogProps) {
   'use no memo'
 
   const selectedTeam = useSelectedTeam()
   const [open, setOpen] = useState(false)
+  const shikiTheme = useShikiTheme()
+
+  const isEditMode = mode === 'edit'
 
   const {
     form,
     resetFormAndAction,
     handleSubmitWithAction,
     action: { isExecuting },
-  } = useHookFormAction(createWebhookAction, zodResolver(CreateWebhookSchema), {
+  } = useHookFormAction(upsertWebhookAction, zodResolver(UpsertWebhookSchema), {
     formProps: {
       defaultValues: {
         teamId: selectedTeam?.id,
-        url: '',
-        events: [],
+        mode,
+        url: webhook?.url || '',
+        events: webhook?.events || [],
       },
     },
     actionProps: {
       onSuccess: () => {
-        toast(defaultSuccessToast('Webhook created successfully'))
+        toast(
+          defaultSuccessToast(
+            isEditMode
+              ? 'Webhook updated successfully'
+              : 'Webhook created successfully'
+          )
+        )
         handleDialogChange(false)
       },
       onError: ({ error }) => {
         toast(
-          defaultErrorToast(error.serverError || 'Failed to create webhook')
+          defaultErrorToast(
+            error.serverError ||
+              (isEditMode
+                ? 'Failed to update webhook'
+                : 'Failed to create webhook')
+          )
         )
       },
     },
@@ -132,25 +165,32 @@ export function AddWebhookDialog({ children: trigger }: AddWebhookDialogProps) {
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="max-w-[700px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Webhook</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? 'Edit Webhook' : 'Add Webhook'}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={handleSubmitWithAction}>
-            <div className="flex flex-col gap-6 pb-6">
+          <form onSubmit={handleSubmitWithAction} className="min-w-0">
+            {/* Hidden fields */}
+            <input type="hidden" {...form.register('mode')} />
+            <input type="hidden" {...form.register('teamId')} />
+
+            <div className="flex flex-col gap-4 pb-6 min-w-0">
               {/* URL Input */}
               <FormField
                 control={form.control}
                 name="url"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL</FormLabel>
+                  <FormItem className="min-w-0">
+                    <FormLabel className="text-fg-tertiary">URL</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://example.com/postreceive"
                         disabled={isExecuting}
+                        className="min-w-0"
                         {...field}
                       />
                     </FormControl>
@@ -165,9 +205,11 @@ export function AddWebhookDialog({ children: trigger }: AddWebhookDialogProps) {
                 name="events"
                 render={() => (
                   <FormItem>
-                    <FormLabel>Received Lifecycle Events</FormLabel>
+                    <FormLabel className="text-fg-tertiary">
+                      Received Lifecycle Events
+                    </FormLabel>
                     <FormControl>
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-2">
                         {/* ALL checkbox */}
                         <div className="flex items-center gap-2">
                           <Checkbox
@@ -183,6 +225,8 @@ export function AddWebhookDialog({ children: trigger }: AddWebhookDialogProps) {
                             ALL
                           </Label>
                         </div>
+
+                        <Separator className="w-4" />
 
                         {/* Individual event checkboxes */}
                         {WEBHOOK_EVENTS.map((event) => (
@@ -209,15 +253,28 @@ export function AddWebhookDialog({ children: trigger }: AddWebhookDialogProps) {
               />
 
               {/* Description */}
-              <div className="flex flex-col gap-2">
-                <p className="text-fg-tertiary prose-body">
+              <div className="flex flex-col gap-2 min-w-0">
+                <p className="text-fg-tertiary prose-body break-words">
                   We'll send a POST request with a JSON payload to{' '}
-                  {form.watch('url') || 'https://example.com/postreceive'} for
-                  each event. Example:
+                  <span className="break-all">
+                    {form.watch('url') || 'https://example.com/postreceive'}
+                  </span>{' '}
+                  for each event. Example:
                 </p>
-                <pre className="bg-bg-1 border border-stroke p-3 text-xs font-mono overflow-x-auto">
-                  {WEBHOOK_EXAMPLE_PAYLOAD}
-                </pre>
+                <div className="border overflow-hidden w-full">
+                  <ScrollArea>
+                    <ShikiHighlighter
+                      language="json"
+                      theme={shikiTheme}
+                      className="px-3 py-2 text-xs"
+                      addDefaultStyles={false}
+                      showLanguage={false}
+                    >
+                      {WEBHOOK_EXAMPLE_PAYLOAD}
+                    </ShikiHighlighter>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+                </div>
               </div>
             </div>
 
@@ -228,6 +285,7 @@ export function AddWebhookDialog({ children: trigger }: AddWebhookDialogProps) {
                 onClick={handleTest}
                 disabled={isExecuting || isTesting || !form.watch('url')}
                 loading={isTesting}
+                className="w-full"
               >
                 Test
               </Button>
@@ -235,8 +293,16 @@ export function AddWebhookDialog({ children: trigger }: AddWebhookDialogProps) {
                 type="submit"
                 disabled={isExecuting || selectedEvents.length === 0}
                 loading={isExecuting}
+                className="w-full"
               >
-                Add
+                {isEditMode ? (
+                  <>
+                    <CheckIcon className="size-4" />
+                    Confirm
+                  </>
+                ) : (
+                  'Add'
+                )}
               </Button>
             </DialogFooter>
           </form>
