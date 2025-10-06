@@ -12,7 +12,6 @@ import {
   testWebhookAction,
   upsertWebhookAction,
 } from '@/server/webhooks/webhooks-actions'
-import { SandboxWebhooksPayloadGet } from '@/types/argus.types'
 import { Button } from '@/ui/primitives/button'
 import { Checkbox } from '@/ui/primitives/checkbox'
 import {
@@ -46,6 +45,7 @@ import {
   WEBHOOK_EVENT_LABELS,
   WEBHOOK_EXAMPLE_PAYLOAD,
 } from './constants'
+import { Webhook } from './types'
 
 type WebhookAddEditDialogProps =
   | {
@@ -56,7 +56,7 @@ type WebhookAddEditDialogProps =
   | {
       children: React.ReactNode
       mode: 'edit'
-      webhook: SandboxWebhooksPayloadGet
+      webhook: Webhook
     }
 
 export default function WebhookAddEditDialog({

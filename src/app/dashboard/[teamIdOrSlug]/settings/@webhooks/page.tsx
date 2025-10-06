@@ -25,6 +25,11 @@ export default async function WebhooksPage({
 
   const webhookResult = await getWebhook({ teamId })
 
+  // undefined data indicates execution error so we disable the controls
+  const hasError = webhookResult?.data === undefined
+  // normalize data field, no matter the execution result
+  const data = webhookResult?.data ? webhookResult.data : { webhook: null }
+
   return (
     <Frame
       classNames={{
@@ -41,18 +46,19 @@ export default async function WebhooksPage({
               send a POST request to the URL you provide.
             </CardDescription>
 
-            <WebhookControls webhook={webhookResult?.data?.webhook} />
+            <WebhookControls webhook={data.webhook} disabled={hasError} />
           </div>
         </CardHeader>
 
         <CardContent>
-          {webhookResult?.data ? (
-            <WebhookCard webhook={webhookResult.data.webhook} />
+          {!hasError && data.webhook ? (
+            <WebhookCard webhook={data.webhook} />
           ) : (
             <WebhooksEmpty
               error={
-                webhookResult?.serverError &&
-                'Failed to get webhook state. Try again or contact support.'
+                hasError
+                  ? 'Failed to get webhook state. Try again or contact support.'
+                  : undefined
               }
             />
           )}

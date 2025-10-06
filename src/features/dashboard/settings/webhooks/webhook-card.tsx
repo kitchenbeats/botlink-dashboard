@@ -1,7 +1,7 @@
-import { SandboxWebhooksPayloadGet } from '@/types/argus.types'
+import { Webhook } from './types'
 
 interface WebhookCardProps {
-  webhook: SandboxWebhooksPayloadGet
+  webhook: Webhook
 }
 
 export default function WebhookCard({ webhook }: WebhookCardProps) {

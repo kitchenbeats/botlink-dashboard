@@ -29,6 +29,10 @@ export const getWebhook = authActionClient
     if (response.error) {
       const status = response.response.status
 
+      if (status === 404) {
+        return { webhook: null }
+      }
+
       l.error(
         {
           key: 'get_webhook:infra_error',

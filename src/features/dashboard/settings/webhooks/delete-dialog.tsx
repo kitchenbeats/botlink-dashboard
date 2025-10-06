@@ -6,15 +6,15 @@ import {
   useToast,
 } from '@/lib/hooks/use-toast'
 import { deleteWebhookAction } from '@/server/webhooks/webhooks-actions'
-import { SandboxWebhooksPayloadGet } from '@/types/argus.types'
 import { AlertDialog } from '@/ui/alert-dialog'
 import { TrashIcon } from '@/ui/primitives/icons'
 import { Loader } from '@/ui/primitives/loader'
 import { useAction } from 'next-safe-action/hooks'
+import { Webhook } from './types'
 
 interface WebhookDeleteDialogProps {
   children: React.ReactNode
-  webhook: SandboxWebhooksPayloadGet
+  webhook: Webhook
 }
 
 export default function WebhookDeleteDialog({
