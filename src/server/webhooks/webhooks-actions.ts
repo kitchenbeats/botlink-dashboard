@@ -3,12 +3,9 @@
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { COOKIE_KEYS } from '@/configs/keys'
 import { authActionClient } from '@/lib/clients/action'
+import { infra } from '@/lib/clients/api'
 import { l } from '@/lib/clients/logger/logger'
 import { handleDefaultInfraError } from '@/lib/utils/action'
-import {
-  SandboxWebhooksPayloadPatch,
-  SandboxWebhooksPayloadPost,
-} from '@/types/argus.types'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import {
@@ -19,6 +16,9 @@ import {
 
 // Upsert Webhook (Create or Update)
 
+// NOTE: we combine insert and edit for now, since
+// the component calling these can be combined as well. [add-edit-dialog.tsx]
+// this results in less client side complexity.
 export const upsertWebhookAction = authActionClient
   .schema(UpsertWebhookSchema)
   .metadata({ actionName: 'upsertWebhook' })
@@ -29,41 +29,46 @@ export const upsertWebhookAction = authActionClient
     const accessToken = session.access_token
     const isEdit = mode === 'edit'
 
-    const response = await fetch(
-      `${process.env.INFRA_API_URL}/events/webhooks/sandboxes`,
-      {
-        method: isEdit ? 'PATCH' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
-        },
-        body: JSON.stringify(
-          isEdit
-            ? ({ url, events } satisfies SandboxWebhooksPayloadPatch)
-            : ({ url, events } satisfies SandboxWebhooksPayloadPost)
-        ),
-      }
-    )
+    const response = isEdit
+      ? await infra.PATCH('/events/webhooks/sandboxes', {
+          headers: {
+            ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
+          },
+          body: {
+            url,
+            events,
+          },
+        })
+      : await infra.POST('/events/webhooks/sandboxes', {
+          headers: {
+            ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
+          },
+          body: {
+            url,
+            events,
+          },
+        })
 
-    if (!response.ok) {
-      const status = response.status
-      const text = await response.text()
+    if (response.error) {
+      const status = response.response.status
 
       l.error(
         {
-          key: `${isEdit ? 'update' : 'create'}_webhook:infra_error`,
-          error: `${status}: ${text}`,
+          key: isEdit
+            ? 'update_webhook:infra_error'
+            : 'create_webhook:infra_error',
+          status,
+          error: response.error,
           team_id: teamId,
           user_id: session.user.id,
           context: {
-            status,
             teamId,
             mode,
             url,
             events,
           },
         },
-        `Failed to ${isEdit ? 'update' : 'create'} webhook: ${text}`
+        `Failed to ${isEdit ? 'update' : 'create'} webhook: ${status}: ${response.error.message}`
       )
 
       return handleDefaultInfraError(status)
@@ -89,33 +94,27 @@ export const deleteWebhookAction = authActionClient
 
     const accessToken = session.access_token
 
-    const response = await fetch(
-      `${process.env.INFRA_API_URL}/events/webhooks/sandboxes`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
-        },
-      }
-    )
+    const response = await infra.DELETE('/events/webhooks/sandboxes', {
+      headers: {
+        ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
+      },
+    })
 
-    if (!response.ok) {
-      const status = response.status
-      const text = await response.text()
+    if (response.error) {
+      const status = response.response.status
 
       l.error(
         {
           key: 'delete_webhook:infra_error',
-          error: `${status}: ${text}`,
+          status,
+          error: response.error,
           team_id: teamId,
           user_id: session.user.id,
           context: {
-            status,
             teamId,
           },
         },
-        `Failed to delete webhook: ${text}`
+        `Failed to delete webhook: ${status}: ${response.error.message}`
       )
 
       return handleDefaultInfraError(status)
@@ -141,33 +140,27 @@ export const testWebhookAction = authActionClient
 
     const accessToken = session.access_token
 
-    const response = await fetch(
-      `${process.env.INFRA_API_URL}/events/webhooks/sandboxes/test`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
-        },
-      }
-    )
+    const response = await infra.POST('/events/webhooks/sandboxes/test', {
+      headers: {
+        ...SUPABASE_AUTH_HEADERS(accessToken, teamId),
+      },
+    })
 
-    if (!response.ok) {
-      const status = response.status
-      const text = await response.text()
+    if (response.error) {
+      const status = response.response.status
 
       l.error(
         {
           key: 'test_webhook:infra_error',
-          error: `${status}: ${text}`,
+          status,
+          error: response.error,
           team_id: teamId,
           user_id: session.user.id,
           context: {
-            status,
             teamId,
           },
         },
-        `Failed to test webhook: ${text}`
+        `Failed to test webhook: ${status}: ${response.error.message}`
       )
 
       return handleDefaultInfraError(status)
