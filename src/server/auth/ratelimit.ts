@@ -3,12 +3,6 @@ import 'server-cli-only'
 import { KV_KEYS } from '@/configs/keys'
 import { kv } from '@vercel/kv'
 
-const SIGN_UP_LIMIT_PER_WINDOW = parseInt(
-  process.env.SIGN_UP_LIMIT_PER_WINDOW || '1'
-)
-const SIGN_UP_WINDOW_HOURS = parseInt(process.env.SIGN_UP_WINDOW_HOURS || '24')
-const SIGN_UP_WINDOW_SECONDS = SIGN_UP_WINDOW_HOURS * 60 * 60
-
 /**
  * Increments the sign-up attempt counter and checks if the rate limit has been reached.
  * Uses a Lua script for atomic execution to avoid race conditions.
@@ -23,27 +17,38 @@ const SIGN_UP_WINDOW_SECONDS = SIGN_UP_WINDOW_HOURS * 60 * 60
  *                            false if more attempts are available
  */
 export async function incrementAndCheckSignUpRateLimit(
-  identifier: string
+  identifier: string,
+  limits: {
+    windowHours: number
+    limitPerWindow: number
+  }
 ): Promise<boolean> {
   const key = KV_KEYS.RATE_LIMIT_SIGN_UP(identifier)
+  const { windowHours, limitPerWindow } = limits
+  const windowSeconds = windowHours * 60 * 60
 
   // executes atomically on redis server
+  // we ensure TTL exists once per window, even if expire would fail on first increment for some reason
   const luaScript = `
     local count = redis.call('INCR', KEYS[1])
     if count == 1 then
       redis.call('EXPIRE', KEYS[1], ARGV[1])
+    else
+      if redis.call('TTL', KEYS[1]) == -1 then
+        redis.call('EXPIRE', KEYS[1], ARGV[1])
+      end
     end
     return count
   `
 
-  const count = await kv.eval(
+  const count = await kv.eval<string[], number>(
     luaScript,
     [key],
-    [SIGN_UP_WINDOW_SECONDS.toString()]
+    [windowSeconds.toString()]
   )
 
   // return true if limit exceeded (rate limited)
-  return (count as number) > SIGN_UP_LIMIT_PER_WINDOW
+  return count > limitPerWindow
 }
 
 /**
@@ -70,5 +75,5 @@ export async function decrementSignUpRateLimit(identifier: string) {
     return current
   `
 
-  await kv.eval(luaScript, [key], [])
+  await kv.eval<string[], number>(luaScript, [key], [])
 }
