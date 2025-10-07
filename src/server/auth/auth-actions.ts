@@ -117,20 +117,10 @@ export const signUpAction = actionClient
 
     const ip = ipAddress(headersStore)
 
-    const SIGN_UP_LIMIT_PER_WINDOW = parseInt(
-      process.env.SIGN_UP_LIMIT_PER_WINDOW || '3'
-    )
-
-    const SIGN_UP_WINDOW_HOURS = parseInt(
-      process.env.SIGN_UP_WINDOW_HOURS || '24'
-    )
-
     const shouldRateLimit =
       ENABLE_SIGN_UP_RATE_LIMITING &&
       process.env.NODE_ENV === 'production' &&
-      ip &&
-      !isNaN(SIGN_UP_LIMIT_PER_WINDOW) &&
-      !isNaN(SIGN_UP_WINDOW_HOURS)
+      ip
 
     if (
       ENABLE_SIGN_UP_RATE_LIMITING &&
@@ -144,18 +134,12 @@ export const signUpAction = actionClient
             message: 'no ip headers found in production',
           },
         },
-        'Tried to rate limit, but no ip headers were found in production.'
+        'Tried to rate limit, but no client ip headers were found in production.'
       )
     }
 
     // increment rate limit counter before attempting signup
-    if (
-      shouldRateLimit &&
-      (await incrementAndCheckSignUpRateLimit(ip, {
-        windowHours: SIGN_UP_WINDOW_HOURS,
-        limitPerWindow: SIGN_UP_LIMIT_PER_WINDOW,
-      }))
-    ) {
+    if (shouldRateLimit && (await incrementAndCheckSignUpRateLimit(ip))) {
       return returnServerError(
         'Too many sign-up attempts. Please try again later.'
       )

@@ -1,7 +1,24 @@
 import 'server-cli-only'
 
 import { KV_KEYS } from '@/configs/keys'
+import {
+  DEFAULT_SIGN_UP_LIMIT_PER_WINDOW,
+  DEFAULT_SIGN_UP_WINDOW_HOURS,
+} from '@/configs/limits'
 import { kv } from '@vercel/kv'
+
+// we need to ensure the limits are valid numbers
+// if parseInt returns NaN, we fallback to the default
+const SIGN_UP_LIMIT_PER_WINDOW =
+  parseInt(
+    process.env.SIGN_UP_LIMIT_PER_WINDOW ||
+      DEFAULT_SIGN_UP_LIMIT_PER_WINDOW.toString()
+  ) || DEFAULT_SIGN_UP_LIMIT_PER_WINDOW
+
+const SIGN_UP_WINDOW_HOURS =
+  parseInt(
+    process.env.SIGN_UP_WINDOW_HOURS || DEFAULT_SIGN_UP_WINDOW_HOURS.toString()
+  ) || DEFAULT_SIGN_UP_WINDOW_HOURS
 
 /**
  * Increments the sign-up attempt counter and checks if the rate limit has been reached.
@@ -17,15 +34,10 @@ import { kv } from '@vercel/kv'
  *                            false if more attempts are available
  */
 export async function incrementAndCheckSignUpRateLimit(
-  identifier: string,
-  limits: {
-    windowHours: number
-    limitPerWindow: number
-  }
+  identifier: string
 ): Promise<boolean> {
   const key = KV_KEYS.RATE_LIMIT_SIGN_UP(identifier)
-  const { windowHours, limitPerWindow } = limits
-  const windowSeconds = windowHours * 60 * 60
+  const windowSeconds = SIGN_UP_WINDOW_HOURS * 60 * 60
 
   // executes atomically on redis server
   // we ensure TTL exists once per window, even if expire would fail on first increment for some reason
@@ -48,7 +60,7 @@ export async function incrementAndCheckSignUpRateLimit(
   )
 
   // return true if limit exceeded (rate limited)
-  return count > limitPerWindow
+  return count > SIGN_UP_LIMIT_PER_WINDOW
 }
 
 /**
