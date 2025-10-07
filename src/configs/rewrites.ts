@@ -38,13 +38,4 @@ export const ROUTE_REWRITE_CONFIG: DomainConfig[] = [
 ]
 
 // Middleware native rewrite config
-export const MIDDLEWARE_REWRITE_CONFIG: DomainConfig[] = [
-  {
-    domain: DOCS_NEXT_DOMAIN,
-    rules: [{ path: '/docs/sdk-reference' }],
-  },
-  {
-    domain: STAGING_DOCS_NEXT_DOMAIN,
-    rules: [{ path: '/docs' }],
-  },
-]
+export const MIDDLEWARE_REWRITE_CONFIG: DomainConfig[] = []

@@ -55,6 +55,14 @@ const config = {
       source: '/ingest/decide',
       destination: 'https://us.i.posthog.com/decide',
     },
+    {
+      source: '/docs/sdk-reference/:path*',
+      destination: 'https://e2b-docs.vercel.app/docs/sdk-reference/:path*',
+    },
+    {
+      source: '/docs/:path*',
+      destination: 'https://docs.e2b-staging.dev/:path*',
+    }
   ],
   redirects: async () => [
     {
