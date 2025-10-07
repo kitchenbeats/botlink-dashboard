@@ -42,28 +42,30 @@ const config = {
       ],
     }, 
   ],
-  rewrites: async () => [
-    {
-      source: '/ingest/static/:path*',
-      destination: 'https://us-assets.i.posthog.com/static/:path*',
-    },
-    {
-      source: '/ingest/:path*',
-      destination: 'https://us.i.posthog.com/:path*',
-    },
-    {
-      source: '/ingest/decide',
-      destination: 'https://us.i.posthog.com/decide',
-    },
-    {
-      source: '/docs/sdk-reference/:path*',
-      destination: 'https://e2b-docs.vercel.app/docs/sdk-reference/:path*',
-    },
-    {
-      source: '/docs/:path*',
-      destination: 'https://docs.e2b-staging.dev/:path*',
-    }
-  ],
+  rewrites: async () => ({
+    beforeFiles: [
+      {
+        source: '/ingest/static/:path*',
+        destination: 'https://us-assets.i.posthog.com/static/:path*',
+      },
+      {
+        source: '/ingest/:path*',
+        destination: 'https://us.i.posthog.com/:path*',
+      },
+      {
+        source: '/ingest/decide',
+        destination: 'https://us.i.posthog.com/decide',
+      },
+      {
+        source: '/docs/sdk-reference/:path*',
+        destination: 'https://e2b-docs.vercel.app/docs/sdk-reference/:path*',
+      },
+      {
+        source: '/docs/:path*',
+        destination: 'https://docs.e2b-staging.dev/:path*',
+      },
+    ],
+  }),
   redirects: async () => [
     {
       source: '/docs/api/cli',
