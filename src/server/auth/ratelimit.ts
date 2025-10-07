@@ -1,41 +1,50 @@
 import 'server-cli-only'
 
-import { Duration, Ratelimit } from '@upstash/ratelimit'
+import { KV_KEYS } from '@/configs/keys'
 import { kv } from '@vercel/kv'
 
 const SIGN_UP_LIMIT_PER_WINDOW = parseInt(
   process.env.SIGN_UP_LIMIT_PER_WINDOW || '1'
 )
 const SIGN_UP_WINDOW_HOURS = parseInt(process.env.SIGN_UP_WINDOW_HOURS || '24')
-
-const SIGN_UP_WINDOW: Duration = `${SIGN_UP_WINDOW_HOURS}h`
-
-const _ratelimit = new Ratelimit({
-  redis: kv,
-  limiter: Ratelimit.slidingWindow(SIGN_UP_LIMIT_PER_WINDOW, SIGN_UP_WINDOW),
-})
+const SIGN_UP_WINDOW_SECONDS = SIGN_UP_WINDOW_HOURS * 60 * 60
 
 /**
- * Checks if the sign-up rate limit has been reached for the given identifier.
+ * Increments the sign-up attempt counter and checks if the rate limit has been reached.
+ * Uses Redis INCR with a fixed time window (TTL-based).
  *
- * @param identifier - The unique identifier (e.g., IP address, user ID) to check rate limit for
- * @returns Promise<boolean> - Returns true if the rate limit has been reached (no more attempts allowed),
- *                            false if more attempts are available or if there was an error checking the limit
+ * @param identifier - The unique identifier (e.g., IP address) to track rate limit for
+ * @returns Promise<boolean> - Returns true if the rate limit has been exceeded (no more attempts allowed),
+ *                            false if more attempts are available
  */
-export async function signUpRateLimit(identifier: string): Promise<boolean> {
-  const result = await _ratelimit.limit(identifier)
+export async function incrementAndCheckSignUpRateLimit(
+  identifier: string
+): Promise<boolean> {
+  const key = KV_KEYS.RATE_LIMIT_SIGN_UP(identifier)
 
-  // we return:
-  // - true (is rate limited)
-  // - false (is not rate limited)
-  return !result.success
+  const count = await kv.incr(key)
+
+  // set TTL only on the first increment to establish the time window for the rate limit
+  if (count === 1) {
+    await kv.expire(key, SIGN_UP_WINDOW_SECONDS)
+  }
+
+  // return true if limit exceeded (rate limited)
+  return count > SIGN_UP_LIMIT_PER_WINDOW
 }
 
 /**
- * Resets the rate limit counter for the given identifier, allowing them to make new attempts.
+ * Decrements the sign-up attempt counter when a sign-up fails.
+ * This allows the user to retry since no account was actually created.
  *
- * @param identifier - The unique identifier whose rate limit should be reset
+ * @param identifier - The unique identifier whose rate limit should be decremented
  */
-export async function resetSignUpRateLimit(identifier: string) {
-  await _ratelimit.resetUsedTokens(identifier)
+export async function decrementSignUpRateLimit(identifier: string) {
+  const key = KV_KEYS.RATE_LIMIT_SIGN_UP(identifier)
+  const currentCount = await kv.get<number>(key)
+
+  // only decrement if key exists and count > 0
+  if (currentCount && currentCount > 0) {
+    await kv.decr(key)
+  }
 }

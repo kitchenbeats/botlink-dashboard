@@ -20,7 +20,10 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { forgotPasswordSchema, signInSchema, signUpSchema } from './auth.types'
-import { resetSignUpRateLimit, signUpRateLimit } from './ratelimit'
+import {
+  decrementSignUpRateLimit,
+  incrementAndCheckSignUpRateLimit,
+} from './ratelimit'
 
 export const signInWithOAuthAction = actionClient
   .schema(
@@ -135,7 +138,8 @@ export const signUpAction = actionClient
       )
     }
 
-    if (shouldRateLimit && (await signUpRateLimit(ip))) {
+    // increment rate limit counter before attempting signup
+    if (shouldRateLimit && (await incrementAndCheckSignUpRateLimit(ip))) {
       return returnServerError(
         'Too many sign-up attempts. Please try again later.'
       )
@@ -157,10 +161,10 @@ export const signUpAction = actionClient
     })
 
     if (error) {
-      // we reset the sign up rate limit on failure,
-      // since no account got registered in the end.
+      // decrement the sign up rate limit on failure,
+      // since no account was registered in the end.
       if (shouldRateLimit) {
-        resetSignUpRateLimit(ip)
+        decrementSignUpRateLimit(ip)
       }
 
       switch (error.code) {
