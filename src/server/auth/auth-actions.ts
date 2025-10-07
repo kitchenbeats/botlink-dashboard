@@ -164,7 +164,7 @@ export const signUpAction = actionClient
       // decrement the sign up rate limit on failure,
       // since no account was registered in the end.
       if (shouldRateLimit) {
-        decrementSignUpRateLimit(ip)
+        await decrementSignUpRateLimit(ip)
       }
 
       switch (error.code) {
