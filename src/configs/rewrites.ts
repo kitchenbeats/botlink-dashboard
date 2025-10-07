@@ -2,6 +2,7 @@ import { DomainConfig } from '@/types/rewrites.types'
 
 export const LANDING_PAGE_DOMAIN = 'www.e2b-landing-page.com'
 export const DOCS_NEXT_DOMAIN = 'e2b-docs.vercel.app'
+export const STAGING_DOCS_NEXT_DOMAIN = 'docs.e2b-staging.dev'
 
 // Currently we have two locations for rewrites to happen.
 
@@ -40,6 +41,10 @@ export const ROUTE_REWRITE_CONFIG: DomainConfig[] = [
 export const MIDDLEWARE_REWRITE_CONFIG: DomainConfig[] = [
   {
     domain: DOCS_NEXT_DOMAIN,
+    rules: [{ path: '/docs/sdk-reference' }],
+  },
+  {
+    domain: STAGING_DOCS_NEXT_DOMAIN,
     rules: [{ path: '/docs' }],
   },
 ]
