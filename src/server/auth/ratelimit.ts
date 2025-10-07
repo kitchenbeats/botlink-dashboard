@@ -11,7 +11,12 @@ const SIGN_UP_WINDOW_SECONDS = SIGN_UP_WINDOW_HOURS * 60 * 60
 
 /**
  * Increments the sign-up attempt counter and checks if the rate limit has been reached.
- * Uses Redis INCR with a fixed time window (TTL-based).
+ * Uses a Lua script for atomic execution to avoid race conditions.
+ *
+ * The script:
+ * 1. Increments the counter
+ * 2. Sets TTL on first increment
+ * 3. Returns the new count
  *
  * @param identifier - The unique identifier (e.g., IP address) to track rate limit for
  * @returns Promise<boolean> - Returns true if the rate limit has been exceeded (no more attempts allowed),
@@ -22,29 +27,48 @@ export async function incrementAndCheckSignUpRateLimit(
 ): Promise<boolean> {
   const key = KV_KEYS.RATE_LIMIT_SIGN_UP(identifier)
 
-  const count = await kv.incr(key)
+  // executes atomically on redis server
+  const luaScript = `
+    local count = redis.call('INCR', KEYS[1])
+    if count == 1 then
+      redis.call('EXPIRE', KEYS[1], ARGV[1])
+    end
+    return count
+  `
 
-  // set TTL only on the first increment to establish the time window for the rate limit
-  if (count === 1) {
-    await kv.expire(key, SIGN_UP_WINDOW_SECONDS)
-  }
+  const count = await kv.eval(
+    luaScript,
+    [key],
+    [SIGN_UP_WINDOW_SECONDS.toString()]
+  )
 
   // return true if limit exceeded (rate limited)
-  return count > SIGN_UP_LIMIT_PER_WINDOW
+  return (count as number) > SIGN_UP_LIMIT_PER_WINDOW
 }
 
 /**
  * Decrements the sign-up attempt counter when a sign-up fails.
+ * Uses a Lua script for atomic execution to avoid race conditions.
+ *
+ * The script only decrements if:
+ * 1. Key exists
+ * 2. Current count > 0
+ *
  * This allows the user to retry since no account was actually created.
  *
  * @param identifier - The unique identifier whose rate limit should be decremented
  */
 export async function decrementSignUpRateLimit(identifier: string) {
   const key = KV_KEYS.RATE_LIMIT_SIGN_UP(identifier)
-  const currentCount = await kv.get<number>(key)
 
-  // only decrement if key exists and count > 0
-  if (currentCount && currentCount > 0) {
-    await kv.decr(key)
-  }
+  // executes atomically on redis server
+  const luaScript = `
+    local current = redis.call('GET', KEYS[1])
+    if current and tonumber(current) > 0 then
+      return redis.call('DECR', KEYS[1])
+    end
+    return current
+  `
+
+  await kv.eval(luaScript, [key], [])
 }
