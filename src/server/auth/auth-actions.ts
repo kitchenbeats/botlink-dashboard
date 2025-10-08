@@ -111,6 +111,17 @@ export const signUpAction = actionClient
         return returnServerError(
           'Access denied. Please contact support if this issue persists.'
         )
+      } else {
+        l.info(
+          {
+            key: 'sign_up_action:bot_detection_passed',
+            context: {
+              email,
+              verification,
+            },
+          },
+          `Bot detection passed sign up for: ${email}`
+        )
       }
     }
 
