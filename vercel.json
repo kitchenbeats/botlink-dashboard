@@ -81,5 +81,24 @@
       "destination": "https://e2b.dev/docs/:path*",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/docs/sdk-reference",
+      "destination": "https://e2b-docs.vercel.app/docs/sdk-reference"
+    },
+    {
+      "source": "/docs/sdk-reference/:match*",
+      "destination": "https://e2b-docs.vercel.app/docs/sdk-reference/:match*"
+    },
+
+    {
+      "source": "/docs",
+      "destination": "https://docs.e2b-staging.dev"
+    },
+    {
+      "source": "/docs/:match*",
+      "destination": "https://docs.e2b-staging.dev/:match*"
+    }
   ]
 }

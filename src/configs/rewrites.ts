@@ -2,7 +2,6 @@ import { DomainConfig } from '@/types/rewrites.types'
 
 export const LANDING_PAGE_DOMAIN = 'www.e2b-landing-page.com'
 export const DOCS_NEXT_DOMAIN = 'e2b-docs.vercel.app'
-export const STAGING_DOCS_NEXT_DOMAIN = 'docs.e2b-staging.dev'
 
 // Currently we have two locations for rewrites to happen.
 
