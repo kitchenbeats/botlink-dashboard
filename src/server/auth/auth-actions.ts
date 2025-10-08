@@ -1,5 +1,6 @@
 'use server'
 
+import { USE_BOT_ID } from '@/configs/flags'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { USER_MESSAGES } from '@/configs/user-messages'
 import { actionClient } from '@/lib/clients/action'
@@ -92,23 +93,25 @@ export const signUpAction = actionClient
     }
 
     // bot detection
-    const verification = await checkBotId()
+    if (USE_BOT_ID) {
+      const verification = await checkBotId()
 
-    if (verification.isBot) {
-      l.warn(
-        {
-          key: 'sign_up_action:bot_detection_triggered',
-          context: {
-            email,
-            verification,
+      if (verification.isBot) {
+        l.warn(
+          {
+            key: 'sign_up_action:bot_detection_triggered',
+            context: {
+              email,
+              verification,
+            },
           },
-        },
-        `Bot detection prevented sign up for: ${email}`
-      )
+          `Bot detection prevented sign up for: ${email}`
+        )
 
-      return returnServerError(
-        'Access denied. Please contact support if this issue persists.'
-      )
+        return returnServerError(
+          'Access denied. Please contact support if this issue persists.'
+        )
+      }
     }
 
     // email validation
