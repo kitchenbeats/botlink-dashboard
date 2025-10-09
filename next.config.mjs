@@ -60,11 +60,11 @@ const config = {
       // Asset rewrites for Mintlify
       {
         source: '/mintlify-assets/_next/static/:path*',
-        destination: 'https://docs.e2b-staging.dev/mintlify-assets/_next/static/:path*',
+        destination: 'https://e2b-migrate-main-docs.mintlify.app/mintlify-assets/_next/static/:path*',
       },
       {
         source: '/_mintlify/:path*',
-        destination: 'https://docs.e2b-staging.dev/_mintlify/:path*',
+        destination: 'https://e2b-migrate-main-docs.mintlify.app/_mintlify/:path*',
       },
     ],
   }),
