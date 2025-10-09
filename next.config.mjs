@@ -56,6 +56,16 @@ const config = {
         source: '/ingest/decide',
         destination: 'https://us.i.posthog.com/decide',
       },
+
+      // Asset rewrites for Mintlify
+      {
+        source: '/mintlify-assets/_next/static/:path*',
+        destination: 'https://docs.e2b-staging.dev/mintlify-assets/_next/static/:path*',
+      },
+      {
+        source: '/_mintlify/:path*',
+        destination: 'https://docs.e2b-staging.dev/_mintlify/:path*',
+      },
     ],
   }),
   redirects: async () => [
