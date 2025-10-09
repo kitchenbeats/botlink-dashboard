@@ -8,7 +8,7 @@ import { getTeamMetricsCore } from './get-team-metrics-core'
 
 export const GetTeamMetricsSchema = z
   .object({
-    teamId: z.string().uuid(),
+    teamId: z.uuid(),
     startDate: z
       .number()
       .int()
