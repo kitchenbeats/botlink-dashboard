@@ -12,6 +12,7 @@ import {
   DOCS_NEXT_DOMAIN,
   LANDING_PAGE_DOMAIN,
   ROUTE_REWRITE_CONFIG,
+  STAGING_DOCS_NEXT_DOMAIN,
 } from '@/configs/rewrites'
 import { DomainConfig } from '@/types/rewrites.types'
 import { XMLParser } from 'fast-xml-parser'
@@ -57,6 +58,12 @@ const sites: Site[] = [
   },
   {
     sitemapUrl: `https://${DOCS_NEXT_DOMAIN}/sitemap.xml`,
+    priority: 0.9,
+    changeFrequency: 'weekly',
+    baseUrl: 'https://e2b.dev',
+  },
+  {
+    sitemapUrl: `https://${STAGING_DOCS_NEXT_DOMAIN}/sitemap.xml`,
     priority: 0.9,
     changeFrequency: 'weekly',
     baseUrl: 'https://e2b.dev',
