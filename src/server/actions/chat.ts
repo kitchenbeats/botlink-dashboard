@@ -6,11 +6,15 @@ import { createTask, updateTask } from '@/lib/db/tasks';
 import { getSystemAgentByType } from '@/lib/db/agents';
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
+import { E2BService } from '@/lib/services/e2b-service';
+import { runCodingTask } from '@/lib/services/coding-agent';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
+
+type ExecutionMode = 'simple' | 'agents';
 
 /**
  * Send a message and get AI response with streaming
@@ -18,7 +22,8 @@ interface ChatMessage {
 export async function sendChatMessage(
   projectId: string,
   userMessage: string,
-  conversationHistory: ChatMessage[]
+  conversationHistory: ChatMessage[],
+  mode: ExecutionMode = 'simple'
 ) {
   const supabase = await createClient();
   const {
@@ -34,10 +39,48 @@ export async function sendChatMessage(
     project_id: projectId,
     role: 'user',
     content: userMessage,
-    metadata: {},
+    metadata: { executionMode: mode },
   });
 
-  // Get the planner agent
+  // SIMPLE MODE: Use coding agent with E2B sandbox
+  if (mode === 'simple') {
+    try {
+      // Get or create sandbox for this project
+      const { sandbox } = await E2BService.getOrCreateSandbox(projectId);
+
+      // Run coding task
+      const result = await runCodingTask(userMessage, {
+        sandbox,
+        model: 'claude',
+        onProgress: (message) => {
+          console.log('[Chat] Coding agent progress:', message);
+          // TODO: Stream progress to client
+        },
+      });
+
+      // Save assistant response
+      const responseContent = result.success
+        ? result.output
+        : `Error: ${result.error}`;
+
+      await createMessage({
+        project_id: projectId,
+        role: 'assistant',
+        content: responseContent,
+        metadata: {
+          executionMode: mode,
+          success: result.success,
+        },
+      });
+
+      return { success: result.success, content: responseContent };
+    } catch (error) {
+      console.error('[Chat] Coding agent error:', error);
+      throw error;
+    }
+  }
+
+  // AGENTS MODE: Use multi-agent orchestration (existing logic)
   const plannerAgent = await getSystemAgentByType('planner');
 
   if (!plannerAgent) {

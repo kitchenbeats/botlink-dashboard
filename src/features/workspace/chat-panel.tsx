@@ -105,6 +105,24 @@ export function ChatPanel({ projectId }: ChatPanelProps) {
         throw new Error(errorData || `Failed to send message: ${response.status}`);
       }
 
+      // Handle Simple mode (coding agent) - JSON response
+      if (executionMode === 'simple') {
+        const result = await response.json();
+
+        const assistantMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: result.content || 'Task completed',
+          createdAt: new Date(),
+          executionMode,
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Handle Agents mode - streaming response
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No response body');
 
