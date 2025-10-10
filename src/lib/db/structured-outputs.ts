@@ -1,0 +1,169 @@
+import { getDb, handleDbError } from './index';
+import { parseTaskPlannerOutput, parseLogicCheckResult } from '@/lib/utils/json-parser';
+import type { TaskPlannerOutput, LogicCheckResult } from '@/lib/types';
+
+export async function getStructuredOutput(taskId: string) {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data, error } = await db
+      .from('structured_outputs')
+      .select('*')
+      .eq('task_id', taskId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  }, 'getStructuredOutput');
+}
+
+export async function createStructuredOutput(data: {
+  task_id: string;
+  output: Record<string, unknown>;
+}) {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data: result, error } = await db
+      .from('structured_outputs')
+      .insert(data)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result;
+  }, 'createStructuredOutput');
+}
+
+// Get task plan from structured outputs
+export async function getTaskPlan(taskId: string): Promise<TaskPlannerOutput | null> {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data, error } = await db
+      .from('structured_outputs')
+      .select('output')
+      .eq('task_id', taskId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') return null;
+    if (!data?.output) return null;
+
+    // Parse the JSON output as TaskPlannerOutput
+    return parseTaskPlannerOutput(JSON.stringify(data.output));
+  }, 'getTaskPlan');
+}
+
+// Save task plan to structured outputs
+export async function saveTaskPlan(data: {
+  task_id: string;
+  overall_strategy: string;
+  tasks?: Array<{ title: string; description: string; complexity?: string }>;
+}) {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data: result, error } = await db
+      .from('structured_outputs')
+      .insert({
+        task_id: data.task_id,
+        output: {
+          overall_strategy: data.overall_strategy,
+          tasks: data.tasks || [],
+        },
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result;
+  }, 'saveTaskPlan');
+}
+
+// Save planned tasks (legacy compatibility)
+export async function savePlannedTasks(tasks: Array<{
+  task_id: string;
+  sequence: number;
+  title: string;
+  description: string;
+  dependencies?: string[];
+}>) {
+  // For now, we'll store this in structured_outputs as well
+  // Each task gets its own structured output entry
+  return handleDbError(async () => {
+    const db = await getDb();
+    const inserts = tasks.map(task => ({
+      task_id: task.task_id,
+      output: {
+        sequence: task.sequence,
+        title: task.title,
+        description: task.description,
+        dependencies: task.dependencies || [],
+      },
+    }));
+
+    const { data, error } = await db
+      .from('structured_outputs')
+      .insert(inserts)
+      .select();
+
+    if (error) throw error;
+    return data;
+  }, 'savePlannedTasks');
+}
+
+// Get logic check result from structured outputs
+export async function getLogicCheckResult(taskId: string): Promise<LogicCheckResult | null> {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data, error } = await db
+      .from('structured_outputs')
+      .select('output')
+      .eq('task_id', taskId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') return null;
+    if (!data?.output) return null;
+
+    // Parse the JSON output as LogicCheckResult
+    return parseLogicCheckResult(JSON.stringify(data.output));
+  }, 'getLogicCheckResult');
+}
+
+// Save logic check result to structured outputs
+export async function saveLogicCheckResult(data: {
+  task_id: string;
+  is_complete: boolean;
+  feedback?: string;
+  missing_items?: string[];
+}) {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data: result, error } = await db
+      .from('structured_outputs')
+      .insert({
+        task_id: data.task_id,
+        output: {
+          is_complete: data.is_complete,
+          feedback: data.feedback,
+          missing_items: data.missing_items || [],
+        },
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result;
+  }, 'saveLogicCheckResult');
+}
+
+// Get clarification result (for future use)
+export async function getClarificationResult(taskId: string) {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data, error } = await db
+      .from('structured_outputs')
+      .select('output')
+      .eq('task_id', taskId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') return null;
+    return data?.output || null;
+  }, 'getClarificationResult');
+}

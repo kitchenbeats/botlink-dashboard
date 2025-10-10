@@ -27,6 +27,19 @@ export const PROTECTED_URLS = {
   BUDGET: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/budget`,
   KEYS: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/keys`,
   RESET_PASSWORD: '/dashboard/account',
+
+  // BotLink routes
+  PROJECTS: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/projects`,
+  PROJECT_NEW: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/projects/new`,
+  WORKSPACE: (teamIdOrSlug: string, projectId: string) => `/workspace/${projectId}`,
+  AGENTS: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/agents`,
+  AGENT: (teamIdOrSlug: string, agentId: string) => `/dashboard/${teamIdOrSlug}/agents/${agentId}`,
+  AGENT_NEW: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/agents/new`,
+  WORKFLOWS: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/workflows`,
+  WORKFLOW: (teamIdOrSlug: string, workflowId: string) => `/dashboard/${teamIdOrSlug}/workflows/${workflowId}`,
+  WORKFLOW_NEW: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/workflows/new`,
+  EXECUTIONS: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/executions`,
+  EXECUTION: (teamIdOrSlug: string, executionId: string) => `/dashboard/${teamIdOrSlug}/executions/${executionId}`,
 }
 
 export const HELP_URLS = {

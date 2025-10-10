@@ -8,6 +8,11 @@ import {
   LucideProps,
   UserRoundCog,
   Users,
+  FolderKanban,
+  Code2,
+  Bot,
+  GitBranch,
+  History,
 } from 'lucide-react'
 import { ForwardRefExoticComponent, RefAttributes } from 'react'
 import { INCLUDE_BILLING } from './flags'
@@ -29,15 +34,45 @@ export type DashboardNavLink = {
 
 export const MAIN_DASHBOARD_LINKS: DashboardNavLink[] = [
   {
+    label: 'Projects',
+    href: (args) => PROTECTED_URLS.PROJECTS(args.teamIdOrSlug!),
+    icon: FolderKanban,
+    group: 'build',
+    activeMatch: `/dashboard/*/projects/**`,
+  },
+  {
+    label: 'Agents',
+    href: (args) => PROTECTED_URLS.AGENTS(args.teamIdOrSlug!),
+    icon: Bot,
+    group: 'build',
+    activeMatch: `/dashboard/*/agents/**`,
+  },
+  {
+    label: 'Workflows',
+    href: (args) => PROTECTED_URLS.WORKFLOWS(args.teamIdOrSlug!),
+    icon: GitBranch,
+    group: 'build',
+    activeMatch: `/dashboard/*/workflows/**`,
+  },
+  {
+    label: 'Executions',
+    href: (args) => PROTECTED_URLS.EXECUTIONS(args.teamIdOrSlug!),
+    icon: History,
+    group: 'build',
+    activeMatch: `/dashboard/*/executions/**`,
+  },
+  {
     label: 'Sandboxes',
     href: (args) => PROTECTED_URLS.SANDBOXES(args.teamIdOrSlug!),
     icon: Box,
+    group: 'infrastructure',
     activeMatch: `/dashboard/*/sandboxes/**`,
   },
   {
     label: 'Templates',
     href: (args) => PROTECTED_URLS.TEMPLATES(args.teamIdOrSlug!),
     icon: Container,
+    group: 'infrastructure',
     activeMatch: `/dashboard/*/templates`,
   },
   ...(INCLUDE_BILLING

@@ -1,188 +1,193 @@
-<!-- <p align="center">
-  <img width="100" src="/readme-assets/logo-circle.png" alt="e2b logo">
-</p> -->
-![Dashboard Preview Dark](/readme-assets/dashboard-preview-dark.png#gh-dark-mode-only)
-![Dashboard Preview Light](/readme-assets/dashboard-preview-light.png#gh-light-mode-only)
+# BotLink Dashboard
 
-# E2B Dashboard
-
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Discord](https://img.shields.io/discord/1092455714431180995?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://discord.com/channels/1092455714431180995)
-[![GitHub Stars](https://img.shields.io/github/stars/e2b-dev/dashboard?style=social)](https://github.com/e2b-dev/dashboard)
-
-## Quick Links
-- 📚 [Documentation](https://e2b.dev/docs)
-- 💬 [Discord Community](https://discord.gg/e2b)
-- 🐛 [Issue Tracker](https://github.com/e2b-dev/dashboard/issues)
-- 🤝 [Contributing Guide](CONTRIBUTING.md)
+AI-powered code generation platform with intelligent agents and live workspace environments.
 
 ## Overview
-Our Dashboard is a modern, feature-rich web application built to manage and monitor E2B services. Built with Next.js 15 and React 19, it provides a seamless user experience for managing sandboxes, API keys, and usage analytics.
 
-## Features
-- **Modern Stack**: Built with Next.js 15, React 19, and TypeScript
-- **Real-time Analytics**: Monitor your sandbox usage and performance
-- **Authentication**: Secure authentication powered by Supabase
-- **Documentation**: Integrated MDX documentation support
-- **Type Safety**: Full TypeScript support throughout the codebase
+BotLink Dashboard combines [E2B's](https://e2b.dev) powerful sandbox infrastructure with AI agent orchestration to create a complete development environment. Built on top of E2B Dashboard (fork maintained upstream for continuous improvements).
 
-## Getting Started
+### What's BotLink?
 
-> **Self-hosting Note**: If you're planning to self-host this dashboard, you'll likely want to self-host our infrastructure first. Please refer to our [infrastructure repository](https://github.com/e2b-dev/infra) for guidance on setting up the E2B platform on your own infrastructure.
+- **Projects**: Template-based workspaces (Next.js or simple HTML/CSS/JS)
+- **Workspace**: 3-panel code editor with AI chat assistant and live preview
+- **Agents**: Custom AI personas with specialized prompts and capabilities
+- **Workflows**: Visual agent orchestration with node-based editing
+- **E2B Integration**: Secure sandbox environments for code execution
+
+### What's from E2B?
+
+- **Templates**: Manage and build Docker-based sandbox templates
+- **Sandboxes**: Monitor and control active sandbox instances
+- **API Keys**: Team API key management with usage tracking
+- **Usage Analytics**: Resource consumption and cost breakdowns
+- **Billing**: Stripe integration for subscriptions and payments
+- **Team Management**: Multi-tenant organization support
+
+## Tech Stack
+
+- **Next.js 15** with React 19
+- **TypeScript** for type safety
+- **Supabase** for auth and database
+- **E2B** for sandbox infrastructure
+- **OpenAI/Anthropic** for AI agents
+- **shadcn/ui** for components
+- **Vitest** for testing
+- **Bun** for package management
+
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- Git
-- Vercel account
+
+- Bun 1.2.0+
 - Supabase account
-- PostHog account (optional for analytics)
+- Self-hosted E2B infrastructure (or use E2B cloud)
+- OpenAI/Anthropic API keys
 
-### Local Development Setup
+### Installation
 
-1. Clone the repository
 ```bash
-git clone https://github.com/e2b-dev/dashboard.git
-cd dashboard
-```
+# Clone the repo
+git clone git@github.com:kitchenbeats/botlink-dashboard.git
+cd botlink-dashboard
 
-2. Install dependencies
-```bash
-# Using Bun (recommended)
+# Install dependencies
 bun install
 
-# Using npm
-npm install --legacy-peer-deps
-```
-
-3. Environment Variables
-```bash
-# Copy the example env file
+# Copy environment variables
 cp .env.example .env.local
+# Edit .env.local with your keys
+
+# Run database migrations
+bun run db:migrations:apply
+
+# Start development server
+bun dev
 ```
 
-4. Set up required services:
+Visit `http://localhost:3000`
 
-#### a. Key-Value Store Setup
-This project requires a Redis-compatible key-value store. You'll need to:
+## Project Structure
 
-1. Set up a Redis instance (self-hosted or using a cloud provider)
-2. Configure the following environment variables in your `.env.local` file:
-   ```
-   KV_URL=your_redis_connection_string
-   KV_REST_API_URL=your_redis_rest_api_url
-   KV_REST_API_TOKEN=your_redis_api_write_token
-   KV_REST_API_READ_ONLY_TOKEN=your_redis_api_read_token
-   ```
-
-> **Note**: For production deployments, we use Vercel KV Storage integration, which provides a managed Redis-compatible store and automatically configures these environment variables. You can add this integration through the Vercel dashboard when deploying your project.
-
-#### b. Supabase Setup
-1. Create a new Supabase project
-2. Go to Project Settings > API
-3. Copy the `anon key` & `service_role key` to populate `.env.local`
-4. Configure authentication:
-   - Go to Authentication > URL Configuration
-   - Set Site URL to the hosting domain 
-   - Add `http://localhost:3000/**` to Redirect URLs (for development)
-5. Enable auth providers:
-   - Go to Authentication > Providers
-   - Enable the providers you want to use (GitHub, Google, E-Mail)
-   - Configure each provider with the appropriate credentials
-6. Configure e-mail templates:
-   - Navigate to **Authentication → Templates** in the Supabase dashboard
-   - Update the URLs in the **Reset Password** and **Confirm Sign-Up** templates so that the CTA links point back to the dashboard's confirmation endpoint:
-
-   **Reset Password**
-   ```
-   {{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next={{ .RedirectTo }}&confirmation_url={{ .ConfirmationURL }}
-   ```
-
-   **Confirm Sign-Up**
-   ```
-   {{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}&confirmation_url={{ .ConfirmationURL }}
-   ```
-
-#### c. Database Setup
-1. Apply the database migrations manually:
-   - Navigate to the `/migrations` folder in the project
-   - Execute each SQL migration file in sequential order against your Supabase database
-   - You can run these migrations using the Supabase SQL Editor or a PostgreSQL client
-   - Make sure to apply migrations in the correct order based on their timestamp prefixes
-
-#### d. Supabase Storage Setup
-1. Go to Storage > Buckets
-2. Create a new **public** bucket named `profile-pictures`
-
-#### e. Start the development server
-```bash
-# Using Bun (recommended)
-bun run dev
-
-# Using npm
-npm run dev
+```
+src/
+├── app/
+│   └── dashboard/[teamIdOrSlug]/
+│       ├── billing/         # E2B - Stripe billing
+│       ├── keys/            # E2B - API key management
+│       ├── sandboxes/       # E2B - Sandbox controls
+│       ├── templates/       # E2B - Template builder
+│       ├── usage/           # E2B - Analytics
+│       ├── projects/        # BOTLINK - Project list
+│       ├── workspace/[id]/  # BOTLINK - Code editor
+│       ├── agents/          # BOTLINK - AI agents
+│       ├── workflows/       # BOTLINK - Workflow editor
+│       └── executions/      # BOTLINK - Run history
+├── features/
+│   ├── dashboard/           # E2B - Core dashboard
+│   ├── projects/            # BOTLINK - Project features
+│   ├── workspace/           # BOTLINK - Workspace UI
+│   └── agents/              # BOTLINK - Agent system
+└── server/
+    ├── actions/             # Server actions
+    ├── db/                  # Database layer
+    └── services/            # Business logic
 ```
 
-The application will be available at `http://localhost:3000`
+## Database Schema
+
+### E2B Tables
+- `teams` - Team/organization management
+- `team_members` - Membership and roles
+- `envs` - E2B sandbox templates
+- `env_builds` - Template build history
+- `api_keys` - Team API keys
+- `access_tokens` - Personal access tokens
+
+### BotLink Tables
+- `projects` - User projects with templates
+- `files` - File tree per project
+- `messages` - Chat messages
+- `tasks` - AI-generated tasks
+- `agents` - Custom AI agents
+- `workflows` - Agent workflows
+- `executions` - Workflow run history
+- `sandbox_sessions` - E2B sandbox instances
 
 ## Development
 
-### Available Scripts
+### Running Tests
+
 ```bash
-# Using Bun (recommended)
-bun run dev         # Start development server
-bun run build      # Create production build
-bun run start      # Start production server
-bun run preview    # Build and preview production
-bun run lint       # Run ESLint
-bun run lint:fix   # Auto-fix ESLint issues
-SUPABASE_PROJECT_ID=your-project-id bun run db:types   # Generate DB types
-bun run db:migration # Create migration
+# All tests
+bun test:run
 
-# All commands work with npm as well:
-npm run dev
-# etc...
+# Unit tests only
+bun test:unit
+
+# Integration tests
+bun test:integration
+
+# E2E tests
+bun test:e2e
+
+# Watch mode
+bun test:watch
 ```
 
-### Project Structure
-```
-src/
-├── app/          # Next.js app router pages
-├── features/     # Feature-specific components
-├── ui/           # Reusable UI components
-├── lib/          # Utility functions and shared logic
-├── styles/       # Global styles and Tailwind config
-└── types/        # TypeScript type definitions
-└── server/       # Server only logic & actions
-└── __test__/     # Test files and utilities
+### Database Migrations
+
+```bash
+# Create new migration
+bun db:migrations:create
+
+# Apply migrations
+bun db:migrations:apply
 ```
 
-### Testing
-We use a comprehensive testing strategy with integration tests and plans for E2E tests. For detailed information about our testing approach, environment setup, and best practices, see the [Testing README](src/__test__/README.md).
+### Updating from E2B Upstream
 
-### Environment Variables
-See [`src/lib/env.ts`](./src/lib/env.ts) for all required environment variables and their validation schemas.
+```bash
+# Fetch latest E2B changes
+git fetch upstream
 
-## Production Deployment
+# Merge E2B updates
+git merge upstream/main
 
-This application is optimized for deployment on Vercel:
+# Resolve conflicts in BotLink-specific files
+```
 
-1. Push your changes to GitHub
-2. Import your repository in Vercel
-3. Deploy!
+## Environment Variables
 
-> **Note**: The application uses Partial Prerendering (PPR) which is currently only supported on Vercel's infrastructure. This can be turned off inside [`next.config.mjs`](./next.config.mjs).
+Required variables in `.env.local`:
+
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+SUPABASE_SERVICE_ROLE_KEY=xxx
+
+# E2B Infrastructure
+INFRA_API_URL=https://api.ledgai.com
+NEXT_PUBLIC_E2B_DOMAIN=ledgai.com
+
+# AI Providers
+OPENAI_API_KEY=sk-xxx
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Encryption (for API keys)
+ENCRYPTION_KEY=xxx
+```
 
 ## Contributing
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-## Support
-If you need help or have questions:
-
-1. Check our [Documentation](https://e2b.dev/docs)
-2. Join our [Discord Community](https://discord.gg/e2b)
-3. Open an [Issue](https://github.com/e2b-dev/dashboard/issues)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
-This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
 
-Copyright 2025 FoundryLabs, Inc.
+Apache 2.0 - See [LICENSE](LICENSE)
+
+## Links
+
+- [E2B Upstream](https://github.com/e2b-dev/dashboard)
+- [E2B Documentation](https://e2b.dev/docs)
+- [Discord Community](https://discord.gg/e2b)
