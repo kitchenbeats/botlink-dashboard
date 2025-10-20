@@ -1,13 +1,13 @@
 import { getDb, handleDbError } from './index';
-import type { Workflow, InsertWorkflow, UpdateWorkflow } from '../types/database';
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
 // Create workflow
-export async function createWorkflow(data: InsertWorkflow): Promise<Workflow> {
+export async function createWorkflow(data: TablesInsert<'workflows'>): Promise<Tables<'workflows'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data: workflow, error } = await db
       .from('workflows')
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
 
@@ -17,7 +17,7 @@ export async function createWorkflow(data: InsertWorkflow): Promise<Workflow> {
 }
 
 // Get workflow by ID
-export async function getWorkflow(id: string, teamId?: string): Promise<Workflow | null> {
+export async function getWorkflow(id: string, teamId?: string): Promise<Tables<'workflows'> | null> {
   return handleDbError(async () => {
     const db = await getDb();
     let query = db
@@ -38,12 +38,12 @@ export async function getWorkflow(id: string, teamId?: string): Promise<Workflow
 }
 
 // Alias for getWorkflow (for compatibility)
-export async function getWorkflowById(id: string, teamId?: string): Promise<Workflow | null> {
+export async function getWorkflowById(id: string, teamId?: string): Promise<Tables<'workflows'> | null> {
   return getWorkflow(id, teamId);
 }
 
 // Get org's workflows
-export async function getWorkflows(teamId: string): Promise<Workflow[]> {
+export async function getWorkflows(teamId: string): Promise<Tables<'workflows'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -60,13 +60,13 @@ export async function getWorkflows(teamId: string): Promise<Workflow[]> {
 // Update workflow
 export async function updateWorkflow(
   id: string,
-  updates: UpdateWorkflow
-): Promise<Workflow> {
+  updates: TablesUpdate<'workflows'>
+): Promise<Tables<'workflows'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
       .from('workflows')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update({ ...updates, updated_at: new Date().toISOString() } as never)
       .eq('id', id)
       .select()
       .single();

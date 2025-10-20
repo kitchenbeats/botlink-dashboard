@@ -1,6 +1,5 @@
-import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
+import { COOKIE_KEYS } from '@/configs/keys'
 import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
-import { kv } from '@/lib/clients/kv'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { checkUserTeamAuthorization, resolveTeamId } from '@/lib/utils/server'
 import { createServerClient } from '@supabase/ssr'
@@ -34,7 +33,7 @@ export async function resolveTeamForDashboard(
     COOKIE_KEYS.SELECTED_TEAM_SLUG
   )?.value
 
-  if (teamIdOrSlug && teamIdOrSlug !== 'account') {
+  if (teamIdOrSlug && teamIdOrSlug !== 'account' && teamIdOrSlug !== 'teams') {
     try {
       const teamId = await resolveTeamId(teamIdOrSlug)
       const hasAccess = await checkUserTeamAccess(userId, teamId)
@@ -44,9 +43,15 @@ export async function resolveTeamForDashboard(
       }
 
       const isUuid = z.uuid().safeParse(teamIdOrSlug).success
-      const teamSlug = isUuid
-        ? (await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(teamId))) || undefined
-        : teamIdOrSlug || undefined
+      let teamSlug: string | undefined
+
+      if (isUuid) {
+        // In middleware (edge runtime), we can't use Redis/KV for caching
+        // Team slug will be fetched from DB in resolveTeamId if needed
+        teamSlug = undefined
+      } else {
+        teamSlug = teamIdOrSlug || undefined
+      }
 
       return { teamId, teamSlug }
     } catch (error) {
@@ -58,10 +63,10 @@ export async function resolveTeamForDashboard(
     const hasAccess = await checkUserTeamAccess(userId, currentTeamId)
 
     if (hasAccess) {
-      const teamSlug =
-        currentTeamSlug ||
-        (await kv.get<string>(KV_KEYS.TEAM_ID_TO_SLUG(currentTeamId))) ||
-        undefined
+      const teamSlug = currentTeamSlug
+
+      // In middleware (edge runtime), we can't use Redis/KV for caching
+      // We rely on the cookie value or DB fetch
 
       // Skip redirect if we're at /dashboard with a tab parameter
       if (
@@ -132,23 +137,15 @@ export async function resolveTeamForDashboard(
 }
 
 /**
- * Checks user access to team with caching
+ * Checks user access to team
+ * Note: Caching removed from middleware since it runs on edge runtime
+ * which doesn't support Node.js Redis client
  */
 export async function checkUserTeamAccess(
   userId: string,
   teamId: string
 ): Promise<boolean> {
-  const cacheKey = KV_KEYS.USER_TEAM_ACCESS(userId, teamId)
-  const cached = await kv.get<boolean>(cacheKey)
-
-  if (cached !== null) {
-    return cached
-  }
-
-  const hasAccess = await checkUserTeamAuthorization(userId, teamId)
-  await kv.set(cacheKey, hasAccess, { ex: 60 * 60 }) // 1 hour
-
-  return hasAccess
+  return await checkUserTeamAuthorization(userId, teamId)
 }
 
 // URL utility functions

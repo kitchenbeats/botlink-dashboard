@@ -18,7 +18,7 @@ export async function getAgentForTask(
 		if (!agent) {
 			throw new Error(`Agent not found: ${task.agent_id}`);
 		}
-		return agent;
+		return agent as Agent;
 	}
 
 	throw new Error("Task has no agent_id or system_agent_id");

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/clients/supabase/server";
 import { getTeamId } from "@/lib/auth/get-team-id";
 import type { InsertAgent, UpdateAgent } from "@/lib/types/database";
 
@@ -30,7 +30,7 @@ export async function createAgentAction(data: {
 		const insertData: InsertAgent = {
 			team_id: teamId,
 			name: data.name,
-			type: data.type as any,
+			type: data.type as 'planner' | 'executor' | 'reviewer' | 'custom' | 'orchestrator' | 'logic_checker' | 'generic',
 			model: data.model,
 			system_prompt: data.system_prompt,
 			config: data.config,
@@ -38,13 +38,13 @@ export async function createAgentAction(data: {
 
 		const { data: agent, error } = await supabase
 			.from("agents")
-			.insert(insertData)
+			.insert(insertData as never)
 			.select()
 			.single();
 
 		if (error) throw error;
 
-		return { success: true, id: agent.id };
+		return { success: true, id: (agent as { id: string }).id };
 	} catch (error) {
 		console.error("[createAgentAction] Error:", error);
 		return {
@@ -76,7 +76,7 @@ export async function updateAgentAction(
 		const supabase = await createClient();
 		const updateData: UpdateAgent = {
 			name: data.name,
-			type: data.type as any,
+			type: data.type as 'planner' | 'executor' | 'reviewer' | 'custom' | 'orchestrator' | 'logic_checker' | 'generic',
 			model: data.model,
 			system_prompt: data.system_prompt,
 			config: data.config,
@@ -84,7 +84,7 @@ export async function updateAgentAction(
 
 		const { error } = await supabase
 			.from("agents")
-			.update({ ...updateData, updated_at: new Date().toISOString() })
+			.update({ ...updateData, updated_at: new Date().toISOString() } as never)
 			.eq("id", id)
 			.eq("team_id", teamId);
 
@@ -98,6 +98,10 @@ export async function updateAgentAction(
 			error: error instanceof Error ? error.message : "Failed to update agent",
 		};
 	}
+}
+
+export async function deleteAgent(id: string): Promise<ActionResult> {
+	return deleteAgentAction(id);
 }
 
 export async function deleteAgentAction(id: string): Promise<ActionResult> {

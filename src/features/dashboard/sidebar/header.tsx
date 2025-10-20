@@ -2,7 +2,8 @@
 
 import useKeydown from '@/lib/hooks/use-keydown'
 import { cn } from '@/lib/utils'
-import { E2BLogo } from '@/ui/brand'
+import { ReactWriteLogo } from '@/ui/brand'
+import { BRANDING } from '@/configs/branding'
 import ClientOnly from '@/ui/client-only'
 import { Button } from '@/ui/primitives/button'
 import { SidebarHeader, SidebarMenu, useSidebar } from '@/ui/primitives/sidebar'
@@ -45,8 +46,8 @@ export default function DashboardSidebarHeader() {
               exit="hidden"
             >
               <ClientOnly className="flex items-center gap-1.5">
-                <E2BLogo className="size-6" />
-                <span className="prose-headline-small">E2B</span>
+                <ReactWriteLogo className="size-6" />
+                <span className="prose-headline-small">{BRANDING.name}</span>
               </ClientOnly>
             </motion.span>
           )}

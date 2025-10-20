@@ -1,12 +1,12 @@
 import { getDb, handleDbError } from './index';
-import type { Deployment, InsertDeployment, UpdateDeployment } from '../types/database';
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
-export async function createDeployment(data: InsertDeployment): Promise<Deployment> {
+export async function createDeployment(data: TablesInsert<'deployments'>): Promise<Tables<'deployments'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data: deployment, error } = await db
       .from('deployments')
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
 
@@ -15,7 +15,7 @@ export async function createDeployment(data: InsertDeployment): Promise<Deployme
   }, 'createDeployment');
 }
 
-export async function getDeployment(id: string): Promise<Deployment | null> {
+export async function getDeployment(id: string): Promise<Tables<'deployments'> | null> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -29,7 +29,7 @@ export async function getDeployment(id: string): Promise<Deployment | null> {
   }, 'getDeployment');
 }
 
-export async function listDeployments(projectId: string): Promise<Deployment[]> {
+export async function listDeployments(projectId: string): Promise<Tables<'deployments'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -45,13 +45,13 @@ export async function listDeployments(projectId: string): Promise<Deployment[]> 
 
 export async function updateDeployment(
   id: string,
-  updates: UpdateDeployment
-): Promise<Deployment> {
+  updates: TablesUpdate<'deployments'>
+): Promise<Tables<'deployments'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
       .from('deployments')
-      .update(updates)
+      .update(updates as never)
       .eq('id', id)
       .select()
       .single();

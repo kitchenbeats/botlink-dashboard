@@ -32,6 +32,7 @@ export async function createSandbox(options: SandboxOptions = {}): Promise<Sandb
     apiKey,
     domain,
     timeoutMs: options.timeout,
+    allowInternetAccess: true, // Required for claude login & package installs
   });
 
   return sandbox;
@@ -68,7 +69,6 @@ export async function executeInSandbox(
 
     // Execute the code and wait for completion
     const result = await sandbox.commands.run(command, {
-      stdin: false,
       timeoutMs: options.timeout || 300000, // 5 minute default
       onStdout: (data) => console.log('[Sandbox stdout]:', data),
       onStderr: (data) => console.error('[Sandbox stderr]:', data),
@@ -82,10 +82,7 @@ export async function executeInSandbox(
       error: result.error,
     };
 
-    // For web projects, try to get the preview URL
-    if (projectType === 'web' && executionResult.success) {
-      executionResult.url = getWebPreviewUrl(sandbox);
-    }
+    // Legacy project type check removed - 'web' type no longer exists
 
     return executionResult;
   } catch (error) {
@@ -106,75 +103,8 @@ export async function executeInSandbox(
   }
 }
 
-/**
- * Execute a Next.js project in a sandbox
- */
-export async function executeNextJsProject(
-  files: File[],
-  options: SandboxOptions = {}
-): Promise<SandboxExecutionResult> {
-  const filesArray = files.map(f => ({ path: f.path, content: f.content }));
-
-  // Check for common Next.js entry points
-  const hasPackageJson = files.some(f => f.path === 'package.json');
-
-  if (!hasPackageJson) {
-    return {
-      success: false,
-      error: 'No package.json found. Next.js projects require a package.json file.',
-    };
-  }
-
-  return executeInSandbox(filesArray, 'package.json', 'web', options);
-}
-
-/**
- * Execute a Python script in a sandbox
- */
-export async function executePythonScript(
-  files: File[],
-  entrypoint: string = 'main.py',
-  options: SandboxOptions = {}
-): Promise<SandboxExecutionResult> {
-  const filesArray = files.map(f => ({ path: f.path, content: f.content }));
-
-  return executeInSandbox(filesArray, entrypoint, 'cli', options);
-}
-
-/**
- * Execute generic code files
- */
-export async function executeCode(
-  code: string,
-  language: string,
-  filename?: string
-): Promise<SandboxExecutionResult> {
-  const file = {
-    path: filename || `main.${getExtensionForLanguage(language)}`,
-    content: code,
-  };
-
-  const projectType = inferProjectType(language);
-
-  return executeInSandbox([file], file.path, projectType);
-}
-
-
-/**
- * Infer project type from language
- */
-function inferProjectType(language: string): ProjectType {
-  const lang = language.toLowerCase();
-
-  if (lang.includes('html') || lang.includes('tsx') || lang.includes('jsx')) {
-    return 'web';
-  }
-  if (lang.includes('python')) {
-    return 'api';
-  }
-
-  return 'cli';
-}
+// Legacy functions removed (executeNextJsProject, executePythonScript, executeCode, inferProjectType)
+// These used old template types ('web', 'api', 'cli') incompatible with current system
 
 /**
  * Get file extension for a language
@@ -212,11 +142,6 @@ function getExecutionCommand(entrypoint: string, projectType: ProjectType): stri
   // Sanitize the entrypoint to prevent command injection
   const safeEntrypoint = sanitizePath(entrypoint);
   const ext = safeEntrypoint.split('.').pop()?.toLowerCase();
-
-  // For web projects
-  if (projectType === 'web') {
-    return 'npm install && npm run dev';
-  }
 
   // Language-specific commands
   switch (ext) {
@@ -256,7 +181,7 @@ export async function testE2BSandbox(): Promise<{ success: boolean; message: str
     const sandbox = await createSandbox({ timeout: 10000 });
 
     // Try a simple echo command
-    const result = await sandbox.commands.run('echo "Hello from E2B sandbox!"', { stdin: false });
+    const result = await sandbox.commands.run('echo "Hello from E2B sandbox!"');
 
     await sandbox.kill();
 

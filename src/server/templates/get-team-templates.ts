@@ -76,6 +76,11 @@ export const getDefaultTemplates = actionClient
       }
     }
 
+    // BotLink: env_defaults table not in schema - return empty for now
+    // TODO: Implement if default templates are needed
+    return { templates: [] }
+
+    /* Original E2B code:
     const { data: defaultEnvs, error: defaultEnvsError } = await supabaseAdmin
       .from('env_defaults')
       .select('*')
@@ -190,4 +195,5 @@ export const getDefaultTemplates = actionClient
     return {
       templates: templates,
     }
+    */
   })

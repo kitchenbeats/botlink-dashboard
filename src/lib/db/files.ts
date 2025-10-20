@@ -1,12 +1,12 @@
 import { getDb, handleDbError } from './index';
-import type { File, InsertFile, UpdateFile } from '../types/database';
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
-export async function createFile(data: InsertFile): Promise<File> {
+export async function createFile(data: TablesInsert<'files'>): Promise<Tables<'files'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data: file, error } = await db
       .from('files')
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
 
@@ -15,7 +15,7 @@ export async function createFile(data: InsertFile): Promise<File> {
   }, 'createFile');
 }
 
-export async function getFile(id: string): Promise<File | null> {
+export async function getFile(id: string): Promise<Tables<'files'> | null> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -29,7 +29,7 @@ export async function getFile(id: string): Promise<File | null> {
   }, 'getFile');
 }
 
-export async function getFileByPath(projectId: string, path: string): Promise<File | null> {
+export async function getFileByPath(projectId: string, path: string): Promise<Tables<'files'> | null> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -44,7 +44,7 @@ export async function getFileByPath(projectId: string, path: string): Promise<Fi
   }, 'getFileByPath');
 }
 
-export async function listFiles(projectId: string): Promise<File[]> {
+export async function listFiles(projectId: string): Promise<Tables<'files'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -58,12 +58,12 @@ export async function listFiles(projectId: string): Promise<File[]> {
   }, 'listFiles');
 }
 
-export async function updateFile(id: string, updates: UpdateFile): Promise<File> {
+export async function updateFile(id: string, updates: TablesUpdate<'files'>): Promise<Tables<'files'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
       .from('files')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update({ ...updates, updated_at: new Date().toISOString() } as never)
       .eq('id', id)
       .select()
       .single();
@@ -86,12 +86,12 @@ export async function deleteFile(id: string): Promise<void> {
 }
 
 // Create multiple files (for compatibility)
-export async function createFiles(files: InsertFile[]): Promise<File[]> {
+export async function createFiles(files: TablesInsert<'files'>[]): Promise<Tables<'files'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
       .from('files')
-      .insert(files)
+      .insert(files as never)
       .select();
 
     if (error) throw error;

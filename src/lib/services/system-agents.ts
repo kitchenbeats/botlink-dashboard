@@ -15,7 +15,7 @@ export interface SystemAgent {
   };
 }
 
-const AGENTS_CONFIG_DIR = path.join(process.cwd(), 'configs', 'agents');
+const AGENTS_CONFIG_DIR = path.join(process.cwd(), 'src', 'configs', 'agents');
 
 export function getSystemAgents(): SystemAgent[] {
   const files = fs.readdirSync(AGENTS_CONFIG_DIR);

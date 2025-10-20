@@ -1,6 +1,27 @@
 import { cn } from '@/lib/utils'
 import { Badge, BadgeProps } from '@/ui/primitives/badge'
 
+/**
+ * ReactWrite Logo Component
+ * Simple "RW" text logo - replace with actual SVG logo when available
+ */
+export const ReactWriteLogo = ({
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement>) => (
+  <div className={cn('size-8 flex items-center justify-center bg-primary text-primary-foreground rounded font-bold text-sm', className)}>
+    RW
+  </div>
+)
+
+export const ReactWriteBadge = ({ className, ...props }: BadgeProps) => (
+  <Badge className={className} variant="default" {...props}>
+    BY
+    <ReactWriteLogo className="size-3" />
+  </Badge>
+)
+
+// E2B Logo - keep for backwards compatibility with E2B features
 export const E2BLogo = ({
   className,
   ...props

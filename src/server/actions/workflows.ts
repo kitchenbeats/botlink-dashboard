@@ -1,8 +1,8 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/clients/supabase/server";
 import { getTeamId } from "@/lib/auth/get-team-id";
-import type { InsertWorkflow, UpdateWorkflow } from "@/lib/types/database";
+import type { InsertWorkflow, UpdateWorkflow, WorkflowNode, WorkflowEdge } from "@/lib/types/database";
 
 interface ActionResult {
 	success: boolean;
@@ -13,8 +13,8 @@ interface ActionResult {
 export async function createWorkflowAction(data: {
 	name: string;
 	description: string | null;
-	nodes: any[];
-	edges: any[];
+	nodes: WorkflowNode[];
+	edges: WorkflowEdge[];
 }): Promise<ActionResult> {
 	try {
 		const teamId = await getTeamId();
@@ -33,13 +33,13 @@ export async function createWorkflowAction(data: {
 
 		const { data: workflow, error } = await supabase
 			.from("workflows")
-			.insert(insertData)
+			.insert(insertData as never)
 			.select()
 			.single();
 
 		if (error) throw error;
 
-		return { success: true, id: workflow.id };
+		return { success: true, id: (workflow as { id: string }).id };
 	} catch (error) {
 		console.error("[createWorkflowAction] Error:", error);
 		return {
@@ -55,8 +55,8 @@ export async function updateWorkflowAction(
 	data: {
 		name: string;
 		description: string | null;
-		nodes: any[];
-		edges: any[];
+		nodes: WorkflowNode[];
+		edges: WorkflowEdge[];
 	}
 ): Promise<ActionResult> {
 	try {
@@ -75,7 +75,7 @@ export async function updateWorkflowAction(
 
 		const { error } = await supabase
 			.from("workflows")
-			.update({ ...updateData, updated_at: new Date().toISOString() })
+			.update({ ...updateData, updated_at: new Date().toISOString() } as never)
 			.eq("id", id)
 			.eq("team_id", teamId);
 

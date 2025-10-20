@@ -2,21 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createAgentAction, updateAgentAction } from '@/actions';
-import type { Agent, AgentType } from '@/lib/types';
-import { ModelSelector } from './model-selector';
+import { createAgentAction, updateAgentAction } from '@/server/actions/agents';
+import { AI_PROVIDERS, getProvider } from '@/lib/config/ai-providers';
+import { AVAILABLE_TOOLS } from '@/lib/config/agent-tools';
+import type { Agent } from '@/lib/types/database';
 
 interface AgentFormProps {
   agent?: Agent;
   mode: 'create' | 'edit';
 }
-
-const AGENT_TYPES: { value: AgentType; label: string; description: string }[] = [
-  { value: 'planner', label: 'Task Planner', description: 'Breaks down requests into tasks' },
-  { value: 'orchestrator', label: 'Orchestrator', description: 'Creates specialized agents' },
-  { value: 'logic_checker', label: 'Logic Checker', description: 'Validates task completion' },
-  { value: 'generic', label: 'Generic Agent', description: 'Custom configurable agent' },
-];
 
 export function AgentForm({ agent, mode }: AgentFormProps) {
   const router = useRouter();
@@ -25,34 +19,15 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
 
   const [formData, setFormData] = useState({
     name: agent?.name || '',
-    type: agent?.type || 'generic' as AgentType,
+    provider: (agent?.config?.provider as string | undefined) || 'anthropic',
     model: agent?.model || 'claude-sonnet-4-5-20250929',
     system_prompt: agent?.system_prompt || '',
     temperature: agent?.config?.temperature?.toString() || '0.7',
     max_tokens: agent?.config?.max_tokens?.toString() || '4096',
+    tools: (agent?.config?.tools as string[] | undefined) || [],
   });
 
-  function validateTemperature(value: string): number {
-    const num = parseFloat(value);
-    if (isNaN(num)) {
-      throw new Error('Temperature must be a valid number');
-    }
-    if (num < 0 || num > 2) {
-      throw new Error('Temperature must be between 0 and 2');
-    }
-    return num;
-  }
-
-  function validateMaxTokens(value: string): number {
-    const num = parseInt(value, 10);
-    if (isNaN(num)) {
-      throw new Error('Max tokens must be a valid number');
-    }
-    if (num < 1 || num > 200000) {
-      throw new Error('Max tokens must be between 1 and 200,000');
-    }
-    return num;
-  }
+  const selectedProvider = getProvider(formData.provider);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,12 +37,14 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
     try {
       const data = {
         name: formData.name,
-        type: formData.type,
+        type: 'custom', // All user agents are custom type
         model: formData.model,
         system_prompt: formData.system_prompt,
         config: {
-          temperature: validateTemperature(formData.temperature),
-          max_tokens: validateMaxTokens(formData.max_tokens),
+          provider: formData.provider,
+          temperature: parseFloat(formData.temperature),
+          max_tokens: parseInt(formData.max_tokens, 10),
+          tools: formData.tools,
         },
       };
 
@@ -76,50 +53,67 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
         : await updateAgentAction(agent!.id, data);
 
       if (result.success) {
-        router.push('/agents');
+        router.push('/dashboard/agents');
         router.refresh();
       } else {
         setError(result.error || `Failed to ${mode} agent`);
         setIsLoading(false);
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Validation failed');
+      setError(error instanceof Error ? error.message : 'An error occurred');
       setIsLoading(false);
     }
+  }
+
+  function toggleTool(toolId: string) {
+    setFormData(prev => ({
+      ...prev,
+      tools: prev.tools.includes(toolId)
+        ? prev.tools.filter(t => t !== toolId)
+        : [...prev.tools, toolId]
+    }));
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium mb-2">
-          Name
+          Agent Name
         </label>
         <input
           id="name"
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full px-3 py-2 border rounded-md"
+          placeholder="My Coding Assistant"
           required
           disabled={isLoading}
         />
       </div>
 
       <div>
-        <label htmlFor="type" className="block text-sm font-medium mb-2">
-          Type
+        <label htmlFor="provider" className="block text-sm font-medium mb-2">
+          AI Provider
         </label>
         <select
-          id="type"
-          value={formData.type}
-          onChange={(e) => setFormData({ ...formData, type: e.target.value as AgentType })}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+          id="provider"
+          value={formData.provider}
+          onChange={(e) => {
+            const provider = getProvider(e.target.value);
+            setFormData({
+              ...formData,
+              provider: e.target.value,
+              model: provider?.models[0] || ''
+            });
+          }}
+          className="w-full px-3 py-2 border rounded-md"
           required
-          disabled={isLoading || mode === 'edit'}
+          disabled={isLoading}
         >
-          {AGENT_TYPES.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label} - {type.description}
+          {AI_PROVIDERS.map((provider) => (
+            <option key={provider.value} value={provider.value}>
+              {provider.label}
             </option>
           ))}
         </select>
@@ -129,15 +123,20 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
         <label htmlFor="model" className="block text-sm font-medium mb-2">
           Model
         </label>
-        <ModelSelector
+        <select
+          id="model"
           value={formData.model}
-          onChange={(model) => setFormData({ ...formData, model })}
+          onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+          className="w-full px-3 py-2 border rounded-md"
+          required
           disabled={isLoading}
-          showProvider={true}
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          Select the AI model for this agent. Flagship models offer best performance, fast models are more economical.
-        </p>
+        >
+          {selectedProvider?.models.map((model) => (
+            <option key={model} value={model}>
+              {model}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>
@@ -148,12 +147,41 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
           id="system_prompt"
           value={formData.system_prompt}
           onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
-          className="w-full min-h-[200px] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm"
+          className="w-full min-h-[200px] px-3 py-2 border rounded-md font-mono text-sm"
+          placeholder="You are a helpful coding assistant..."
           required
           disabled={isLoading}
         />
+        <p className="text-xs text-muted-foreground mt-1">
+          Define your agent's personality, expertise, and behavior
+        </p>
       </div>
 
+      <div>
+        <label className="block text-sm font-medium mb-3">
+          Tools
+        </label>
+        <div className="space-y-2">
+          {AVAILABLE_TOOLS.map((tool) => (
+            <label
+              key={tool.id}
+              className="flex items-start gap-3 p-3 border rounded-md cursor-pointer hover:bg-muted/50"
+            >
+              <input
+                type="checkbox"
+                checked={formData.tools.includes(tool.id)}
+                onChange={() => toggleTool(tool.id)}
+                disabled={isLoading}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-sm">{tool.name}</div>
+                <div className="text-xs text-muted-foreground">{tool.description}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -168,9 +196,10 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
             max="2"
             value={formData.temperature}
             onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full px-3 py-2 border rounded-md"
             disabled={isLoading}
           />
+          <p className="text-xs text-muted-foreground mt-1">0 = focused, 2 = creative</p>
         </div>
 
         <div>
@@ -184,14 +213,14 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
             min="1"
             value={formData.max_tokens}
             onChange={(e) => setFormData({ ...formData, max_tokens: e.target.value })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full px-3 py-2 border rounded-md"
             disabled={isLoading}
           />
         </div>
       </div>
 
       {error && (
-        <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
+        <div className="p-3 text-sm bg-red-50 text-red-600 rounded-md border border-red-200">
           {error}
         </div>
       )}
@@ -200,7 +229,7 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
         >
           {isLoading ? `${mode === 'create' ? 'Creating' : 'Updating'}...` : `${mode === 'create' ? 'Create' : 'Update'} Agent`}
         </button>
@@ -208,7 +237,7 @@ export function AgentForm({ agent, mode }: AgentFormProps) {
           type="button"
           onClick={() => router.back()}
           disabled={isLoading}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+          className="px-4 py-2 border rounded-md hover:bg-muted disabled:opacity-50"
         >
           Cancel
         </button>

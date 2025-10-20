@@ -31,6 +31,20 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
+    // Filter out benign Connect gRPC cache warnings from console
+    // These are harmless warnings from the E2B SDK's gRPC client trying to cache streaming requests
+    if (typeof window !== 'undefined') {
+      const originalError = console.error
+      console.error = (...args: unknown[]) => {
+        const message = String(args.join(' '))
+        // Suppress "Failed to generate cache key" warnings from Connect/gRPC
+        if (message.includes('Failed to generate cache key')) {
+          return
+        }
+        originalError.apply(console, args)
+      }
+    }
+
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       return
     }

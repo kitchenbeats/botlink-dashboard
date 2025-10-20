@@ -1,12 +1,12 @@
 import { getDb, handleDbError } from './index';
-import type { Task, InsertTask, UpdateTask } from '../types/database';
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
-export async function createTask(data: InsertTask): Promise<Task> {
+export async function createTask(data: TablesInsert<'tasks'>): Promise<Tables<'tasks'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data: task, error } = await db
       .from('tasks')
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
 
@@ -15,7 +15,7 @@ export async function createTask(data: InsertTask): Promise<Task> {
   }, 'createTask');
 }
 
-export async function getTask(id: string): Promise<Task | null> {
+export async function getTask(id: string): Promise<Tables<'tasks'> | null> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -29,7 +29,7 @@ export async function getTask(id: string): Promise<Task | null> {
   }, 'getTask');
 }
 
-export async function listTasks(projectId: string): Promise<Task[]> {
+export async function listTasks(projectId: string): Promise<Tables<'tasks'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -43,7 +43,7 @@ export async function listTasks(projectId: string): Promise<Task[]> {
   }, 'listTasks');
 }
 
-export async function listTasksByMessage(messageId: string): Promise<Task[]> {
+export async function listTasksByMessage(messageId: string): Promise<Tables<'tasks'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -57,11 +57,11 @@ export async function listTasksByMessage(messageId: string): Promise<Task[]> {
   }, 'listTasksByMessage');
 }
 
-export async function updateTask(id: string, updates: UpdateTask): Promise<Task> {
+export async function updateTask(id: string, updates: TablesUpdate<'tasks'>): Promise<Tables<'tasks'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const now = new Date().toISOString();
-    const updateData: Record<string, unknown> = { ...updates };
+    const updateData: TablesUpdate<'tasks'> = { ...updates };
 
     // Auto-set completed_at when status becomes completed or failed
     if (updates.status === 'completed' || updates.status === 'failed') {
@@ -70,7 +70,7 @@ export async function updateTask(id: string, updates: UpdateTask): Promise<Task>
 
     const { data, error } = await db
       .from('tasks')
-      .update(updateData)
+      .update(updateData as never)
       .eq('id', id)
       .select()
       .single();
@@ -81,15 +81,29 @@ export async function updateTask(id: string, updates: UpdateTask): Promise<Task>
 }
 
 // Create multiple tasks (for compatibility)
-export async function createTasks(tasks: InsertTask[]): Promise<Task[]> {
+export async function createTasks(tasks: TablesInsert<'tasks'>[]): Promise<Tables<'tasks'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
       .from('tasks')
-      .insert(tasks)
+      .insert(tasks as never)
       .select();
 
     if (error) throw error;
     return data || [];
   }, 'createTasks');
+}
+
+export async function getTasksByExecution(executionId: string): Promise<Tables<'tasks'>[]> {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data, error } = await db
+      .from('tasks')
+      .select('*')
+      .eq('execution_id', executionId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }, 'getTasksByExecution');
 }

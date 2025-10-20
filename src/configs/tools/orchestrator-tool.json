@@ -1,0 +1,66 @@
+{
+  "name": "create_specialized_agents",
+  "description": "Create specialized agents to execute the task plan",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "agents": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the specialized agent"
+            },
+            "system_prompt": {
+              "type": "string",
+              "description": "System prompt defining the agent's role and capabilities"
+            },
+            "user_prompt_template": {
+              "type": "string",
+              "description": "Template for formatting user prompts (use {{input}} placeholder)"
+            },
+            "model": {
+              "type": "string",
+              "description": "Claude model to use (e.g., claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022). Use the most appropriate model for the task complexity."
+            },
+            "config": {
+              "type": "object",
+              "properties": {
+                "temperature": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "max_tokens": {
+                  "type": "number"
+                }
+              },
+              "required": []
+            }
+          },
+          "required": ["name", "system_prompt", "user_prompt_template", "model", "config"]
+        }
+      },
+      "task_assignments": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "task_index": {
+              "type": "number",
+              "description": "Index of the task from the plan"
+            },
+            "agent_index": {
+              "type": "number",
+              "description": "Index of the agent to assign to this task"
+            }
+          },
+          "required": ["task_index", "agent_index"]
+        }
+      }
+    },
+    "required": ["agents", "task_assignments"]
+  }
+}

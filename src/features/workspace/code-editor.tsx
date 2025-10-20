@@ -4,31 +4,62 @@ import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { useTheme } from 'next-themes';
 import type { File as ProjectFile } from '@/lib/types/database';
-import { Button } from '@/components/ui/button';
-import { Save, FileCode } from 'lucide-react';
+import { Button } from '@/ui/primitives/button';
+import { Save, FileCode, Loader2 } from 'lucide-react';
+import { readFileContent, writeFileContent } from '@/server/actions/workspace';
 
 interface CodeEditorProps {
   file: ProjectFile | null;
   projectId: string;
 }
 
-export function CodeEditor({ file }: CodeEditorProps) {
+export function CodeEditor({ file, projectId }: CodeEditorProps) {
   const { theme } = useTheme();
   const [content, setContent] = useState('');
+  const [originalContent, setOriginalContent] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Load file content when file changes
   useEffect(() => {
-    if (file) {
-      setContent(file.content);
-      setHasChanges(false);
+    async function loadFileContent() {
+      if (!file) {
+        setContent('');
+        setOriginalContent('');
+        setHasChanges(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const result = await readFileContent(projectId, file.path);
+        let fileContent = result.content || '';
+
+        // Fix escaped newlines - convert literal \n to actual newlines
+        if (fileContent.includes('\\n')) {
+          fileContent = fileContent.replace(/\\n/g, '\n');
+        }
+
+        setContent(fileContent);
+        setOriginalContent(fileContent);
+        setHasChanges(false);
+      } catch (error) {
+        console.error('[CodeEditor] Failed to load file content:', error);
+        setContent('');
+        setOriginalContent('');
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [file]);
+
+    loadFileContent();
+  }, [file, projectId]);
 
   function handleEditorChange(value: string | undefined) {
     if (value !== undefined) {
       setContent(value);
-      setHasChanges(value !== file?.content);
+      setHasChanges(value !== originalContent);
     }
   }
 
@@ -37,11 +68,12 @@ export function CodeEditor({ file }: CodeEditorProps) {
 
     setIsSaving(true);
     try {
-      // TODO: Implement file update action
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate save
+      await writeFileContent(projectId, file.path, content);
+      setOriginalContent(content);
       setHasChanges(false);
     } catch (error) {
-      console.error('Failed to save file:', error);
+      console.error('[CodeEditor] Failed to save file:', error);
+      // TODO: Show toast notification
     } finally {
       setIsSaving(false);
     }
@@ -80,31 +112,42 @@ export function CodeEditor({ file }: CodeEditorProps) {
       </div>
 
       {/* Monaco Editor */}
-      <div className="flex-1">
-        <Editor
-          height="100%"
-          defaultLanguage={file.language || 'plaintext'}
-          value={content}
-          onChange={handleEditorChange}
-          theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            lineNumbers: 'on',
-            rulers: [80, 120],
-            wordWrap: 'on',
-            automaticLayout: true,
-            scrollBeyondLastLine: false,
-            folding: true,
-            lineDecorationsWidth: 10,
-            lineNumbersMinChars: 3,
-            renderLineHighlight: 'all',
-            scrollbar: {
-              verticalScrollbarSize: 10,
-              horizontalScrollbarSize: 10,
-            },
-          }}
-        />
+      <div className="flex-1 relative">
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <Editor
+            height="100%"
+            defaultLanguage={file.language || 'plaintext'}
+            value={content}
+            onChange={handleEditorChange}
+            theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              lineNumbers: 'on',
+              rulers: [80, 120],
+              wordWrap: 'on',
+              automaticLayout: true,
+              scrollBeyondLastLine: false,
+              folding: true,
+              lineDecorationsWidth: 10,
+              lineNumbersMinChars: 3,
+              renderLineHighlight: 'all',
+              scrollbar: {
+                verticalScrollbarSize: 10,
+                horizontalScrollbarSize: 10,
+              },
+              tabSize: 2,
+              insertSpaces: true,
+              formatOnPaste: true,
+              formatOnType: true,
+              autoIndent: 'full',
+            }}
+          />
+        )}
       </div>
     </div>
   );

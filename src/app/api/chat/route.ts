@@ -19,13 +19,9 @@ export async function POST(req: NextRequest) {
     // Call the chat action
     const result = await sendChatMessage(projectId, message, [], mode);
 
-    // For simple mode, return JSON response
-    if (mode === 'simple') {
-      return NextResponse.json(result);
-    }
-
-    // For agents mode, return streaming response
-    return result;
+    // Both modes return JSON response now
+    // For agents mode, UI will subscribe to Inngest realtime for progress updates
+    return NextResponse.json(result);
   } catch (error) {
     console.error('[API] Chat error:', error);
     return NextResponse.json(

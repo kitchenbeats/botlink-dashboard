@@ -40,7 +40,6 @@ export async function GET(request: NextRequest) {
 
   // 3. Resolve team ID (first try cookie, then fetch default)
   let teamId = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_ID)?.value
-  let teamSlug = cookieStore.get(COOKIE_KEYS.SELECTED_TEAM_SLUG)?.value
 
   if (!teamId) {
     // No team in cookie, fetch user's default team
@@ -65,12 +64,11 @@ export async function GET(request: NextRequest) {
     // Use default team or first team
     const defaultTeam = teamsData.find((t) => t.is_default) || teamsData[0]!
     teamId = defaultTeam.team_id
-    teamSlug = defaultTeam.team?.slug || defaultTeam.team_id
   }
 
   // 4. Build the redirect URL using the tab mapping
   const urlGenerator = TAB_URL_MAP[tab]
-  const redirectPath = urlGenerator(teamSlug || teamId)
+  const redirectPath = urlGenerator(teamId)
 
   // 5. Redirect to the appropriate dashboard section
   return NextResponse.redirect(new URL(redirectPath, request.url))

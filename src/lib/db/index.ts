@@ -1,16 +1,44 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/clients/supabase/server';
 
 /**
  * Database service layer
  * Provides type-safe database operations with error handling
  */
 
-// Re-export types
-export * from '../types/database';
+// Re-export types (selective to avoid conflicts)
+export type {
+  Profile,
+  Organization,
+  OrganizationMember,
+  Agent,
+  AgentConfig,
+  AgentType,
+  Workflow,
+  WorkflowNode,
+  WorkflowEdge,
+  Execution,
+  ExecutionStatus,
+  Project,
+  ProjectTemplate,
+  ProjectSettings,
+  File,
+  Message,
+  MessageRole,
+  Task,
+  TaskStatus,
+  TaskType,
+  TaskMetadata,
+  SandboxSession,
+  SandboxStatus,
+  Deployment,
+  DeploymentStatus,
+  // Note: ProjectWithFiles is exported from ./projects
+} from '../types/database';
 
 // Get Supabase client (server-side)
+// Return type is inferred from createClient() to maintain type compatibility
 export async function getDb() {
-  return await createClient();
+  return createClient();
 }
 
 // Error handling wrapper

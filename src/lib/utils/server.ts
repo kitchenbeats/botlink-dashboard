@@ -1,9 +1,8 @@
 import 'server-cli-only'
 
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
-import { COOKIE_KEYS, KV_KEYS } from '@/configs/keys'
+import { COOKIE_KEYS } from '@/configs/keys'
 import { PROTECTED_URLS } from '@/configs/urls'
-import { kv } from '@/lib/clients/kv'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { createClient } from '@/lib/clients/supabase/server'
 import { getSessionInsecure } from '@/server/auth/get-session'
@@ -144,7 +143,10 @@ export function bailOutFromPPR() {
 /**
  * Resolves a team identifier (UUID or slug) to a team ID.
  * If the input is a valid UUID, returns it directly.
- * If it's a slug, attempts to resolve it to an ID using Redis cache first, then database.
+ * If it's a slug, queries the database to resolve it to an ID.
+ *
+ * Note: KV caching removed because this function is called by middleware (edge runtime)
+ * which doesn't support Node.js Redis client.
  *
  * @param identifier - Team UUID or slug
  * @returns Promise<string> - Resolved team ID
@@ -156,13 +158,7 @@ export async function resolveTeamId(identifier: string): Promise<string> {
     return identifier
   }
 
-  // Try to get from cache first
-  const cacheKey = KV_KEYS.TEAM_SLUG_TO_ID(identifier)
-  const cachedId = await kv.get<string>(cacheKey)
-
-  if (cachedId) return cachedId
-
-  // Not in cache or invalid cache, query database
+  // Query database for slug
   const { data: team, error } = await supabaseAdmin
     .from('teams')
     .select('id')
@@ -181,11 +177,6 @@ export async function resolveTeamId(identifier: string): Promise<string> {
 
     throw new E2BError('INVALID_PARAMETERS', 'Invalid team identifier')
   }
-  // Cache the result
-  await Promise.all([
-    kv.set(cacheKey, team.id, { ex: 60 * 60 }), // 1 hour
-    kv.set(KV_KEYS.TEAM_ID_TO_SLUG(team.id), identifier, { ex: 60 * 60 }),
-  ])
 
   return team.id
 }

@@ -1,4 +1,5 @@
 import { getDb, handleDbError } from './index';
+import type { Tables, TablesUpdate } from '@/types/database.types';
 
 /**
  * Team Repository (E2B Architecture)
@@ -6,34 +7,10 @@ import { getDb, handleDbError } from './index';
  * Each team has a tier and API keys for sandbox access.
  */
 
-export interface Team {
-  id: string;
-  created_at: string;
-  name: string;
-  tier: string;
-  email: string | null;
-  is_blocked: boolean;
-  cluster_id: string | null;
-}
-
-export interface TeamApiKey {
-  id: string;
-  api_key: string | null; // Nullable in latest migrations (security - only hash stored)
-  team_id: string;
-  created_at: string;
-  api_key_hash: string | null;
-  api_key_prefix: string | null;
-  api_key_length: number | null;
-  api_key_mask_prefix: string | null;
-  api_key_mask_suffix: string | null;
-}
-
-export interface UserTeam {
-  id: number;
-  user_id: string;
-  team_id: string;
-  created_at: string;
-}
+// Export Supabase-generated types for Teams and related tables
+export type Team = Tables<'teams'>;
+export type TeamApiKey = Tables<'team_api_keys'>;
+export type UserTeam = Tables<'users_teams'>;
 
 // Get user's teams
 export async function getUserTeams(userId: string): Promise<Team[]> {
@@ -117,13 +94,13 @@ export async function getTeamMembers(teamId: string): Promise<UserTeam[]> {
 // Update team
 export async function updateTeam(
   id: string,
-  updates: Partial<Pick<Team, 'name' | 'is_blocked'>>
+  updates: TablesUpdate<'teams'>
 ): Promise<Team> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
       .from('teams')
-      .update(updates)
+      .update(updates as never)
       .eq('id', id)
       .select()
       .single();
@@ -131,47 +108,4 @@ export async function updateTeam(
     if (error) throw error;
     return data;
   }, 'updateTeam');
-}
-
-// Profile functions (kept for compatibility - profiles not part of E2B but we may use them)
-export interface Profile {
-  id: string;
-  email: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export async function getProfileByUserId(userId: string): Promise<Profile | null> {
-  return handleDbError(async () => {
-    const db = await getDb();
-    const { data, error } = await db
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') throw error;
-    return data;
-  }, 'getProfileByUserId');
-}
-
-export async function createProfile(data: {
-  id: string;
-  email: string;
-  display_name: string | null;
-  avatar_url: string | null;
-}): Promise<Profile> {
-  return handleDbError(async () => {
-    const db = await getDb();
-    const { data: profile, error } = await db
-      .from('profiles')
-      .insert(data)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return profile;
-  }, 'createProfile');
 }

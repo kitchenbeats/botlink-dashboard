@@ -1,6 +1,6 @@
 import { KV_KEYS } from '@/configs/keys'
 import { l } from '@/lib/clients/logger/logger'
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/clients/kv'
 import { serializeError } from 'serialize-error'
 
 /**

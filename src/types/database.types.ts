@@ -10,77 +10,127 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
-      _migrations: {
-        Row: {
-          id: number
-          is_applied: boolean
-          tstamp: string
-          version_id: number
-        }
-        Insert: {
-          id?: number
-          is_applied: boolean
-          tstamp?: string
-          version_id: number
-        }
-        Update: {
-          id?: number
-          is_applied?: boolean
-          tstamp?: string
-          version_id?: number
-        }
-        Relationships: []
-      }
       access_tokens: {
         Row: {
-          access_token: string
-          access_token_hash: string | null
-          access_token_length: number | null
-          access_token_mask: string | null
-          access_token_mask_prefix: string | null
-          access_token_mask_suffix: string | null
-          access_token_prefix: string | null
+          access_token_hash: string
+          access_token_length: number
+          access_token_mask_prefix: string
+          access_token_mask_suffix: string
+          access_token_prefix: string
           created_at: string
-          id: string | null
+          id: string
           name: string
           user_id: string
         }
         Insert: {
-          access_token?: string
-          access_token_hash?: string | null
-          access_token_length?: number | null
-          access_token_mask?: string | null
-          access_token_mask_prefix?: string | null
-          access_token_mask_suffix?: string | null
-          access_token_prefix?: string | null
+          access_token_hash: string
+          access_token_length: number
+          access_token_mask_prefix: string
+          access_token_mask_suffix: string
+          access_token_prefix: string
           created_at?: string
-          id?: string | null
+          id?: string
           name?: string
           user_id: string
         }
         Update: {
-          access_token?: string
-          access_token_hash?: string | null
-          access_token_length?: number | null
-          access_token_mask?: string | null
-          access_token_mask_prefix?: string | null
-          access_token_mask_suffix?: string | null
-          access_token_prefix?: string | null
+          access_token_hash?: string
+          access_token_length?: number
+          access_token_mask_prefix?: string
+          access_token_mask_suffix?: string
+          access_token_prefix?: string
           created_at?: string
-          id?: string | null
+          id?: string
           name?: string
           user_id?: string
         }
+        Relationships: []
+      }
+      agents: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          execution_id: string | null
+          id: string
+          is_system: boolean | null
+          model: string
+          name: string
+          system_prompt: string
+          team_id: string | null
+          type: string
+          updated_at: string | null
+          user_prompt_template: string | null
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          execution_id?: string | null
+          id?: string
+          is_system?: boolean | null
+          model?: string
+          name: string
+          system_prompt: string
+          team_id?: string | null
+          type: string
+          updated_at?: string | null
+          user_prompt_template?: string | null
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          execution_id?: string | null
+          id?: string
+          is_system?: boolean | null
+          model?: string
+          name?: string
+          system_prompt?: string
+          team_id?: string | null
+          type?: string
+          updated_at?: string | null
+          user_prompt_template?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "access_tokens_users_access_tokens"
-            columns: ["user_id"]
+            foreignKeyName: "agents_execution_id_fkey"
+            columns: ["execution_id"]
             isOneToOne: false
-            referencedRelation: "auth_users"
+            referencedRelation: "executions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -108,6 +158,47 @@ export type Database = {
           token?: string
         }
         Relationships: []
+      }
+      deployments: {
+        Row: {
+          build_logs: string | null
+          created_at: string | null
+          id: string
+          project_id: string
+          snapshot: Json
+          status: string
+          url: string
+          version: number
+        }
+        Insert: {
+          build_logs?: string | null
+          created_at?: string | null
+          id?: string
+          project_id: string
+          snapshot: Json
+          status: string
+          url: string
+          version: number
+        }
+        Update: {
+          build_logs?: string | null
+          created_at?: string | null
+          id?: string
+          project_id?: string
+          snapshot?: Json
+          status?: string
+          url?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       env_aliases: {
         Row: {
@@ -137,10 +228,10 @@ export type Database = {
       }
       env_builds: {
         Row: {
-          cluster_node_id: string | null
+          cluster_node_id: string
           created_at: string
           dockerfile: string | null
-          env_id: string | null
+          env_id: string
           envd_version: string | null
           finished_at: string | null
           firecracker_version: string
@@ -149,7 +240,7 @@ export type Database = {
           kernel_version: string
           ram_mb: number
           ready_cmd: string | null
-          reason: string | null
+          reason: Json
           start_cmd: string | null
           status: string
           total_disk_size_mb: number | null
@@ -157,10 +248,10 @@ export type Database = {
           vcpu: number
         }
         Insert: {
-          cluster_node_id?: string | null
+          cluster_node_id?: string
           created_at?: string
           dockerfile?: string | null
-          env_id?: string | null
+          env_id: string
           envd_version?: string | null
           finished_at?: string | null
           firecracker_version: string
@@ -169,7 +260,7 @@ export type Database = {
           kernel_version?: string
           ram_mb: number
           ready_cmd?: string | null
-          reason?: string | null
+          reason?: Json
           start_cmd?: string | null
           status?: string
           total_disk_size_mb?: number | null
@@ -177,10 +268,10 @@ export type Database = {
           vcpu: number
         }
         Update: {
-          cluster_node_id?: string | null
+          cluster_node_id?: string
           created_at?: string
           dockerfile?: string | null
-          env_id?: string | null
+          env_id?: string
           envd_version?: string | null
           finished_at?: string | null
           firecracker_version?: string
@@ -189,7 +280,7 @@ export type Database = {
           kernel_version?: string
           ram_mb?: number
           ready_cmd?: string | null
-          reason?: string | null
+          reason?: Json
           start_cmd?: string | null
           status?: string
           total_disk_size_mb?: number | null
@@ -206,29 +297,6 @@ export type Database = {
           },
         ]
       }
-      env_defaults: {
-        Row: {
-          description: string | null
-          env_id: string
-        }
-        Insert: {
-          description?: string | null
-          env_id: string
-        }
-        Update: {
-          description?: string | null
-          env_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "env_defaults_env_id_fkey"
-            columns: ["env_id"]
-            isOneToOne: true
-            referencedRelation: "envs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       envs: {
         Row: {
           build_count: number
@@ -236,10 +304,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          is_system: boolean
           last_spawned_at: string | null
           public: boolean
           spawn_count: number
-          team_id: string
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -248,11 +317,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id: string
+          is_system?: boolean
           last_spawned_at?: string | null
           public?: boolean
           spawn_count?: number
-          team_id: string
-          updated_at?: string
+          team_id?: string | null
+          updated_at: string
         }
         Update: {
           build_count?: number
@@ -260,10 +330,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_system?: boolean
           last_spawned_at?: string | null
           public?: boolean
           spawn_count?: number
-          team_id?: string
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -281,75 +352,413 @@ export type Database = {
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      executions: {
+        Row: {
+          builder_type: string
+          channel_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          inngest_run_id: string | null
+          input: string
+          output: string | null
+          status: string
+          team_id: string
+          workflow_id: string | null
+        }
+        Insert: {
+          builder_type: string
+          channel_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          inngest_run_id?: string | null
+          input: string
+          output?: string | null
+          status: string
+          team_id: string
+          workflow_id?: string | null
+        }
+        Update: {
+          builder_type?: string
+          channel_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          inngest_run_id?: string | null
+          input?: string
+          output?: string | null
+          status?: string
+          team_id?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "envs_users_created_envs"
-            columns: ["created_by"]
+            foreignKeyName: "executions_team_id_fkey"
+            columns: ["team_id"]
             isOneToOne: false
-            referencedRelation: "auth_users"
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "executions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
             referencedColumns: ["id"]
           },
         ]
       }
-      schema_migrations: {
+      files: {
         Row: {
-          dirty: boolean
-          version: number
+          content: string
+          created_at: string | null
+          created_by: string
+          id: string
+          language: string | null
+          path: string
+          project_id: string
+          updated_at: string | null
         }
         Insert: {
-          dirty: boolean
-          version: number
+          content: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          language?: string | null
+          path: string
+          project_id: string
+          updated_at?: string | null
         }
         Update: {
-          dirty?: boolean
-          version?: number
+          content?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          language?: string | null
+          path?: string
+          project_id?: string
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          project_id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id: string
+          role: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          last_opened_at: string | null
+          name: string
+          settings: Json | null
+          team_id: string
+          template: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_opened_at?: string | null
+          name: string
+          settings?: Json | null
+          team_id: string
+          template: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_opened_at?: string | null
+          name?: string
+          settings?: Json | null
+          team_id?: string
+          template?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sandbox_sessions: {
+        Row: {
+          created_at: string | null
+          e2b_session_id: string
+          expires_at: string
+          id: string
+          metadata: Json | null
+          project_id: string
+          status: string
+          stopped_at: string | null
+          template: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          e2b_session_id: string
+          expires_at: string
+          id?: string
+          metadata?: Json | null
+          project_id: string
+          status: string
+          stopped_at?: string | null
+          template: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          e2b_session_id?: string
+          expires_at?: string
+          id?: string
+          metadata?: Json | null
+          project_id?: string
+          status?: string
+          stopped_at?: string | null
+          template?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sandbox_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       snapshots: {
         Row: {
           allow_internet_access: boolean | null
+          auto_pause: boolean
           base_env_id: string
           created_at: string | null
           env_id: string
           env_secure: boolean
           id: string
           metadata: Json | null
-          origin_node_id: string | null
+          origin_node_id: string
           sandbox_id: string
           sandbox_started_at: string
+          team_id: string
         }
         Insert: {
           allow_internet_access?: boolean | null
+          auto_pause?: boolean
           base_env_id: string
           created_at?: string | null
           env_id: string
           env_secure?: boolean
           id?: string
           metadata?: Json | null
-          origin_node_id?: string | null
+          origin_node_id?: string
           sandbox_id: string
           sandbox_started_at: string
+          team_id: string
         }
         Update: {
           allow_internet_access?: boolean | null
+          auto_pause?: boolean
           base_env_id?: string
           created_at?: string | null
           env_id?: string
           env_secure?: boolean
           id?: string
           metadata?: Json | null
-          origin_node_id?: string | null
+          origin_node_id?: string
           sandbox_id?: string
           sandbox_started_at?: string
+          team_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_snapshots_team"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "snapshots_envs_base_env_id"
+            columns: ["base_env_id"]
+            isOneToOne: false
+            referencedRelation: "envs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "snapshots_envs_env_id"
+            columns: ["env_id"]
+            isOneToOne: false
+            referencedRelation: "envs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          agent_id: string | null
+          attempts: number | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          execution_id: string | null
+          id: string
+          input: string
+          message_id: string | null
+          metadata: Json | null
+          output: string | null
+          project_id: string | null
+          result_type: string | null
+          status: string
+          step_id: string | null
+          system_agent_id: string | null
+          team_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          agent_id?: string | null
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          execution_id?: string | null
+          id?: string
+          input: string
+          message_id?: string | null
+          metadata?: Json | null
+          output?: string | null
+          project_id?: string | null
+          result_type?: string | null
+          status: string
+          step_id?: string | null
+          system_agent_id?: string | null
+          team_id?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          agent_id?: string | null
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          execution_id?: string | null
+          id?: string
+          input?: string
+          message_id?: string | null
+          metadata?: Json | null
+          output?: string | null
+          project_id?: string | null
+          result_type?: string | null
+          status?: string
+          step_id?: string | null
+          system_agent_id?: string | null
+          team_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "executions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_system_agent_id_fkey"
+            columns: ["system_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_api_keys: {
         Row: {
-          api_key: string
+          api_key_encrypted: string | null
           api_key_hash: string | null
           api_key_length: number | null
-          api_key_mask: string | null
           api_key_mask_prefix: string | null
           api_key_mask_suffix: string | null
           api_key_prefix: string | null
@@ -362,10 +771,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          api_key?: string
+          api_key_encrypted?: string | null
           api_key_hash?: string | null
           api_key_length?: number | null
-          api_key_mask?: string | null
           api_key_mask_prefix?: string | null
           api_key_mask_suffix?: string | null
           api_key_prefix?: string | null
@@ -378,10 +786,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          api_key?: string
+          api_key_encrypted?: string | null
           api_key_hash?: string | null
           api_key_length?: number | null
-          api_key_mask?: string | null
           api_key_mask_prefix?: string | null
           api_key_mask_suffix?: string | null
           api_key_prefix?: string | null
@@ -399,13 +806,6 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "team_api_keys_users_created_api_keys"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "auth_users"
             referencedColumns: ["id"]
           },
         ]
@@ -470,6 +870,7 @@ export type Database = {
       tiers: {
         Row: {
           concurrent_instances: number
+          concurrent_template_builds: number
           disk_mb: number
           id: string
           max_length_hours: number
@@ -479,6 +880,7 @@ export type Database = {
         }
         Insert: {
           concurrent_instances: number
+          concurrent_template_builds?: number
           disk_mb?: number
           id: string
           max_length_hours: number
@@ -488,6 +890,7 @@ export type Database = {
         }
         Update: {
           concurrent_instances?: number
+          concurrent_template_builds?: number
           disk_mb?: number
           id?: string
           max_length_hours?: number
@@ -500,7 +903,7 @@ export type Database = {
       users_teams: {
         Row: {
           added_by: string | null
-          created_at: string
+          created_at: string | null
           id: number
           is_default: boolean
           team_id: string
@@ -508,7 +911,7 @@ export type Database = {
         }
         Insert: {
           added_by?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: number
           is_default?: boolean
           team_id: string
@@ -516,7 +919,7 @@ export type Database = {
         }
         Update: {
           added_by?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: number
           is_default?: boolean
           team_id?: string
@@ -524,45 +927,58 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "users_teams_added_by_user"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "auth_users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "users_teams_teams_teams"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      workflows: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          edges: Json
+          id: string
+          name: string
+          nodes: Json
+          team_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          edges?: Json
+          id?: string
+          name: string
+          nodes?: Json
+          team_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          edges?: Json
+          id?: string
+          name?: string
+          nodes?: Json
+          team_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "users_teams_users_users"
-            columns: ["user_id"]
+            foreignKeyName: "workflows_team_id_fkey"
+            columns: ["team_id"]
             isOneToOne: false
-            referencedRelation: "auth_users"
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
       }
     }
     Views: {
-      auth_users: {
-        Row: {
-          email: string | null
-          id: string | null
-        }
-        Insert: {
-          email?: string | null
-          id?: string | null
-        }
-        Update: {
-          email?: string | null
-          id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       extra_for_post_user_signup: {
@@ -579,6 +995,51 @@ export type Database = {
       }
       generate_team_slug: {
         Args: { name: string }
+        Returns: string
+      }
+      get_agents_by_execution: {
+        Args: { p_execution_id: string }
+        Returns: {
+          config: Json | null
+          created_at: string | null
+          execution_id: string | null
+          id: string
+          is_system: boolean | null
+          model: string
+          name: string
+          system_prompt: string
+          team_id: string | null
+          type: string
+          updated_at: string | null
+          user_prompt_template: string | null
+        }[]
+      }
+      get_pending_tasks_for_execution: {
+        Args: { p_execution_id: string }
+        Returns: {
+          agent_id: string | null
+          attempts: number | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          execution_id: string | null
+          id: string
+          input: string
+          message_id: string | null
+          metadata: Json | null
+          output: string | null
+          project_id: string | null
+          result_type: string | null
+          status: string
+          step_id: string | null
+          system_agent_id: string | null
+          team_id: string | null
+          title: string
+          type: string
+        }[]
+      }
+      get_team_api_key: {
+        Args: { team_uuid: string }
         Returns: string
       }
       is_member_of_team: {
@@ -721,6 +1182,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

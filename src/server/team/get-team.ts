@@ -86,29 +86,8 @@ export const getUserTeams = authActionClient
           []
       )
 
-      const { data: defaultTeamAuthUsers, error: authUsersError } =
-        await supabaseAdmin
-          .from('auth_users')
-          .select('id, email')
-          .in('id', Array.from(defaultUserIds))
-
-      if (authUsersError) {
-        l.error({
-          key: 'get_usr_teams:supabase_error',
-          message: authUsersError.message,
-          error: serializeError(authUsersError),
-          user_id: user.id,
-        })
-
-        return usersTeamsData.map((userTeam) => ({
-          ...userTeam.teams,
-          is_default: userTeam.is_default,
-        }))
-      }
-
-      const userEmailMap = new Map(
-        defaultTeamAuthUsers?.map((user) => [user.id, user.email]) || []
-      )
+      // BotLink: auth_users view not in schema - skip user email mapping
+      const userEmailMap = new Map<string, string>()
 
       const teams: ClientTeam[] = usersTeamsData.map((userTeam) => {
         const team = userTeam.teams

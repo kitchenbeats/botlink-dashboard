@@ -82,7 +82,7 @@ export default function DashboardSidebarCommand({
                   router.push(
                     link.href({
                       teamIdOrSlug:
-                        selectedTeam?.slug ?? selectedTeam?.id ?? undefined,
+                        selectedTeam?.id ?? undefined,
                     })
                   )
                   setOpen(false)

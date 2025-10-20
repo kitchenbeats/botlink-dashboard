@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/clients/supabase/server";
 import {
 	createProject,
 	getProject,
@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/projects";
 import { createFile } from "@/lib/db/files";
 import type { InsertProject, ProjectTemplate } from "@/lib/types/database";
+import { getE2BTemplateId } from "@/configs/templates";
 
 interface CreateProjectResult {
 	success: boolean;
@@ -22,6 +23,8 @@ interface CreateProjectResult {
 
 /**
  * Create a new project with initial template files
+ * For simple_site, nextjs, and nextjs_saas: creates project with E2B template reference
+ * Files will be copied from E2B template when sandbox is created
  */
 export async function createNewProject(
 	teamId: string,
@@ -48,22 +51,37 @@ export async function createNewProject(
 			settings: {
 				template,
 				initialized: true,
-			},
+				e2b_template: getE2BTemplateId(template), // Store E2B template ID
+			} as never,
 		};
 
-		const project = await createProject(projectData);
+		const project = await createProject(projectData as never);
 
-		// Create initial template files
-		const templateFiles = getTemplateFiles(template);
-		for (const file of templateFiles) {
-			await createFile({
-				project_id: project.id,
-				path: file.path,
-				content: file.content,
-				language: file.language,
-				created_by: "user",
+		// Create a README placeholder
+		// Actual template files will be copied from E2B template when workspace sandbox is created
+		await createFile({
+			project_id: project.id,
+			path: "README.md",
+			content: `# ${name}\n\nInitializing from template...\n\nYour project will be ready in the workspace.`,
+			language: "markdown",
+			created_by: "user",
+		});
+
+		// NOTE: Workspace initialization happens when user clicks "Run Project"
+		// or during project creation flow via runProject() call
+
+		// Create GitHub repo for backup (async, don't block project creation)
+		const { GitService } = await import("@/lib/services/git-service");
+		GitService.createGitHubRepo(project.id, teamId, template, name)
+			.then((result) => {
+				if (result.success) {
+					console.log("[createNewProject] Created GitHub repo:", result.repoUrl);
+				}
+			})
+			.catch((error) => {
+				console.error("[createNewProject] Failed to create GitHub repo:", error);
+				// Don't block project creation if GitHub fails
 			});
-		}
 
 		revalidatePath("/dashboard");
 		return { success: true, projectId: project.id };
@@ -76,6 +94,8 @@ export async function createNewProject(
 		};
 	}
 }
+
+// Template mapping moved to centralized config: @/configs/templates
 
 /**
  * Get project with all files
@@ -160,7 +180,47 @@ export async function deleteProjectAction(projectId: string) {
 			throw new Error("Not authenticated");
 		}
 
+		// Kill ALL E2B sandboxes for this project (not just active one)
+		const { getAllProjectSandboxes } = await import("@/lib/db/sandboxes");
+		const { Sandbox } = await import("e2b");
+		const { TeamApiKeyService } = await import("@/lib/services/team-api-key-service");
+
+		const project = await getProject(projectId);
+		if (project) {
+			const allSandboxes = await getAllProjectSandboxes(projectId);
+			const teamApiKey = await TeamApiKeyService.getTeamApiKey(project.team_id, supabase);
+			const E2B_DOMAIN = process.env.E2B_DOMAIN;
+
+			// Kill all sandboxes in parallel
+			const killPromises = allSandboxes.map(async (sandbox) => {
+				if (!sandbox.e2b_session_id) return;
+				try {
+					const e2bSandbox = await Sandbox.connect(sandbox.e2b_session_id, {
+						apiKey: teamApiKey,
+						...(E2B_DOMAIN && { domain: E2B_DOMAIN }),
+					});
+					await e2bSandbox.kill();
+					console.log("[deleteProjectAction] Killed E2B sandbox:", sandbox.e2b_session_id);
+				} catch (error) {
+					console.error("[deleteProjectAction] Failed to kill sandbox:", sandbox.e2b_session_id, error);
+					// Continue even if one fails
+				}
+			});
+
+			await Promise.allSettled(killPromises);
+			console.log(`[deleteProjectAction] Cleaned up ${allSandboxes.length} sandbox(es)`);
+		}
+
+		// Delete the project from database (CASCADE will delete sandbox_sessions, files, messages)
 		await deleteProject(projectId);
+
+		// Delete the GitHub repo (async, don't block on failure)
+		const { GitService } = await import("@/lib/services/git-service");
+		GitService.deleteGitHubRepo(projectId).catch((error) => {
+			console.error("[deleteProjectAction] Failed to delete GitHub repo:", error);
+			// Don't throw - project is already deleted from DB
+		});
+
 		revalidatePath("/dashboard");
 	} catch (error) {
 		console.error("[deleteProjectAction] Error:", error);
@@ -193,269 +253,140 @@ export async function openProject(projectId: string) {
 	}
 }
 
+/**
+ * Initialize project workspace - Start sandbox and wait until ready
+ * Returns success/error without redirecting (for use in client components)
+ */
+export async function initializeProject(projectId: string): Promise<{ success: boolean; error?: string }> {
+	try {
+		const supabase = await createClient();
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
+		if (!user) {
+			return { success: false, error: "Not authenticated" };
+		}
+
+		console.log("[initializeProject] Starting project:", projectId);
+
+		// Initialize workspace (creates sandbox, starts dev server)
+		const { initializeWorkspaceFiles } = await import("./workspace");
+		const result = await initializeWorkspaceFiles(projectId);
+
+		if (!result.success) {
+			return { success: false, error: "Failed to start project" };
+		}
+
+		console.log("[initializeProject] Project started successfully:", projectId);
+		return { success: true };
+	} catch (error) {
+		console.error("[initializeProject] Error:", error);
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : "Failed to initialize project",
+		};
+	}
+}
+
+/**
+ * Run project - Start sandbox and initialize workspace
+ * Blocks until sandbox is ready, then redirects to workspace
+ */
+export async function runProject(projectId: string) {
+	const result = await initializeProject(projectId);
+
+	if (!result.success) {
+		throw new Error(result.error || "Failed to start project");
+	}
+
+	// Redirect to workspace
+	redirect(`/workspace/${projectId}`);
+}
+
+/**
+ * Stop project - Save snapshot and pause sandbox
+ * Returns immediately, snapshot happens in background
+ */
+export async function stopProject(projectId: string) {
+	try {
+		const supabase = await createClient();
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
+		if (!user) {
+			throw new Error("Not authenticated");
+		}
+
+		console.log("[stopProject] Stopping project:", projectId);
+
+		const { getProject } = await import("@/lib/db/projects");
+		const { getActiveSandbox, updateSandbox } = await import("@/lib/db/sandboxes");
+		const { Sandbox } = await import("e2b");
+		const { TeamApiKeyService } = await import("@/lib/services/team-api-key-service");
+		const { SnapshotService } = await import("@/lib/services/snapshot-service");
+
+		// Get project and sandbox
+		const project = await getProject(projectId);
+		if (!project) {
+			throw new Error("Project not found");
+		}
+
+		const sandboxSession = await getActiveSandbox(projectId);
+		if (!sandboxSession?.e2b_session_id) {
+			// Already stopped
+			console.log("[stopProject] No active sandbox, already stopped");
+			return { success: true, message: "Project already stopped" };
+		}
+
+		// Get API key
+		const teamApiKey = await TeamApiKeyService.getTeamApiKey(project.team_id, supabase);
+		const E2B_DOMAIN = process.env.E2B_DOMAIN;
+
+		// Connect to sandbox
+		const sandbox = await Sandbox.connect(sandboxSession.e2b_session_id, {
+			apiKey: teamApiKey,
+			...(E2B_DOMAIN && { domain: E2B_DOMAIN }),
+		});
+
+		// Mark sandbox as stopped immediately (UI update)
+		await updateSandbox(sandboxSession.id, {
+			status: "stopped",
+		});
+
+		console.log("[stopProject] Sandbox marked as stopped, starting background snapshot...");
+
+		// Create snapshot and kill sandbox in background (non-blocking)
+		SnapshotService.createSnapshot(sandbox, projectId, 'Auto-saved before stop', teamApiKey)
+			.then((snapshotId: string) => {
+				console.log("[stopProject] Snapshot created:", snapshotId);
+			})
+			.catch((error: Error) => {
+				console.error("[stopProject] Snapshot error:", error);
+			})
+			.finally(async () => {
+				// Kill sandbox after snapshot attempt
+				try {
+					await sandbox.kill();
+					console.log("[stopProject] Sandbox killed:", sandboxSession.e2b_session_id);
+				} catch (error) {
+					console.error("[stopProject] Failed to kill sandbox:", error);
+				}
+			});
+
+		revalidatePath(`/workspace/${projectId}`);
+		revalidatePath("/dashboard");
+
+		return { success: true, message: "Project stopped" };
+	} catch (error) {
+		console.error("[stopProject] Error:", error);
+		throw error;
+	}
+}
+
 // ============================================================================
 // TEMPLATE HELPERS
 // ============================================================================
-
-interface TemplateFile {
-	path: string;
-	content: string;
-	language: string;
-}
-
-function getTemplateFiles(template: ProjectTemplate): TemplateFile[] {
-	switch (template) {
-		case "blank":
-			return [
-				{
-					path: "README.md",
-					content: "# New Project\n\nStart building your application!",
-					language: "markdown",
-				},
-			];
-
-		case "simple_site":
-			return [
-				{
-					path: "index.html",
-					content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Site</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <h1>Welcome to My Site</h1>
-  <p>Start editing to see changes!</p>
-  <script src="script.js"></script>
-</body>
-</html>`,
-					language: "html",
-				},
-				{
-					path: "styles.css",
-					content: `body {
-  font-family: system-ui, -apple-system, sans-serif;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  line-height: 1.6;
-}
-
-h1 {
-  color: #333;
-}`,
-					language: "css",
-				},
-				{
-					path: "script.js",
-					content: `console.log('Hello from your new site!');`,
-					language: "javascript",
-				},
-			];
-
-		case "nextjs":
-			return [
-				{
-					path: "package.json",
-					content: JSON.stringify(
-						{
-							name: "my-nextjs-app",
-							version: "0.1.0",
-							private: true,
-							scripts: {
-								dev: "next dev",
-								build: "next build",
-								start: "next start",
-							},
-							dependencies: {
-								next: "^14.0.0",
-								react: "^18.0.0",
-								"react-dom": "^18.0.0",
-							},
-						},
-						null,
-						2
-					),
-					language: "json",
-				},
-				{
-					path: "app/page.tsx",
-					content: `export default function Home() {
-  return (
-    <main className="min-h-screen p-8">
-      <h1 className="text-4xl font-bold">Welcome to Next.js!</h1>
-      <p className="mt-4">Start editing this file to see changes.</p>
-    </main>
-  );
-}`,
-					language: "typescript",
-				},
-				{
-					path: "app/layout.tsx",
-					content: `export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}`,
-					language: "typescript",
-				},
-			];
-
-		case "react_spa":
-			return [
-				{
-					path: "package.json",
-					content: JSON.stringify(
-						{
-							name: "my-react-app",
-							version: "0.1.0",
-							private: true,
-							scripts: {
-								dev: "vite",
-								build: "vite build",
-								preview: "vite preview",
-							},
-							dependencies: {
-								react: "^18.0.0",
-								"react-dom": "^18.0.0",
-							},
-							devDependencies: {
-								"@vitejs/plugin-react": "^4.0.0",
-								vite: "^5.0.0",
-							},
-						},
-						null,
-						2
-					),
-					language: "json",
-				},
-				{
-					path: "src/App.tsx",
-					content: `function App() {
-  return (
-    <div className="app">
-      <h1>Welcome to React!</h1>
-      <p>Start building your app.</p>
-    </div>
-  );
-}
-
-export default App;`,
-					language: "typescript",
-				},
-				{
-					path: "src/main.tsx",
-					content: `import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);`,
-					language: "typescript",
-				},
-				{
-					path: "index.html",
-					content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>React App</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
-</html>`,
-					language: "html",
-				},
-			];
-
-		case "vue_spa":
-			return [
-				{
-					path: "package.json",
-					content: JSON.stringify(
-						{
-							name: "my-vue-app",
-							version: "0.1.0",
-							private: true,
-							scripts: {
-								dev: "vite",
-								build: "vite build",
-								preview: "vite preview",
-							},
-							dependencies: {
-								vue: "^3.0.0",
-							},
-							devDependencies: {
-								"@vitejs/plugin-vue": "^4.0.0",
-								vite: "^5.0.0",
-							},
-						},
-						null,
-						2
-					),
-					language: "json",
-				},
-				{
-					path: "src/App.vue",
-					content: `<template>
-  <div class="app">
-    <h1>Welcome to Vue!</h1>
-    <p>Start building your app.</p>
-  </div>
-</template>
-
-<script setup lang="ts">
-</script>
-
-<style scoped>
-.app {
-  padding: 2rem;
-}
-</style>`,
-					language: "vue",
-				},
-				{
-					path: "src/main.ts",
-					content: `import { createApp } from 'vue';
-import App from './App.vue';
-
-createApp(App).mount('#app');`,
-					language: "typescript",
-				},
-				{
-					path: "index.html",
-					content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vue App</title>
-</head>
-<body>
-  <div id="app"></div>
-  <script type="module" src="/src/main.ts"></script>
-</body>
-</html>`,
-					language: "html",
-				},
-			];
-
-		default:
-			return [];
-	}
-}
+// Note: Template files are now pre-installed in E2B templates
+// This function is no longer used for simple_site, nextjs, and nextjs_saas

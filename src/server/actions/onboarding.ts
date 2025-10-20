@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/clients/supabase/server';
 import { getUserTeams } from '@/lib/db/teams';
 
 interface OnboardingResult {
@@ -29,7 +29,7 @@ export async function completeOnboarding(): Promise<OnboardingResult> {
     // Check if user has a team (should be auto-created by trigger)
     const teams = await getUserTeams(user.id);
 
-    if (teams.length === 0) {
+    if (teams.length === 0 || !teams[0]) {
       return {
         success: false,
         error: 'No team found. Team should be auto-created on signup.',
@@ -37,7 +37,7 @@ export async function completeOnboarding(): Promise<OnboardingResult> {
     }
 
     return { success: true, teamId: teams[0].id };
-  } catch (error: any) {
+  } catch (error) {
     console.error('[completeOnboarding] Error:', error);
     return {
       success: false,

@@ -5,6 +5,7 @@ const config = {
   },
   reactStrictMode: true,
   experimental: {
+    serverComponentsHmrCache: false, // defaults to true
     reactCompiler: true,
     ppr: true,
     staleTimes: {
@@ -20,13 +21,30 @@ const config = {
       fullUrl: true,
     },
   },
-  serverExternalPackages: ['pino', 'pino-loki'],
+  serverExternalPackages: ['pino', 'pino-loki', 'redis', '@redis/client', 'e2b'],
   trailingSlash: false,
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.module.rules.push({
       test: /\.node$/,
       use: 'node-loader',
     })
+
+    // Handle e2b package that uses node: imports
+    // e2b SDK v2 is server-only, so we need to exclude it from client bundles
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        'fs/promises': false,
+        crypto: false,
+        events: false,
+        assert: false,
+      }
+
+      // Externalize e2b for client bundles (it's server-only)
+      config.externals = config.externals || []
+      config.externals.push('e2b')
+    }
 
     return config
   },
@@ -40,19 +58,19 @@ const config = {
           value: 'SAMEORIGIN',
         },
       ],
-    }, 
+    },
   ],
   rewrites: async () => {
-      return [
+    return [
       {
-        source: "/ph-proxy/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
+        source: '/ph-proxy/static/:path*',
+        destination: 'https://us-assets.i.posthog.com/static/:path*',
       },
       {
-        source: "/ph-proxy/:path*",
-        destination: "https://us.i.posthog.com/:path*",
+        source: '/ph-proxy/:path*',
+        destination: 'https://us.i.posthog.com/:path*',
       },
-      ]
+    ]
   },
   redirects: async () => [
     {

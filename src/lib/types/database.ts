@@ -3,22 +3,20 @@
 // ============================================================================
 
 // Enums
-export type ProjectTemplate =
-  | 'blank'
-  | 'simple_site'
-  | 'nextjs'
-  | 'react_spa'
-  | 'vue_spa'
-  | 'web'      // Generic web project (detected from HTML/CSS/JS)
-  | 'api'      // API project (FastAPI, Flask, etc.)
-  | 'cli'      // CLI tool (Rust, Go with main function)
-  | 'library'; // Generic library
+export type ProjectTemplate = 'simple_site' | 'nextjs' | 'nextjs_saas';
 
-export type BuilderType = 'simple_site' | 'nextjs' | 'react_spa' | 'vue_spa'; // User-selectable builder types
+export type BuilderType = 'simple_site' | 'nextjs' | 'nextjs_saas';
 export type ProjectType = ProjectTemplate; // Legacy alias
 export type MessageRole = 'user' | 'assistant' | 'system';
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed';
 export type TaskType = 'file_create' | 'file_update' | 'file_delete' | 'run_command' | 'install_package';
+/**
+ * Sandbox Status Values:
+ * - 'starting': Sandbox is being created
+ * - 'ready': Sandbox is running and available
+ * - 'stopped': VM destroyed/removed (no cost)
+ * - 'error': Sandbox creation or operation failed
+ */
 export type SandboxStatus = 'starting' | 'ready' | 'stopped' | 'error';
 export type DeploymentStatus = 'building' | 'ready' | 'failed';
 export type OrganizationRole = 'owner' | 'admin' | 'member';
@@ -58,6 +56,7 @@ export interface OrganizationMember {
 export interface Agent {
   id: string;
   team_id: string | null; // null = system agent
+  execution_id?: string | null; // For dynamic agents created during workflow
   name: string;
   type: AgentType;
   model: string; // default: 'gpt-4o'
@@ -87,11 +86,17 @@ export interface Workflow {
   updated_at: string;
 }
 
+export interface WorkflowNodeData {
+  agentId?: string;
+  label?: string;
+  [key: string]: unknown;
+}
+
 export interface WorkflowNode {
   id: string;
   type: string;
   position: { x: number; y: number };
-  data: Record<string, unknown>;
+  data: WorkflowNodeData;
 }
 
 export interface WorkflowEdge {
@@ -111,6 +116,8 @@ export interface Execution {
   input: string;
   output: string | null;
   builder_type: BuilderType;
+  inngest_run_id: string | null; // Inngest function run ID for tracking
+  channel_id: string | null; // Realtime channel ID for streaming
   created_at: string;
   completed_at: string | null;
 }
@@ -202,6 +209,7 @@ export interface Task {
   status: TaskStatus;
   type: TaskType;
   metadata: TaskMetadata;
+  step_id?: string | null; // Inngest step ID for tracking within workflow
   attempts: number;
   created_at: string;
   completed_at: string | null;

@@ -2,52 +2,68 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Globe, FileCode2 } from 'lucide-react';
+import { Button } from '@/ui/primitives/button';
+import { Input } from '@/ui/primitives/input';
+import { Label } from '@/ui/primitives/label';
+import { Textarea } from '@/ui/primitives/textarea';
 import type { ProjectTemplate } from '@/lib/types/database';
+import { getAllTemplates } from '@/configs/templates';
 
 interface ProjectCreationFormProps {
   teamId: string;
 }
 
+type CreationStep =
+  | { status: 'idle' }
+  | { status: 'creating_project'; message: 'Creating project...' }
+  | { status: 'initializing_workspace'; message: 'Starting development environment...' }
+  | { status: 'complete'; message: 'Ready!' };
+
 export function ProjectCreationForm({ teamId }: ProjectCreationFormProps) {
   const router = useRouter();
-  const [isCreating, setIsCreating] = useState(false);
+  const [creationStep, setCreationStep] = useState<CreationStep>({ status: 'idle' });
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     template: 'simple_site' as ProjectTemplate,
   });
 
+  const isCreating = creationStep.status !== 'idle';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsCreating(true);
 
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          teamId,
-          ...formData,
-        }),
-      });
+      // Step 1: Create project
+      setCreationStep({ status: 'creating_project', message: 'Creating project...' });
+      const { createNewProject } = await import('@/server/actions/projects');
+      const result = await createNewProject(
+        teamId,
+        formData.name,
+        formData.template,
+        formData.description || undefined
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: response.statusText }));
-        console.error('Create project error:', errorData);
-        throw new Error(errorData.error || errorData.message || 'Failed to create project');
+      if (!result.success || !result.projectId) {
+        throw new Error(result.error || 'Failed to create project');
       }
 
-      const { project } = await response.json();
-      router.push(`/workspace/${project.id}`);
+      // Step 2: Initialize workspace and start dev environment
+      setCreationStep({ status: 'initializing_workspace', message: 'Starting development environment...' });
+      const { initializeProject } = await import('@/server/actions/projects');
+      const initResult = await initializeProject(result.projectId);
+
+      if (!initResult.success) {
+        throw new Error(initResult.error || 'Failed to start project');
+      }
+
+      // Step 3: Complete and navigate
+      setCreationStep({ status: 'complete', message: 'Ready!' });
+      router.push(`/workspace/${result.projectId}`);
     } catch (error) {
       console.error('Failed to create project:', error);
       alert(error instanceof Error ? error.message : 'Failed to create project');
-      setIsCreating(false);
+      setCreationStep({ status: 'idle' });
     }
   };
 
@@ -78,57 +94,42 @@ export function ProjectCreationForm({ teamId }: ProjectCreationFormProps) {
       <div className="space-y-3">
         <Label>Project Template</Label>
         <div className="space-y-3">
-          <div
-            onClick={() => setFormData({ ...formData, template: 'simple_site' })}
-            className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition ${
-              formData.template === 'simple_site' ? 'border-primary bg-primary/5' : 'hover:border-primary'
-            }`}
-          >
-            <input
-              type="radio"
-              name="template"
-              value="simple_site"
-              checked={formData.template === 'simple_site'}
-              onChange={(e) => setFormData({ ...formData, template: e.target.value as ProjectTemplate })}
-              className="mt-1"
-            />
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-2 font-medium">
-                <Globe className="h-4 w-4" />
-                Simple Site
+          {getAllTemplates().map((template) => (
+            <div
+              key={template.id}
+              onClick={() => setFormData({ ...formData, template: template.id as ProjectTemplate })}
+              className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition ${
+                formData.template === template.id ? 'border-primary bg-primary/5' : 'hover:border-primary'
+              }`}
+            >
+              <input
+                type="radio"
+                name="template"
+                value={template.id}
+                checked={formData.template === template.id}
+                onChange={(e) => setFormData({ ...formData, template: e.target.value as ProjectTemplate })}
+                className="mt-1"
+              />
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2 font-medium">
+                  <span className="text-lg">{template.icon}</span>
+                  {template.name}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {template.description}
+                </p>
+                {template.features && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {template.features.map((feature) => (
+                      <span key={feature} className="text-xs px-2 py-0.5 bg-muted rounded">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-              <p className="text-sm text-muted-foreground">
-                HTML, CSS, and JavaScript with live preview. Perfect for landing pages,
-                portfolios, or simple web apps.
-              </p>
             </div>
-          </div>
-
-          <div
-            onClick={() => setFormData({ ...formData, template: 'nextjs' })}
-            className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition ${
-              formData.template === 'nextjs' ? 'border-primary bg-primary/5' : 'hover:border-primary'
-            }`}
-          >
-            <input
-              type="radio"
-              name="template"
-              value="nextjs"
-              checked={formData.template === 'nextjs'}
-              onChange={(e) => setFormData({ ...formData, template: e.target.value as ProjectTemplate })}
-              className="mt-1"
-            />
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-2 font-medium">
-                <FileCode2 className="h-4 w-4" />
-                Next.js
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Full Next.js workspace with App Router, TypeScript, and Tailwind CSS.
-                Build production-ready full-stack applications.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -141,8 +142,21 @@ export function ProjectCreationForm({ teamId }: ProjectCreationFormProps) {
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isCreating}>
-          {isCreating ? 'Creating...' : 'Create Project'}
+        <Button type="submit" disabled={isCreating} className="min-w-[200px]">
+          {creationStep.status === 'idle' && 'Create Project'}
+          {creationStep.status === 'creating_project' && (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Creating project...
+            </span>
+          )}
+          {creationStep.status === 'initializing_workspace' && (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Starting environment...
+            </span>
+          )}
+          {creationStep.status === 'complete' && 'Ready!'}
         </Button>
       </div>
     </form>

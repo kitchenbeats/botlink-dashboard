@@ -1,6 +1,33 @@
 import { registerOTel } from '@vercel/otel'
 
 export async function register() {
+  // Patch global fetch to disable caching for E2B sandbox URLs
+  // This prevents "Failed to generate cache key" warnings
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    const originalFetch = global.fetch
+
+    const patchedFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+
+      // Disable cache for E2B sandbox URLs (dynamic per-session)
+      if (url.includes('.ledgai.com') || url.includes('.e2b.dev')) {
+        return originalFetch(input, {
+          ...init,
+          cache: 'no-store',
+          next: {
+            revalidate: 0,
+          },
+        })
+      }
+
+      return originalFetch(input, init)
+    }
+
+    // Copy over static properties from originalFetch to maintain type compatibility
+    Object.assign(patchedFetch, originalFetch)
+    global.fetch = patchedFetch as typeof fetch
+  }
+
   if (!process.env.OTEL_EXPORTER_OTLP_ENDPOINT) return
 
   if (process.env.NEXT_RUNTIME === 'nodejs') {

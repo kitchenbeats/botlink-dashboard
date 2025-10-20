@@ -1,5 +1,6 @@
 import { getDb } from '@/lib/db';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/clients/supabase/server';
 import crypto from 'crypto';
 
 if (!process.env.ENCRYPTION_KEY) {
@@ -21,6 +22,9 @@ function encrypt(text: string): string {
 function decrypt(text: string): string {
   const key = Buffer.from(ENCRYPTION_KEY, 'base64');
   const parts = text.split(':');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    throw new Error('Invalid encrypted text format');
+  }
   const iv = Buffer.from(parts[0], 'hex');
   const encryptedText = parts[1];
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
@@ -36,38 +40,71 @@ export class TeamApiKeyService {
   /**
    * Get the API key for a team
    * @param teamId The team's UUID
+   * @param supabase Authenticated Supabase client
    * @returns The E2B API key
    */
-  static async getTeamApiKey(teamId: string): Promise<string> {
-    const db = await getDb();
-
+  static async getTeamApiKey(teamId: string, supabase: Awaited<ReturnType<typeof createServerClient>>): Promise<string> {
     console.log('[TeamApiKeyService] Fetching API key for team:', teamId);
 
-    // Get the encrypted key directly (for now it's just base64 encoded)
-    const { data, error } = await db
-      .from('team_api_keys')
-      .select('api_key_encrypted')
-      .eq('team_id', teamId)
-      .limit(1)
-      .single();
+    // Call the Postgres function to decrypt the API key
+    // This will use the authenticated user's context for RLS checks
+    // Type assertion needed due to Supabase RPC type inference issues
+    const { data, error } = await (supabase as unknown as { rpc: (fname: string, args: { team_uuid: string }) => Promise<{ data: string | null; error: unknown }> }).rpc(
+      'get_team_api_key',
+      { team_uuid: teamId }
+    );
 
     if (error) {
       console.error('[TeamApiKeyService] Error fetching API key:', error);
-      throw new Error(`Failed to get team API key: ${error.message}`);
+      throw new Error(`Failed to get team API key: ${String(error)}`);
     }
 
-    if (!data || !data.api_key_encrypted) {
+    if (!data) {
       console.error('[TeamApiKeyService] No API key found for team:', teamId);
       throw new Error(`No API key found for team ${teamId}`);
     }
 
-    // Decrypt the stored key (now stored as plain text)
-    const apiKey = decrypt(data.api_key_encrypted);
+    console.log('[TeamApiKeyService] Successfully retrieved API key for team:', teamId);
+    console.log('[TeamApiKeyService] API key prefix:', data.substring(0, 8) + '...');
+    console.log('[TeamApiKeyService] API key length:', data.length);
+    console.log('[TeamApiKeyService] Full API key:', data);
+
+    return data;
+  }
+
+  /**
+   * Get team API key using service role (for background functions)
+   * @param teamId The team's UUID
+   * @returns The E2B API key
+   */
+  static async getTeamApiKeyServiceRole(teamId: string): Promise<string> {
+    // Use service role client for background functions (Inngest)
+    const serviceClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    console.log('[TeamApiKeyService] Fetching API key (service role) for team:', teamId);
+
+    // Type assertion needed due to Supabase RPC type inference issues
+    const { data, error } = await (serviceClient as unknown as { rpc: (fname: string, args: { team_uuid: string }) => Promise<{ data: string | null; error: unknown }> }).rpc(
+      'get_team_api_key',
+      { team_uuid: teamId }
+    );
+
+    if (error) {
+      console.error('[TeamApiKeyService] Error fetching API key:', error);
+      throw new Error(`Failed to get team API key: ${String(error)}`);
+    }
+
+    if (!data) {
+      console.error('[TeamApiKeyService] No API key found for team:', teamId);
+      throw new Error(`No API key found for team ${teamId}`);
+    }
 
     console.log('[TeamApiKeyService] Successfully retrieved API key for team:', teamId);
-    console.log('[TeamApiKeyService] API key prefix:', apiKey.substring(0, 8) + '...');
 
-    return apiKey;
+    return data;
   }
 
   /**

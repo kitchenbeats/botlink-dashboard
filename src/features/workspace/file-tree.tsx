@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import type { File as ProjectFile } from '@/lib/types/database';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/ui/primitives/button';
+import { Input } from '@/ui/primitives/input';
+import { ScrollArea } from '@/ui/primitives/scroll-area';
 import {
   File,
   FolderOpen,

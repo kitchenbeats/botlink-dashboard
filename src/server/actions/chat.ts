@@ -1,13 +1,19 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/clients/supabase/server';
 import { createMessage } from '@/lib/db/messages';
 import { createTask, updateTask } from '@/lib/db/tasks';
 import { getSystemAgentByType } from '@/lib/db/agents';
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { E2BService } from '@/lib/services/e2b-service';
-import { runCodingTask } from '@/lib/services/coding-agent';
+import { publishWorkspaceMessage } from '@/lib/services/redis-realtime';
+import { getProject } from '@/lib/db/projects';
+import {
+  startClaudeSession,
+  sendToClaudeSession,
+  getClaudeSession,
+} from '@/lib/services/claude-session-manager';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -42,72 +48,85 @@ export async function sendChatMessage(
     metadata: { executionMode: mode },
   });
 
-  // SIMPLE MODE: Use coding agent with E2B sandbox
+  // SIMPLE MODE: Interactive Claude Code session with persistent context
   if (mode === 'simple') {
     try {
+      // Get project to find template and working directory
+      const project = await getProject(projectId);
+      if (!project) {
+        throw new Error(`Project ${projectId} not found`);
+      }
+
       // Get or create sandbox for this project
-      const { sandbox } = await E2BService.getOrCreateSandbox(projectId);
+      const { sandbox } = await E2BService.getOrCreateSandbox(projectId, supabase);
 
-      // Run coding task
-      const result = await runCodingTask(userMessage, {
-        sandbox,
-        model: 'claude',
-        onProgress: (message) => {
-          console.log('[Chat] Coding agent progress:', message);
-          // TODO: Stream progress to client
-        },
-      });
+      // Get working directory for this template
+      const workDir = E2BService.getTemplateWorkDir(project.template);
 
-      // Save assistant response
-      const responseContent = result.success
-        ? result.output
-        : `Error: ${result.error}`;
+      // Check if we have an active Claude session
+      let session = getClaudeSession(projectId);
 
+      // If no session exists, start one
+      if (!session) {
+        console.log('[Chat] Starting new Claude session for project:', projectId);
+        session = await startClaudeSession({
+          sandbox,
+          projectId,
+          workDir,
+        });
+      }
+
+      // Send the user's message to Claude
+      await sendToClaudeSession(sandbox, projectId, userMessage);
+
+      // Response will stream via Redis pubsub (handled by claude-session-manager)
+      // The chat UI subscribes to 'claude-output' and 'file-change' topics
+
+      return {
+        success: true,
+        content: 'Message sent to Claude. Response streaming via realtime connection.',
+        sessionId: session.id,
+      };
+    } catch (error) {
+      console.error('[Chat] Simple agent error:', error);
+
+      // Save error message
       await createMessage({
         project_id: projectId,
         role: 'assistant',
-        content: responseContent,
+        content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         metadata: {
           executionMode: mode,
-          success: result.success,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
         },
       });
 
-      return { success: result.success, content: responseContent };
-    } catch (error) {
-      console.error('[Chat] Coding agent error:', error);
       throw error;
     }
   }
 
-  // AGENTS MODE: Use multi-agent orchestration (existing logic)
-  const plannerAgent = await getSystemAgentByType('planner');
+  // AGENTS MODE: Use workflow orchestration with dynamic agents
+  try {
+    const { runWorkflowAgents } = await import('./workspace');
 
-  if (!plannerAgent) {
-    throw new Error('Planner agent not found');
+    // Trigger workflow orchestration
+    const result = await runWorkflowAgents(projectId, userMessage);
+
+    if (!result.success) {
+      throw new Error('Failed to start workflow orchestration');
+    }
+
+    // Return success response with execution ID
+    return {
+      success: true,
+      content: '🤖 Starting workflow orchestration with specialized agents...',
+      executionId: result.executionId,
+    };
+  } catch (error) {
+    console.error('[Chat] Workflow orchestration error:', error);
+    throw error;
   }
-
-  // Build conversation with system prompt
-  const messages: ChatMessage[] = [
-    {
-      role: 'system',
-      content: plannerAgent.system_prompt,
-    },
-    ...conversationHistory,
-    {
-      role: 'user',
-      content: userMessage,
-    },
-  ];
-
-  // Stream the response
-  const result = await streamText({
-    model: openai(plannerAgent.model),
-    messages,
-    temperature: 0.7,
-  });
-
-  return result.toTextStreamResponse();
 }
 
 /**

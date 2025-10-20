@@ -1,0 +1,5 @@
+# This is a config for E2B sandbox template.
+# Pre-installed with Next.js SaaS Starter from Vercel
+
+dockerfile = "e2b.Dockerfile"
+template_name = "reactwrite-nextjs-saas"

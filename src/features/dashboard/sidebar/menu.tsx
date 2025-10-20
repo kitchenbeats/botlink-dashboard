@@ -45,11 +45,9 @@ export default function DashboardSidebarMenu({
       if (!selectedTeam) return PROTECTED_URLS.DASHBOARD
 
       // use word boundaries to prevent partial replacements and ensure /dashboard/ prefix
-      const slugPattern = new RegExp(`/dashboard/${selectedTeam.slug}\\b`, 'g')
       const idPattern = new RegExp(`/dashboard/${selectedTeam.id}\\b`, 'g')
 
       return pathname
-        .replace(slugPattern, `/dashboard/${team.slug}`)
         .replace(idPattern, `/dashboard/${team.id}`)
     },
     [selectedTeam, pathname]
@@ -63,7 +61,7 @@ export default function DashboardSidebarMenu({
 
       await fetch('/api/team/state', {
         method: 'POST',
-        body: JSON.stringify({ teamId: team.id, teamSlug: team.slug }),
+        body: JSON.stringify({ teamId: team.id }),
       })
 
       router.push(getNextUrl(team))
@@ -93,16 +91,9 @@ export default function DashboardSidebarMenu({
               <Avatar
                 className={cn(
                   'shrink-0 transition-all duration-100 ease-in-out',
-                  'group-data-[collapsible=icon]:block group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-[5px]',
-                  {
-                    'drop-shadow-sm filter': selectedTeam?.profile_picture_url,
-                  }
+                  'group-data-[collapsible=icon]:block group-data-[collapsible=icon]:size-9 group-data-[collapsible=icon]:p-[5px]'
                 )}
               >
-                <AvatarImage
-                  src={selectedTeam?.profile_picture_url || undefined}
-                  className="group-data-[collapsible=icon]:size-full object-cover object-center"
-                />
                 <AvatarFallback className="bg-bg-hover border-0">
                   {selectedTeam?.name?.charAt(0).toUpperCase() || '?'}
                 </AvatarFallback>
@@ -142,9 +133,6 @@ export default function DashboardSidebarMenu({
                   <DropdownMenuRadioItem key={team.id} value={team.id} asChild>
                     <Link href={getNextUrl(team)}>
                       <Avatar className="size-5 shrink-0 border-none">
-                        <AvatarImage
-                          src={team.profile_picture_url || undefined}
-                        />
                         <AvatarFallback className="group-focus:text-accent-main-highlight text-fg-tertiary text-xs">
                           {team.name?.charAt(0).toUpperCase() || '?'}
                         </AvatarFallback>

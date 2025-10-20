@@ -1,0 +1,18 @@
+{
+  "name": "check_logic",
+  "description": "Check if output logically satisfies the input requirements",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "passed": {
+        "type": "boolean",
+        "description": "Whether the output logically satisfies the requirements"
+      },
+      "feedback": {
+        "type": "string",
+        "description": "Explanation of the logic check result"
+      }
+    },
+    "required": ["passed", "feedback"]
+  }
+}

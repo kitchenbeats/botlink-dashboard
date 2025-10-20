@@ -1,0 +1,26 @@
+{
+  "name": "analyze_request",
+  "description": "Analyze a user's request and determine if clarification is needed",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": ["needs_clarification", "ready"],
+        "description": "Whether the request needs clarification or is ready to execute"
+      },
+      "questions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "List of clarifying questions to ask the user (empty if status is ready)"
+      },
+      "summary": {
+        "type": "string",
+        "description": "Brief summary of what you understand from the request"
+      }
+    },
+    "required": ["status", "questions", "summary"]
+  }
+}

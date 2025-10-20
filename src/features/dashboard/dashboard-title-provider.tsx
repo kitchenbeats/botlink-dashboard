@@ -1,6 +1,7 @@
 'use client'
 
 import { METADATA } from '@/configs/metadata'
+import { BRANDING } from '@/configs/branding'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo } from 'react'
@@ -29,7 +30,7 @@ export const DashboardTitleProvider = () => {
     const teamName =
       team.name.length > 10 ? `${team.name.slice(0, 10)}...` : team.name
 
-    return `${teamName} | ${pageName} | E2B`
+    return `${teamName} | ${pageName} | ${BRANDING.name}`
   }, [team, pathname])
 
   // Update document title whenever title changes

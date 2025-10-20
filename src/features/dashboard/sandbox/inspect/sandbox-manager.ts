@@ -360,7 +360,6 @@ export class SandboxManager {
 
     const downloadUrl = await this.sandbox.downloadUrl(normalizedPath, {
       user: 'root',
-      useSignature: this.isSandboxSecure || undefined,
     })
 
     console.log('downloadUrl', downloadUrl)

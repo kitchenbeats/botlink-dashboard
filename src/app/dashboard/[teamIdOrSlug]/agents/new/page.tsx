@@ -1,19 +1,21 @@
-import { createClient } from '@/lib/supabase/server';
-import { getUserTeams } from '@/lib/db/teams';
-import { redirect } from 'next/navigation';
-import { AgentForm } from '@/components/agent-form';
+import { AgentForm } from '@/features/agents/agent-form'
+import { createClient } from '@/lib/clients/supabase/server'
+import { getUserTeams } from '@/lib/db/teams'
+import { redirect } from 'next/navigation'
 
 export default async function NewAgentPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login');
+    redirect('/sign-in')
   }
 
-  const teams = await getUserTeams(user.id);
+  const teams = await getUserTeams(user.id)
   if (teams.length === 0) {
-    redirect('/onboarding');
+    redirect('/onboarding')
   }
 
   return (
@@ -29,5 +31,5 @@ export default async function NewAgentPage() {
         <AgentForm mode="create" />
       </div>
     </div>
-  );
+  )
 }

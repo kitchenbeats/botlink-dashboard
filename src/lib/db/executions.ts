@@ -1,13 +1,14 @@
 import { getDb, handleDbError } from './index';
-import type { Execution, InsertExecution, UpdateExecution, Task } from '../types/database';
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
+import type { Execution, Task } from '../types/database';
 
 // Create execution
-export async function createExecution(data: InsertExecution): Promise<Execution> {
+export async function createExecution(data: TablesInsert<'executions'>): Promise<Tables<'executions'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data: execution, error } = await db
       .from('executions')
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
 
@@ -17,7 +18,7 @@ export async function createExecution(data: InsertExecution): Promise<Execution>
 }
 
 // Get execution by ID
-export async function getExecution(id: string, teamId?: string): Promise<Execution | null> {
+export async function getExecution(id: string, teamId?: string): Promise<Tables<'executions'> | null> {
   return handleDbError(async () => {
     const db = await getDb();
     let query = db
@@ -38,12 +39,12 @@ export async function getExecution(id: string, teamId?: string): Promise<Executi
 }
 
 // Alias for getExecution (for compatibility)
-export async function getExecutionById(id: string, teamId?: string): Promise<Execution | null> {
+export async function getExecutionById(id: string, teamId?: string): Promise<Tables<'executions'> | null> {
   return getExecution(id, teamId);
 }
 
 // Get org's executions
-export async function getExecutions(teamId: string): Promise<Execution[]> {
+export async function getExecutions(teamId: string): Promise<Tables<'executions'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -58,7 +59,7 @@ export async function getExecutions(teamId: string): Promise<Execution[]> {
 }
 
 // Get tasks for an execution
-export async function getTasks(executionId: string): Promise<Task[]> {
+export async function getTasks(executionId: string): Promise<Tables<'tasks'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -75,13 +76,13 @@ export async function getTasks(executionId: string): Promise<Task[]> {
 // Update execution
 export async function updateExecution(
   id: string,
-  updates: UpdateExecution
-): Promise<Execution> {
+  updates: TablesUpdate<'executions'>
+): Promise<Tables<'executions'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
       .from('executions')
-      .update(updates)
+      .update(updates as never)
       .eq('id', id)
       .select()
       .single();

@@ -1,0 +1,5 @@
+# This is a config for E2B sandbox template.
+# Pre-installed with simple HTML/CSS/JS starter using Tailwind CSS
+
+dockerfile = "e2b.Dockerfile"
+template_name = "reactwrite-simple-html"

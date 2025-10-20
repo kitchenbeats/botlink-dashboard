@@ -1,28 +1,33 @@
-import { createClient } from '@/lib/supabase/server';
-import { getUserTeams } from '@/lib/db/teams';
-import { getAgents } from '@/lib/db';
-import { getSystemAgents } from '@/lib/services/system-agents';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
+import { createClient } from '@/lib/clients/supabase/server'
+import { getAgents } from '@/lib/db'
+import { getUserTeams } from '@/lib/db/teams'
+import { getSystemAgents } from '@/lib/services/system-agents'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default async function AgentsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login');
+    redirect('/sign-in')
   }
 
-  const teams = await getUserTeams(user.id);
+  const teams = await getUserTeams(user.id)
   if (teams.length === 0) {
-    redirect('/onboarding');
+    redirect('/onboarding')
   }
 
   // For now, use the first org (later we'll add org switcher)
-  const currentTeam = teams[0];
+  const currentTeam = teams[0]
+  if (!currentTeam) {
+    redirect('/onboarding')
+  }
 
-  const systemAgents = getSystemAgents();
-  const customAgents = await getAgents(currentTeam.id);
+  const systemAgents = getSystemAgents()
+  const customAgents = await getAgents(currentTeam.id)
 
   return (
     <div>
@@ -107,5 +112,5 @@ export default async function AgentsPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

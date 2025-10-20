@@ -10,7 +10,7 @@ import { handleDefaultInfraError, returnServerError } from '@/lib/utils/action'
 import { checkUserTeamAuthorization } from '@/lib/utils/server'
 import { CreateTeamSchema, UpdateTeamNameSchema } from '@/server/team/types'
 import { CreateTeamsResponse } from '@/types/billing'
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/clients/kv'
 import { returnValidationErrors } from 'next-safe-action'
 import { revalidatePath } from 'next/cache'
 import { serializeError } from 'serialize-error'
@@ -65,16 +65,14 @@ export const addTeamMemberAction = authActionClient
       return returnServerError('User is not authorized to add a team member')
     }
 
-    const { data: existingUsers, error: userError } = await supabaseAdmin
-      .from('auth_users')
-      .select('*')
-      .eq('email', email)
+    // Use auth.admin to find user by email
+    const { data, error: userError } = await supabaseAdmin.auth.admin.listUsers()
 
     if (userError) {
       return returnServerError(`Error finding user: ${userError.message}`)
     }
 
-    const existingUser = existingUsers?.[0]
+    const existingUser = data.users.find(u => u.email === email)
 
     if (!existingUser) {
       return returnServerError(
@@ -86,7 +84,7 @@ export const addTeamMemberAction = authActionClient
       .from('users_teams')
       .select('*')
       .eq('team_id', teamId)
-      .eq('user_id', existingUser.id!)
+      .eq('user_id', existingUser.id)
       .single()
 
     if (existingTeamMember) {
@@ -97,7 +95,7 @@ export const addTeamMemberAction = authActionClient
       .from('users_teams')
       .insert({
         team_id: teamId,
-        user_id: existingUser.id!,
+        user_id: existingUser.id,
         added_by: user.id,
       })
 

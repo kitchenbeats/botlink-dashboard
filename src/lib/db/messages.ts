@@ -1,12 +1,12 @@
 import { getDb, handleDbError } from './index';
-import type { Message, InsertMessage } from '../types/database';
+import type { Tables, TablesInsert } from '@/types/database.types';
 
-export async function createMessage(data: InsertMessage): Promise<Message> {
+export async function createMessage(data: TablesInsert<'messages'>): Promise<Tables<'messages'>> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data: message, error } = await db
       .from('messages')
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
 
@@ -15,7 +15,7 @@ export async function createMessage(data: InsertMessage): Promise<Message> {
   }, 'createMessage');
 }
 
-export async function getMessage(id: string): Promise<Message | null> {
+export async function getMessage(id: string): Promise<Tables<'messages'> | null> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db
@@ -29,7 +29,7 @@ export async function getMessage(id: string): Promise<Message | null> {
   }, 'getMessage');
 }
 
-export async function listMessages(projectId: string): Promise<Message[]> {
+export async function listMessages(projectId: string): Promise<Tables<'messages'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
     const { data, error } = await db

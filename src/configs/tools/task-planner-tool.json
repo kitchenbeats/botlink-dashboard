@@ -1,0 +1,45 @@
+{
+  "name": "create_task_plan",
+  "description": "Create a structured task plan for executing a request",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "overall_strategy": {
+        "type": "string",
+        "description": "High-level strategy for completing the request"
+      },
+      "tasks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Short descriptive title for the task"
+            },
+            "description": {
+              "type": "string",
+              "description": "Detailed description of what needs to be done"
+            },
+            "estimated_complexity": {
+              "type": "string",
+              "enum": ["low", "medium", "high"],
+              "description": "Estimated complexity of the task"
+            },
+            "dependencies": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "description": "Index of task that must complete before this task can start"
+              },
+              "description": "Array of task indices this task depends on. Empty array means task can run immediately. Use this to enable parallel execution of independent tasks."
+            }
+          },
+          "required": ["title", "description", "estimated_complexity", "dependencies"]
+        },
+        "description": "List of tasks to complete the request. Tasks with no dependencies can run in parallel."
+      }
+    },
+    "required": ["overall_strategy", "tasks"]
+  }
+}

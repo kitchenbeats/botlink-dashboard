@@ -1,22 +1,27 @@
-import { createClient } from '@/lib/supabase/server';
-import { getUserTeams } from '@/lib/db/teams';
-import { redirect } from 'next/navigation';
-import { ProjectCreationForm } from '@/components/project-creation-form';
+import { ProjectCreationForm } from '@/features/projects/project-creation-form'
+import { createClient } from '@/lib/clients/supabase/server'
+import { getUserTeams } from '@/lib/db/teams'
+import { redirect } from 'next/navigation'
 
 export default async function NewProjectPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login');
+    redirect('/sign-in')
   }
 
-  const teams = await getUserTeams(user.id);
+  const teams = await getUserTeams(user.id)
   if (teams.length === 0) {
-    redirect('/onboarding');
+    redirect('/onboarding')
   }
 
-  const currentTeam = teams[0];
+  const currentTeam = teams[0]
+  if (!currentTeam) {
+    redirect('/onboarding')
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -29,5 +34,5 @@ export default async function NewProjectPage() {
 
       <ProjectCreationForm teamId={currentTeam.id} />
     </div>
-  );
+  )
 }

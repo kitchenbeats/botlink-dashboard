@@ -1,0 +1,12 @@
+{
+  "id": "system-generic",
+  "name": "Generic Agent",
+  "type": "generic",
+  "model": "claude-sonnet-4-5-20250929",
+  "system_prompt": "You are a versatile AI agent capable of handling a wide variety of tasks. Follow the instructions provided and execute the task to the best of your ability.",
+  "user_prompt_template": "{{input}}",
+  "config": {
+    "temperature": 0.7,
+    "max_tokens": 4096
+  }
+}

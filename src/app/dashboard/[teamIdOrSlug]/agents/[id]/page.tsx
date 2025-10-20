@@ -1,33 +1,36 @@
-import { createClient } from '@/lib/supabase/server';
-import { getUserTeams } from '@/lib/db/teams';
-import { getAgentById } from '@/lib/db';
-import { redirect } from 'next/navigation';
-import { AgentForm } from '@/components/agent-form';
-import { DeleteButton } from '@/components/delete-button';
-import { deleteAgentAction } from '@/actions';
+import { deleteAgentAction } from '@/actions'
+import { AgentForm } from '@/features/agents/agent-form'
+import { DeleteButton } from '@/features/agents/delete-button'
+import { createClient } from '@/lib/clients/supabase/server'
+import { getAgentById } from '@/lib/db'
+import { getUserTeams } from '@/lib/db/teams'
+import type { Agent } from '@/lib/types/database'
+import { redirect } from 'next/navigation'
 
 export default async function AgentDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>
 }) {
-  const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { id } = await params
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login');
+    redirect('/sign-in')
   }
 
   // Get user's teams
-  const teams = await getUserTeams(user.id);
+  const teams = await getUserTeams(user.id)
   if (teams.length === 0) {
-    redirect('/onboarding');
+    redirect('/onboarding')
   }
 
-  const agent = await getAgentById(id);
+  const agent = await getAgentById(id)
   if (!agent) {
-    redirect('/agents');
+    redirect('/agents')
   }
 
   return (
@@ -49,8 +52,8 @@ export default async function AgentDetailPage({
       </div>
 
       <div className="border rounded-lg p-6">
-        <AgentForm agent={agent} mode="edit" />
+        <AgentForm agent={agent as Agent} mode="edit" />
       </div>
     </div>
-  );
+  )
 }

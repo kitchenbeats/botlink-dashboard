@@ -38,10 +38,11 @@ export const executeCommand: Tool = {
         };
       }
 
-      const result = await sandbox.commands.run(command as string, {
-        background: (background || false) as boolean,
-        stdin: false,
-      });
+      const result = background
+        ? await sandbox.commands.run(command as string, {
+            background: true as const,
+          })
+        : await sandbox.commands.run(command as string);
 
       return {
         success: result.exitCode === 0,
