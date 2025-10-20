@@ -44,3 +44,7 @@ CLAUDE.md
 
 # tooling
 /template
+
+# GCP Service Account Keys (sensitive!)
+*-??????.json
+botlink-*.json
