@@ -46,6 +46,8 @@ RUN echo 'POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/saas' > .en
 RUN mkdir -p /templates/nextjs-saas/configs
 COPY configs/ecosystem.config.js /templates/nextjs-saas/configs/ecosystem.config.js
 COPY configs/claude-pty-manager.js /templates/nextjs-saas/configs/claude-pty-manager.js
+COPY configs/claude-setup-pty.js /templates/nextjs-saas/configs/claude-setup-pty.js
+COPY configs/claude-chat.js /templates/nextjs-saas/configs/claude-chat.js
 COPY configs/init-saas-db.sh /usr/local/bin/init-saas-db.sh
 RUN chmod +x /usr/local/bin/init-saas-db.sh
 
@@ -79,6 +81,10 @@ ENV NODE_ENV=development
 # Add helpful aliases
 RUN echo 'alias ll="ls -lah"' >> /root/.bashrc && \
     echo 'alias g="git"' >> /root/.bashrc
+
+# Create Claude config directory in project with settings (v2025-10-20)
+RUN mkdir -p /templates/nextjs-saas/.claude && \
+    echo '{"theme":"dark","permissionMode":"auto"}' > /templates/nextjs-saas/.claude/settings.json
 
 # Note: To auto-start dev server in workspace, ReactWrite will need to:
 # 1. Copy /templates/nextjs-saas/ to /home/user/project/

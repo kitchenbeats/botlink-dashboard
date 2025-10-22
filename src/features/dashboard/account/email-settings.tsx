@@ -117,7 +117,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
         )
       )
     }
-  }, [searchParams])
+  }, [searchParams, toast])
 
   if (!user || !hasEmailProvider) return null
 

@@ -87,7 +87,7 @@ export default function TemplatesTable({ templates }: TemplatesTableProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cpuCount, memoryMB, isPublic])
 
-  const columns = useColumns([])
+  const columns = useColumns()
 
   const table = useReactTable<Template>({
     ...templatesTableConfig,

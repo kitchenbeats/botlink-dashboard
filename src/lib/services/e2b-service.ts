@@ -118,9 +118,21 @@ export class E2BService {
     const { getAllProjectSandboxes } = await import('../db/sandboxes');
     const allOldSandboxes = await getAllProjectSandboxes(projectId);
 
+    // Check for existing snapshots to avoid trying to kill paused sandboxes
+    const { SnapshotService } = await import('./snapshot-service');
+    const existingSnapshots = await SnapshotService.getProjectSnapshots(projectId);
+    const snapshotIds = new Set(existingSnapshots.map(s => s.snapshot_id));
+
     console.log(`[E2B] Killing ${allOldSandboxes.length} old sandbox(es) before creating new one`);
     for (const oldSandbox of allOldSandboxes) {
       if (oldSandbox.e2b_session_id) {
+        // Skip if this sandbox has been converted to a snapshot
+        if (snapshotIds.has(oldSandbox.e2b_session_id)) {
+          console.log('[E2B] Skipping sandbox (already a snapshot):', oldSandbox.e2b_session_id);
+          await updateSandbox(oldSandbox.id, { status: 'stopped' });
+          continue;
+        }
+
         try {
           const sb = await Sandbox.connect(oldSandbox.e2b_session_id, {
             apiKey: teamApiKey,

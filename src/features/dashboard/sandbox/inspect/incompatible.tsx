@@ -38,7 +38,7 @@ export default function SandboxInspectIncompatible({
       team_id: teamIdOrSlug,
       template_name_or_id: templateNameOrId,
     })
-  }, [trackInteraction, teamIdOrSlug])
+  }, [trackInteraction, teamIdOrSlug, templateNameOrId])
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center p-4 md:justify-center">

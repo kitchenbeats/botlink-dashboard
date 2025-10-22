@@ -21,7 +21,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { subHours } from 'date-fns'
-import React, { useMemo, useRef } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 import { SandboxesHeader } from './header'
 import { useSandboxesMetrics } from './hooks/use-sandboxes-metrics'
@@ -83,66 +83,68 @@ export default function SandboxesTable({
     []
   )
 
-  const resetScroll = () => {
+  const resetScroll = useCallback(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0
     }
-  }
+  }, [])
 
   // Effect hooks for filters
   React.useEffect(() => {
-    let newFilters = [...columnFilters]
+    setColumnFilters((prevFilters) => {
+      let newFilters = [...prevFilters]
 
-    // Handle startedAt filter
-    if (!startedAtFilter) {
-      newFilters = newFilters.filter((f) => f.id !== 'startedAt')
-    } else {
-      const now = new Date()
-      const from =
-        startedAtFilter === '1h ago'
-          ? subHours(now, 1)
-          : startedAtFilter === '6h ago'
-            ? subHours(now, 6)
-            : startedAtFilter === '12h ago'
-              ? subHours(now, 12)
-              : undefined
+      // Handle startedAt filter
+      if (!startedAtFilter) {
+        newFilters = newFilters.filter((f) => f.id !== 'startedAt')
+      } else {
+        const now = new Date()
+        const from =
+          startedAtFilter === '1h ago'
+            ? subHours(now, 1)
+            : startedAtFilter === '6h ago'
+              ? subHours(now, 6)
+              : startedAtFilter === '12h ago'
+                ? subHours(now, 12)
+                : undefined
 
-      newFilters = newFilters.filter((f) => f.id !== 'startedAt')
-      newFilters.push({ id: 'startedAt', value: { from, to: now } })
-    }
+        newFilters = newFilters.filter((f) => f.id !== 'startedAt')
+        newFilters.push({ id: 'startedAt', value: { from, to: now } })
+      }
 
-    // Handle template filter
-    if (templateIds.length === 0) {
-      newFilters = newFilters.filter((f) => f.id !== 'template')
-    } else {
-      newFilters = newFilters.filter((f) => f.id !== 'template')
-      newFilters.push({ id: 'template', value: templateIds })
-    }
+      // Handle template filter
+      if (templateIds.length === 0) {
+        newFilters = newFilters.filter((f) => f.id !== 'template')
+      } else {
+        newFilters = newFilters.filter((f) => f.id !== 'template')
+        newFilters.push({ id: 'template', value: templateIds })
+      }
 
-    // Handle CPU filter
-    if (!cpuCount) {
-      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
-    } else {
-      newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
-      newFilters.push({ id: 'cpuUsage', value: cpuCount })
-    }
+      // Handle CPU filter
+      if (!cpuCount) {
+        newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
+      } else {
+        newFilters = newFilters.filter((f) => f.id !== 'cpuUsage')
+        newFilters.push({ id: 'cpuUsage', value: cpuCount })
+      }
 
-    // Handle memory filter
-    if (!memoryMB) {
-      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
-    } else {
-      newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
-      newFilters.push({ id: 'ramUsage', value: memoryMB })
-    }
+      // Handle memory filter
+      if (!memoryMB) {
+        newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
+      } else {
+        newFilters = newFilters.filter((f) => f.id !== 'ramUsage')
+        newFilters.push({ id: 'ramUsage', value: memoryMB })
+      }
+
+      return newFilters
+    })
 
     resetScroll()
-    setColumnFilters(newFilters)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startedAtFilter, templateIds, cpuCount, memoryMB])
+  }, [startedAtFilter, templateIds, cpuCount, memoryMB, resetScroll])
 
   React.useEffect(() => {
     resetScroll()
-  }, [sorting, globalFilter])
+  }, [sorting, globalFilter, resetScroll])
 
   const tableData = useMemo(() => sandboxes, [sandboxes])
 
@@ -197,14 +199,9 @@ export default function SandboxesTable({
   const virtualizedTotalHeight = totalHeight
   const virtualPaddingTop = paddingTop
 
-  const visualRowsKey = useMemo(
-    () => visualRows.map((r) => r.original.sandboxID).join(),
-    [visualRows]
-  )
-
   const memoizedVisualRows = useMemo(
     () => visualRows.map((r) => r.original),
-    [visualRowsKey]
+    [visualRows]
   )
 
   useSandboxesMetrics({

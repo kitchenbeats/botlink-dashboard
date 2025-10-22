@@ -202,7 +202,7 @@ export function SandboxInspectProvider({
         trackInteraction('downloaded_file', { path })
       },
     }),
-    [isRunning, sandboxManagerRef.current, storeRef.current, trackInteraction]
+    [isRunning, trackInteraction]
   )
 
   const connectSandbox = useCallback(async () => {
@@ -239,7 +239,7 @@ export function SandboxInspectProvider({
       team_id: teamId,
       root_path: rootPath,
     })
-  }, [sandboxInfo?.sandboxID, teamId, rootPath, router, trackInteraction])
+  }, [sandboxInfo, teamId, rootPath, router, trackInteraction])
 
   // handle sandbox connection / disconnection
   useEffect(() => {
@@ -257,7 +257,7 @@ export function SandboxInspectProvider({
       team_id: teamId,
       root_path: rootPath,
     })
-  }, [isRunning, connectSandbox, trackInteraction])
+  }, [isRunning, connectSandbox, trackInteraction, rootPath, sandboxInfo?.sandboxID, teamId])
 
   if (!storeRef.current || !sandboxInfo) {
     return null // should never happen, but satisfies type-checker

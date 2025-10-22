@@ -40,9 +40,34 @@ redis.on('connect', () => {
 let claudePty = null;
 
 function startClaudePty() {
-  console.log('[PTY Manager] Starting Claude Code PTY...');
+  console.log('[PTY Manager] Starting Claude Code PTY with structured output...');
 
-  claudePty = spawn('claude', [], {
+  // Build Claude CLI arguments for structured JSON output
+  const claudeArgs = [
+    '--output-format', 'stream-json',  // Get structured JSON instead of raw text
+    '--verbose',                        // Include all events (thinking, tool use, etc.)
+    '--model', 'sonnet',               // Default to Sonnet model
+  ];
+
+  // Optional: Allow tool configuration via environment variables
+  // This enables dynamic tool permissions per project
+  if (process.env.ALLOWED_TOOLS) {
+    const allowedTools = process.env.ALLOWED_TOOLS.split(',');
+    allowedTools.forEach(tool => {
+      claudeArgs.push('--allowedTools', tool.trim());
+    });
+    console.log('[PTY Manager] Allowed tools:', allowedTools);
+  }
+
+  if (process.env.DISALLOWED_TOOLS) {
+    const disallowedTools = process.env.DISALLOWED_TOOLS.split(',');
+    disallowedTools.forEach(tool => {
+      claudeArgs.push('--disallowedTools', tool.trim());
+    });
+    console.log('[PTY Manager] Disallowed tools:', disallowedTools);
+  }
+
+  claudePty = spawn('claude', claudeArgs, {
     cwd: WORK_DIR,
     env: {
       ...process.env,
@@ -52,6 +77,7 @@ function startClaudePty() {
   });
 
   console.log('[PTY Manager] Claude PTY started with PID:', claudePty.pid);
+  console.log('[PTY Manager] Claude args:', claudeArgs.join(' '));
 
   // Publish PID to Redis for tracking
   redis.set(`claude-pty:${PROJECT_ID}:pid`, claudePty.pid, 'EX', 3600); // 1 hour expiry

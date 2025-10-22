@@ -10,7 +10,7 @@
 
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useWorkspaceMode } from './workspace-mode-context';
-import { SimpleChatInterface } from './simple-chat-interface';
+import { ClaudeChatSimple } from './claude-chat-simple';
 import { startWorkflowExecutionAction, resumeWorkflowExecutionAction } from '@/server/actions/executions';
 import { toast } from 'sonner';
 import { Loader2, CheckCircle2, Clock, AlertCircle, PlayCircle, MessageSquare, Terminal } from 'lucide-react';
@@ -93,11 +93,7 @@ export function ModePanel({
         {/* View Content */}
         <div className="flex-1 overflow-hidden">
           {simpleView === 'chat' ? (
-            <SimpleChatInterface
-              projectId={projectId}
-              streamMessages={streamMessages}
-              isConnected={isConnected}
-            />
+            <ClaudeChatSimple projectId={projectId} />
           ) : (
             <Suspense fallback={
               <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400">

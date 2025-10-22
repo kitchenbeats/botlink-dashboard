@@ -45,6 +45,8 @@ COPY configs/next.config.mjs /templates/nextjs-basic/next.config.mjs
 RUN mkdir -p /templates/nextjs-basic/configs
 COPY configs/ecosystem.config.js /templates/nextjs-basic/configs/ecosystem.config.js
 COPY configs/claude-pty-manager.js /templates/nextjs-basic/configs/claude-pty-manager.js
+COPY configs/claude-setup-pty.js /templates/nextjs-basic/configs/claude-setup-pty.js
+COPY configs/claude-chat.js /templates/nextjs-basic/configs/claude-chat.js
 
 # Initialize git repository with initial commit
 # create-next-app may already init git, so check first
@@ -67,6 +69,10 @@ ENV NODE_ENV=development
 # Add helpful aliases
 RUN echo 'alias ll="ls -lah"' >> /root/.bashrc && \
     echo 'alias g="git"' >> /root/.bashrc
+
+# Create Claude config directory in project with settings (v2025-10-20)
+RUN mkdir -p /templates/nextjs-basic/.claude && \
+    echo '{"theme":"dark","permissionMode":"auto"}' > /templates/nextjs-basic/.claude/settings.json
 
 # Note: To auto-start dev server in workspace, ReactWrite will need to:
 # 1. Copy /templates/nextjs-basic/ to /home/user/project/

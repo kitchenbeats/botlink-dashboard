@@ -63,7 +63,7 @@ export const trackTemplateTableInteraction = (
   })
 }
 
-export const useColumns = (deps: unknown[]) => {
+export const useColumns = () => {
   return useMemo<ColumnDef<Template | DefaultTemplate>[]>(
     () => [
       {
@@ -139,7 +139,7 @@ export const useColumns = (deps: unknown[]) => {
         filterFn: 'equals',
       },
     ],
-    deps
+    []
   )
 }
 

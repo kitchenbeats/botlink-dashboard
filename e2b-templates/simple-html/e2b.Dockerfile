@@ -59,3 +59,7 @@ ENV NODE_ENV=development
 # Add helpful aliases
 RUN echo 'alias ll="ls -lah"' >> /root/.bashrc && \
     echo 'alias g="git"' >> /root/.bashrc
+
+# Create Claude config directory in project with settings (v2025-10-20)
+RUN mkdir -p /templates/simple-html/.claude && \
+    echo '{"theme":"dark","permissionMode":"auto"}' > /templates/simple-html/.claude/settings.json

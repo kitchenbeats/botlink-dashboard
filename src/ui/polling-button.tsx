@@ -57,7 +57,7 @@ export function PollingButton({
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () =>
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [])
+  }, [pollingInterval])
 
   const [lastRefreshTs, setLastRefreshTs] = useState<number>(Date.now())
 

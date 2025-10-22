@@ -14,6 +14,24 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
+/**
+ * Parse PM2 JSON output, handling initialization messages
+ */
+function parsePM2Output(stdout: string): unknown[] {
+  const lines = stdout.trim().split('\n')
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        return JSON.parse(trimmed) as unknown[]
+      } catch {
+        continue
+      }
+    }
+  }
+  return []
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
@@ -44,6 +62,22 @@ export async function POST(
     const { sandbox } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase);
     const workDir = E2BService.getTemplateWorkDir(project.template);
 
+    // Check if Claude credentials exist in sandbox
+    console.log('[Claude PM2 Start] Checking for Claude credentials...');
+    const credCheck = await sandbox.commands.run('test -f ~/.claude/.credentials.json && echo "exists" || echo "missing"');
+    const hasCredentials = credCheck.stdout.trim() === 'exists';
+
+    if (!hasCredentials) {
+      console.log('[Claude PM2 Start] No credentials found - auth required');
+      return NextResponse.json({
+        error: 'Authentication required',
+        needsAuth: true,
+        message: 'You need to authenticate Claude Code first. Click "Setup Authentication" to begin.',
+      }, { status: 401 });
+    }
+
+    console.log('[Claude PM2 Start] Credentials found, proceeding with start...');
+
     // Get Redis URL from env
     const redisUrl = process.env.REDIS_URL;
     if (!redisUrl) {
@@ -53,7 +87,7 @@ export async function POST(
     // Check if claude-pty process is already running
     const pm2List = await sandbox.commands.run('pm2 jlist');
     type PM2Process = { name: string; pid?: number; pm2_env?: { status: string } };
-    const processes = JSON.parse(pm2List.stdout || '[]') as PM2Process[];
+    const processes = parsePM2Output(pm2List.stdout || '[]') as PM2Process[];
     const claudePtyProcess = processes.find((p) => p.name === 'claude-pty');
 
     if (claudePtyProcess && claudePtyProcess.pm2_env?.status === 'online') {
@@ -105,16 +139,35 @@ export async function POST(
     console.log('[Claude PM2 Start] PM2 stdout:', startResult.stdout);
     console.log('[Claude PM2 Start] PM2 stderr:', startResult.stderr);
 
-    // Verify it started
-    const verifyList = await sandbox.commands.run('pm2 jlist');
-    const verifyProcesses = JSON.parse(verifyList.stdout || '[]') as PM2Process[];
-    const verifyPtyProcess = verifyProcesses.find((p) => p.name === 'claude-pty');
+    // Verify it started with retries (PM2 needs time to start process)
+    console.log('[Claude PM2 Start] Waiting for claude-pty to start...');
+    let verifyPtyProcess: PM2Process | undefined;
+    const maxRetries = 5;
+    const retryDelay = 1000; // 1 second
+
+    for (let i = 0; i < maxRetries; i++) {
+      console.log(`[Claude PM2 Start] Verification attempt ${i + 1}/${maxRetries}`);
+
+      const verifyList = await sandbox.commands.run('pm2 jlist');
+      const verifyProcesses = JSON.parse(verifyList.stdout || '[]') as PM2Process[];
+      verifyPtyProcess = verifyProcesses.find((p) => p.name === 'claude-pty');
+
+      if (verifyPtyProcess && verifyPtyProcess.pm2_env?.status === 'online') {
+        console.log('[Claude PM2 Start] Process verified as online');
+        break;
+      }
+
+      if (i < maxRetries - 1) {
+        console.log(`[Claude PM2 Start] Not ready yet, waiting ${retryDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
+    }
 
     if (!verifyPtyProcess || verifyPtyProcess.pm2_env?.status !== 'online') {
-      console.error('[Claude PM2 Start] Claude PTY failed to start properly');
+      console.error('[Claude PM2 Start] Claude PTY failed to start properly after retries');
 
       // Get logs for debugging
-      const logs = await sandbox.commands.run('pm2 logs claude-pty --nostream --lines 20');
+      const logs = await sandbox.commands.run('pm2 logs claude-pty --nostream --lines 20 || echo "No logs available"');
       console.error('[Claude PM2 Start] PM2 logs:', logs.stdout);
 
       return NextResponse.json(
