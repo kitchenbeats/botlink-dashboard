@@ -4,9 +4,8 @@ interface SandboxesHeaderInjectablePageProps {
   params: Promise<{ teamIdOrSlug: string }>
 }
 
-export default function SandboxesHeaderInjectablePage({
-  params,
-}: SandboxesHeaderInjectablePageProps) {
+export default async function SandboxesHeaderInjectablePage(props: SandboxesHeaderInjectablePageProps) {
+  const params = await props.params;
   return (
     <LiveSandboxCounterServer
       params={params}

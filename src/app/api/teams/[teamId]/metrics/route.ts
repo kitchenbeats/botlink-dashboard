@@ -12,10 +12,8 @@ import { handleDefaultInfraError } from '@/lib/utils/action'
 import { getSessionInsecure } from '@/server/auth/get-session'
 import { TeamMetricsRequestSchema, TeamMetricsResponse } from './types'
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ teamId: string }> }
-) {
+export async function POST(request: Request, props: { params: Promise<{ teamId: string }> }) {
+  const params = await props.params;
   try {
     const { teamId } = await params
 

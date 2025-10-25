@@ -16,10 +16,9 @@ interface SandboxesMonitoringPageProps {
   searchParams: Promise<SandboxesMonitoringPageSearchParams>
 }
 
-export default function SandboxesMonitoringPage({
-  params,
-  searchParams,
-}: SandboxesMonitoringPageProps) {
+export default async function SandboxesMonitoringPage(props: SandboxesMonitoringPageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   return (
     <ChartRegistryProvider group="sandboxes-monitoring">
       <div className="flex flex-col h-full relative min-h-0 max-md:overflow-y-auto">

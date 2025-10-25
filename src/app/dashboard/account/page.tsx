@@ -8,11 +8,12 @@ export interface AccountPageSearchParams {
   reauth?: '1'
 }
 
-export default async function AccountPage({
-  searchParams,
-}: {
-  searchParams: Promise<AccountPageSearchParams>
-}) {
+export default async function AccountPage(
+  props: {
+    searchParams: Promise<AccountPageSearchParams>
+  }
+) {
+  const searchParams = await props.searchParams;
   return (
     <div className="flex flex-col md:gap-6">
       <Suspense fallback={null}>

@@ -84,11 +84,12 @@ function SuccessState() {
 }
 
 // Main Component
-export default async function CLIAuthPage({
-  searchParams,
-}: {
-  searchParams: CLISearchParams
-}) {
+export default async function CLIAuthPage(
+  props: {
+    searchParams: Promise<CLISearchParams>
+  }
+) {
+  const searchParams = await props.searchParams;
   bailOutFromPPR()
 
   const { next, state, error } = await searchParams

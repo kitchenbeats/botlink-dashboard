@@ -8,10 +8,8 @@ import { getSessionInsecure } from '@/server/auth/get-session'
 import { transformMetricsToClientMetrics } from '@/server/sandboxes/utils'
 import { MetricsRequestSchema, MetricsResponse } from './types'
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ teamId: string }> }
-) {
+export async function POST(request: Request, props: { params: Promise<{ teamId: string }> }) {
+  const params = await props.params;
   try {
     const { teamId } = await params
 
