@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/clients/supabase/server';
-import { createMessage } from '@/lib/db/messages';
+import { createMessage, listMessages } from '@/lib/db/messages';
 import { createTask, updateTask } from '@/lib/db/tasks';
 import { getSystemAgentByType } from '@/lib/db/agents';
 import { streamText } from 'ai';
@@ -9,11 +9,8 @@ import { openai } from '@ai-sdk/openai';
 import { E2BService } from '@/lib/services/e2b-service';
 import { publishWorkspaceMessage } from '@/lib/services/redis-realtime';
 import { getProject } from '@/lib/db/projects';
-import {
-  startClaudeSession,
-  sendToClaudeSession,
-  getClaudeSession,
-} from '@/lib/services/claude-session-manager';
+import { runCodingTask } from '@/lib/services/coding-agent';
+import { saveConversationToFile, convertMessagesToHistory } from '@/lib/services/conversation-history';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -29,7 +26,9 @@ export async function sendChatMessage(
   projectId: string,
   userMessage: string,
   conversationHistory: ChatMessage[],
-  mode: ExecutionMode = 'simple'
+  mode: ExecutionMode = 'simple',
+  reviewMode: 'off' | 'limited' | 'loop' = 'off',
+  maxIterations?: number
 ) {
   const supabase = await createClient();
   const {
@@ -48,7 +47,7 @@ export async function sendChatMessage(
     metadata: { executionMode: mode },
   });
 
-  // SIMPLE MODE: Interactive Claude Code session with persistent context
+  // SIMPLE MODE: Use Inngest Agent-Kit coding agent with E2B tools
   if (mode === 'simple') {
     try {
       // Get project to find template and working directory
@@ -63,29 +62,49 @@ export async function sendChatMessage(
       // Get working directory for this template
       const workDir = E2BService.getTemplateWorkDir(project.template);
 
-      // Check if we have an active Claude session
-      let session = getClaudeSession(projectId);
-
-      // If no session exists, start one
-      if (!session) {
-        console.log('[Chat] Starting new Claude session for project:', projectId);
-        session = await startClaudeSession({
-          sandbox,
-          projectId,
-          workDir,
-        });
+      // Save conversation history to sandbox file BEFORE running agent
+      // This includes all previous messages + the new user message
+      try {
+        const allMessages = await listMessages(projectId);
+        await saveConversationToFile(sandbox, workDir, allMessages);
+      } catch (error) {
+        console.error('[Chat] Failed to save conversation before agent run:', error);
       }
 
-      // Send the user's message to Claude
-      await sendToClaudeSession(sandbox, projectId, userMessage);
+      // Run coding task using Inngest Agent-Kit
+      const result = await runCodingTask(userMessage, {
+        sandbox,
+        projectId,
+        workDir,
+        reviewMode, // User-selected review mode
+        maxReviewIterations: maxIterations,
+      });
 
-      // Response will stream via Redis pubsub (handled by claude-session-manager)
-      // The chat UI subscribes to 'claude-output' and 'file-change' topics
+      // Save assistant response
+      await createMessage({
+        project_id: projectId,
+        role: 'assistant',
+        content: result.output,
+        metadata: {
+          executionMode: mode,
+          success: result.success,
+          error: result.error,
+        },
+      });
+
+      // Save full conversation history to sandbox file
+      try {
+        const allMessages = await listMessages(projectId);
+        await saveConversationToFile(sandbox, workDir, allMessages);
+      } catch (error) {
+        console.error('[Chat] Failed to save conversation to file:', error);
+        // Don't fail the request if file save fails
+      }
 
       return {
-        success: true,
-        content: 'Message sent to Claude. Response streaming via realtime connection.',
-        sessionId: session.id,
+        success: result.success,
+        content: result.output,
+        structured: result.structured,
       };
     } catch (error) {
       console.error('[Chat] Simple agent error:', error);

@@ -49,7 +49,17 @@ export async function handleDbError<T>(
   try {
     return await operation();
   } catch (error) {
-    console.error(`[DB Error] ${context}:`, error);
+    // Better error logging - extract all useful properties
+    const errorInfo = error instanceof Error
+      ? {
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          ...(error as any), // Include any additional properties
+        }
+      : error;
+
+    console.error(`[DB Error] ${context}:`, errorInfo);
     // Re-throw the actual error instead of hiding it
     throw error;
   }

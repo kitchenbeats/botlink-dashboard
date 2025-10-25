@@ -211,6 +211,17 @@ export async function deleteProjectAction(projectId: string) {
 			console.log(`[deleteProjectAction] Cleaned up ${allSandboxes.length} sandbox(es)`);
 		}
 
+		// Clean up workspace Redis keys (ready flag and init lock)
+		const { kv } = await import("@/lib/clients/kv");
+		try {
+			await kv.del(`workspace:ready:${projectId}`);
+			await kv.del(`workspace:init:${projectId}`);
+			console.log("[deleteProjectAction] Cleaned up workspace Redis keys");
+		} catch (error) {
+			console.error("[deleteProjectAction] Failed to clean up Redis keys:", error);
+			// Don't throw - continue with deletion
+		}
+
 		// Delete the project from database (CASCADE will delete sandbox_sessions, files, messages)
 		await deleteProject(projectId);
 

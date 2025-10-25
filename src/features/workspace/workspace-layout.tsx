@@ -5,12 +5,13 @@ import type { Project, File as ProjectFile } from '@/lib/types/database';
 import { FileTree } from './file-tree';
 import { CodeEditor } from './code-editor';
 import { ModePanel } from './mode-panel';
+import { ChatV2 } from './chat-v2';
 import { LivePreview } from './live-preview';
 import { WorkspaceHeader } from './workspace-header';
 import { WorkspaceModeProvider } from './workspace-mode-context';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/ui/primitives/resizable';
 import { Button } from '@/ui/primitives/button';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRedisStream } from '@/lib/hooks/use-redis-stream';
 
@@ -26,7 +27,7 @@ function WorkspaceLayoutInner({ project, files, error, errorMessage, restoredFro
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(true);
-  const [rightPanelView, setRightPanelView] = useState<'terminal' | 'files' | 'editor'>('terminal');
+  const [rightPanelView, setRightPanelView] = useState<'chat' | 'terminal' | 'files' | 'editor'>('chat');
   const [isRetrying, setIsRetrying] = useState(false);
 
   // When a file is selected, switch to editor view
@@ -129,6 +130,14 @@ function WorkspaceLayoutInner({ project, files, error, errorMessage, restoredFro
                 {/* Tab Header */}
                 <div className="border-b px-4 py-2 flex items-center gap-2 bg-muted/20">
                   <Button
+                    variant={rightPanelView === 'chat' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setRightPanelView('chat')}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-1" />
+                    Chat
+                  </Button>
+                  <Button
                     variant={rightPanelView === 'terminal' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setRightPanelView('terminal')}
@@ -155,6 +164,9 @@ function WorkspaceLayoutInner({ project, files, error, errorMessage, restoredFro
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-hidden">
+                  {rightPanelView === 'chat' && (
+                    <ChatV2 projectId={project.id} />
+                  )}
                   {rightPanelView === 'terminal' && (
                     <ModePanel
                       projectId={project.id}

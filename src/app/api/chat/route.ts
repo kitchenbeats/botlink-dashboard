@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendChatMessage } from '@/server/actions/chat';
+import { listMessages } from '@/lib/db/messages';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { projectId, message, mode = 'simple' } = body;
+    const { projectId, message, mode = 'simple', reviewMode = 'off', maxIterations } = body;
 
     if (!projectId || !message) {
       return NextResponse.json(
@@ -16,8 +17,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Call the chat action
-    const result = await sendChatMessage(projectId, message, [], mode);
+    // Load conversation history from database
+    const dbMessages = await listMessages(projectId);
+    const conversationHistory = dbMessages.map((msg) => ({
+      role: msg.role as 'user' | 'assistant' | 'system',
+      content: msg.content,
+    }));
+
+    // Call the chat action with full conversation history
+    const result = await sendChatMessage(projectId, message, conversationHistory, mode, reviewMode, maxIterations);
 
     // Both modes return JSON response now
     // For agents mode, UI will subscribe to Inngest realtime for progress updates

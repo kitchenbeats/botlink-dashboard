@@ -1,0 +1,5 @@
+# This is a config for E2B sandbox template.
+# Pre-installed with WordPress, PHP 8.3, and MySQL
+
+dockerfile = "e2b.Dockerfile"
+template_name = "reactwrite-wordpress"

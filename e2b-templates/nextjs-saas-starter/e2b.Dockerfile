@@ -15,19 +15,18 @@ RUN apt-get update && apt-get install -y \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Claude Code CLI, PM2 process manager, and global packages
+# Install PM2 process manager and global packages
 RUN npm install -g \
     pnpm \
     pm2 \
-    @anthropic-ai/claude-code \
-    @anthropic-ai/sdk \
-    openai \
-    @google/generative-ai \
     typescript \
     tsx \
     nodemon \
     dotenv-cli \
     && npm cache clean --force
+
+# Set NODE_PATH to allow require() to find globally installed packages
+ENV NODE_PATH=/usr/local/lib/node_modules
 
 # Clone and install SaaS starter in one layer
 WORKDIR /templates/nextjs-saas
@@ -42,22 +41,29 @@ RUN echo 'POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/saas' > .en
     echo '# Add your own environment variables above this line' >> .env.local
 
 # Copy config files from local configs directory
-# Create configs directory and copy PM2 configs
+# Create configs directory and copy PM2 config and DB init script
 RUN mkdir -p /templates/nextjs-saas/configs
 COPY configs/ecosystem.config.js /templates/nextjs-saas/configs/ecosystem.config.js
-COPY configs/claude-pty-manager.js /templates/nextjs-saas/configs/claude-pty-manager.js
-COPY configs/claude-setup-pty.js /templates/nextjs-saas/configs/claude-setup-pty.js
-COPY configs/claude-chat.js /templates/nextjs-saas/configs/claude-chat.js
+COPY configs/.mcp.json /templates/nextjs-saas/.mcp.json
 COPY configs/init-saas-db.sh /usr/local/bin/init-saas-db.sh
 RUN chmod +x /usr/local/bin/init-saas-db.sh
 
 # Update next.config to add allowedDevOrigins (saas-starter uses next.config.ts)
 RUN if [ -f next.config.ts ]; then \
-      sed -i 's/const nextConfig: NextConfig = {/const nextConfig: NextConfig = {\n  experimental: {\n    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\n  },/' next.config.ts; \
+      sed -i 's/const nextConfig: NextConfig = {/const nextConfig: NextConfig = {\
+  experimental: {\
+    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\
+  },/' next.config.ts; \
     elif [ -f next.config.js ]; then \
-      sed -i 's/const nextConfig = {/const nextConfig = {\n  experimental: {\n    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\n  },/' next.config.js; \
+      sed -i 's/const nextConfig = {/const nextConfig = {\
+  experimental: {\
+    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\
+  },/' next.config.js; \
     elif [ -f next.config.mjs ]; then \
-      sed -i 's/const nextConfig = {/const nextConfig = {\n  experimental: {\n    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\n  },/' next.config.mjs; \
+      sed -i 's/const nextConfig = {/const nextConfig = {\
+  experimental: {\
+    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\
+  },/' next.config.mjs; \
     fi
 
 # Initialize git repository with initial commit
@@ -81,10 +87,6 @@ ENV NODE_ENV=development
 # Add helpful aliases
 RUN echo 'alias ll="ls -lah"' >> /root/.bashrc && \
     echo 'alias g="git"' >> /root/.bashrc
-
-# Create Claude config directory in project with settings (v2025-10-20)
-RUN mkdir -p /templates/nextjs-saas/.claude && \
-    echo '{"theme":"dark","permissionMode":"auto"}' > /templates/nextjs-saas/.claude/settings.json
 
 # Note: To auto-start dev server in workspace, ReactWrite will need to:
 # 1. Copy /templates/nextjs-saas/ to /home/user/project/

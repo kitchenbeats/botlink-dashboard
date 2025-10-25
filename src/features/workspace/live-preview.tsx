@@ -4,11 +4,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { ExternalLink, RefreshCw, Eye } from 'lucide-react';
 import { Button } from '@/ui/primitives/button';
 import { restartDevServer } from '@/server/actions/workspace';
+import { useRedisStream } from '@/lib/hooks/use-redis-stream';
 
 interface LivePreviewProps {
   projectId: string;
   template: string;
 }
+
+type PreviewStatus = 'ready' | 'compiling' | 'starting' | 'error';
 
 export function LivePreview({ projectId, template }: LivePreviewProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -17,7 +20,11 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
   const [isRestarting, setIsRestarting] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isRefreshingUrl, setIsRefreshingUrl] = useState(false);
+  const [previewStatus, setPreviewStatus] = useState<PreviewStatus>('compiling');
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Subscribe to Redis stream for real-time preview status updates
+  const { latestMessage } = useRedisStream({ projectId });
 
   const fetchPreviewUrl = useCallback(async () => {
     setIsLoading(true);
@@ -40,6 +47,17 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
   useEffect(() => {
     fetchPreviewUrl();
 
+    // Check initial preview status from cache
+    fetch(`/api/workspace/${projectId}/preview-status`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          console.log('[LivePreview] Initial status from cache:', data.status);
+          setPreviewStatus(data.status as PreviewStatus);
+        }
+      })
+      .catch(console.error);
+
     // Poll for sandbox changes every 30 seconds
     const interval = setInterval(() => {
       fetch(`/api/workspace/${projectId}/preview-url`)
@@ -55,6 +73,32 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
 
     return () => clearInterval(interval);
   }, [projectId, previewUrl, fetchPreviewUrl]);
+
+  // Listen for preview status updates from Redis pub/sub
+  useEffect(() => {
+    if (!latestMessage || latestMessage.type !== 'message') return;
+    if (latestMessage.topic !== 'preview-status') return;
+
+    const statusData = latestMessage.data as { status: PreviewStatus };
+    const newStatus = statusData.status;
+
+    console.log('[LivePreview] Status update from Redis:', newStatus);
+
+    // If status changed from compiling to ready, reload iframe
+    if (previewStatus !== 'ready' && newStatus === 'ready' && iframeRef.current) {
+      console.log('[LivePreview] Dev server ready! Reloading preview...');
+      try {
+        iframeRef.current.contentWindow?.location.reload();
+      } catch (e) {
+        // Fallback: reload by changing src
+        if (iframeRef.current && previewUrl) {
+          iframeRef.current.src = previewUrl;
+        }
+      }
+    }
+
+    setPreviewStatus(newStatus);
+  }, [latestMessage, previewStatus, previewUrl]);
 
   async function handleRefreshUrl() {
     setIsRefreshingUrl(true);
@@ -184,6 +228,25 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
           title="Live Preview"
           sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
         />
+        {/* Compiling Overlay */}
+        {(previewStatus === 'compiling' || previewStatus === 'starting') && !isRestarting && (
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="text-center max-w-md px-6">
+              <RefreshCw className="h-16 w-16 mx-auto text-primary animate-spin mb-6" />
+              <h3 className="text-xl font-semibold mb-2">
+                {previewStatus === 'compiling' ? 'Compiling Next.js...' : 'Starting Dev Server...'}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {previewStatus === 'compiling'
+                  ? 'Next.js is compiling your application. This typically takes 30-45 seconds on first load.'
+                  : 'Dev server is starting up...'}
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                You can start editing files and chatting with Claude while this completes.
+              </p>
+            </div>
+          </div>
+        )}
         {/* Restart Overlay */}
         {isRestarting && (
           <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-10">

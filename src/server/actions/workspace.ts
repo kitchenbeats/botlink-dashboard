@@ -15,6 +15,20 @@ import {
 import type { Sandbox } from 'e2b'
 
 /**
+ * Format error for logging (prevents "[object Object]" in console)
+ */
+function formatError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    }
+  }
+  return error
+}
+
+/**
  * Fetch a secure subscription token for realtime updates
  * Uses Redis pub/sub instead of Inngest realtime
  */
@@ -26,8 +40,7 @@ export async function fetchSubscriptionToken(projectId: string) {
     'status',
     'file-changes',
     'terminal',
-    'claude-output',
-    'claude-login',
+    'preview-status',
   ])
 
   return token
@@ -168,17 +181,23 @@ export async function initializeWorkspaceFiles(projectId: string) {
 
     console.log('[Workspace] Template directory:', workDir)
 
-    // Templates now come with git already initialized and have an initial commit
-    // No need to do git init or create initial commit anymore
-    if (restoredFromSnapshot) {
-      console.log('[Workspace] Snapshot restored - processes don\'t persist, need to restart dev server')
+    // Templates now come with dev servers ALREADY RUNNING from snapshot (via -c flag during build)
+    // Check if dev server is already running
+    console.log('[Workspace] Checking if dev server is already running from snapshot...')
+    const isDevServerRunning = await waitForPort(sandbox, 3000, 3000) // Quick 3s check
+
+    if (isDevServerRunning) {
+      console.log('[Workspace] ✅ Dev server already running from snapshot!')
+      // Mark as ready immediately
+      await kv.set(`workspace:preview:${projectId}`, 'ready', { ex: 600 })
+      const { publishWorkspaceMessage } = await import('@/lib/services/redis-realtime')
+      await publishWorkspaceMessage(projectId, 'preview-status', { status: 'ready' })
+    } else {
+      console.log('[Workspace] Dev server not detected, starting fallback PM2...')
+      await startDevServer(sandbox, workDir, project.template, project.id)
     }
 
-    // ALWAYS start dev server (processes don't persist in snapshots)
-    console.log('[Workspace] Starting dev server for template:', project.template)
-    await startDevServer(sandbox, workDir, project.template, project.id)
-
-    console.log('[Workspace] Workspace ready. Claude Code will be started on demand.')
+    console.log('[Workspace] Workspace ready.')
 
     // Get file count from template directory
     const gitListResult = await GitService.listFiles(sandbox, workDir)
@@ -189,7 +208,7 @@ export async function initializeWorkspaceFiles(projectId: string) {
       filesCount,
     }
   } catch (error) {
-    console.error('[Workspace] Failed to initialize workspace:', error)
+    console.error('[Workspace] Failed to initialize workspace:', formatError(error))
     throw error
   }
 }
@@ -263,12 +282,10 @@ export async function getWorkspaceFiles(projectId: string) {
       restoredFromSnapshot
     }
   } catch (error) {
-    console.error('[getWorkspaceFiles] Error:', error)
-    console.error('[getWorkspaceFiles] Error type:', typeof error)
-    console.error('[getWorkspaceFiles] Error stack:', error instanceof Error ? error.stack : 'No stack')
+    console.error('[getWorkspaceFiles] Error:', formatError(error))
 
     // Check if error is due to dead sandbox or git issues
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error)
 
     // Git exit 128 usually means "not a git repo" or permission issues - treat as recoverable
     const isGitError = errorMessage.includes('exit status 128') || errorMessage.includes('not a git repository')
@@ -281,9 +298,7 @@ export async function getWorkspaceFiles(projectId: string) {
       errorMessage.toLowerCase().includes('network') ||
       errorMessage.toLowerCase().includes('disconnected')
 
-    console.error('[getWorkspaceFiles] Error message:', errorMessage)
-    console.error('[getWorkspaceFiles] Is sandbox dead?', isSandboxDead)
-    console.error('[getWorkspaceFiles] Is git error?', isGitError)
+    console.error('[getWorkspaceFiles] Is sandbox dead?', isSandboxDead, '| Is git error?', isGitError)
 
     if (isSandboxDead || isGitError) {
       console.log('[getWorkspaceFiles] Detected recoverable error, will retry with snapshot restoration')
@@ -351,7 +366,7 @@ export async function runSimpleAgent(projectId: string, query: string) {
   // Run agent execution directly (no Inngest)
   // This runs asynchronously and streams updates via Redis
   executeSimpleAgent(projectId, query, supabase).catch((error) => {
-    console.error('[Workspace] Agent execution failed:', error)
+    console.error('[Workspace] Agent execution failed:', formatError(error))
   })
 
   return { success: true }
@@ -453,7 +468,7 @@ async function executeSimpleAgent(
       timestamp: Date.now(),
     })
   } catch (error) {
-    console.error('[Workspace] Agent execution error:', error)
+    console.error('[Workspace] Agent execution error:', formatError(error))
 
     // Publish error status
     await publishWorkspaceMessage(projectId, 'status', {
@@ -531,7 +546,7 @@ export async function runWorkflowAgents(
 
   startWorkflowExecution(teamId, execTyped).catch(
     (error) => {
-      console.error('[Workspace] Workflow orchestration failed:', error)
+      console.error('[Workspace] Workflow orchestration failed:', formatError(error))
     }
   )
 
@@ -589,7 +604,7 @@ export async function resumeWorkflowExecution(executionId: string) {
   const execTyped = execution as unknown as import('@/lib/types/database').Execution
 
   resumeExecution(teamId, execTyped).catch((error) => {
-    console.error('[Workspace] Resume workflow failed:', error)
+    console.error('[Workspace] Resume workflow failed:', formatError(error))
   })
 
   return { success: true }
@@ -631,7 +646,7 @@ export async function readFileContent(projectId: string, filePath: string) {
 
     return { success: true, content }
   } catch (error) {
-    console.error('[readFileContent] Error:', error)
+    console.error('[readFileContent] Error:', formatError(error))
     throw error
   }
 }
@@ -710,7 +725,7 @@ export async function writeFileContent(
 
     return { success: true }
   } catch (error) {
-    console.error('[writeFileContent] Error:', error)
+    console.error('[writeFileContent] Error:', formatError(error))
     throw error
   }
 }
@@ -749,7 +764,7 @@ export async function getCommitHistory(projectId: string, limit: number = 20) {
       currentHash: result.commits && result.commits.length > 0 ? result.commits[0]?.hash : null,
     }
   } catch (error) {
-    console.error('[getCommitHistory] Error:', error)
+    console.error('[getCommitHistory] Error:', formatError(error))
     throw error
   }
 }
@@ -786,7 +801,7 @@ export async function checkoutCommit(projectId: string, commitHash: string) {
 
     return { success: true }
   } catch (error) {
-    console.error('[checkoutCommit] Error:', error)
+    console.error('[checkoutCommit] Error:', formatError(error))
     throw error
   }
 }
@@ -878,7 +893,7 @@ export async function restartDevServer(projectId: string) {
 
     return { success: true }
   } catch (error) {
-    console.error('[Workspace] Failed to restart dev server:', error)
+    console.error('[Workspace] Failed to restart dev server:', formatError(error))
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to restart dev server'
@@ -888,10 +903,9 @@ export async function restartDevServer(projectId: string) {
 
 /**
  * Start dev server based on template type
+ * NOTE: This is only used as a fallback if dev server is not already running from snapshot
  */
 async function startDevServer(sandbox: Sandbox, workDir: string, template: string, projectId: string) {
-  // Get Redis URL for Claude PTY
-  const redisUrl = process.env.REDIS_URL || '';
   try {
     if (template === 'simple_site') {
       // Kill any existing PM2 processes first
@@ -899,14 +913,14 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
       await sandbox.commands.run('pm2 kill || true', { timeoutMs: 5000 })
 
       // Check if ecosystem.config.js exists
-      const checkConfig = await sandbox.commands.run(`ls -la ${workDir}/configs/ecosystem.config.js`)
-      console.log('[Workspace] Ecosystem config check:', checkConfig.stdout, checkConfig.stderr)
+      const checkConfig = await sandbox.commands.run(`test -f ${workDir}/configs/ecosystem.config.js && echo "exists" || echo "not found"`)
+      console.log('[Workspace] Ecosystem config check:', checkConfig.stdout.trim())
 
-      // Start PM2 with ecosystem config (http-server + claude-pty)
+      // Start PM2 with ecosystem config (http-server only)
       console.log('[Workspace] Starting HTTP server with PM2...')
       try {
-        const startResult = await sandbox.commands.run(`cd ${workDir} && PROJECT_ID=${projectId} REDIS_URL="${redisUrl}" pm2 start configs/ecosystem.config.js 2>&1`, {
-          timeoutMs: 0 // Disable timeout for PM2 start
+        const startResult = await sandbox.commands.run(`cd ${workDir} && NODE_PATH=/usr/local/lib/node_modules pm2 start configs/ecosystem.config.js 2>&1`, {
+          timeoutMs: 15000 // 15 second timeout for PM2 to start processes
         })
         console.log('[Workspace] PM2 start output:', startResult.stdout)
         console.log('[Workspace] PM2 start stderr:', startResult.stderr)
@@ -922,18 +936,32 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
         throw error
       }
 
-      // Wait for server to be ready
-      const isReady = await waitForPort(sandbox, 3000, 10000) // 10 second timeout
-
-      if (isReady) {
-        console.log('[Workspace] HTTP server is ready on port 3000')
-      } else {
-        console.error('[Workspace] HTTP server failed to start!')
-      }
+      // Wait a bit for PM2 to start processes
+      await new Promise(resolve => setTimeout(resolve, 2000))
 
       // Show PM2 status for debugging
       const pm2Status = await sandbox.commands.run('pm2 list')
       console.log('[Workspace] PM2 status:', pm2Status.stdout)
+
+      // Stream initial PM2 logs
+      const pm2Logs2 = await sandbox.commands.run('pm2 logs --nostream --lines 20 || true')
+      console.log('[Workspace] PM2 logs:', pm2Logs2.stdout)
+
+      // Quick check for HTTP server (5 second check only - it's fast anyway)
+      console.log('[Workspace] Quick check for HTTP server...')
+      const isReady = await waitForPort(sandbox, 3000, 5000) // 5 second timeout
+
+      if (isReady) {
+        console.log('[Workspace] HTTP server is ready!')
+        await kv.set(`workspace:preview:${projectId}`, 'ready', { ex: 600 })
+        const { publishWorkspaceMessage } = await import('@/lib/services/redis-realtime')
+        await publishWorkspaceMessage(projectId, 'preview-status', { status: 'ready' })
+      } else {
+        console.log('[Workspace] HTTP server starting in background.')
+        await kv.set(`workspace:preview:${projectId}`, 'starting', { ex: 600 })
+        const { publishWorkspaceMessage } = await import('@/lib/services/redis-realtime')
+        await publishWorkspaceMessage(projectId, 'preview-status', { status: 'starting' })
+      }
     } else if (template === 'nextjs') {
       // Check if ecosystem.config.js exists (in configs/ subdirectory)
       const checkConfig = await sandbox.commands.run(`ls -la ${workDir}/configs/ecosystem.config.js || echo "File not found"`)
@@ -982,12 +1010,12 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
 
       // Only start if not already running
       if (shouldStart) {
-        console.log('[Workspace] Starting PM2 processes...')
+        console.log('[Workspace] Starting PM2 processes (async)...')
         try {
-          const startResult = await sandbox.commands.run(`cd ${workDir} && PROJECT_ID=${projectId} REDIS_URL="${redisUrl}" pm2 start configs/ecosystem.config.js`, {
-            timeoutMs: 0 // Disable timeout for PM2 start
+          const startResult = await sandbox.commands.run(`cd ${workDir} && NODE_PATH=/usr/local/lib/node_modules pm2 start configs/ecosystem.config.js`, {
+            timeoutMs: 10000 // 10 second timeout just for PM2 to start
           })
-          console.log('[Workspace] PM2 start output:', startResult.stdout)
+          console.log('[Workspace] PM2 started:', startResult.stdout)
         } catch (error) {
           // E2B throws on non-zero exit codes, but PM2 often returns 1 even on success
           // Check actual PM2 status instead of relying on exit code
@@ -998,14 +1026,8 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
         }
       }
 
-      // Wait for server to be ready
-      const isReady = await waitForPort(sandbox, 3000, 30000) // 30 second timeout for Next.js
-
-      if (isReady) {
-        console.log('[Workspace] Next.js dev server is ready on port 3000')
-      } else {
-        console.error('[Workspace] Next.js dev server failed to start!')
-      }
+      // Don't wait for Next.js - it will be ready when user accesses preview URL
+      console.log('[Workspace] Next.js is starting in background (will be ready in ~20-40s)')
 
       // Show PM2 status for debugging
       const pm2Status = await sandbox.commands.run('pm2 list')
@@ -1027,18 +1049,17 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
       await sandbox.commands.run('pm2 kill || true', { timeoutMs: 5000 })
 
       // Check if ecosystem.config.js exists
-      const checkConfig = await sandbox.commands.run(`ls -la ${workDir}/ecosystem.config.js`)
-      console.log('[Workspace] Ecosystem config check:', checkConfig.stdout, checkConfig.stderr)
+      const checkConfig = await sandbox.commands.run(`test -f ${workDir}/configs/ecosystem.config.js && echo "exists" || echo "not found"`)
+      console.log('[Workspace] Ecosystem config check:', checkConfig.stdout.trim())
 
       // Start PM2 with pre-created ecosystem config from template
-      // (PostgreSQL runs as system service, doesn't need PM2)
       console.log('[Workspace] Starting Next.js with PM2...')
       try {
-        const startResult = await sandbox.commands.run(`cd ${workDir} && pm2 start ecosystem.config.js 2>&1`, {
-          timeoutMs: 0 // Disable timeout for PM2 start
+        const startResult = await sandbox.commands.run(`cd ${workDir} && NODE_PATH=/usr/local/lib/node_modules pm2 start configs/ecosystem.config.js 2>&1`, {
+          timeoutMs: 15000 // 15 second timeout for PM2 to start processes
         })
-        console.log('[Workspace] PM2 start output:', startResult.stdout)
-        console.log('[Workspace] PM2 start stderr:', startResult.stderr)
+        console.log('[Workspace] PM2 started:', startResult.stdout)
+        console.log('[Workspace] PM2 stderr:', startResult.stderr)
       } catch (error) {
         const err = error as { message?: string; exitCode?: number }
         console.error('[Workspace] PM2 start failed:', err.message)
@@ -1051,21 +1072,36 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
         throw error
       }
 
-      // Wait for Next.js server to be ready
-      const isReady = await waitForPort(sandbox, 3000, 40000) // 40 second timeout (DB + Next.js)
+      // Wait a bit for PM2 to actually start processes, then show status
+      await new Promise(resolve => setTimeout(resolve, 2000))
 
-      if (isReady) {
-        console.log('[Workspace] Next.js SaaS dev server is ready on port 3000')
-      } else {
-        console.error('[Workspace] Next.js SaaS dev server failed to start!')
-      }
-
-      // Show PM2 status for debugging
       const pm2Status = await sandbox.commands.run('pm2 list')
       console.log('[Workspace] PM2 status:', pm2Status.stdout)
+
+      // Stream initial PM2 logs so user can see startup progress
+      const pm2Logs = await sandbox.commands.run('pm2 logs --nostream --lines 20 || true')
+      console.log('[Workspace] PM2 logs:', pm2Logs.stdout)
+
+      // Quick check if Next.js is ready (10 second check only)
+      console.log('[Workspace] Quick check for Next.js...')
+      const isReady = await waitForPort(sandbox, 3000, 10000) // 10 second timeout
+
+      if (isReady) {
+        console.log('[Workspace] Next.js is ready immediately!')
+        // Mark as ready in Redis and publish to channel
+        await kv.set(`workspace:preview:${projectId}`, 'ready', { ex: 600 })
+        const { publishWorkspaceMessage } = await import('@/lib/services/redis-realtime')
+        await publishWorkspaceMessage(projectId, 'preview-status', { status: 'ready' })
+      } else {
+        console.log('[Workspace] Next.js is compiling in background. Workspace ready for editing.')
+        // Mark as compiling in Redis and publish to channel
+        await kv.set(`workspace:preview:${projectId}`, 'compiling', { ex: 600 })
+        const { publishWorkspaceMessage } = await import('@/lib/services/redis-realtime')
+        await publishWorkspaceMessage(projectId, 'preview-status', { status: 'compiling' })
+      }
     }
   } catch (error) {
-    console.error('[Workspace] Failed to start dev server:', error)
+    console.error('[Workspace] Failed to start dev server:', formatError(error))
     // Don't throw - dev server failure shouldn't block initialization
   }
 }

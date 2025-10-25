@@ -12,20 +12,18 @@ RUN apt-get update && apt-get install -y \
     jq \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Claude Code CLI and Node.js development tools
+# Install Node.js development tools
 RUN npm install -g \
-    @anthropic-ai/claude-code \
-    @anthropic-ai/sdk \
-    openai \
-    @google/generative-ai \
     typescript \
     tsx \
     nodemon \
     dotenv-cli \
     http-server \
     pm2 \
-    ioredis \
     && npm cache clean --force
+
+# Set NODE_PATH to allow require() to find globally installed packages
+ENV NODE_PATH=/usr/local/lib/node_modules
 
 # Create simple HTML starter template
 WORKDIR /templates/simple-html
@@ -59,7 +57,3 @@ ENV NODE_ENV=development
 # Add helpful aliases
 RUN echo 'alias ll="ls -lah"' >> /root/.bashrc && \
     echo 'alias g="git"' >> /root/.bashrc
-
-# Create Claude config directory in project with settings (v2025-10-20)
-RUN mkdir -p /templates/simple-html/.claude && \
-    echo '{"theme":"dark","permissionMode":"auto"}' > /templates/simple-html/.claude/settings.json

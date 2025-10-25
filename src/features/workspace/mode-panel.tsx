@@ -4,16 +4,15 @@
  * Mode-Aware Panel Component
  *
  * Switches between:
- * - Simple Mode: Terminal Chat (Claude Code CLI with xterm.js)
+ * - Simple Mode: Terminal (xterm.js)
  * - Agents Mode: Execution Panel (multi-agent orchestration)
  */
 
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useWorkspaceMode } from './workspace-mode-context';
-import { ClaudeChatSimple } from './claude-chat-simple';
 import { startWorkflowExecutionAction, resumeWorkflowExecutionAction } from '@/server/actions/executions';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle2, Clock, AlertCircle, PlayCircle, MessageSquare, Terminal } from 'lucide-react';
+import { Loader2, CheckCircle2, Clock, AlertCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/ui/primitives/button';
 
 // Dynamically import terminal to avoid SSR issues with xterm.js
@@ -59,53 +58,18 @@ export function ModePanel({
   streamError,
 }: ModePanelProps) {
   const { mode, activeExecutionId } = useWorkspaceMode();
-  const [simpleView, setSimpleView] = useState<'chat' | 'terminal'>('chat');
 
-  // Simple Mode: Show chat or terminal interface based on user preference
+  // Simple Mode: Show terminal directly
   if (mode === 'simple') {
     return (
-      <div className="h-full flex flex-col">
-        {/* View Toggle */}
-        <div className="border-b px-4 py-2 flex items-center justify-between bg-muted/20">
-          <span className="text-xs font-medium text-muted-foreground">Simple Mode</span>
-          <div className="flex gap-1 bg-background rounded-md p-1">
-            <Button
-              variant={simpleView === 'chat' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setSimpleView('chat')}
-              className="h-7 text-xs gap-1.5"
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              Chat
-            </Button>
-            <Button
-              variant={simpleView === 'terminal' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setSimpleView('terminal')}
-              className="h-7 text-xs gap-1.5"
-            >
-              <Terminal className="h-3.5 w-3.5" />
-              Terminal
-            </Button>
-          </div>
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          Loading terminal...
         </div>
-
-        {/* View Content */}
-        <div className="flex-1 overflow-hidden">
-          {simpleView === 'chat' ? (
-            <ClaudeChatSimple projectId={projectId} />
-          ) : (
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400">
-                <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                Loading terminal...
-              </div>
-            }>
-              <TerminalPty projectId={projectId} />
-            </Suspense>
-          )}
-        </div>
-      </div>
+      }>
+        <TerminalPty projectId={projectId} />
+      </Suspense>
     );
   }
 

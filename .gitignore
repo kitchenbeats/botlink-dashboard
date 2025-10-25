@@ -48,3 +48,6 @@ CLAUDE.md
 # GCP Service Account Keys (sensitive!)
 *-??????.json
 botlink-*.json
+
+# Claude Code MCP config (contains API keys)
+.mcp.json

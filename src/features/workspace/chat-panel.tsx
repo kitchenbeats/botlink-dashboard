@@ -4,8 +4,14 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/ui/primitives/button';
 import { Textarea } from '@/ui/primitives/textarea';
 import { ScrollArea } from '@/ui/primitives/scroll-area';
-import { Send, Bot, User, Loader2, Zap, Network, Workflow, Terminal, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { Send, Bot, User, Loader2, Zap, Network, Workflow, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  AgentThinkingBlock,
+  ToolUseBlock,
+  ReviewFeedbackBlock,
+  AgentIterationSummary,
+} from './agent-telemetry-blocks';
 
 type ExecutionMode = 'simple' | 'agents' | 'custom';
 
@@ -88,7 +94,14 @@ export function ChatPanel({
   const [userWorkflows, setUserWorkflows] = useState<UserWorkflow[]>([]);
   const [selectedWorkflow, setSelectedWorkflow] = useState<string>('');
   const [currentStatus, setCurrentStatus] = useState<string | null>(null);
-  const [isClaudeAuthenticated, setIsClaudeAuthenticated] = useState<boolean | null>(null);
+  const [reviewMode, setReviewMode] = useState<'off' | 'limited' | 'loop'>('off');
+
+  // Agent telemetry state
+  const [agentThinking, setAgentThinking] = useState<Array<{ content: string; timestamp: number }>>([]);
+  const [toolUses, setToolUses] = useState<Map<string, { tool: string; input: any; result?: any; timestamp: number }>>(new Map());
+  const [reviewResults, setReviewResults] = useState<Array<{ approved: boolean; iteration: number; feedback: string; willRetry?: boolean; timestamp: number }>>([]);
+  const [currentIteration, setCurrentIteration] = useState<number>(1);
+  const [iterationStatus, setIterationStatus] = useState<'coding' | 'reviewing' | 'approved' | 'fixing'>('coding');
 
   // Load user workflows on mount to check if Custom button should show
   useEffect(() => {
@@ -148,12 +161,7 @@ export function ChatPanel({
     loadMessages();
   }, [projectId]); // Only run on mount when projectId is available
 
-  // Show "Start Claude Code" button in Simple mode
-  useEffect(() => {
-    if (executionMode === 'simple') {
-      setIsClaudeAuthenticated(false);
-    }
-  }, [executionMode]);
+  // Remove old Claude Code authentication logic - not needed anymore
 
   // Handle Redis stream messages
   useEffect(() => {
@@ -162,83 +170,51 @@ export function ChatPanel({
     const latestMessage = streamMessages[streamMessages.length - 1];
     if (!latestMessage || latestMessage.type !== 'message') return;
 
-    // Handle Claude login output streaming
-    if (latestMessage.topic === 'claude-login') {
-      const loginData = latestMessage.data as {
-        type: 'status' | 'output' | 'error' | 'url-found';
-        message?: string;
-        data?: string;
-        url?: string;
-      };
+    // Old Claude Code CLI streaming removed - no longer used
 
-      console.log('[Chat] Claude login event:', loginData);
-
-      // Show login output in chat
-      if (loginData.type === 'output') {
-        setMessages((prev) => {
-          const lastMsg = prev[prev.length - 1];
-
-          // If last message is a login status message, append to it
-          if (lastMsg && lastMsg.content.includes('🔑')) {
-            return prev.slice(0, -1).concat({
-              ...lastMsg,
-              content: lastMsg.content + '\n' + (loginData.data || ''),
-            });
-          }
-
-          // Otherwise create new message
-          return [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              content: loginData.data || '',
-              createdAt: new Date(),
-            },
-          ];
-        });
-      }
-
+    // Handle agent telemetry
+    if (latestMessage.topic === 'agent-thinking') {
+      const data = latestMessage.data as { content: string; timestamp: number };
+      setAgentThinking((prev) => [...prev, data]);
       return;
     }
 
-    // Handle Claude output streaming (Simple Mode)
-    if (latestMessage.topic === 'claude-output') {
-      const outputData = latestMessage.data as { type: 'stdout' | 'stderr'; data: string };
-      console.log('[Chat] Received claude-output:', outputData);
-
-      // Append to current Claude output message or create new one
-      setMessages((prev) => {
-        console.log('[Chat] Current messages:', prev.length, 'Last message:', prev[prev.length - 1]);
-        // Find the last Claude output message (look for messages with Claude content)
-        const lastMsg = prev[prev.length - 1];
-
-        // If last message is from assistant AND contains Claude-like content, append to it
-        if (lastMsg && lastMsg.role === 'assistant' &&
-           (lastMsg.content.includes('Claude Code') || lastMsg.content.includes('🔑') ||
-            lastMsg.content.includes('Welcome') || lastMsg.content.includes('Choose the text style'))) {
-          return prev.slice(0, -1).concat({
-            ...lastMsg,
-            content: lastMsg.content + (outputData.data || ''),
-          });
-        }
-
-        // Otherwise create new Claude output message
-        return [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: 'assistant',
-            content: outputData.data || '',
-            createdAt: new Date(),
-            executionMode: 'simple',
-          },
-        ];
+    if (latestMessage.topic === 'tool-use') {
+      const data = latestMessage.data as { tool: string; input: any; id: string; timestamp: number };
+      setToolUses((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(data.id, { tool: data.tool, input: data.input, timestamp: data.timestamp });
+        return newMap;
       });
+      setIterationStatus('coding');
+      return;
+    }
 
-      // Clear loading state
-      setIsLoading(false);
-      setCurrentStatus(null);
+    if (latestMessage.topic === 'tool-result') {
+      const data = latestMessage.data as { toolCallId: string; result: any; timestamp: number };
+      setToolUses((prev) => {
+        const newMap = new Map(prev);
+        const existing = newMap.get(data.toolCallId);
+        if (existing) {
+          newMap.set(data.toolCallId, { ...existing, result: data.result });
+        }
+        return newMap;
+      });
+      return;
+    }
+
+    if (latestMessage.topic === 'review-result') {
+      const data = latestMessage.data as { approved: boolean; iteration: number; feedback: string; willRetry?: boolean; timestamp: number };
+      setReviewResults((prev) => [...prev, data]);
+      setCurrentIteration(data.iteration);
+
+      if (data.approved) {
+        setIterationStatus('approved');
+      } else if (data.willRetry) {
+        setIterationStatus('fixing');
+      } else {
+        setIterationStatus('reviewing');
+      }
       return;
     }
 
@@ -383,6 +359,7 @@ export function ChatPanel({
             projectId,
             message: input,
             mode: executionMode,
+            reviewMode: executionMode === 'simple' ? reviewMode : undefined,
           }),
         });
 
@@ -392,11 +369,18 @@ export function ChatPanel({
 
         const result = await response.json();
 
-        // Simple mode - message sent to Claude PTY, response will stream via redis
+        // Simple mode - direct agent execution
         if (executionMode === 'simple') {
-          // Just clear loading - the real Claude output will stream via 'claude-output' topic
-          setIsLoading(false);
-          console.log('[Chat] Message sent to Claude PTY, waiting for streaming response...');
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              content: result.content || '🤖 Executing task...',
+              createdAt: new Date(),
+              executionMode,
+            },
+          ]);
         } else {
           // Agents mode - store execution ID and wait for realtime events
           setCurrentExecutionId(result.executionId);
@@ -494,91 +478,7 @@ export function ChatPanel({
         </div>
       </div>
 
-      {/* Claude Authentication Banner - Only in Simple Mode */}
-      {executionMode === 'simple' && isClaudeAuthenticated !== null && (
-        <div className={cn(
-          'border-b px-4 py-3',
-          isClaudeAuthenticated
-            ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-            : 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800'
-        )}>
-          <div className="flex items-start gap-3">
-            {isClaudeAuthenticated ? (
-              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-            ) : (
-              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-            )}
-            <div className="flex-1 min-w-0">
-              {isClaudeAuthenticated ? (
-                <>
-                  <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                    Claude Code Authenticated
-                  </p>
-                  <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-                    Using your Claude.ai subscription ($20/month unlimited usage)
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
-                    Authentication Required
-                  </p>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                    Authenticate with your Claude.ai account to use Simple Mode with your $20/month subscription
-                  </p>
-                  <Button
-                    onClick={async () => {
-                      try {
-                        setIsLoading(true);
-
-                        // Send 'claude' command to the already-open PTY
-                        const response = await fetch(`/api/workspace/${projectId}/claude/start`, {
-                          method: 'POST',
-                        });
-
-                        const result = await response.json();
-                        console.log('[Claude Start] Server response:', result);
-
-                        if (!response.ok) {
-                          throw new Error(result.error || 'Failed to start Claude');
-                        }
-                      } catch (error) {
-                        console.error('Start Claude error:', error);
-                        setMessages((prev) => [
-                          ...prev,
-                          {
-                            id: crypto.randomUUID(),
-                            role: 'assistant',
-                            content: `❌ Failed to start Claude: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                            createdAt: new Date(),
-                          },
-                        ]);
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
-                    size="sm"
-                    disabled={isLoading}
-                    className="mt-3 bg-yellow-600 hover:bg-yellow-700 text-white"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-                        Starting Claude Code...
-                      </>
-                    ) : (
-                      <>
-                        <Terminal className="h-3.5 w-3.5 mr-2" />
-                        Start Claude Code
-                      </>
-                    )}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* No authentication banner needed - using server-side AI agents */}
 
       {/* Messages */}
       <ScrollArea className="flex-1">
@@ -825,10 +725,61 @@ export function ChatPanel({
             </div>
           )}
 
+          {/* Review Mode Selector - Only for Simple Mode */}
+          {executionMode === 'simple' && (
+            <div className="flex items-center gap-2 pt-2">
+              <label className="text-xs text-muted-foreground">Review:</label>
+              <div className="flex-1 flex items-center gap-1 bg-muted rounded-md p-1">
+                <button
+                  type="button"
+                  onClick={() => setReviewMode('off')}
+                  className={cn(
+                    'flex-1 px-2 py-1 rounded text-xs font-medium transition-colors',
+                    reviewMode === 'off'
+                      ? 'bg-background shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  Off
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReviewMode('limited')}
+                  className={cn(
+                    'flex-1 px-2 py-1 rounded text-xs font-medium transition-colors',
+                    reviewMode === 'limited'
+                      ? 'bg-background shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  Limited
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReviewMode('loop')}
+                  className={cn(
+                    'flex-1 px-2 py-1 rounded text-xs font-medium transition-colors',
+                    reviewMode === 'loop'
+                      ? 'bg-background shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  Loop
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Mode Description */}
           <p className="text-xs text-muted-foreground">
             {executionMode === 'simple' ? (
-              <>⚡ Fast mode - Direct tool execution</>
+              reviewMode === 'off' ? (
+                <>⚡ Fast mode - Direct execution, no code review</>
+              ) : reviewMode === 'limited' ? (
+                <>⚡ Fast mode - Execute with limited code review (2 iterations max)</>
+              ) : (
+                <>⚡ Fast mode - Execute with continuous review until code passes</>
+              )
             ) : executionMode === 'agents' ? (
               <>🤖 Agents mode - Plan, review, then execute with specialized agents</>
             ) : (

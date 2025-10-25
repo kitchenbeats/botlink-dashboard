@@ -1,0 +1,5 @@
+# E2B ignore file for WordPress template
+.git
+node_modules
+.DS_Store
+*.log

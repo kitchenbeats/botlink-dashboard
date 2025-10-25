@@ -123,7 +123,7 @@ export function workspaceChannel(projectId: string): string {
  */
 export async function publishWorkspaceMessage(
   projectId: string,
-  topic: 'messages' | 'status' | 'file-changes' | 'terminal' | 'claude-output' | 'claude-login' | 'file-change' | 'claude-crash',
+  topic: 'messages' | 'status' | 'file-changes' | 'terminal' | 'claude-output' | 'claude-login' | 'file-change' | 'claude-crash' | 'preview-status' | 'agent-thinking' | 'tool-use' | 'tool-result' | 'review-result' | 'agent-stopped',
   data: unknown
 ): Promise<void> {
   await publishMessage(workspaceChannel(projectId), topic, data);
