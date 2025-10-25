@@ -1,20 +1,17 @@
-import { FlatCompat } from '@eslint/eslintrc'
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-})
+const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, ...compat.config({
+  plugins: ['eslint-plugin-prettier'],
 
-const eslintConfig = [
-  ...compat.config({
-    extends: ['next/core-web-vitals', 'next/typescript'],
-    plugins: ['eslint-plugin-prettier'],
-    rules: {
-      'react/no-unescaped-entities': 'off',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-empty-object-type': 'off',
-    },
-  }),
-]
+  rules: {
+    'react/no-unescaped-entities': 'off',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-empty-object-type': 'off',
+  }
+}), {
+  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
+}]
 
 export default eslintConfig
