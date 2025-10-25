@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendChatMessage } from '@/server/actions/chat';
 import { listMessages } from '@/lib/db/messages';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
 
 export async function POST(req: NextRequest) {
   try {

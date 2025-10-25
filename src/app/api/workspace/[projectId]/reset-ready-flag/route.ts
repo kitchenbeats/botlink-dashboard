@@ -9,7 +9,7 @@ import { kv } from '@/lib/clients/kv'
 import { createClient } from '@/lib/clients/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const runtime = 'nodejs'
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
 
 export async function POST(
   request: NextRequest,

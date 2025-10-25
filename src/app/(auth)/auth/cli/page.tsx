@@ -10,8 +10,7 @@ import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { serializeError } from 'serialize-error'
 
-// Mark route as dynamic to prevent static optimization
-export const dynamic = 'force-dynamic'
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
 
 // Types
 type CLISearchParams = Promise<{

@@ -8,9 +8,9 @@ import { getSandboxRoot } from '@/server/sandboxes/get-sandbox-root'
 import ClientOnly from '@/ui/client-only'
 import { cookies } from 'next/headers'
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-export const revalidate = 0
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
+// MIGRATED: Removed export const fetchCache (incompatible with Cache Components)
+// MIGRATED: Removed export const revalidate (incompatible with Cache Components)
 
 const DEFAULT_ROOT_PATH = '/home/user'
 

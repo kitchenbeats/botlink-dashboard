@@ -4,7 +4,7 @@ import SandboxLayoutClient from '@/features/dashboard/sandbox/layout'
 import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { getSandboxDetails } from '@/server/sandboxes/get-sandbox-details'
 
-export const fetchCache = 'force-no-store'
+// MIGRATED: Removed export const fetchCache (incompatible with Cache Components)
 
 interface SandboxLayoutProps {
   children: React.ReactNode

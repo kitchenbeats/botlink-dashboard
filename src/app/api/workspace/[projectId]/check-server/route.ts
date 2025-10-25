@@ -8,8 +8,7 @@ import { E2BService } from '@/lib/services/e2b-service'
 import { TeamApiKeyService } from '@/lib/services/team-api-key-service'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const runtime = 'nodejs'
-export const maxDuration = 10
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
 
 export async function GET(
   request: NextRequest,

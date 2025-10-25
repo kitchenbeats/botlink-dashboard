@@ -14,8 +14,7 @@ import { TeamApiKeyService } from '@/lib/services/team-api-key-service'
 import { Sandbox } from 'e2b'
 import { NextRequest, NextResponse } from 'next/server'
 
-export const runtime = 'nodejs'
-export const maxDuration = 300 // 5 minutes
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
 
 // Store active shell processes
 // In production, this should be moved to Redis or similar

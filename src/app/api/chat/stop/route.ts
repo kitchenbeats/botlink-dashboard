@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kv } from '@/lib/clients/kv';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
 
 /**
  * Stop an ongoing agent execution

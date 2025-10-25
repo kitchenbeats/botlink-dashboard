@@ -7,9 +7,8 @@ import { Sandbox } from 'e2b';
 import { executeCustomWorkflow } from '@/lib/services/custom-workflow-executor';
 import type { Node, Edge } from 'reactflow';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes for workflow execution
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
 
 /**
  * POST /api/chat/custom-workflow

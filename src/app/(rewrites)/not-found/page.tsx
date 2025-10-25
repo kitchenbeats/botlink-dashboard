@@ -1,7 +1,7 @@
 import NotFound from '@/ui/not-found'
 import { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
 
 export const metadata: Metadata = {
   title: '404 - Page Not Found',

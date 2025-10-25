@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 import { subscribeToMessages } from '@/lib/services/redis-realtime';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
 
 /**
  * Server-Sent Events endpoint for workspace realtime updates

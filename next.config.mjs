@@ -1,13 +1,13 @@
 /** @type {import('next').NextConfig} */
 const config = {
-  eslint: {
-    dirs: ['src', 'scripts'], // Only run ESLint on these directories during production builds
-  },
   reactStrictMode: true,
+  // Moved from experimental in Next.js 16
+  reactCompiler: true,
+  cacheComponents: true,
+  // Turbopack is now default in v16, adding empty config to acknowledge webpack usage
+  turbopack: {},
   experimental: {
     serverComponentsHmrCache: false, // defaults to true
-    reactCompiler: true,
-    ppr: true,
     staleTimes: {
       dynamic: 180,
       static: 180,

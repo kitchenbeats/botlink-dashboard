@@ -13,8 +13,7 @@ import { E2B_DOMAIN } from '@/configs/e2b';
 import { Sandbox } from 'e2b';
 import { NextRequest } from 'next/server';
 
-export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes
+// MIGRATED: Removed export const runtime (incompatible with Cache Components)
 
 // In-memory PTY session storage
 // Key: projectId, Value: { sandbox, processHandle, ptyPid, workDir, lastTimeoutExtension }

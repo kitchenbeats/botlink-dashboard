@@ -10,8 +10,8 @@ import {
 import { NextRequest } from 'next/server'
 import { serializeError } from 'serialize-error'
 
-export const revalidate = 900
-export const dynamic = 'force-static'
+// MIGRATED: Removed export const revalidate (incompatible with Cache Components)
+// MIGRATED: Removed export const dynamic (incompatible with Cache Components)
 
 const REVALIDATE_TIME = 900 // 15 minutes ttl
 
