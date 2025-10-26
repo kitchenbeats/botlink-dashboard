@@ -1,5 +1,5 @@
 # ReactWrite Next.js SaaS Starter Template
-# Pre-installed with Vercel's Next.js SaaS Starter (https://github.com/nextjs/saas-starter)
+# Pre-installed with ReactWrite SaaS Template (https://github.com/i-dream-of-ai/nextjs-saas-template)
 
 # Use lightweight Node.js base for minimal image size
 FROM node:24-slim
@@ -23,14 +23,15 @@ RUN npm install -g \
     tsx \
     nodemon \
     dotenv-cli \
+    @anthropic-ai/claude-code \
     && npm cache clean --force
 
 # Set NODE_PATH to allow require() to find globally installed packages
 ENV NODE_PATH=/usr/local/lib/node_modules
 
-# Clone and install SaaS starter in one layer
+# Clone and install ReactWrite SaaS starter in one layer
 WORKDIR /templates/nextjs-saas
-RUN git clone --depth 1 https://github.com/nextjs/saas-starter.git . \
+RUN git clone --depth 1 https://github.com/i-dream-of-ai/nextjs-saas-template.git . \
     && rm -rf .git \
     && pnpm install \
     && pnpm store prune
@@ -86,7 +87,8 @@ ENV NODE_ENV=development
 
 # Add helpful aliases
 RUN echo 'alias ll="ls -lah"' >> /root/.bashrc && \
-    echo 'alias g="git"' >> /root/.bashrc
+    echo 'alias g="git"' >> /root/.bashrc && \
+    echo 'alias claude="claude-code"' >> /root/.bashrc
 
 # Note: To auto-start dev server in workspace, ReactWrite will need to:
 # 1. Copy /templates/nextjs-saas/ to /home/user/project/
