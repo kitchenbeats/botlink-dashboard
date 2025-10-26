@@ -278,11 +278,11 @@ export function AgentIterationSummary({ iteration, status }: AgentIterationSumma
     purple: 'bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400',
     green: 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-green-600 dark:text-green-400',
     orange: 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400',
-  };
+  } as const;
 
   return (
-    <div className={cn('flex items-center gap-3 p-3 rounded-lg border', colorClasses[config.color])}>
-      <div className={colorClasses[config.color]}>
+    <div className={cn('flex items-center gap-3 p-3 rounded-lg border', colorClasses[config.color as keyof typeof colorClasses])}>
+      <div className={colorClasses[config.color as keyof typeof colorClasses]}>
         {config.icon}
       </div>
       <div className="flex-1">

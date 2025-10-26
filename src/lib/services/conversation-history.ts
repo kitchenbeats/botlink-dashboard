@@ -33,7 +33,7 @@ export async function saveConversationToFile(
 
 ${messages
   .map((msg) => {
-    const timestamp = new Date(msg.created_at).toLocaleString();
+    const timestamp = msg.created_at ? new Date(msg.created_at).toLocaleString() : 'Unknown time';
     return `## ${msg.role.toUpperCase()} - ${timestamp}
 
 ${msg.content}

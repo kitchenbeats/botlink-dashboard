@@ -17,15 +17,13 @@ interface SandboxesMonitoringPageProps {
 }
 
 export default async function SandboxesMonitoringPage(props: SandboxesMonitoringPageProps) {
-  const searchParams = await props.searchParams;
-  const params = await props.params;
   return (
     <ChartRegistryProvider group="sandboxes-monitoring">
       <div className="flex flex-col h-full relative min-h-0 max-md:overflow-y-auto">
-        <SandboxesMonitoringHeader params={params} />
+        <SandboxesMonitoringHeader params={props.params} />
         <div className="flex flex-col flex-1 max-md:min-h-[calc(100vh-3.5rem)] min-h-0">
-          <ConcurrentChart params={params} searchParams={searchParams} />
-          <StartRateChart params={params} searchParams={searchParams} />
+          <ConcurrentChart params={props.params} searchParams={props.searchParams} />
+          <StartRateChart params={props.params} searchParams={props.searchParams} />
         </div>
       </div>
     </ChartRegistryProvider>

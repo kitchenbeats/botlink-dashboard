@@ -5,10 +5,9 @@ interface SandboxesHeaderInjectablePageProps {
 }
 
 export default async function SandboxesHeaderInjectablePage(props: SandboxesHeaderInjectablePageProps) {
-  const params = await props.params;
   return (
     <LiveSandboxCounterServer
-      params={params}
+      params={props.params}
       className="top-5 absolute right-17 max-md:hidden"
     />
   )

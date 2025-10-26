@@ -17,7 +17,7 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     const supabase = await createClient()

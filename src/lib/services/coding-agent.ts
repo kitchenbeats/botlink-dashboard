@@ -663,7 +663,13 @@ export async function runCodingTask(
     const shouldLoopTillFixed = reviewMode === 'loop';
     const maxAttempts = shouldLoopTillFixed ? Infinity : maxReviewIterations;
 
-    let lastStructuredData: typeof structuredData | null = null;
+    let lastStructuredData: {
+      fileChanges: FileChange[]
+      commandsRun: CommandExecution[]
+      toolsUsed: Set<string>
+      thinkingProcess: string[]
+      errors: string[]
+    } | null = null;
 
     while (reviewAttempts < maxAttempts) {
       // Check for stop signal
@@ -742,10 +748,8 @@ export async function runCodingTask(
         `Review the code changes that were just made for this task: ${prompt}\n\nSummary of changes: ${finalSummary}`
       );
 
-      const reviewOutput = reviewResult.output
-        .filter((msg) => 'type' in msg && msg.type === 'text')
-        .map((msg) => ('content' in msg ? msg.content : ''))
-        .join('\n');
+      // Get review output from state
+      const reviewOutput = (reviewResult.state.kv.get('review_decision') as string) || '';
 
       console.log('[Coding Agent] Review result:', reviewOutput);
 
