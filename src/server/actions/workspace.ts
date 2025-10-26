@@ -416,7 +416,7 @@ async function executeSimpleAgent(
     const workDir = E2BService.getTemplateWorkDir(project.template)
 
     // Create and run coding agent with progress streaming
-    const network = await createCodingAgent({
+    const { network } = await createCodingAgent({
       sandbox,
       projectId,
       workDir,
