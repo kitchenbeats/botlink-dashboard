@@ -306,6 +306,13 @@ export function ChatPanel({
     setInput('');
     setIsLoading(true);
 
+    // Clear telemetry state for new task
+    setAgentThinking([]);
+    setToolUses(new Map());
+    setReviewResults([]);
+    setCurrentIteration(1);
+    setIterationStatus('coding');
+
     try {
       // Custom workflow mode - validate workflow selection
       if (executionMode === 'custom') {
@@ -576,28 +583,46 @@ export function ChatPanel({
             </div>
           )}
 
-          {/* Realtime Progress */}
-          {streamMessages && streamMessages.slice(-5).map((msg, idx: number) => {
-            if (msg.type !== 'message') return null;
+          {/* Agent Telemetry - Show ALL blocks */}
+          {/* Iteration Status */}
+          {currentIteration > 1 && (
+            <AgentIterationSummary
+              iteration={currentIteration}
+              status={iterationStatus}
+            />
+          )}
 
-            if (msg.topic === 'file-changes') {
-              const fileData = msg.data as { path: string; action: string };
-              return (
-                <div key={idx} className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
-                  📁 {fileData.action}: {fileData.path}
-                </div>
-              );
-            }
-            if (msg.topic === 'terminal') {
-              const termData = msg.data as { command: string; output: string };
-              return (
-                <div key={idx} className="text-xs font-mono p-2 bg-muted/50 rounded">
-                  $ {termData.command}
-                </div>
-              );
-            }
-            return null;
-          })}
+          {/* Thinking Blocks */}
+          {agentThinking.map((thinking, idx) => (
+            <AgentThinkingBlock
+              key={`thinking-${idx}`}
+              content={thinking.content}
+              timestamp={thinking.timestamp}
+            />
+          ))}
+
+          {/* Tool Use Blocks */}
+          {Array.from(toolUses.entries()).map(([id, toolData]) => (
+            <ToolUseBlock
+              key={`tool-${id}`}
+              tool={toolData.tool}
+              input={toolData.input}
+              result={toolData.result}
+              timestamp={toolData.timestamp}
+            />
+          ))}
+
+          {/* Review Results */}
+          {reviewResults.map((review, idx) => (
+            <ReviewFeedbackBlock
+              key={`review-${idx}`}
+              approved={review.approved}
+              iteration={review.iteration}
+              feedback={review.feedback}
+              willRetry={review.willRetry}
+              timestamp={review.timestamp}
+            />
+          ))}
 
           {/* Real-time Status Indicator */}
           {currentStatus && (

@@ -45,7 +45,10 @@ export class SnapshotService {
     console.log('[Snapshot] Creating snapshot via pause API for project:', projectId);
 
     try {
-      // Create snapshot by pausing the sandbox (E2B infrastructure creates snapshot automatically)
+      // STEP 1: Delete all old snapshots for this project (keep only latest)
+      await this.cleanupOldSnapshots(projectId);
+
+      // STEP 2: Create new snapshot by pausing the sandbox
       // API: POST /sandboxes/{sandboxID}/pause
       const response = await fetch(`${E2B_API_URL}/sandboxes/${sandbox.sandboxId}/pause`, {
         method: 'POST',
@@ -63,7 +66,7 @@ export class SnapshotService {
       // Use sandboxId as snapshotId (paused sandboxes can be resumed by ID)
       const snapshotId = sandbox.sandboxId;
 
-      // Save snapshot metadata to database
+      // STEP 3: Save new snapshot metadata to database
       const db = await getDb();
       // Note: project_snapshots table exists but may not be in generated types yet
       // Using type assertion since table may not be in generated Supabase types
@@ -77,7 +80,7 @@ export class SnapshotService {
 
       if (error) throw error;
 
-      console.log('[Snapshot] Created snapshot (paused):', snapshotId);
+      console.log('[Snapshot] Created snapshot (paused):', snapshotId, '- Old snapshots cleaned up');
       return snapshotId;
     } catch (error) {
       console.error('[Snapshot] Failed to create snapshot:', error);
@@ -187,6 +190,60 @@ export class SnapshotService {
     } catch (error) {
       console.error('[Snapshot] Failed to delete snapshot:', error);
       throw new Error(`Failed to delete snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Clean up all old snapshots for a project (keep only latest)
+   * Extracted as reusable helper for all snapshot creation paths
+   */
+  static async cleanupOldSnapshots(projectId: string): Promise<void> {
+    console.log('[Snapshot] Cleaning up old snapshots for project:', projectId);
+    const oldSnapshots = await this.getProjectSnapshots(projectId);
+
+    for (const oldSnapshot of oldSnapshots) {
+      try {
+        await this.deleteSnapshot(oldSnapshot.snapshot_id);
+        console.log('[Snapshot] Deleted old snapshot:', oldSnapshot.snapshot_id);
+      } catch (error) {
+        // Log but don't fail - old snapshot might already be gone
+        console.warn('[Snapshot] Could not delete old snapshot:', oldSnapshot.snapshot_id, error);
+      }
+    }
+  }
+
+  /**
+   * Track an existing snapshot in the database
+   * Used when E2B creates a snapshot (auto-pause) and we need to record it
+   * This does NOT create a new snapshot - it just tracks one that already exists
+   */
+  static async trackExistingSnapshot(
+    projectId: string,
+    snapshotId: string,
+    description: string
+  ): Promise<void> {
+    console.log('[Snapshot] Tracking existing snapshot:', snapshotId, 'for project:', projectId);
+
+    try {
+      // Clean up old snapshots first (keep only latest)
+      await this.cleanupOldSnapshots(projectId);
+
+      // Track the new snapshot
+      const db = await getDb();
+      const query = db.from('project_snapshots') as ReturnType<typeof db.from>;
+      const { error } = await query.insert({
+        project_id: projectId,
+        snapshot_id: snapshotId,
+        description,
+        created_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      console.log('[Snapshot] Tracked existing snapshot:', snapshotId);
+    } catch (error) {
+      console.error('[Snapshot] Failed to track existing snapshot:', error);
+      throw new Error(`Failed to track snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

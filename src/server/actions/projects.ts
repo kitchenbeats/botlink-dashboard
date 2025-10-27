@@ -70,18 +70,8 @@ export async function createNewProject(
 		// NOTE: Workspace initialization happens when user clicks "Run Project"
 		// or during project creation flow via runProject() call
 
-		// Create GitHub repo for backup (async, don't block project creation)
-		const { GitService } = await import("@/lib/services/git-service");
-		GitService.createGitHubRepo(project.id, teamId, template, name)
-			.then((result) => {
-				if (result.success) {
-					console.log("[createNewProject] Created GitHub repo:", result.repoUrl);
-				}
-			})
-			.catch((error) => {
-				console.error("[createNewProject] Failed to create GitHub repo:", error);
-				// Don't block project creation if GitHub fails
-			});
+		// NOTE: GitHub repo will be created automatically on first AI commit
+		// (lazy creation to avoid creating repos for projects that never get used)
 
 		revalidatePath("/dashboard");
 		return { success: true, projectId: project.id };
@@ -262,57 +252,6 @@ export async function openProject(projectId: string) {
 		console.error("[openProject] Error:", error);
 		throw error;
 	}
-}
-
-/**
- * Initialize project workspace - Start sandbox and wait until ready
- * Returns success/error without redirecting (for use in client components)
- */
-export async function initializeProject(projectId: string): Promise<{ success: boolean; error?: string }> {
-	try {
-		const supabase = await createClient();
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) {
-			return { success: false, error: "Not authenticated" };
-		}
-
-		console.log("[initializeProject] Starting project:", projectId);
-
-		// Initialize workspace (creates sandbox, starts dev server)
-		const { initializeWorkspaceFiles } = await import("./workspace");
-		const result = await initializeWorkspaceFiles(projectId);
-
-		if (!result.success) {
-			return { success: false, error: "Failed to start project" };
-		}
-
-		console.log("[initializeProject] Project started successfully:", projectId);
-		return { success: true };
-	} catch (error) {
-		console.error("[initializeProject] Error:", error);
-		return {
-			success: false,
-			error: error instanceof Error ? error.message : "Failed to initialize project",
-		};
-	}
-}
-
-/**
- * Run project - Start sandbox and initialize workspace
- * Blocks until sandbox is ready, then redirects to workspace
- */
-export async function runProject(projectId: string) {
-	const result = await initializeProject(projectId);
-
-	if (!result.success) {
-		throw new Error(result.error || "Failed to start project");
-	}
-
-	// Redirect to workspace
-	redirect(`/workspace/${projectId}`);
 }
 
 /**

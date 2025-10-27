@@ -110,3 +110,28 @@ export async function createAgent(
     return agent
   }, 'createAgent')
 }
+
+// Create custom agent (dynamically created by orchestrator)
+export async function createCustomAgent(data: {
+  project_id: string
+  name: string
+  role: string
+  system_prompt: string
+  model: string
+  tools: string[]
+  type: 'custom'
+}): Promise<Tables<'agents'>> {
+  return createAgent({
+    name: data.name,
+    type: data.type,
+    model: data.model,
+    system_prompt: data.system_prompt,
+    config: {
+      role: data.role,
+      project_id: data.project_id,
+      tools: data.tools,
+      dynamically_created: true,
+      created_at: new Date().toISOString(),
+    } as never,
+  })
+}

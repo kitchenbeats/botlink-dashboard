@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ExternalLink, RefreshCw, Eye } from 'lucide-react';
+import { ExternalLink, RefreshCw, Eye, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { Button } from '@/ui/primitives/button';
 import { restartDevServer } from '@/server/actions/workspace';
 import { useRedisStream } from '@/lib/hooks/use-redis-stream';
@@ -9,18 +9,27 @@ import { useRedisStream } from '@/lib/hooks/use-redis-stream';
 interface LivePreviewProps {
   projectId: string;
   template: string;
+  previewUrl?: string;
 }
 
 type PreviewStatus = 'ready' | 'compiling' | 'starting' | 'error';
+type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
-export function LivePreview({ projectId, template }: LivePreviewProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const DEVICE_SIZES = {
+  desktop: { width: '100%', label: 'Desktop', icon: Monitor },
+  tablet: { width: '768px', label: 'Tablet', icon: Tablet },
+  mobile: { width: '375px', label: 'Mobile', icon: Smartphone },
+} as const;
+
+export function LivePreview({ projectId, template, previewUrl: initialPreviewUrl }: LivePreviewProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreviewUrl || null);
+  const [isLoading, setIsLoading] = useState(!initialPreviewUrl);
   const [error, setError] = useState<string | null>(null);
   const [isRestarting, setIsRestarting] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isRefreshingUrl, setIsRefreshingUrl] = useState(false);
   const [previewStatus, setPreviewStatus] = useState<PreviewStatus>('compiling');
+  const [deviceType, setDeviceType] = useState<DeviceType>('desktop');
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Subscribe to Redis stream for real-time preview status updates
@@ -45,7 +54,15 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
   }, [projectId]);
 
   useEffect(() => {
-    fetchPreviewUrl();
+    // If preview URL was provided as prop, use it directly
+    if (initialPreviewUrl) {
+      setPreviewUrl(initialPreviewUrl);
+      setIsLoading(false);
+      console.log('[LivePreview] Using preview URL from server:', initialPreviewUrl);
+    } else {
+      // Fallback: fetch from API (for backwards compatibility)
+      fetchPreviewUrl();
+    }
 
     // Check initial preview status from cache
     fetch(`/api/workspace/${projectId}/preview-status`)
@@ -57,47 +74,53 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
         }
       })
       .catch(console.error);
+  }, [projectId, initialPreviewUrl, fetchPreviewUrl]);
 
-    // Poll for sandbox changes every 30 seconds
-    const interval = setInterval(() => {
-      fetch(`/api/workspace/${projectId}/preview-url`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.url && data.url !== previewUrl) {
-            console.log('[LivePreview] Sandbox changed, updating URL:', data.url);
-            setPreviewUrl(data.url);
-          }
-        })
-        .catch(console.error);
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [projectId, previewUrl, fetchPreviewUrl]);
-
-  // Listen for preview status updates from Redis pub/sub
+  // Listen for preview status updates and file changes from Redis pub/sub
   useEffect(() => {
     if (!latestMessage || latestMessage.type !== 'message') return;
-    if (latestMessage.topic !== 'preview-status') return;
 
-    const statusData = latestMessage.data as { status: PreviewStatus };
-    const newStatus = statusData.status;
+    // Handle preview status changes
+    if (latestMessage.topic === 'preview-status') {
+      const statusData = latestMessage.data as { status: PreviewStatus };
+      const newStatus = statusData.status;
 
-    console.log('[LivePreview] Status update from Redis:', newStatus);
+      console.log('[LivePreview] Status update from Redis:', newStatus);
 
-    // If status changed from compiling to ready, reload iframe
-    if (previewStatus !== 'ready' && newStatus === 'ready' && iframeRef.current) {
-      console.log('[LivePreview] Dev server ready! Reloading preview...');
-      try {
-        iframeRef.current.contentWindow?.location.reload();
-      } catch (e) {
-        // Fallback: reload by changing src
-        if (iframeRef.current && previewUrl) {
-          iframeRef.current.src = previewUrl;
+      // If status changed from compiling to ready, reload iframe
+      if (previewStatus !== 'ready' && newStatus === 'ready' && iframeRef.current) {
+        console.log('[LivePreview] Dev server ready! Reloading preview...');
+        try {
+          iframeRef.current.contentWindow?.location.reload();
+        } catch (e) {
+          // Fallback: reload by changing src
+          if (iframeRef.current && previewUrl) {
+            iframeRef.current.src = previewUrl;
+          }
         }
       }
+
+      setPreviewStatus(newStatus);
     }
 
-    setPreviewStatus(newStatus);
+    // Handle file changes - reload iframe when agent modifies files
+    if (latestMessage.topic === 'file-changes' && iframeRef.current && previewUrl) {
+      console.log('[LivePreview] File changed, reloading preview...');
+
+      // Small delay to allow Next.js dev server to recompile
+      setTimeout(() => {
+        if (iframeRef.current) {
+          try {
+            iframeRef.current.contentWindow?.location.reload();
+          } catch (e) {
+            // Fallback: reload by changing src
+            if (iframeRef.current && previewUrl) {
+              iframeRef.current.src = previewUrl;
+            }
+          }
+        }
+      }, 500); // 500ms delay for Next.js Fast Refresh
+    }
   }, [latestMessage, previewStatus, previewUrl]);
 
   async function handleRefreshUrl() {
@@ -113,13 +136,13 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
 
   async function handleRefresh() {
     setIsRestarting(true);
-    setCountdown(20);
+    setCountdown(10);
 
     // Kill and restart server
     await restartDevServer(projectId);
 
-    // 20 second countdown
-    for (let i = 20; i > 0; i--) {
+    // 10 second countdown (reduced from 20s - dev servers start faster now)
+    for (let i = 10; i > 0; i--) {
       setCountdown(i);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
@@ -171,10 +194,32 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
     <div className="h-full flex flex-col bg-background">
       {/* Preview Header */}
       <div className="border-b px-4 py-2 flex items-center justify-between bg-background">
-        <div className="flex items-center gap-2">
-          <Eye className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Live Preview</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Live Preview</span>
+          </div>
+
+          {/* Device Selector */}
+          <div className="flex items-center gap-1 border rounded-md p-1">
+            {(Object.entries(DEVICE_SIZES) as [DeviceType, typeof DEVICE_SIZES[DeviceType]][]).map(([type, config]) => {
+              const Icon = config.icon;
+              return (
+                <Button
+                  key={type}
+                  size="sm"
+                  variant={deviceType === type ? 'default' : 'ghost'}
+                  onClick={() => setDeviceType(type)}
+                  className="gap-1.5"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{config.label}</span>
+                </Button>
+              );
+            })}
+          </div>
         </div>
+
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -220,54 +265,47 @@ export function LivePreview({ projectId, template }: LivePreviewProps) {
       </div>
 
       {/* Preview Frame */}
-      <div className="flex-1 relative bg-black">
-        <iframe
-          ref={iframeRef}
-          src={previewUrl}
-          className="w-full h-full border-0"
-          title="Live Preview"
-          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-        />
-        {/* Compiling Overlay */}
-        {(previewStatus === 'compiling' || previewStatus === 'starting') && !isRestarting && (
-          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-10">
-            <div className="text-center max-w-md px-6">
-              <RefreshCw className="h-16 w-16 mx-auto text-primary animate-spin mb-6" />
-              <h3 className="text-xl font-semibold mb-2">
-                {previewStatus === 'compiling' ? 'Compiling Next.js...' : 'Starting Dev Server...'}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {previewStatus === 'compiling'
-                  ? 'Next.js is compiling your application. This typically takes 30-45 seconds on first load.'
-                  : 'Dev server is starting up...'}
-              </p>
-              <p className="text-xs text-muted-foreground/70">
-                You can start editing files and chatting with Claude while this completes.
-              </p>
+      <div className="flex-1 relative bg-muted/20 flex items-start justify-center overflow-auto p-4">
+        <div
+          className="relative bg-white shadow-2xl transition-all duration-300"
+          style={{
+            width: DEVICE_SIZES[deviceType].width,
+            height: deviceType === 'desktop' ? '100%' : 'calc(100% - 2rem)',
+            maxWidth: '100%'
+          }}
+        >
+          <iframe
+            ref={iframeRef}
+            src={previewUrl}
+            className="w-full h-full border-0"
+            title="Live Preview"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-downloads"
+            allow="cross-origin-isolated"
+          />
+          {/* Subtle Loading Banner (dev server auto-starts, should be quick) */}
+          {(previewStatus === 'compiling' || previewStatus === 'starting') && !isRestarting && (
+            <div className="absolute top-0 left-0 right-0 bg-primary/90 backdrop-blur-sm px-4 py-2 flex items-center gap-2 z-10">
+              <RefreshCw className="h-4 w-4 text-primary-foreground animate-spin" />
+              <span className="text-sm text-primary-foreground">
+                {previewStatus === 'compiling' ? 'Compiling...' : 'Starting...'}
+              </span>
             </div>
-          </div>
-        )}
-        {/* Restart Overlay */}
-        {isRestarting && (
-          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-10">
-            <div className="text-center">
-              <RefreshCw className="h-16 w-16 mx-auto text-primary animate-spin mb-6" />
-              <h3 className="text-xl font-semibold mb-2">
-                {countdown > 0 ? 'Restarting Server' : 'Loading Preview'}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {countdown > 0
-                  ? 'Killing processes and starting dev server...'
-                  : 'Waiting for Next.js to respond...'}
-              </p>
-              {countdown > 0 ? (
-                <div className="text-4xl font-bold text-primary">{countdown}s</div>
-              ) : (
-                <div className="text-sm text-muted-foreground">This may take a few moments</div>
+          )}
+          {/* Restart Banner */}
+          {isRestarting && (
+            <div className="absolute top-0 left-0 right-0 bg-orange-500/90 backdrop-blur-sm px-4 py-3 flex items-center justify-between z-10">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-4 w-4 text-white animate-spin" />
+                <span className="text-sm font-medium text-white">
+                  {countdown > 0 ? 'Restarting dev server...' : 'Loading preview...'}
+                </span>
+              </div>
+              {countdown > 0 && (
+                <span className="text-sm font-bold text-white">{countdown}s</span>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

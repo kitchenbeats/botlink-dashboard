@@ -29,7 +29,7 @@ export default function TeamBlockageAlert({
       return
     }
 
-    router.push('mailto:hello@e2b.dev')
+    router.push('mailto:support@reactwrite.com')
   }
 
   return (

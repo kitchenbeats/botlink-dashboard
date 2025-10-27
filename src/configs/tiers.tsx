@@ -8,20 +8,27 @@ export type Tier = Pick<
   'id' | 'name' | 'concurrent_instances' | 'disk_mb' | 'max_length_hours'
 > & {
   prose: ReactNode[]
+  max_vcpu?: number
+  max_ram_mb?: number
 }
 
 export const TIERS: Tier[] = [
   {
     id: 'base_v1',
-    name: 'Hobby',
-    concurrent_instances: 20,
-    disk_mb: 1024,
+    name: 'Free',
+    concurrent_instances: 1,
+    disk_mb: 5120,
     max_length_hours: 1,
+    max_vcpu: 1,
+    max_ram_mb: 512,
     prose: [
-      'One-time $100 of usage in credits',
+      'Perfect for testing and learning',
+      '1 active project',
+      'AI-powered code generation',
+      'Simple Agent mode',
+      'Basic AI models (Haiku, GPT-4o-mini)',
+      'Automatic snapshots',
       'Community support',
-      'Up to 1 hour sandbox session length',
-      'Up to 20 concurrently running sandboxes',
     ],
   },
   {
@@ -30,11 +37,16 @@ export const TIERS: Tier[] = [
     concurrent_instances: 100,
     disk_mb: 5120,
     max_length_hours: 24,
+    max_vcpu: 4,
+    max_ram_mb: 8192,
     prose: [
-      'One-time $100 of usage in credits',
-      'Customize your Sandbox CPU & RAM',
-      'Up to 24 hours sandbox session length',
-      'Up to 100 concurrently running sandboxes',
+      'Coming Soon',
+      'Unlimited active projects',
+      'Advanced Agent mode with orchestration',
+      'Premium AI models (Sonnet 4.5, GPT-4o)',
+      'Custom agent creation',
+      'GitHub integration',
+      'Priority support',
     ],
   },
 ]

@@ -3,16 +3,14 @@ const config = {
   reactStrictMode: true,
   // Moved from experimental in Next.js 16
   reactCompiler: true,
-  // Disabled for now - enable when ready to adopt Cache Components model
+  // TODO: Enable Cache Components after adding proper Suspense boundaries
+  // Requires wrapping getUserTeams() and other data fetches in Suspense
   // cacheComponents: true,
   // Turbopack is now default in v16, adding empty config to acknowledge webpack usage
-  turbopack: {},
+  turbopack: {
+    root: process.cwd(),
+  },
   experimental: {
-    serverComponentsHmrCache: false, // defaults to true
-    staleTimes: {
-      dynamic: 180,
-      static: 180,
-    },
     serverActions: {
       bodySizeLimit: '5mb',
     },
@@ -22,7 +20,13 @@ const config = {
       fullUrl: true,
     },
   },
-  serverExternalPackages: ['pino', 'pino-loki', 'redis', '@redis/client', 'e2b'],
+  serverExternalPackages: [
+    'pino',
+    'pino-loki',
+    'redis',
+    '@redis/client',
+    'e2b',
+  ],
   trailingSlash: false,
   webpack: (config, { isServer }) => {
     config.module.rules.push({

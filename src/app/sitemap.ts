@@ -1,10 +1,8 @@
 /**
- * Sitemap Generator for E2B Website
+ * Sitemap Generator for ReactWrite
  *
- * This module generates a unified sitemap for the E2B website by aggregating sitemaps
- * from multiple sources including the main landing page, blog, documentation, and Framer sites.
- * It handles fetching, parsing, deduplication, and proper URL formatting to ensure all content
- * is discoverable by search engines.
+ * This module generates a sitemap for the ReactWrite application.
+ * ReactWrite does not serve external marketing content, so this returns an empty sitemap.
  */
 
 import { ALLOW_SEO_INDEXING } from '@/configs/flags'
@@ -46,22 +44,9 @@ type Site = {
 
 /**
  * List of sites to include in the unified sitemap
- * Each site has its own sitemap.xml that will be fetched and processed
+ * ReactWrite does not serve external content, so this is empty
  */
-const sites: Site[] = [
-  {
-    sitemapUrl: `https://${LANDING_PAGE_DOMAIN}/sitemap.xml`,
-    priority: 1.0,
-    changeFrequency: 'weekly',
-    baseUrl: 'https://e2b.dev',
-  },
-  {
-    sitemapUrl: `https://${DOCS_NEXT_DOMAIN}/sitemap.xml`,
-    priority: 0.9,
-    changeFrequency: 'weekly',
-    baseUrl: 'https://e2b.dev',
-  },
-]
+const sites: Site[] = []
 
 /**
  * Structure of a single URL entry in a sitemap
@@ -223,10 +208,10 @@ async function getSitemap(site: Site): Promise<MetadataRoute.Sitemap> {
 /**
  * Main sitemap generation function that Next.js calls
  *
- * Fetches and merges sitemaps from all configured sites,
- * deduplicates entries, and returns a sorted list of URLs
+ * ReactWrite is a dashboard application without public marketing pages,
+ * so this returns an empty sitemap.
  *
- * @returns Complete sitemap for the E2B website
+ * @returns Empty sitemap for ReactWrite
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Return empty sitemap if SEO indexing is not allowed

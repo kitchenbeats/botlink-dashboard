@@ -13,6 +13,7 @@ import {
   Bot,
   GitBranch,
   History,
+  Shield,
 } from 'lucide-react'
 import { ForwardRefExoticComponent, RefAttributes } from 'react'
 import { INCLUDE_BILLING } from './flags'
@@ -128,6 +129,16 @@ export const EXTRA_DASHBOARD_LINKS: DashboardNavLink[] = [
     label: 'Account Settings',
     href: (args) => PROTECTED_URLS.ACCOUNT_SETTINGS,
     icon: UserRoundCog,
+  },
+]
+
+export const ADMIN_DASHBOARD_LINKS: DashboardNavLink[] = [
+  {
+    label: 'Admin',
+    href: (args) => PROTECTED_URLS.ADMIN,
+    icon: Shield,
+    group: 'admin',
+    activeMatch: '/dashboard/admin/**',
   },
 ]
 

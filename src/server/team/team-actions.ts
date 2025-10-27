@@ -114,7 +114,10 @@ export const addTeamMemberAction = authActionClient
         return
       }
 
-      await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, result.data.slug))
+      const teamSlug = (result.data as any).slug
+      if (teamSlug) {
+        await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamSlug))
+      }
     })
   })
 
@@ -186,7 +189,10 @@ export const removeTeamMemberAction = authActionClient
         return
       }
 
-      await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, result.data.slug))
+      const teamSlug = (result.data as any).slug
+      if (teamSlug) {
+        await kv.del(KV_KEYS.USER_TEAM_ACCESS(user.id, teamSlug))
+      }
     })
   })
 
@@ -274,7 +280,7 @@ export const uploadTeamProfilePictureAction = authActionClient
     // Update team record with new profile picture URL
     const { data, error } = await supabaseAdmin
       .from('teams')
-      .update({ profile_picture_url: publicUrl })
+      .update({ profile_picture_url: publicUrl } as any)
       .eq('id', teamId)
       .select()
       .single()

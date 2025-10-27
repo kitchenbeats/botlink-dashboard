@@ -76,7 +76,7 @@ export async function publishMessage(
     const redisChannel = `${channel}:${topic}`;
     await redis.publish(redisChannel, JSON.stringify(message));
 
-    console.log(`[Redis Realtime] Published to ${redisChannel}`, { topic, channel });
+    console.log(`[Redis Realtime] Published to ${redisChannel}`, { topic, channel, data });
   } finally {
     await redis.quit();
   }
@@ -97,12 +97,14 @@ export async function subscribeToMessages(
   // Subscribe to all topics for this channel with message handler
   const redisChannels = topics.map((topic) => `${channel}:${topic}`);
 
-  await subscriber.pSubscribe(redisChannels, (message, channelPattern) => {
+  // Use regular subscribe (not pSubscribe) for exact channel names
+  await subscriber.subscribe(redisChannels, (message, redisChannel) => {
     try {
+      console.log('[Redis Realtime] Received message on channel:', redisChannel);
       const parsed = JSON.parse(message) as RealtimeMessage;
       onMessage(parsed);
     } catch (e) {
-      console.error('[Redis Realtime] Failed to parse message:', e);
+      console.error('[Redis Realtime] Failed to parse message:', e, 'Raw message:', message);
     }
   });
 
@@ -123,7 +125,7 @@ export function workspaceChannel(projectId: string): string {
  */
 export async function publishWorkspaceMessage(
   projectId: string,
-  topic: 'messages' | 'status' | 'file-changes' | 'terminal' | 'claude-output' | 'claude-login' | 'file-change' | 'claude-crash' | 'preview-status' | 'agent-thinking' | 'tool-use' | 'tool-result' | 'review-result' | 'agent-stopped',
+  topic: 'messages' | 'status' | 'file-changes' | 'terminal' | 'claude-output' | 'claude-login' | 'file-change' | 'claude-crash' | 'preview-status' | 'agent-thinking' | 'tool-use' | 'tool-result' | 'review-result' | 'agent-stopped' | 'agent-event',
   data: unknown
 ): Promise<void> {
   await publishMessage(workspaceChannel(projectId), topic, data);

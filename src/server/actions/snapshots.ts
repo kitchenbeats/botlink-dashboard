@@ -30,22 +30,17 @@ export const createProjectSnapshot = authActionClient
       throw new ActionError('Project not found');
     }
 
-    // Get active sandbox
-    const sandbox = await getSandboxByProjectId(projectId);
-    if (!sandbox || sandbox.status !== 'ready') {
+    // Get active sandbox and connect
+    const result = await E2BService.getSandbox(projectId, supabase);
+    if (!result) {
       throw new ActionError('No active sandbox found for this project');
     }
+    const e2bSandbox = result.sandbox;
 
-    // Get team API key for E2B
+    // Get team API key for snapshot service
     const teamApiKey = await TeamApiKeyService.getTeamApiKey(
       project.team_id,
       supabase
-    );
-
-    // Get the E2B sandbox instance
-    const e2bSandbox = await E2BService.connectToSandbox(
-      sandbox.e2b_session_id,
-      teamApiKey
     );
 
     // Create snapshot (pause the sandbox)
@@ -107,7 +102,8 @@ const saveAndCloseSandboxSchema = z.object({
 });
 
 /**
- * Save snapshot and close sandbox (for "Close Workspace" button)
+ * Close workspace (for "Close Workspace" button)
+ * Simply lets E2B auto-pause the sandbox - no manual snapshots needed
  */
 export const saveAndCloseSandbox = authActionClient
   .schema(saveAndCloseSandboxSchema)
@@ -125,11 +121,10 @@ export const saveAndCloseSandbox = authActionClient
     // Get active sandbox
     const sandbox = await getSandboxByProjectId(projectId);
     if (!sandbox || sandbox.status !== 'ready') {
-      // No active sandbox, nothing to save
+      // No active sandbox, nothing to do
       return {
         success: true,
-        saved: false,
-        message: 'No active sandbox to save'
+        message: 'No active sandbox to close'
       };
     }
 
@@ -139,24 +134,42 @@ export const saveAndCloseSandbox = authActionClient
       supabase
     );
 
-    // Connect to E2B sandbox
-    const e2bSandbox = await E2BService.connectToSandbox(
-      sandbox.e2b_session_id,
-      teamApiKey
-    );
+    // Pause the sandbox using E2B's pause API (preserves state for resume)
+    const { E2B_API_URL } = await import('@/configs/e2b');
 
-    // Auto-save snapshot (pause the sandbox)
-    const snapshotId = await SnapshotService.autoSave(e2bSandbox, projectId, teamApiKey);
+    try {
+      const response = await fetch(
+        `${E2B_API_URL}/sandboxes/${sandbox.e2b_session_id}/pause`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': teamApiKey,
+          },
+          body: JSON.stringify({}),
+        }
+      );
 
-    // Kill sandbox
-    await E2BService.killSandbox(sandbox.id, e2bSandbox);
+      if (response.ok) {
+        console.log('[Save & Close] Successfully paused sandbox:', sandbox.e2b_session_id);
 
+        // Keep sandbox record as 'ready' so it can be resumed later
+        // E2B will auto-pause and create internal snapshot
+        return {
+          success: true,
+          message: 'Workspace closed (will auto-pause)'
+        };
+      } else {
+        console.warn('[Save & Close] Pause failed, letting auto-pause handle it');
+      }
+    } catch (error) {
+      console.error('[Save & Close] Error pausing sandbox:', error);
+      // Don't throw - just let auto-pause handle it
+    }
+
+    // If pause fails, just let E2B auto-pause after timeout
     return {
       success: true,
-      saved: !!snapshotId,
-      snapshotId,
-      message: snapshotId
-        ? 'Workspace saved and closed'
-        : 'Workspace closed (no changes to save)'
+      message: 'Workspace closed (will auto-pause)'
     };
   });

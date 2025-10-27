@@ -20,21 +20,27 @@ export interface GitCommitOptions {
   aiResponse: string;
   workDir?: string;
   author?: string;
+  projectId?: string; // Optional: enables auto GitHub backup
+  teamId?: string; // Optional: needed for GitHub repo creation
 }
 
 export class GitService {
   /**
    * Commit all changes made during an AI turn
    * This runs after the AI completes a task
+   *
+   * AUTO GITHUB BACKUP:
+   * If projectId is provided, this will automatically:
+   * 1. Create GitHub repo on first commit
+   * 2. Push to GitHub after every commit
    */
   static async commitAgentChanges(
     sandbox: Sandbox,
     options: GitCommitOptions
   ): Promise<{ success: boolean; commitHash?: string; error?: string }> {
-    const { userPrompt, aiResponse, workDir = '/home/user', author = 'BotLink AI <ai@botlink.com>' } = options;
+    const { userPrompt, aiResponse, workDir = '/home/user', author = 'BotLink AI <ai@botlink.com>', projectId, teamId } = options;
 
     try {
-
       // Check if there are any changes to commit
       const statusResult = await sandbox.commands.run(`cd ${workDir} && git status --porcelain`);
 
@@ -71,6 +77,11 @@ export class GitService {
 
       console.log('[Git] Committed changes:', commitHash);
 
+      // AUTO GITHUB BACKUP (if projectId provided)
+      if (projectId && teamId) {
+        await this.autoGitHubBackup(sandbox, projectId, teamId, workDir, commitHash);
+      }
+
       return {
         success: true,
         commitHash,
@@ -81,6 +92,73 @@ export class GitService {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       };
+    }
+  }
+
+  /**
+   * Automatic GitHub backup (lazy repo creation)
+   * - Creates repo on first commit only
+   * - Auto-pushes all subsequent commits
+   * - Runs in background, user never sees it
+   */
+  private static async autoGitHubBackup(
+    sandbox: Sandbox,
+    projectId: string,
+    teamId: string,
+    workDir: string,
+    commitHash: string
+  ): Promise<void> {
+    try {
+      // Check if project already has GitHub repo
+      const { getProject, updateProject } = await import('@/lib/db/projects');
+      const project = await getProject(projectId);
+
+      if (!project) {
+        console.log('[Git] Project not found, skipping GitHub backup');
+        return;
+      }
+
+      // If no repo yet, create it (lazy creation on first commit)
+      if (!project.github_repo_url) {
+        console.log('[Git] First commit detected - creating GitHub repo...');
+
+        const createResult = await this.createGitHubRepo(
+          projectId,
+          teamId,
+          project.template,
+          project.name
+        );
+
+        if (!createResult.success || !createResult.repoUrl) {
+          console.error('[Git] Failed to create GitHub repo:', createResult.error);
+          return;
+        }
+
+        // Update project with repo URL
+        await updateProject(projectId, {
+          github_repo_url: createResult.repoUrl,
+          last_commit_hash: commitHash,
+        });
+
+        console.log('[Git] GitHub repo created:', createResult.repoUrl);
+      }
+
+      // Push to GitHub (works for both first push and subsequent pushes)
+      console.log('[Git] Pushing to GitHub...');
+      const pushResult = await this.pushToGitHub(sandbox, workDir, projectId);
+
+      if (pushResult.success) {
+        console.log('[Git] ✓ Pushed to GitHub successfully');
+        // Update last commit hash
+        await updateProject(projectId, {
+          last_commit_hash: commitHash,
+        });
+      } else {
+        console.error('[Git] Failed to push to GitHub:', pushResult.error);
+      }
+    } catch (error) {
+      // Don't fail the commit if GitHub backup fails
+      console.error('[Git] Auto GitHub backup failed (non-critical):', error);
     }
   }
 
@@ -302,25 +380,20 @@ export class GitService {
 
   /**
    * List all files in git repository
+   * NOTE: This does NOT auto-initialize git - returns empty list if not a git repo
    */
   static async listFiles(
     sandbox: Sandbox,
     workDir: string = '/home/user'
   ): Promise<{ success: boolean; files?: string[]; error?: string }> {
     try {
-      // First check if git repo exists
+      // Check if git repo exists
       const checkResult = await sandbox.commands.run(`cd ${workDir} && git rev-parse --git-dir 2>/dev/null || echo "not-git"`);
 
       if (checkResult.stdout.includes('not-git')) {
-        console.log('[Git] Not a git repository, initializing...');
-        // Try to initialize git repo
-        const initResult = await this.initRepository(sandbox, workDir);
-        if (!initResult.success) {
-          return {
-            success: false,
-            error: 'Failed to initialize git repository: ' + initResult.error,
-          };
-        }
+        console.log('[Git] Not a git repository, returning empty list');
+        // Return empty list instead of initializing
+        return { success: true, files: [] };
       }
 
       const result = await sandbox.commands.run(`cd ${workDir} && git ls-files`);

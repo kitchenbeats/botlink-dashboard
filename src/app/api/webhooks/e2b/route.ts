@@ -168,16 +168,19 @@ async function handleSandboxKill(e2bSessionId: string) {
 /**
  * Handle sandbox pause event
  * VM still allocated but not running (still costs money)
+ *
+ * IMPORTANT: When E2B auto-pauses a sandbox, it creates a snapshot internally.
+ * We need to track this snapshot in our database so we can restore from it later.
  */
 async function handleSandboxPause(e2bSessionId: string) {
   try {
     const { getDb } = await import('@/lib/db')
     const db = await getDb()
 
-    // Find the sandbox session
+    // Find the sandbox session with project info
     const { data: session, error } = await db
       .from('sandbox_sessions')
-      .select('*')
+      .select('*, projects!inner(id, team_id)')
       .eq('e2b_session_id', e2bSessionId)
       .single()
 
@@ -186,10 +189,29 @@ async function handleSandboxPause(e2bSessionId: string) {
       return
     }
 
-    // Type assertion for session
-    const typedSession = session as { id: string }
+    // Type assertion for session with project
+    type SessionWithProject = {
+      id: string
+      e2b_session_id: string
+      projects: { id: string; team_id: string }
+    }
+    const typedSession = session as unknown as SessionWithProject
 
-    // Update status to stopped (VM deallocated/paused, snapshot saved)
+    // Track the auto-pause snapshot using SnapshotService
+    // When E2B pauses, the snapshot ID is the same as the sandbox ID
+    try {
+      const { SnapshotService } = await import('@/lib/services/snapshot-service')
+      await SnapshotService.trackExistingSnapshot(
+        typedSession.projects.id,
+        e2bSessionId,
+        'Auto-saved by E2B (idle timeout)'
+      )
+    } catch (snapshotError) {
+      console.error('[E2B Webhook] Failed to track snapshot:', snapshotError)
+      // Continue even if snapshot tracking fails
+    }
+
+    // Update sandbox status to stopped (VM deallocated/paused, snapshot saved)
     await updateSandbox(typedSession.id, {
       status: 'stopped',
     })

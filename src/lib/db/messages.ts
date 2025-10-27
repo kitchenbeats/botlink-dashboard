@@ -29,14 +29,20 @@ export async function getMessage(id: string): Promise<Tables<'messages'> | null>
   }, 'getMessage');
 }
 
-export async function listMessages(projectId: string): Promise<Tables<'messages'>[]> {
+export async function listMessages(projectId: string, conversationId?: string): Promise<Tables<'messages'>[]> {
   return handleDbError(async () => {
     const db = await getDb();
-    const { data, error } = await db
+    let query = db
       .from('messages')
       .select('*')
-      .eq('project_id', projectId)
-      .order('created_at');
+      .eq('project_id', projectId);
+
+    // Filter by conversation if provided
+    if (conversationId) {
+      query = query.eq('conversation_id', conversationId);
+    }
+
+    const { data, error } = await query.order('created_at');
 
     if (error) throw error;
     return data || [];

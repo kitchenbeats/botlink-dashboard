@@ -72,7 +72,7 @@ export async function GET(request: NextRequest): Promise<Response> {
             pathname: url.pathname,
             allowIndexing: ALLOW_SEO_INDEXING,
           },
-          hrefPrefixes: [rewrittenPrefix, 'https://e2b.dev'],
+          hrefPrefixes: [rewrittenPrefix],
         })
       }
 

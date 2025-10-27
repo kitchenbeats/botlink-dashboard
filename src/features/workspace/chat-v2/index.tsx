@@ -7,12 +7,17 @@ import { ChatService } from '@/lib/services/chat-v2/chat-service'
 import { useRedisStream } from '@/lib/hooks/use-redis-stream'
 import type { ChatMessage, ExecutionMode, ReviewMode, StructuredResponse, FileChange } from '@/lib/services/chat-v2/types'
 import { toast } from 'sonner'
+import { ConversationSelector } from '../conversation-selector'
+import { createNewConversation } from '@/server/actions/conversations'
+import { generateConversationTitle } from '@/lib/utils/conversation-title'
 
 interface ChatV2Props {
   projectId: string
+  currentConversationId: string | null
+  onConversationChange: (conversationId: string) => void
 }
 
-export function ChatV2({ projectId }: ChatV2Props) {
+export function ChatV2({ projectId, currentConversationId, onConversationChange }: ChatV2Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,8 +34,14 @@ export function ChatV2({ projectId }: ChatV2Props) {
   }, [isConnected, streamError, projectId])
 
   const loadHistory = useCallback(async () => {
+    // Only load if we have a conversation selected
+    if (!currentConversationId) {
+      setMessages([])
+      return
+    }
+
     try {
-      const history = await ChatService.loadHistory(projectId)
+      const history = await ChatService.loadHistory(projectId, currentConversationId)
 
       const chatMessages: ChatMessage[] = history.map((msg) => ({
         id: msg.id,
@@ -45,12 +56,69 @@ export function ChatV2({ projectId }: ChatV2Props) {
       console.error('Failed to load chat history:', err)
       setError('Failed to load chat history')
     }
-  }, [projectId])
+  }, [projectId, currentConversationId])
 
-  // Load chat history on mount
+  // Load chat history when conversation changes
   useEffect(() => {
     loadHistory()
   }, [loadHistory])
+
+  // Handle Agent-Kit events (run.started, tool.called, step.started, etc.)
+  const handleAgentEvent = (event: { type: string; timestamp: number; data: any }) => {
+    console.log('[Chat V2] Agent event:', event)
+
+    switch (event.type) {
+      case 'run.started':
+        setIsLoading(true)
+        toast.info(`${event.data.agentName} started`)
+        break
+
+      case 'run.completed':
+        setIsLoading(false)
+        if (event.data.duration) {
+          toast.success(`Completed in ${(event.data.duration / 1000).toFixed(1)}s`)
+        }
+        break
+
+      case 'run.failed':
+        setIsLoading(false)
+        toast.error(`Agent failed: ${event.data.error}`)
+        break
+
+      case 'tool.called':
+        toast.info(`Running: ${event.data.name}`)
+        break
+
+      case 'tool.completed':
+        // Don't spam UI, just log
+        console.log('[Chat V2] Tool completed:', event.data.name)
+        break
+
+      case 'tool.failed':
+        toast.error(`Tool failed: ${event.data.name}`)
+        break
+
+      case 'step.started':
+        // Multi-step tool progress
+        toast.info(`[${event.data.step}/${event.data.total}] ${event.data.description}`, {
+          id: `step-${event.data.toolName}`, // Same ID updates existing toast
+        })
+        break
+
+      case 'step.completed':
+        // Update the toast with success
+        toast.success(`[${event.data.step}/${event.data.total}] ${event.data.description}`, {
+          id: `step-${event.data.toolName}`,
+        })
+        break
+
+      case 'step.failed':
+        toast.error(`Step ${event.data.step} failed: ${event.data.error}`, {
+          id: `step-${event.data.toolName}`,
+        })
+        break
+    }
+  }
 
   // Handle real-time updates from Redis stream
   useEffect(() => {
@@ -59,37 +127,54 @@ export function ChatV2({ projectId }: ChatV2Props) {
 
     if (latestMessage.type !== 'message') return
 
-    // Handle file changes
+    // Handle Agent-Kit events
+    if (latestMessage.topic === 'agent-event') {
+      const event = latestMessage.data as {
+        type: string
+        timestamp: number
+        data: any
+      }
+
+      handleAgentEvent(event)
+      return
+    }
+
+    // Handle file changes - ADD NEW CARD
     if (latestMessage.topic === 'file-changes') {
       const data = latestMessage.data as { path?: string; action?: string }
 
-      if (data?.path && data.action) {
-        setMessages((prev) => {
-          const lastIndex = prev.length - 1
-          if (lastIndex < 0) return prev
-          const lastMsg = prev[lastIndex]
-
-          if (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.isStreaming || !lastMsg.structured) return prev
-          if (!data.path) return prev // Type guard
-
-          const fileChange: FileChange = {
+      if (data?.path && data.action && currentConversationId) {
+        const content = `${data.action === 'created' ? '📝 Created' : data.action === 'updated' ? '✏️ Updated' : '🗑️ Deleted'}: ${data.path}`
+        const structured = {
+          summary: '',
+          fileChanges: [{
             path: data.path,
             action: data.action as 'created' | 'updated' | 'deleted',
             language: data.path.split('.').pop() || undefined,
-          }
+          }],
+          commandsRun: [],
+          toolsUsed: [],
+          thinkingProcess: '',
+          errors: [],
+        }
 
-          const exists = lastMsg.structured.fileChanges.some(fc => fc.path === data.path)
-          if (exists) return prev
+        const fileChangeMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content,
+          timestamp: new Date(),
+          structured,
+        }
 
-          const updatedMsg: ChatMessage = {
-            ...lastMsg,
-            structured: {
-              ...lastMsg.structured,
-              fileChanges: [...lastMsg.structured.fileChanges, fileChange],
-            },
-          }
+        setMessages(prev => [...prev, fileChangeMessage])
 
-          return [...prev.slice(0, -1), updatedMsg]
+        // Save to database
+        ChatService.saveMessage({
+          projectId,
+          conversationId: currentConversationId,
+          role: 'assistant',
+          content,
+          metadata: { structured },
         })
       }
     }
@@ -103,18 +188,29 @@ export function ChatV2({ projectId }: ChatV2Props) {
         willRetry?: boolean
       }
 
-      if (data && typeof data.approved !== 'undefined') {
+      if (data && typeof data.approved !== 'undefined' && currentConversationId) {
         // Add review message to chat
+        const content = data.approved
+          ? `✅ **Code Review Passed** (Iteration ${data.iteration})\n\n${data.feedback}`
+          : `🔍 **Code Review Feedback** (Iteration ${data.iteration})\n\n${data.feedback}${data.willRetry ? '\n\n🔄 Making corrections...' : ''}`
+
         const reviewMessage: ChatMessage = {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: data.approved
-            ? `✅ **Code Review Passed** (Iteration ${data.iteration})\n\n${data.feedback}`
-            : `🔍 **Code Review Feedback** (Iteration ${data.iteration})\n\n${data.feedback}${data.willRetry ? '\n\n🔄 Making corrections...' : ''}`,
+          content,
           timestamp: new Date(),
         }
 
         setMessages(prev => [...prev, reviewMessage])
+
+        // Save to database
+        ChatService.saveMessage({
+          projectId,
+          conversationId: currentConversationId,
+          role: 'assistant',
+          content,
+          metadata: { reviewResult: data },
+        })
       }
     }
 
@@ -124,43 +220,115 @@ export function ChatV2({ projectId }: ChatV2Props) {
 
       setIsLoading(false)
 
-      // Add stop message to chat
-      const stopMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: `⏹️ **Agent Stopped**\n\n${data.reason || 'Execution was stopped by user request.'}`,
-        timestamp: new Date(),
-      }
+      if (currentConversationId) {
+        // Add stop message to chat
+        const content = `⏹️ **Agent Stopped**\n\n${data.reason || 'Execution was stopped by user request.'}`
 
-      setMessages(prev => [...prev, stopMessage])
-    }
+        const stopMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content,
+          timestamp: new Date(),
+        }
 
-    // Handle terminal/progress updates
-    if (latestMessage.topic === 'terminal') {
-      const data = latestMessage.data as { output?: string; command?: string }
+        setMessages(prev => [...prev, stopMessage])
 
-      if (data?.output) {
-        setMessages((prev) => {
-          const lastIndex = prev.length - 1
-          if (lastIndex < 0) return prev
-          const lastMsg = prev[lastIndex]
-
-          // Update the streaming placeholder message with progress
-          if (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.isStreaming) return prev
-          if (!data.output) return prev // Type guard
-
-          const updatedMsg: ChatMessage = {
-            ...lastMsg,
-            content: data.output,
-          }
-
-          return [...prev.slice(0, -1), updatedMsg]
+        // Save to database
+        ChatService.saveMessage({
+          projectId,
+          conversationId: currentConversationId,
+          role: 'assistant',
+          content,
+          metadata: { agentStopped: data },
         })
       }
     }
-  }, [latestMessage])
 
-  const handleSend = async (content: string, mode: ExecutionMode, reviewMode: ReviewMode, maxIterations?: number) => {
+    // Handle terminal/progress updates - ADD NEW CARD
+    if (latestMessage.topic === 'terminal') {
+      const data = latestMessage.data as { output?: string; command?: string }
+
+      if (data?.output && currentConversationId) {
+        const structured = {
+          summary: '',
+          fileChanges: [],
+          commandsRun: data.command ? [{
+            command: data.command,
+            output: data.output,
+            success: true
+          }] : [],
+          toolsUsed: [],
+          thinkingProcess: '',
+          errors: [],
+        }
+
+        const terminalMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: data.output,
+          timestamp: new Date(),
+          structured,
+        }
+
+        setMessages(prev => [...prev, terminalMessage])
+
+        // Save to database
+        ChatService.saveMessage({
+          projectId,
+          conversationId: currentConversationId,
+          role: 'assistant',
+          content: data.output,
+          metadata: { structured },
+        })
+      }
+    }
+  }, [latestMessage, currentConversationId, projectId])
+
+  const handleSend = async (
+    content: string,
+    mode: ExecutionMode,
+    reviewMode: ReviewMode,
+    maxIterations?: number,
+    coderModel?: string,
+    reviewerModel?: string,
+    maxToolCalls?: number
+  ) => {
+    // Auto-create conversation if none selected (instead of showing error)
+    let conversationId = currentConversationId;
+
+    if (!conversationId) {
+      console.log('[Chat V2] No conversation selected - auto-creating one');
+
+      try {
+        // Generate meaningful title from user's prompt
+        const title = generateConversationTitle(content);
+
+        // Create new conversation
+        const result = await createNewConversation({
+          projectId,
+          name: title,
+          description: 'Auto-created conversation',
+        });
+
+        if (result?.data?.conversation) {
+          conversationId = result.data.conversation.id;
+
+          // Update parent component to select this conversation
+          onConversationChange(conversationId);
+
+          console.log('[Chat V2] Auto-created conversation:', conversationId, 'with title:', title);
+          toast.success(`Started new conversation: "${title}"`);
+        } else {
+          throw new Error('Failed to create conversation');
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Failed to create conversation';
+        toast.error(errorMsg);
+        console.error('[Chat V2] Failed to auto-create conversation:', err);
+        return;
+      }
+    }
+
     // Add user message immediately
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -169,25 +337,7 @@ export function ChatV2({ projectId }: ChatV2Props) {
       timestamp: new Date()
     }
 
-    // Add placeholder assistant message for real-time updates
-    const assistantMessageId = crypto.randomUUID()
-    const placeholderAssistantMessage: ChatMessage = {
-      id: assistantMessageId,
-      role: 'assistant',
-      content: 'Processing...',
-      timestamp: new Date(),
-      isStreaming: true,
-      structured: {
-        summary: '',
-        fileChanges: [],
-        commandsRun: [],
-        toolsUsed: [],
-        thinkingProcess: '',
-        errors: [],
-      }
-    }
-
-    setMessages(prev => [...prev, userMessage, placeholderAssistantMessage])
+    setMessages(prev => [...prev, userMessage])
     setIsLoading(true)
     setError(null)
 
@@ -197,34 +347,44 @@ export function ChatV2({ projectId }: ChatV2Props) {
         message: content,
         mode,
         reviewMode,
-        maxIterations
+        maxIterations,
+        coderModel,
+        reviewerModel,
+        maxToolCalls,
+        conversationId: conversationId, // Use local variable (might be newly created)
       })
 
-      // Update the placeholder message with final response
-      setMessages(prev => prev.map(msg =>
-        msg.id === assistantMessageId
-          ? {
-              ...msg,
-              content: response.content,
-              isStreaming: false,
-              structured: response.structured || msg.structured,
-            }
-          : msg
-      ))
+      // Add final response as NEW CARD (summary message)
+      const finalMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: response.content,
+        timestamp: new Date(),
+        structured: response.structured,
+      }
+
+      setMessages(prev => [...prev, finalMessage])
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to send message'
       setError(errorMsg)
 
-      // Update placeholder message with error
-      setMessages(prev => prev.map(msg =>
-        msg.id === assistantMessageId
-          ? {
-              ...msg,
-              content: `Error: ${errorMsg}`,
-              isStreaming: false,
-            }
-          : msg
-      ))
+      // Add error as NEW CARD
+      const errorMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `Error: ${errorMsg}`,
+        timestamp: new Date(),
+        structured: {
+          summary: '',
+          fileChanges: [],
+          commandsRun: [],
+          toolsUsed: [],
+          thinkingProcess: '',
+          errors: [errorMsg],
+        }
+      }
+
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -244,22 +404,32 @@ export function ChatV2({ projectId }: ChatV2Props) {
     <div className="h-full flex flex-col bg-gradient-to-b from-gray-950 to-black">
       {/* Header */}
       <div className="flex-shrink-0 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-lg shadow-green-400/50" />
-            <div>
-              <h2 className="text-sm font-semibold text-gray-100">AI Assistant</h2>
-              <p className="text-xs text-gray-500">
-                {isLoading ? 'Thinking...' : 'Ready to help'}
-              </p>
-            </div>
-          </div>
+        <div className="px-4 py-3 space-y-3">
+          {/* Conversation Selector - Top Position */}
+          <ConversationSelector
+            projectId={projectId}
+            currentConversationId={currentConversationId}
+            onConversationChange={onConversationChange}
+          />
 
-          {error && (
-            <div className="text-xs text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
-              {error}
+          {/* Status Row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-lg shadow-green-400/50" />
+              <div>
+                <h2 className="text-sm font-semibold text-gray-100">AI Assistant</h2>
+                <p className="text-xs text-gray-500">
+                  {isLoading ? 'Thinking...' : 'Ready to help'}
+                </p>
+              </div>
             </div>
-          )}
+
+            {error && (
+              <div className="text-xs text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
+                {error}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

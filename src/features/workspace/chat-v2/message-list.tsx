@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import { User } from 'lucide-react'
-import { AgentResponseCard } from './agent-response-card'
 import { Markdown } from './markdown'
+import { FileChangeCard, TerminalCard, ReasoningCard, SummaryCard, ErrorCard } from './cards'
 import type { ChatMessage } from '@/lib/services/chat-v2/types'
 
 interface MessageListProps {
@@ -69,10 +69,55 @@ export function MessageList({ messages }: MessageListProps) {
               </div>
             </div>
           ) : (
-            <AgentResponseCard
-              message={msg.content}
-              structured={msg.structured}
-            />
+            <>
+              {/* Errors */}
+              {msg.structured?.errors && msg.structured.errors.length > 0 && (
+                <ErrorCard errors={msg.structured.errors} />
+              )}
+
+              {/* File Changes */}
+              {msg.structured?.fileChanges && msg.structured.fileChanges.length > 0 && (
+                msg.structured.fileChanges.map((file, i) => (
+                  <FileChangeCard
+                    key={`${msg.id}-file-${i}`}
+                    path={file.path}
+                    action={file.action}
+                    language={file.language}
+                  />
+                ))
+              )}
+
+              {/* Terminal/Commands */}
+              {msg.structured?.commandsRun && msg.structured.commandsRun.length > 0 ? (
+                msg.structured.commandsRun.map((cmd, i) => (
+                  <TerminalCard
+                    key={`${msg.id}-cmd-${i}`}
+                    command={cmd.command}
+                    output={cmd.output}
+                    success={cmd.success}
+                  />
+                ))
+              ) : msg.content.includes('Iteration') || msg.content.includes('Loading') || msg.content.includes('Coding agent') ? (
+                <TerminalCard output={msg.content} />
+              ) : null}
+
+              {/* Thinking Process */}
+              {msg.structured?.thinkingProcess && msg.structured.thinkingProcess.length > 0 && (
+                <ReasoningCard content={msg.structured.thinkingProcess} />
+              )}
+
+              {/* Summary (final message) */}
+              {!msg.structured?.errors?.length &&
+               !msg.structured?.fileChanges?.length &&
+               !msg.structured?.commandsRun?.length &&
+               !msg.content.includes('Iteration') &&
+               !msg.content.includes('Loading') && (
+                <SummaryCard
+                  content={msg.content}
+                  summary={msg.structured?.summary}
+                />
+              )}
+            </>
           )}
         </div>
       ))}

@@ -8,7 +8,17 @@ import { listMessages } from '@/lib/db/messages';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { projectId, message, mode = 'simple', reviewMode = 'off', maxIterations } = body;
+    const {
+      projectId,
+      message,
+      mode = 'simple',
+      reviewMode = 'off',
+      maxIterations,
+      coderModel,
+      reviewerModel,
+      maxToolCalls,
+      conversationId
+    } = body;
 
     if (!projectId || !message) {
       return NextResponse.json(
@@ -17,15 +27,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load conversation history from database
-    const dbMessages = await listMessages(projectId);
+    if (!conversationId) {
+      return NextResponse.json(
+        { error: 'Missing required field: conversationId' },
+        { status: 400 }
+      );
+    }
+
+    // Load conversation history from database (filtered by conversation)
+    const dbMessages = await listMessages(projectId, conversationId);
     const conversationHistory = dbMessages.map((msg) => ({
       role: msg.role as 'user' | 'assistant' | 'system',
       content: msg.content,
     }));
 
     // Call the chat action with full conversation history
-    const result = await sendChatMessage(projectId, message, conversationHistory, mode, reviewMode, maxIterations);
+    const result = await sendChatMessage(
+      projectId,
+      message,
+      conversationHistory,
+      mode,
+      reviewMode,
+      maxIterations,
+      conversationId,
+      coderModel,
+      reviewerModel,
+      maxToolCalls
+    );
 
     // Both modes return JSON response now
     // For agents mode, UI will subscribe to Inngest realtime for progress updates

@@ -67,257 +67,46 @@ export async function ensureWorkspaceReady(projectId: string) {
     throw new Error('Not authenticated')
   }
 
-  const readyKey = `workspace:ready:${projectId}`
-  const lockKey = `workspace:init:${projectId}`
-
   try {
-    // 1. Check if workspace is already ready
-    const isReady = await kv.get<boolean>(readyKey)
+    const { getProject } = await import('@/lib/db/projects')
+    const { E2BService } = await import('@/lib/services/e2b-service')
+    const { getActiveSandbox } = await import('@/lib/db/sandboxes')
 
-    if (isReady) {
-      console.log('[Workspace] Already initialized, loading files...')
-      return await getWorkspaceFiles(projectId)
+    const project = await getProject(projectId)
+    if (!project) {
+      throw new Error('Project not found')
     }
 
-    // 2. Try to acquire initialization lock
-    const lockAcquired = await kv.setNX(lockKey, 'initializing', WORKSPACE_INIT_LOCK_TIMEOUT)
+    // Check if we have a sandbox in DB
+    const existingSandbox = await getActiveSandbox(projectId)
 
-    if (lockAcquired) {
-      console.log('[Workspace] Lock acquired, initializing workspace...')
-
-      try {
-        // 3. Do initialization (git init, start dev server)
-        await initializeWorkspaceFiles(projectId)
-
-        // 4. Mark as ready
-        await kv.set(readyKey, true, { ex: WORKSPACE_READY_TTL })
-
-        console.log('[Workspace] Initialization complete')
-      } finally {
-        // 5. Release lock
-        await kv.del(lockKey)
+    let result
+    if (existingSandbox) {
+      // Resume existing sandbox
+      result = await E2BService.resumeSandbox(projectId, supabase)
+      // If resume failed, create new one
+      if (!result) {
+        result = await E2BService.createSandbox(projectId, supabase)
       }
     } else {
-      console.log('[Workspace] Another process is initializing, waiting...')
-
-      // 6. Wait for initialization to complete (check every second, max 60 seconds)
-      const maxWait = 60000 // 60 seconds
-      const checkInterval = 1000 // 1 second
-      const startTime = Date.now()
-
-      while (Date.now() - startTime < maxWait) {
-        const ready = await kv.get<boolean>(readyKey)
-        if (ready) {
-          console.log('[Workspace] Initialization complete by other process')
-          break
-        }
-
-        // Wait before checking again
-        await new Promise(resolve => setTimeout(resolve, checkInterval))
-      }
-
-      // Check one final time
-      const finalCheck = await kv.get<boolean>(readyKey)
-      if (!finalCheck) {
-        return {
-          success: false,
-          files: [],
-          error: 'TIMEOUT',
-          errorMessage: 'Initialization timeout: workspace not ready after 60 seconds'
-        }
-      }
+      // Create new sandbox
+      result = await E2BService.createSandbox(projectId, supabase)
     }
 
-    // 7. Load and return files
-    return await getWorkspaceFiles(projectId)
-  } catch (error) {
-    // Clean up lock on error
-    await kv.del(lockKey)
+    const { sandbox } = result
+    const previewUrl = E2BService.getPreviewUrl(sandbox)
 
-    // Return error object instead of throwing
+    return {
+      success: true as const,
+      previewUrl,
+    }
+  } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('[Workspace] Error:', errorMessage)
     return {
       success: false,
-      files: [],
       error: 'INIT_FAILED',
       errorMessage
-    }
-  }
-}
-
-/**
- * Initialize workspace files and start dev server (ONE-TIME setup during project creation)
- */
-export async function initializeWorkspaceFiles(projectId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Not authenticated')
-  }
-
-  try {
-    const { getProject } = await import('@/lib/db/projects')
-    const { E2BService } = await import('@/lib/services/e2b-service')
-    const { GitService } = await import('@/lib/services/git-service')
-
-    // Get project
-    const project = await getProject(projectId)
-    if (!project) {
-      throw new Error('Project not found')
-    }
-
-    // Get or create sandbox (snapshot-aware - restores from latest snapshot if available)
-    const { sandbox, restoredFromSnapshot } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase)
-
-    if (restoredFromSnapshot) {
-      console.log('[Workspace] Sandbox restored from snapshot - skipping initialization')
-    }
-
-    // Get template working directory
-    const workDir = E2BService.getTemplateWorkDir(project.template)
-
-    console.log('[Workspace] Template directory:', workDir)
-
-    // Templates now come with dev servers ALREADY RUNNING from snapshot (via -c flag during build)
-    // Check if dev server is already running
-    console.log('[Workspace] Checking if dev server is already running from snapshot...')
-    const isDevServerRunning = await waitForPort(sandbox, 3000, 3000) // Quick 3s check
-
-    if (isDevServerRunning) {
-      console.log('[Workspace] ✅ Dev server already running from snapshot!')
-      // Mark as ready immediately
-      await kv.set(`workspace:preview:${projectId}`, 'ready', { ex: 600 })
-      const { publishWorkspaceMessage } = await import('@/lib/services/redis-realtime')
-      await publishWorkspaceMessage(projectId, 'preview-status', { status: 'ready' })
-    } else {
-      console.log('[Workspace] Dev server not detected, starting fallback PM2...')
-      await startDevServer(sandbox, workDir, project.template, project.id)
-    }
-
-    console.log('[Workspace] Workspace ready.')
-
-    // Get file count from template directory
-    const gitListResult = await GitService.listFiles(sandbox, workDir)
-    const filesCount = gitListResult.files?.length || 0
-
-    return {
-      success: true,
-      filesCount,
-    }
-  } catch (error) {
-    console.error('[Workspace] Failed to initialize workspace:', formatError(error))
-    throw error
-  }
-}
-
-/**
- * Get files from sandbox git repository (for page loads/refreshes)
- */
-export async function getWorkspaceFiles(projectId: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('Not authenticated')
-  }
-
-  try {
-    const { getProject } = await import('@/lib/db/projects')
-    const { E2BService } = await import('@/lib/services/e2b-service')
-    const { GitService } = await import('@/lib/services/git-service')
-
-    // Get project
-    const project = await getProject(projectId)
-    if (!project) {
-      throw new Error('Project not found')
-    }
-
-    // Get or create sandbox (snapshot-aware - restores from latest snapshot if available)
-    const { sandbox, session, restoredFromSnapshot } = await E2BService.getOrCreateSandboxWithSnapshot(
-      projectId,
-      supabase
-    )
-
-    if (restoredFromSnapshot) {
-      console.log('[Workspace] Loaded sandbox from snapshot')
-    }
-
-    // Extend timeout on workspace load (user activity)
-    const teamApiKey = await TeamApiKeyService.getTeamApiKey(
-      project.team_id,
-      supabase
-    )
-    await E2BService.extendSandboxTimeout(session.e2b_session_id, teamApiKey)
-
-    // Get template working directory
-    const workDir = E2BService.getTemplateWorkDir(project.template)
-
-    // List files from git
-    const gitListResult = await GitService.listFiles(sandbox, workDir)
-
-    if (!gitListResult.success) {
-      throw new Error(gitListResult.error || 'Failed to list files')
-    }
-
-    // Transform git file paths to File objects for UI compatibility
-    const files = (gitListResult.files || []).map((path, index) => ({
-      id: `${projectId}-${path}`,
-      project_id: projectId,
-      path,
-      content: '', // Content loaded on demand
-      language: detectLanguage(path),
-      created_by: 'template' as const,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }))
-
-    return {
-      success: true,
-      files,
-      restoredFromSnapshot
-    }
-  } catch (error) {
-    console.error('[getWorkspaceFiles] Error:', formatError(error))
-
-    // Check if error is due to dead sandbox or git issues
-    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error)
-
-    // Git exit 128 usually means "not a git repo" or permission issues - treat as recoverable
-    const isGitError = errorMessage.includes('exit status 128') || errorMessage.includes('not a git repository')
-
-    const isSandboxDead =
-      errorMessage.toLowerCase().includes('connect') ||
-      errorMessage.toLowerCase().includes('timeout') ||
-      errorMessage.toLowerCase().includes('not found') ||
-      errorMessage.toLowerCase().includes('econnrefused') ||
-      errorMessage.toLowerCase().includes('network') ||
-      errorMessage.toLowerCase().includes('disconnected')
-
-    console.error('[getWorkspaceFiles] Is sandbox dead?', isSandboxDead, '| Is git error?', isGitError)
-
-    if (isSandboxDead || isGitError) {
-      console.log('[getWorkspaceFiles] Detected recoverable error, will retry with snapshot restoration')
-      return {
-        success: false,
-        files: [],
-        error: 'SANDBOX_DEAD',
-        errorMessage: isGitError
-          ? 'Git repository needs re-initialization. Restarting workspace...'
-          : 'Sandbox connection lost. Restarting from snapshot...'
-      }
-    }
-
-    // Other errors - return generic error
-    return {
-      success: false,
-      files: [],
-      error: 'UNKNOWN',
-      errorMessage: errorMessage
     }
   }
 }
@@ -355,9 +144,14 @@ export async function runSimpleAgent(projectId: string, query: string) {
     throw new Error('Not authenticated')
   }
 
+  // Get or create default conversation for this project
+  const { getOrCreateDefaultConversation } = await import('@/lib/db/conversations')
+  const conversation = await getOrCreateDefaultConversation(projectId)
+
   // Save user message
   await createMessage({
     project_id: projectId,
+    conversation_id: conversation.id,
     role: 'user',
     content: query,
     metadata: { executionMode: 'simple' },
@@ -365,7 +159,7 @@ export async function runSimpleAgent(projectId: string, query: string) {
 
   // Run agent execution directly (no Inngest)
   // This runs asynchronously and streams updates via Redis
-  executeSimpleAgent(projectId, query, supabase).catch((error) => {
+  executeSimpleAgent(projectId, query, conversation.id, supabase).catch((error) => {
     console.error('[Workspace] Agent execution failed:', formatError(error))
   })
 
@@ -378,6 +172,7 @@ export async function runSimpleAgent(projectId: string, query: string) {
 async function executeSimpleAgent(
   projectId: string,
   query: string,
+  conversationId: string,
   supabase: Awaited<ReturnType<typeof createClient>>
 ) {
   const { publishWorkspaceMessage } = await import(
@@ -400,10 +195,11 @@ async function executeSimpleAgent(
       throw new Error('Project not found')
     }
 
-    const { sandbox, session } = await E2BService.getOrCreateSandboxWithSnapshot(
-      projectId,
-      supabase
-    )
+    const sandboxResult = await E2BService.getSandbox(projectId, supabase)
+    if (!sandboxResult) {
+      throw new Error('No active sandbox. Please refresh the workspace.')
+    }
+    const { sandbox, session } = sandboxResult
 
     // Extend timeout on chat message (user activity)
     const teamApiKey = await TeamApiKeyService.getTeamApiKey(
@@ -431,13 +227,14 @@ async function executeSimpleAgent(
       },
     })
 
-    const result = await network.run(query)
+    const networkResult = await network.run(query)
     const output =
-      (result.state.kv.get('task_summary') as string) || 'Task completed'
+      (networkResult.state.kv.get('task_summary') as string) || 'Task completed'
 
     // Save assistant message
     await createMessage({
       project_id: projectId,
+      conversation_id: conversationId,
       role: 'assistant',
       content: output,
       metadata: {
@@ -452,6 +249,8 @@ async function executeSimpleAgent(
       userPrompt: query,
       aiResponse: output,
       workDir,
+      projectId: project.id,
+      teamId: project.team_id,
     })
 
     if (commitResult.success && commitResult.commitHash) {
@@ -510,6 +309,10 @@ export async function runWorkflowAgents(
 
   const teamId = (teams[0] as { team_id: string }).team_id
 
+  // Get or create default conversation for this project
+  const { getOrCreateDefaultConversation } = await import('@/lib/db/conversations')
+  const conversation = await getOrCreateDefaultConversation(projectId)
+
   // Create execution record
   const { createExecution } = await import('@/lib/db/executions')
 
@@ -526,6 +329,7 @@ export async function runWorkflowAgents(
   // Save user message
   await createMessage({
     project_id: projectId,
+    conversation_id: conversation.id,
     role: 'user',
     content: query,
     metadata: {
@@ -632,7 +436,11 @@ export async function readFileContent(projectId: string, filePath: string) {
       throw new Error('Project not found')
     }
 
-    const { sandbox } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase)
+    const result = await E2BService.getSandbox(projectId, supabase)
+    if (!result) {
+      throw new Error('No active sandbox. Please refresh the workspace.')
+    }
+    const { sandbox } = result
     const workDir = E2BService.getTemplateWorkDir(project.template)
 
     // Read file from sandbox
@@ -684,10 +492,11 @@ export async function writeFileContent(
       throw new Error('Project not found')
     }
 
-    const { sandbox, session } = await E2BService.getOrCreateSandboxWithSnapshot(
-      projectId,
-      supabase
-    )
+    const result = await E2BService.getSandbox(projectId, supabase)
+    if (!result) {
+      throw new Error('No active sandbox. Please refresh the workspace.')
+    }
+    const { sandbox, session } = result
 
     // Extend timeout on file save (user activity)
     const teamApiKey = await TeamApiKeyService.getTeamApiKey(
@@ -707,6 +516,8 @@ export async function writeFileContent(
       userPrompt: `Manual edit: ${filePath}`,
       aiResponse: 'File edited by user',
       workDir,
+      projectId: project.id,
+      teamId: project.team_id,
     })
 
     if (commitResult.success && commitResult.commitHash) {
@@ -753,15 +564,19 @@ export async function getCommitHistory(projectId: string, limit: number = 20) {
       throw new Error('Project not found')
     }
 
-    const { sandbox } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase)
+    const sandboxResult = await E2BService.getSandbox(projectId, supabase)
+    if (!sandboxResult) {
+      throw new Error('No active sandbox. Please refresh the workspace.')
+    }
+    const { sandbox } = sandboxResult
     const workDir = E2BService.getTemplateWorkDir(project.template)
 
-    const result = await GitService.listCommits(sandbox, limit, workDir)
+    const commitResult = await GitService.listCommits(sandbox, limit, workDir)
 
     return {
-      success: result.success,
-      commits: result.commits || [],
-      currentHash: result.commits && result.commits.length > 0 ? result.commits[0]?.hash : null,
+      success: commitResult.success,
+      commits: commitResult.commits || [],
+      currentHash: commitResult.commits && commitResult.commits.length > 0 ? commitResult.commits[0]?.hash : null,
     }
   } catch (error) {
     console.error('[getCommitHistory] Error:', formatError(error))
@@ -791,7 +606,11 @@ export async function checkoutCommit(projectId: string, commitHash: string) {
       throw new Error('Project not found')
     }
 
-    const { sandbox } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase)
+    const result = await E2BService.getSandbox(projectId, supabase)
+    if (!result) {
+      throw new Error('No active sandbox. Please refresh the workspace.')
+    }
+    const { sandbox } = result
     const workDir = E2BService.getTemplateWorkDir(project.template)
 
     // Checkout the commit
@@ -829,7 +648,11 @@ export async function restartDevServer(projectId: string) {
       throw new Error('Project not found')
     }
 
-    const { sandbox } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase)
+    const result = await E2BService.getSandbox(projectId, supabase)
+    if (!result) {
+      throw new Error('No active sandbox. Please refresh the workspace.')
+    }
+    const { sandbox } = result
     const workDir = E2BService.getTemplateWorkDir(project.template)
 
     console.log('[Workspace] Restarting dev server for template:', project.template)
@@ -994,7 +817,7 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
           }
         }
 
-        const nextjsRunning = processes.some((p) => p.name === 'nextjs' && p.pm2_env?.status === 'online')
+        const nextjsRunning = processes.some((p) => p.name === 'nextjs-dev' && p.pm2_env?.status === 'online')
 
         if (nextjsRunning) {
           console.log('[Workspace] PM2 Next.js process already running, skipping start')
@@ -1012,7 +835,7 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
       if (shouldStart) {
         console.log('[Workspace] Starting PM2 processes (async)...')
         try {
-          const startResult = await sandbox.commands.run(`cd ${workDir} && NODE_PATH=/usr/local/lib/node_modules pm2 start configs/ecosystem.config.js`, {
+          const startResult = await sandbox.commands.run(`cd ${workDir} && NODE_PATH=/usr/local/lib/node_modules pm2 start configs/ecosystem.config.js --only nextjs-dev`, {
             timeoutMs: 10000 // 10 second timeout just for PM2 to start
           })
           console.log('[Workspace] PM2 started:', startResult.stdout)
@@ -1052,10 +875,10 @@ async function startDevServer(sandbox: Sandbox, workDir: string, template: strin
       const checkConfig = await sandbox.commands.run(`test -f ${workDir}/configs/ecosystem.config.js && echo "exists" || echo "not found"`)
       console.log('[Workspace] Ecosystem config check:', checkConfig.stdout.trim())
 
-      // Start PM2 with pre-created ecosystem config from template
-      console.log('[Workspace] Starting Next.js with PM2...')
+      // Start PM2 with pre-created ecosystem config from template (dev server only)
+      console.log('[Workspace] Starting Next.js dev server with PM2...')
       try {
-        const startResult = await sandbox.commands.run(`cd ${workDir} && NODE_PATH=/usr/local/lib/node_modules pm2 start configs/ecosystem.config.js 2>&1`, {
+        const startResult = await sandbox.commands.run(`cd ${workDir} && NODE_PATH=/usr/local/lib/node_modules pm2 start configs/ecosystem.config.js --only nextjs-dev 2>&1`, {
           timeoutMs: 15000 // 15 second timeout for PM2 to start processes
         })
         console.log('[Workspace] PM2 started:', startResult.stdout)

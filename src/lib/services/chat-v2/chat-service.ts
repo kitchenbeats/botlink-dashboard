@@ -11,6 +11,10 @@ export interface SendMessageOptions {
   mode?: ExecutionMode
   reviewMode?: ReviewMode
   maxIterations?: number
+  coderModel?: string
+  reviewerModel?: string
+  maxToolCalls?: number
+  conversationId?: string
 }
 
 export interface SendMessageResponse {
@@ -39,7 +43,17 @@ export class ChatService {
    * Send a message to the agent
    */
   static async sendMessage(options: SendMessageOptions): Promise<SendMessageResponse> {
-    const { projectId, message, mode = 'simple', reviewMode = 'off', maxIterations } = options
+    const {
+      projectId,
+      message,
+      mode = 'simple',
+      reviewMode = 'off',
+      maxIterations,
+      coderModel,
+      reviewerModel,
+      maxToolCalls,
+      conversationId
+    } = options
 
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -49,7 +63,11 @@ export class ChatService {
         message,
         mode,
         reviewMode,
-        maxIterations
+        maxIterations,
+        coderModel,
+        reviewerModel,
+        maxToolCalls,
+        conversationId,
       })
     })
 
@@ -64,14 +82,18 @@ export class ChatService {
   /**
    * Load chat history from database
    */
-  static async loadHistory(projectId: string): Promise<Array<{
+  static async loadHistory(projectId: string, conversationId?: string): Promise<Array<{
     id: string
     role: 'user' | 'assistant' | 'system'
     content: string
     created_at: string
     metadata?: Record<string, unknown>
   }>> {
-    const response = await fetch(`/api/projects/${projectId}/messages`)
+    const url = conversationId
+      ? `/api/projects/${projectId}/messages?conversationId=${conversationId}`
+      : `/api/projects/${projectId}/messages`
+
+    const response = await fetch(url)
 
     if (!response.ok) {
       throw new Error('Failed to load chat history')
@@ -93,6 +115,34 @@ export class ChatService {
     if (!response.ok) {
       const error = await response.json()
       throw new Error(error.error || 'Failed to stop agent')
+    }
+  }
+
+  /**
+   * Save a message to the database (for real-time messages)
+   */
+  static async saveMessage(options: {
+    projectId: string
+    conversationId: string
+    role: 'user' | 'assistant' | 'system'
+    content: string
+    metadata?: Record<string, unknown>
+  }): Promise<void> {
+    const response = await fetch(`/api/projects/${options.projectId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId: options.conversationId,
+        role: options.role,
+        content: options.content,
+        metadata: options.metadata || {},
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      console.error('[ChatService] Failed to save message:', error)
+      // Don't throw - we don't want to interrupt the UI if message save fails
     }
   }
 }

@@ -3,12 +3,13 @@
 import {
   DashboardNavLink,
   MAIN_DASHBOARD_LINKS,
+  ADMIN_DASHBOARD_LINKS,
 } from '@/configs/dashboard-navs'
 import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { cn } from '@/lib/utils'
 import micromatch from 'micromatch'
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import {
@@ -22,6 +23,7 @@ import {
   useSidebar,
 } from '@/ui/primitives/sidebar'
 import { usePathname } from 'next/navigation'
+import { checkIsAdmin } from '@/server/actions/admin'
 
 type GroupedLinks = {
   [key: string]: DashboardNavLink[]
@@ -44,10 +46,31 @@ export default function DashboardSidebarContent() {
   const pathname = usePathname()
   const isMobile = useIsMobile()
   const { setOpenMobile } = useSidebar()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    async function fetchAdminStatus() {
+      try {
+        const result = await checkIsAdmin()
+        if (result?.data?.isAdmin) {
+          setIsAdmin(true)
+        }
+      } catch (error) {
+        // Not an admin or error checking
+        setIsAdmin(false)
+      }
+    }
+    fetchAdminStatus()
+  }, [])
+
+  const allLinks = useMemo(
+    () => (isAdmin ? [...MAIN_DASHBOARD_LINKS, ...ADMIN_DASHBOARD_LINKS] : MAIN_DASHBOARD_LINKS),
+    [isAdmin]
+  )
 
   const groupedNavLinks = useMemo(
-    () => createGroupedLinks(MAIN_DASHBOARD_LINKS),
-    []
+    () => createGroupedLinks(allLinks),
+    [allLinks]
   )
 
   const isActive = (link: DashboardNavLink) => {

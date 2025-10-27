@@ -40,6 +40,11 @@ export const PROTECTED_URLS = {
   WORKFLOW_NEW: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/workflows/new`,
   EXECUTIONS: (teamIdOrSlug: string) => `/dashboard/${teamIdOrSlug}/executions`,
   EXECUTION: (teamIdOrSlug: string, executionId: string) => `/dashboard/${teamIdOrSlug}/executions/${executionId}`,
+
+  // Admin routes
+  ADMIN: '/dashboard/admin',
+  ADMIN_TEMPLATES: '/dashboard/admin/templates',
+  ADMIN_SANDBOXES: '/dashboard/admin/sandboxes',
 }
 
 export const HELP_URLS = {

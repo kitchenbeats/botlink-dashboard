@@ -1,12 +1,21 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Send, Zap, Network, User, Loader2, StopCircle } from 'lucide-react'
+import { Send, Zap, Network, User, Loader2, StopCircle, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ExecutionMode, ReviewMode } from '@/lib/services/chat-v2/types'
+import { AgentSettingsModal, type AgentModel } from './agent-settings-modal'
 
 interface ChatInputProps {
-  onSend: (message: string, mode: ExecutionMode, reviewMode: ReviewMode, maxIterations?: number) => void
+  onSend: (
+    message: string,
+    mode: ExecutionMode,
+    reviewMode: ReviewMode,
+    maxIterations?: number,
+    coderModel?: AgentModel,
+    reviewerModel?: AgentModel,
+    maxToolCalls?: number
+  ) => void
   onStop?: () => void
   isLoading: boolean
 }
@@ -15,7 +24,10 @@ export function ChatInput({ onSend, onStop, isLoading }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const [mode, setMode] = useState<ExecutionMode>('simple')
   const [reviewMode, setReviewMode] = useState<ReviewMode>('off')
-  const [maxIterations, setMaxIterations] = useState(2)
+  const [maxIterations, setMaxIterations] = useState(3) // Default to 3 review cycles
+  const [coderModel, setCoderModel] = useState<AgentModel>('claude-haiku-4-5') // Default: Claude Haiku
+  const [reviewerModel, setReviewerModel] = useState<AgentModel>('claude-haiku-4-5') // Default: Claude Haiku
+  const [maxToolCalls, setMaxToolCalls] = useState(30) // Default: 30 tool calls per round
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Auto-resize textarea
@@ -29,7 +41,7 @@ export function ChatInput({ onSend, onStop, isLoading }: ChatInputProps) {
   const handleSend = () => {
     if (!message.trim() || isLoading) return
 
-    onSend(message.trim(), mode, reviewMode, maxIterations)
+    onSend(message.trim(), mode, reviewMode, maxIterations, coderModel, reviewerModel, maxToolCalls)
     setMessage('')
 
     // Reset textarea height
@@ -48,111 +60,53 @@ export function ChatInput({ onSend, onStop, isLoading }: ChatInputProps) {
   return (
     <div className="border-t border-white/10 bg-gradient-to-b from-black/20 to-black/40 backdrop-blur-xl">
       <div className="p-4 space-y-3">
-        {/* Mode selector */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1 border border-white/10">
-            <button
-              onClick={() => setMode('simple')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                mode === 'simple'
-                  ? 'bg-blue-500/20 text-blue-300 shadow-lg shadow-blue-500/20'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-white/5'
-              )}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Fast</span>
-            </button>
-            <button
-              onClick={() => setMode('agents')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                mode === 'agents'
-                  ? 'bg-purple-500/20 text-purple-300 shadow-lg shadow-purple-500/20'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-white/5'
-              )}
-            >
-              <Network className="w-3.5 h-3.5" />
-              <span>Agents</span>
-            </button>
-            <button
-              onClick={() => setMode('custom')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                mode === 'custom'
-                  ? 'bg-green-500/20 text-green-300 shadow-lg shadow-green-500/20'
-                  : 'text-gray-400 hover:text-gray-300 hover:bg-white/5'
-              )}
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Custom</span>
-            </button>
-          </div>
-
-          {/* Review mode for Simple */}
-          {mode === 'simple' && (
-            <>
-              <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1 border border-white/10">
-                <button
-                  onClick={() => setReviewMode('off')}
-                  className={cn(
-                    'px-2.5 py-1 rounded text-[11px] font-medium transition-all',
-                    reviewMode === 'off'
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-500 hover:text-gray-400'
-                  )}
-                >
-                  No Review
-                </button>
-                <button
-                  onClick={() => setReviewMode('limited')}
-                  className={cn(
-                    'px-2.5 py-1 rounded text-[11px] font-medium transition-all',
-                    reviewMode === 'limited'
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-500 hover:text-gray-400'
-                  )}
-                >
-                  Limited
-                </button>
-                <button
-                  onClick={() => setReviewMode('loop')}
-                  className={cn(
-                    'px-2.5 py-1 rounded text-[11px] font-medium transition-all',
-                    reviewMode === 'loop'
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-500 hover:text-gray-400'
-                  )}
-                >
-                  Loop
-                </button>
+        {/* Agent Settings - Clickable indicator */}
+        <AgentSettingsModal
+          mode={mode}
+          reviewMode={reviewMode}
+          maxIterations={maxIterations}
+          coderModel={coderModel}
+          reviewerModel={reviewerModel}
+          maxToolCalls={maxToolCalls}
+          onModeChange={setMode}
+          onReviewModeChange={setReviewMode}
+          onMaxIterationsChange={setMaxIterations}
+          onCoderModelChange={setCoderModel}
+          onReviewerModelChange={setReviewerModel}
+          onMaxToolCallsChange={setMaxToolCalls}
+          trigger={
+            <button className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30 transition-all group">
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 rounded">
+                <Settings className="w-3 h-3 text-blue-400 group-hover:text-blue-300" />
+                <span className="text-xs font-medium text-blue-300">Agent Settings</span>
               </div>
-
-              {/* Max iterations selector (only for limited mode) */}
-              {reviewMode === 'limited' && (
-                <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1 border border-white/10">
-                  <span className="text-[11px] text-gray-400">Max:</span>
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <button
-                        key={num}
-                        onClick={() => setMaxIterations(num)}
-                        className={cn(
-                          'w-6 h-6 rounded text-[11px] font-medium transition-all',
-                          maxIterations === num
-                            ? 'bg-blue-500/30 text-blue-300 border border-blue-500/50'
-                            : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
-                        )}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              {mode === 'simple' && (
+                <>
+                  <Zap className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-xs font-medium text-gray-300">Fast</span>
+                  <span className="text-[10px] text-gray-500">•</span>
+                  <span className="text-xs text-gray-400">
+                    {reviewMode === 'off' ? 'No Review' :
+                     reviewMode === 'limited' ? `${maxIterations} rounds` :
+                     'Loop'}
+                  </span>
+                </>
               )}
-            </>
-          )}
-        </div>
+              {mode === 'agents' && (
+                <>
+                  <Network className="w-3.5 h-3.5 text-purple-400" />
+                  <span className="text-xs font-medium text-gray-300">Multi-Agent</span>
+                </>
+              )}
+              {mode === 'custom' && (
+                <>
+                  <User className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-xs font-medium text-gray-300">Custom Workflow</span>
+                </>
+              )}
+            </button>
+          }
+        />
 
         {/* Input area */}
         <div className="relative">
@@ -210,7 +164,7 @@ export function ChatInput({ onSend, onStop, isLoading }: ChatInputProps) {
           {mode === 'simple' && (
             <span className="text-blue-400/60">
               {reviewMode === 'off' ? '⚡ Direct execution' :
-               reviewMode === 'limited' ? `🔄 ${maxIterations} review iteration${maxIterations !== 1 ? 's' : ''} max` :
+               reviewMode === 'limited' ? `🔄 ${maxIterations} editing round${maxIterations !== 1 ? 's' : ''} max` :
                '♾️ Loop until perfect'}
             </span>
           )}

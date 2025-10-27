@@ -73,20 +73,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
     setIsDeleteDialogOpen(true);
   }
 
-  async function handleRunProject(e: React.MouseEvent) {
+  function handleRunProject(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-
-    setIsStarting(true);
-    try {
-      const { runProject } = await import('@/server/actions/projects');
-      await runProject(project.id);
-      // runProject will redirect to workspace when ready
-    } catch (error) {
-      console.error('Failed to start project:', error);
-      alert('Failed to start project');
-      setIsStarting(false);
-    }
+    // Just redirect to workspace - it will handle create/resume
+    router.push(`/workspace/${project.id}`);
   }
 
   function handleOpenProject(e: React.MouseEvent) {

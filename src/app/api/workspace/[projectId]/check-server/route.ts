@@ -5,7 +5,6 @@
 import { createClient } from '@/lib/clients/supabase/server'
 import { getProject } from '@/lib/db/projects'
 import { E2BService } from '@/lib/services/e2b-service'
-import { TeamApiKeyService } from '@/lib/services/team-api-key-service'
 import { NextRequest, NextResponse } from 'next/server'
 
 // MIGRATED: Removed export const runtime (incompatible with Cache Components)
@@ -32,7 +31,12 @@ export async function GET(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
-    const { sandbox } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase)
+    // Get existing sandbox (should already be created by workspace page)
+    const result = await E2BService.getSandbox(projectId, supabase)
+    if (!result) {
+      return NextResponse.json({ error: 'No active sandbox. Please refresh the workspace.' }, { status: 404 })
+    }
+    const { sandbox } = result
 
     // Check if port 3000 is responding
     const check = await sandbox.commands.run(

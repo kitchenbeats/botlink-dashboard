@@ -18,12 +18,14 @@ import type { Sandbox } from 'e2b'
 import { z } from 'zod'
 import { publishWorkspaceMessage } from './redis-realtime'
 import { kv } from '@/lib/clients/kv'
+import { createAgentEventEmitter } from './agent-events'
 
 export interface CodingAgentConfig {
   sandbox: Sandbox
   projectId: string
   workDir?: string
-  model?: 'claude' | 'gpt'
+  model?: string // e.g., 'claude-haiku-4-5', 'claude-sonnet-4-5', 'gpt-5-mini', 'gpt-5'
+  reviewerModel?: string // e.g., 'claude-haiku-4-5', 'claude-sonnet-4-5', 'gpt-5-mini', 'gpt-5'
   maxIterations?: number
   reviewMode?: 'limited' | 'loop' | 'off'
   maxReviewIterations?: number
@@ -56,6 +58,34 @@ export interface CodingAgentResult {
     thinkingProcess?: string
     errors: string[]
   }
+}
+
+/**
+ * Get model configuration for Inngest Agent-Kit
+ */
+function getModelConfig(modelName?: string) {
+  // Default to Claude Haiku if not specified
+  const model = modelName || 'claude-haiku-4-5'
+
+  // Claude models
+  if (model.includes('claude')) {
+    const claudeModel = model === 'claude-sonnet-4-5' ? 'claude-sonnet-4-5' : 'claude-haiku-4-5'
+    return anthropic({
+      model: claudeModel,
+      defaultParameters: {
+        max_tokens: 8192,
+      },
+    })
+  }
+
+  // OpenAI models
+  const gptModel = model === 'gpt-5' ? 'gpt-5' : 'gpt-5-mini'
+  return openai({
+    model: gptModel,
+    defaultParameters: {
+      //max_completion_tokens: 4096,
+    },
+  })
 }
 
 /**
@@ -129,7 +159,10 @@ function isBinaryFile(path: string): boolean {
  * Create a coding agent that can execute code in an E2B sandbox
  */
 export async function createCodingAgent(config: CodingAgentConfig) {
-  const { sandbox, projectId, workDir = '/home/user', model = 'claude', maxIterations = 15, onProgress } = config
+  const { sandbox, projectId, workDir = '/home/user', model = 'claude', maxIterations = 10, onProgress } = config
+
+  // Create event emitter for Agent-Kit style events
+  const events = createAgentEventEmitter(projectId)
 
   // Helper to resolve paths relative to workDir
   const resolvePath = (filePath: string): string => {
@@ -201,6 +234,37 @@ When running commands:
 - Keep in mind that the terminal is non-interactive, use the '-y' flag when needed
 - File paths should be relative to ${workDir}
 
+DEV SERVER & PM2 MANAGEMENT:
+- TWO servers available via PM2:
+  1. **nextjs-dev** (port 3000): Development server - ALWAYS running, provides live preview
+  2. **nextjs-prod** (port 3001): Production build preview - Start/stop as needed for testing
+
+- Dev server (port 3000) provides live preview for user - NEVER kill it accidentally
+- PM2 auto-restarts dev server if it crashes, keeping preview always available
+
+SAFE COMMANDS:
+  * Check dev server: Use pm2DevServer(action: "status")
+  * Restart dev server: Use pm2DevServer(action: "restart")
+  * View dev logs: Use pm2DevServer(action: "logs")
+  * Install packages: "pnpm install [package]" (dev server auto-reloads)
+  * Clean build cache: "rm -rf .next || true" (|| true handles lock file errors)
+
+PRODUCTION BUILDS (Port 3001):
+  * Test production build: Use productionBuild(action: "build")
+    - Runs "pnpm build" safely
+    - Starts production server on port 3001 (dev server stays on 3000!)
+    - Returns both preview URLs
+  * Stop production server: Use productionBuild(action: "stop") when done testing
+  * NEVER run "pnpm build" directly via terminal - use the productionBuild tool!
+
+DANGEROUS - NEVER DO:
+  * NEVER use "pkill", "killall", or "kill -9" commands (they destroy PM2)
+  * NEVER manually start servers with "pnpm dev" or "pnpm start" (PM2 handles this)
+  * NEVER run "pm2 kill" or "pm2 delete" (breaks the live preview)
+  * NEVER run "pnpm build" via terminal (use productionBuild tool instead)
+
+- The system will auto-detect and restart dev server if you accidentally stop it
+
 IMPORTANT:
 - If the user just says hello or asks a simple question that doesn't require code changes, respond immediately without using tools.
 - Only use tools when you need to read files, write code, or run commands.
@@ -225,25 +289,24 @@ Example:
 }
 </task_summary>
 `,
-    model:
-      model === 'claude'
-        ? anthropic({
-            model: 'claude-haiku-4-5', // Haiku 4.5: 2x faster, 1/3 cost, 73.3% SWE-bench
-            defaultParameters: {
-              max_tokens: 8192,
-            },
-          })
-        : openai({
-            model: 'gpt-5-mini',
-            defaultParameters: {
-              //max_completion_tokens: 4096,
-            },
-          }),
+    model: getModelConfig(model),
     tools: [
       // Terminal command execution
       createTool({
         name: 'terminal',
-        description: 'Execute commands in the sandbox terminal',
+        description: `Execute commands in the sandbox terminal.
+
+IMPORTANT DEV SERVER RULES:
+- Dev server runs on port 3000 via PM2 (process name: "nextjs")
+- NEVER use "pkill", "killall", or kill commands - they will break the dev server
+- To restart dev server: use "pm2 restart nextjs" (not kill commands)
+- To check dev server: use "pm2 status" or "pm2 logs nextjs --lines 20"
+- Build commands are OK but dev server keeps running on port 3000
+
+Safe practices:
+- Clean build artifacts: "rm -rf .next || true" (|| true handles permission errors)
+- Install packages: "pnpm install [package]" (dev server auto-reloads)
+- Run builds: "pnpm build" (uses different process, won't affect dev server)`,
         parameters: z.object({
           command: z.string().describe('The command to execute'),
         }),
@@ -251,34 +314,143 @@ Example:
           console.log('[Coding Agent] terminal:', command)
           structuredData.toolsUsed.add('terminal')
 
-          // Publish progress to UI
-          const progressMsg = `Running: ${command}`
+          // Emit tool.called event
+          await events.emitToolCalled({ name: 'terminal', args: { command } })
+
+          // SAFETY: Intercept and fix dangerous commands
+          let safeCommand = command
+
+          // 1. Fix .next removal - add || true to handle permission errors
+          if (safeCommand.includes('rm -rf .next') && !safeCommand.includes('|| true')) {
+            safeCommand = safeCommand.replace(/rm -rf \.next/g, 'rm -rf .next || true')
+            console.log('[Coding Agent] 🛡️ Made safer:', safeCommand)
+          }
+
+          // 2. Block dangerous kill commands that would destroy PM2
+          if (
+            safeCommand.includes('pkill') ||
+            safeCommand.includes('killall') ||
+            (safeCommand.includes('kill') && safeCommand.includes('-9'))
+          ) {
+            const warning = `⚠️ BLOCKED: Kill commands are not allowed as they destroy the dev server.
+Use pm2DevServer(action: "restart") to restart the dev server instead.
+Current dev server status: use pm2DevServer(action: "status") to check.`
+
+            console.warn('[Coding Agent]', warning)
+            await publishWorkspaceMessage(projectId, 'terminal', {
+              command: safeCommand,
+              output: warning,
+              timestamp: Date.now(),
+            })
+
+            return warning
+          }
+
+          // 3. Guide AI to use productionBuild tool instead of running builds directly
+          if (
+            (safeCommand.includes('pnpm build') || safeCommand.includes('npm run build') || safeCommand.includes('next build')) &&
+            !safeCommand.includes('--help')
+          ) {
+            const guidance = `⚠️ DETECTED: Production build command
+
+Instead of running build commands directly, use the productionBuild tool:
+  - productionBuild(action: "build") - Safely build and preview on port 3001
+
+This ensures:
+✅ Dev server on port 3000 stays running (no conflicts!)
+✅ Production server runs on port 3001
+✅ You get both preview URLs
+
+Do you want to proceed with the direct build anyway? (Not recommended)
+If yes, the command will run but may interfere with live preview.`
+
+            console.warn('[Coding Agent]', guidance)
+            await publishWorkspaceMessage(projectId, 'terminal', {
+              command: safeCommand,
+              output: guidance,
+              timestamp: Date.now(),
+            })
+
+            // Actually block it - force them to use the tool
+            return guidance
+          }
+
+          // 4. Detect commands that might affect dev server
+          const mightAffectServer =
+            safeCommand.includes('pnpm dev') ||
+            safeCommand.includes('npm run dev') ||
+            safeCommand.includes('next dev') ||
+            safeCommand.includes('pm2 stop') ||
+            safeCommand.includes('pm2 restart') ||
+            safeCommand.includes('pm2 delete')
+
+          // Run command (don't spam UI with "Running:" message)
+          const progressMsg = `Running: ${safeCommand}`
+          console.log('[Coding Agent]', progressMsg)
           onProgress?.(progressMsg)
-          await publishWorkspaceMessage(projectId, 'terminal', {
-            command,
-            output: progressMsg,
-            timestamp: Date.now(),
-          })
 
           try {
-            const result = await sandbox.commands.run(command)
+            const result = await sandbox.commands.run(safeCommand)
             console.log('[Coding Agent] terminal result:', result.stdout)
 
             const output = result.stdout || result.stderr || 'Command completed'
 
             // Track command execution
             structuredData.commandsRun.push({
-              command,
+              command: safeCommand,
               output,
               success: result.exitCode === 0
             })
 
-            // Publish command output
+            // Publish command output to UI (this creates a terminal card)
             await publishWorkspaceMessage(projectId, 'terminal', {
-              command,
+              command: safeCommand,
               output,
               timestamp: Date.now(),
             })
+
+            // SAFETY: Auto-check and restart dev server if command might have affected it
+            if (mightAffectServer) {
+              console.log('[Coding Agent] 🔍 Checking dev server health after command...')
+
+              // Wait a moment for things to settle
+              await new Promise(resolve => setTimeout(resolve, 2000))
+
+              // Check if dev server is still running via PM2
+              const pm2Check = await sandbox.commands.run('pm2 jlist')
+              const processes = JSON.parse(pm2Check.stdout || '[]') as Array<{
+                name: string
+                pm2_env?: { status: string }
+              }>
+
+              const nextjsProcess = processes.find(p => p.name === 'nextjs-dev')
+              const isOnline = nextjsProcess?.pm2_env?.status === 'online'
+
+              if (!isOnline) {
+                console.log('[Coding Agent] ⚠️ Dev server is down! Auto-restarting...')
+
+                // Auto-restart with PM2
+                const restartResult = await sandbox.commands.run(
+                  `cd ${workDir || '/templates/nextjs-saas'} && pm2 restart nextjs-dev || pm2 start configs/ecosystem.config.js --only nextjs-dev`
+                )
+
+                const restartMsg = `🔄 Dev server was down, automatically restarted via PM2\n${restartResult.stdout}`
+                console.log('[Coding Agent]', restartMsg)
+
+                // Notify user
+                await publishWorkspaceMessage(projectId, 'terminal', {
+                  output: restartMsg,
+                  timestamp: Date.now(),
+                })
+
+                return output + '\n\n' + restartMsg
+              } else {
+                console.log('[Coding Agent] ✅ Dev server still running on port 3000')
+              }
+            }
+
+            // Emit tool.completed event
+            await events.emitToolCompleted({ name: 'terminal', result: output })
 
             return output
           } catch (error) {
@@ -291,6 +463,9 @@ Example:
               success: false
             })
             structuredData.errors.push(errorMsg)
+
+            // Emit tool.failed event
+            await events.emitToolFailed({ name: 'terminal', error: errorMsg })
 
             return errorMsg
           }
@@ -316,13 +491,10 @@ Example:
           )
           structuredData.toolsUsed.add('createOrUpdateFiles')
 
-          // Publish progress to UI
+          // DON'T publish progress - file-change events below will show in UI
           const progressMsg = `Writing ${files.length} file(s): ${files.map(f => f.path).join(', ')}`
+          console.log('[Coding Agent]', progressMsg)
           onProgress?.(progressMsg)
-          await publishWorkspaceMessage(projectId, 'terminal', {
-            output: progressMsg,
-            timestamp: Date.now(),
-          })
 
           try {
             for (const file of files) {
@@ -376,13 +548,10 @@ Example:
         handler: async ({ files }) => {
           console.log('[Coding Agent] readFiles:', files)
 
-          // Publish progress to UI
+          // DON'T publish to UI - too noisy, just log
           const progressMsg = `Reading ${files.length} file(s): ${files.join(', ')}`
+          console.log('[Coding Agent]', progressMsg)
           onProgress?.(progressMsg)
-          await publishWorkspaceMessage(projectId, 'terminal', {
-            output: progressMsg,
-            timestamp: Date.now(),
-          })
 
           try {
             const contents = []
@@ -437,6 +606,327 @@ Example:
           } catch (error) {
             const errorMsg = `Code execution failed: ${error}`
             console.error('[Coding Agent]', errorMsg)
+            return errorMsg
+          }
+        },
+      }),
+
+      // Production Build & Test
+      createTool({
+        name: 'productionBuild',
+        description: `Build and test the production version of the Next.js app.
+
+This tool handles the complete production build workflow safely:
+1. Runs "pnpm build" to create optimized production bundle
+2. Starts production server on port 3001 (dev server stays on 3000)
+3. Waits for production server to be ready
+4. Returns the production preview URL
+
+The dev server on port 3000 continues running - no conflicts!`,
+        parameters: z.object({
+          action: z.enum(['build', 'start', 'stop', 'status']).describe(
+            'Action: build (build + start on 3001), start (start existing build), stop (stop prod server), status (check prod server)'
+          ),
+        }),
+        handler: async ({ action }) => {
+          console.log('[Coding Agent] productionBuild:', action)
+          structuredData.toolsUsed.add('productionBuild')
+
+          try {
+            const workPath = workDir || '/templates/nextjs-saas'
+
+            if (action === 'build') {
+              // Multi-step production build process
+              const steps = [
+                { name: 'Build', description: 'Running pnpm build' },
+                { name: 'Stop old server', description: 'Stopping PM2 nextjs-prod' },
+                { name: 'Start server', description: 'Starting on port 3001' },
+                { name: 'Verify', description: 'Waiting for ready' },
+              ]
+              const totalSteps = steps.length
+
+              // Emit tool.called event
+              await events.emitToolCalled({ name: 'productionBuild', args: { action: 'build' } })
+
+              // Step 1: Run production build
+              await events.emitStepStarted({
+                toolName: 'productionBuild',
+                step: 1,
+                total: totalSteps,
+                description: steps[0]!.description
+              })
+
+              const buildMsg = '🏗️ Building production bundle...'
+              console.log('[Coding Agent]', buildMsg)
+              await publishWorkspaceMessage(projectId, 'terminal', {
+                output: buildMsg,
+                timestamp: Date.now(),
+              })
+
+              const buildResult = await sandbox.commands.run(`cd ${workPath} && pnpm build`, {
+                timeoutMs: 120000, // 2 minute timeout for builds
+              })
+
+              const buildOutput = buildResult.stdout || buildResult.stderr
+
+              await publishWorkspaceMessage(projectId, 'terminal', {
+                command: 'pnpm build',
+                output: buildOutput,
+                timestamp: Date.now(),
+              })
+
+              if (buildResult.exitCode !== 0) {
+                const errorMsg = `❌ Production build failed:\n${buildOutput}`
+                structuredData.errors.push(errorMsg)
+                await events.emitStepFailed({
+                  toolName: 'productionBuild',
+                  step: 1,
+                  total: totalSteps,
+                  error: errorMsg
+                })
+                await events.emitToolFailed({ name: 'productionBuild', error: errorMsg })
+                return errorMsg
+              }
+
+              await events.emitStepCompleted({
+                toolName: 'productionBuild',
+                step: 1,
+                total: totalSteps,
+                description: '✅ Build complete'
+              })
+
+              // Step 2: Stop existing production server if running
+              await events.emitStepStarted({
+                toolName: 'productionBuild',
+                step: 2,
+                total: totalSteps,
+                description: steps[1]!.description
+              })
+
+              await sandbox.commands.run('pm2 stop nextjs-prod || true')
+
+              await events.emitStepCompleted({
+                toolName: 'productionBuild',
+                step: 2,
+                total: totalSteps,
+                description: '✅ Server stopped'
+              })
+
+              // Step 3: Start production server on port 3001
+              await events.emitStepStarted({
+                toolName: 'productionBuild',
+                step: 3,
+                total: totalSteps,
+                description: steps[2]!.description
+              })
+
+              const startMsg = '🚀 Starting production server on port 3001...'
+              console.log('[Coding Agent]', startMsg)
+              await publishWorkspaceMessage(projectId, 'terminal', {
+                output: startMsg,
+                timestamp: Date.now(),
+              })
+
+              await sandbox.commands.run(
+                `cd ${workPath} && pm2 start ecosystem.config.js --only nextjs-prod`
+              )
+
+              await events.emitStepCompleted({
+                toolName: 'productionBuild',
+                step: 3,
+                total: totalSteps,
+                description: '✅ Server started'
+              })
+
+              // Step 4: Wait for port 3001 to be ready
+              await events.emitStepStarted({
+                toolName: 'productionBuild',
+                step: 4,
+                total: totalSteps,
+                description: steps[3]!.description
+              })
+
+              await new Promise(resolve => setTimeout(resolve, 3000))
+
+              await events.emitStepCompleted({
+                toolName: 'productionBuild',
+                step: 4,
+                total: totalSteps,
+                description: '✅ Server ready'
+              })
+
+              const successMsg = `✅ Production build complete!
+
+Dev Server (PORT 3000): Running (unchanged)
+Prod Server (PORT 3001): Running
+
+Preview URLs:
+- Development: http://localhost:3000
+- Production: http://localhost:3001
+
+Use pm2DevServer tool to manage dev server.
+Use productionBuild(action: "stop") when done testing production.`
+
+              await publishWorkspaceMessage(projectId, 'terminal', {
+                output: successMsg,
+                timestamp: Date.now(),
+              })
+
+              // Emit tool.completed event
+              await events.emitToolCompleted({
+                name: 'productionBuild',
+                result: successMsg
+              })
+
+              return successMsg
+            } else if (action === 'start') {
+              // Start production server without rebuilding
+              await sandbox.commands.run(
+                `cd ${workPath} && pm2 start ecosystem.config.js --only nextjs-prod`
+              )
+
+              const msg = '✅ Production server started on port 3001'
+              await publishWorkspaceMessage(projectId, 'terminal', {
+                output: msg,
+                timestamp: Date.now(),
+              })
+              return msg
+            } else if (action === 'stop') {
+              // Stop production server
+              await sandbox.commands.run('pm2 stop nextjs-prod')
+
+              const msg = '⏹️ Production server stopped (dev server still running on 3000)'
+              await publishWorkspaceMessage(projectId, 'terminal', {
+                output: msg,
+                timestamp: Date.now(),
+              })
+              return msg
+            } else if (action === 'status') {
+              // Check production server status
+              const pm2Check = await sandbox.commands.run('pm2 jlist')
+              const processes = JSON.parse(pm2Check.stdout || '[]') as Array<{
+                name: string
+                pm2_env?: { status: string }
+              }>
+
+              const devProcess = processes.find(p => p.name === 'nextjs-dev')
+              const prodProcess = processes.find(p => p.name === 'nextjs-prod')
+
+              const statusMsg = `📊 Server Status:
+
+Dev Server (nextjs-dev):
+  Status: ${devProcess?.pm2_env?.status || 'stopped'}
+  Port: 3000
+
+Production Server (nextjs-prod):
+  Status: ${prodProcess?.pm2_env?.status || 'stopped'}
+  Port: 3001`
+
+              await publishWorkspaceMessage(projectId, 'terminal', {
+                output: statusMsg,
+                timestamp: Date.now(),
+              })
+              return statusMsg
+            }
+
+            return 'Unknown action'
+          } catch (error) {
+            const errorMsg = `Production build failed: ${error}`
+            console.error('[Coding Agent]', errorMsg)
+            structuredData.errors.push(errorMsg)
+            return errorMsg
+          }
+        },
+      }),
+
+      // PM2 Dev Server Management
+      createTool({
+        name: 'pm2DevServer',
+        description: `Manage the Next.js dev server running via PM2.
+
+Use this to check server status or restart it safely without killing the process.
+The dev server runs on port 3000 and is named "nextjs-dev" in PM2.`,
+        parameters: z.object({
+          action: z.enum(['status', 'restart', 'logs']).describe(
+            'Action to perform: status (check if running), restart (gracefully restart), logs (view recent logs)'
+          ),
+        }),
+        handler: async ({ action }) => {
+          console.log('[Coding Agent] pm2DevServer:', action)
+          structuredData.toolsUsed.add('pm2DevServer')
+
+          try {
+            let command = ''
+            let description = ''
+
+            switch (action) {
+              case 'status':
+                command = 'pm2 jlist'
+                description = 'Checking dev server status'
+                break
+              case 'restart':
+                command = `cd ${workDir || '/templates/nextjs-saas'} && pm2 restart nextjs-dev`
+                description = 'Restarting dev server'
+                break
+              case 'logs':
+                command = 'pm2 logs nextjs-dev --nostream --lines 30'
+                description = 'Fetching dev server logs'
+                break
+            }
+
+            console.log('[Coding Agent]', description)
+            const result = await sandbox.commands.run(command)
+
+            // Parse status for friendly output
+            if (action === 'status') {
+              const processes = JSON.parse(result.stdout || '[]') as Array<{
+                name: string
+                pm2_env?: { status: string; pm_uptime: number }
+              }>
+
+              const nextjsProcess = processes.find(p => p.name === 'nextjs-dev')
+              if (nextjsProcess) {
+                const status = nextjsProcess.pm2_env?.status || 'unknown'
+                const uptime = nextjsProcess.pm2_env?.pm_uptime
+                  ? new Date(nextjsProcess.pm2_env.pm_uptime).toISOString()
+                  : 'unknown'
+
+                const statusMsg = `✅ Dev server is ${status}
+Process: nextjs-dev
+Status: ${status}
+Started: ${uptime}
+Port: 3000 (http://localhost:3000)`
+
+                await publishWorkspaceMessage(projectId, 'terminal', {
+                  output: statusMsg,
+                  timestamp: Date.now(),
+                })
+
+                return statusMsg
+              } else {
+                const errorMsg = '⚠️ Dev server (nextjs-dev) not found in PM2. It may have been stopped.'
+                await publishWorkspaceMessage(projectId, 'terminal', {
+                  output: errorMsg,
+                  timestamp: Date.now(),
+                })
+                return errorMsg
+              }
+            }
+
+            // For restart and logs, return raw output
+            const output = result.stdout || result.stderr || 'Command completed'
+
+            await publishWorkspaceMessage(projectId, 'terminal', {
+              command: `pm2 ${action}`,
+              output,
+              timestamp: Date.now(),
+            })
+
+            return output
+          } catch (error) {
+            const errorMsg = `Failed to ${action} dev server: ${error}`
+            console.error('[Coding Agent]', errorMsg)
+            structuredData.errors.push(errorMsg)
             return errorMsg
           }
         },
@@ -512,18 +1002,24 @@ Example:
   const network = createNetwork({
     name: 'coding-agent-network',
     agents: [agent],
-    maxIter: maxIterations,
+    maxIter: maxIterations, // Max tool calls (agent should finish early with <task_summary>)
     defaultRouter: ({ network, callCount, lastResult }) => {
-      console.log(`[Coding Agent] Iteration #${callCount}`)
-      const iterMsg = `Iteration ${callCount}`;
-      onProgress?.(iterMsg);
-      publishWorkspaceMessage(projectId, 'terminal', {
-        output: iterMsg,
-        timestamp: Date.now(),
-      }).catch(err => console.error('[Coding Agent] Failed to publish iteration:', err));
+      // ONLY log to console, NOT to UI (internal tool calls aren't "iterations")
+      console.log(`[Coding Agent] Tool call #${callCount}/${maxIterations}`)
 
-      // Stop if task summary found
+      // Stop if max tool calls reached
+      if (callCount >= maxIterations) {
+        console.log('[Coding Agent] Max tool calls reached, stopping')
+        const lastText = lastResult?.output.find((msg) => 'type' in msg && msg.type === 'text')
+        if (lastText && 'content' in lastText) {
+          network?.state.kv.set('task_summary', lastText.content)
+        }
+        return // Stop execution
+      }
+
+      // Stop if task summary found (agent finished early - this is the goal!)
       if (network?.state.kv.has('task_summary')) {
+        console.log('[Coding Agent] Task completed early!')
         return // Stop execution
       }
 
@@ -553,7 +1049,7 @@ Example:
  * Create a review agent to check coding work quality
  */
 async function createReviewAgent(config: CodingAgentConfig) {
-  const { model = 'claude', onProgress } = config;
+  const { reviewerModel = 'claude', onProgress } = config;
 
   return createAgent({
     name: 'Code Reviewer',
@@ -573,17 +1069,7 @@ Output Format:
 - If issues found: "ISSUES FOUND: [list specific problems]"
 
 Be thorough but fair. Focus on critical issues that must be fixed.`,
-    model:
-      model === 'claude'
-        ? anthropic({
-            model: 'claude-haiku-4-5',
-            defaultParameters: {
-              max_tokens: 4096,
-            },
-          })
-        : openai({
-            model: 'gpt-5-mini',
-          }),
+    model: getModelConfig(reviewerModel),
     tools: [], // No tools needed for review, just analysis
   });
 }
@@ -617,13 +1103,31 @@ export async function runCodingTask(
   config: CodingAgentConfig
 ): Promise<CodingAgentResult> {
   const {
+    projectId,
     onProgress,
     reviewMode = 'limited',
-    maxReviewIterations = 3  // Change this number to set max review iterations
+    maxReviewIterations = 2,  // Max review loop iterations
+    maxIterations = 10  // Max agent iterations per attempt
   } = config;
   const { publishWorkspaceMessage } = await import('@/lib/services/redis-realtime');
 
-  console.log('[Coding Agent] Config:', { reviewMode, maxReviewIterations, configValue: config.maxReviewIterations });
+  // Create event emitter
+  const events = createAgentEventEmitter(projectId);
+
+  console.log('[Coding Agent] Config:', {
+    reviewMode,
+    maxReviewIterations,
+    maxIterations,
+    totalMaxIterations: maxIterations * (maxReviewIterations + 1)
+  });
+
+  // Emit run.started event
+  await events.emitRunStarted({
+    agentName: 'Coding Agent',
+    prompt
+  });
+
+  const startTime = Date.now();
 
   try {
     let currentPrompt = prompt;
@@ -708,7 +1212,8 @@ export async function runCodingTask(
       }
 
       // Step 1: Run coding agent
-      const agentProgressMsg = `Coding agent working...${reviewAttempts > 0 ? ` (iteration ${reviewAttempts + 1})` : ''}`;
+      const currentRound = reviewAttempts + 1;
+      const agentProgressMsg = `🤖 Editing Round ${currentRound}${maxAttempts !== Infinity ? `/${maxAttempts}` : ''}: Coding agent working...`;
       onProgress?.(agentProgressMsg);
       await publishWorkspaceMessage(config.projectId, 'terminal', {
         output: agentProgressMsg,
@@ -742,6 +1247,23 @@ export async function runCodingTask(
         name: 'review-network',
         agents: [reviewer],
         maxIter: 2,
+        defaultRouter: ({ network, callCount, lastResult }) => {
+          console.log(`[Review Agent] Tool call #${callCount}/2`)
+
+          // Stop if max calls reached
+          if (callCount >= 2) {
+            console.log('[Review Agent] Max tool calls reached, stopping')
+            return
+          }
+
+          // Stop if review decision found
+          if (network?.state.kv.has('review_decision')) {
+            console.log('[Review Agent] Review decision made, stopping')
+            return
+          }
+
+          return reviewer
+        },
       });
 
       const reviewResult = await reviewNetwork.run(
@@ -787,9 +1309,9 @@ export async function runCodingTask(
       });
 
       if (reviewAttempts < maxAttempts) {
-        const modeText = shouldLoopTillFixed ? '' : ` (${reviewAttempts}/${maxAttempts})`;
+        const modeText = shouldLoopTillFixed ? ` (attempt ${reviewAttempts + 1})` : ` (${reviewAttempts}/${maxAttempts})`;
         console.log(`[Coding Agent] Review found issues, attempting fix${modeText}`);
-        const retryMsg = `Reviewer found issues, fixing...${modeText}`;
+        const retryMsg = `🔧 Reviewer found issues, fixing...${modeText}`;
         onProgress?.(retryMsg);
         await publishWorkspaceMessage(config.projectId, 'terminal', {
           output: retryMsg,
@@ -798,7 +1320,7 @@ export async function runCodingTask(
         currentPrompt = `The previous implementation had issues. Please fix them:\n\n${reviewOutput}\n\nOriginal task: ${prompt}`;
       } else {
         console.log('[Coding Agent] Max review attempts reached');
-        const maxAttemptsMsg = '⚠️ Completed with review feedback';
+        const maxAttemptsMsg = `⚠️ Max review iterations (${maxAttempts}) reached - completing with feedback`;
         onProgress?.(maxAttemptsMsg);
         await publishWorkspaceMessage(config.projectId, 'terminal', {
           output: maxAttemptsMsg,
@@ -811,7 +1333,7 @@ export async function runCodingTask(
     // Parse JSON from final summary
     const parsedResponse = parseAgentResponse(finalSummary);
 
-    return {
+    const result = {
       success: true,
       output: parsedResponse.message,
       structured: lastStructuredData ? {
@@ -823,12 +1345,31 @@ export async function runCodingTask(
         errors: lastStructuredData.errors
       } : undefined
     };
+
+    // Emit run.completed event
+    const duration = Date.now() - startTime;
+    await events.emitRunCompleted({
+      agentName: 'Coding Agent',
+      output: result.output,
+      duration
+    });
+
+    return result;
   } catch (error) {
     console.error('[Coding Agent] Task failed:', error);
+
+    const errorMsg = error instanceof Error ? error.message : String(error);
+
+    // Emit run.failed event
+    await events.emitRunFailed({
+      agentName: 'Coding Agent',
+      error: errorMsg
+    });
+
     return {
       success: false,
       output: '',
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMsg,
     };
   }
 }

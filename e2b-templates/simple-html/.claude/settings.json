@@ -1,4 +1,15 @@
 {
   "theme": "dark",
-  "permissionMode": "auto"
+  "permissionMode": "auto",
+  "blockedCommands": [
+    "pm2",
+    "npm start",
+    "pnpm dev",
+    "next dev",
+    "bun dev",
+    "rm -rf .next",
+    "forever",
+    "nodemon"
+  ],
+  "customInstructions": "CRITICAL: This is an E2B sandbox with a pre-running dev server on port 3000. NEVER start/stop servers or use pm2. Only edit code files. The server auto-reloads. See CLAUDE.md for full rules."
 }

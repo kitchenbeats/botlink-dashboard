@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: `https://e2b.dev/sitemap.xml`,
+    // ReactWrite is a dashboard application, sitemap not needed
+    sitemap: undefined,
   }
 }

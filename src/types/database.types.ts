@@ -12,33 +12,29 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
+      _migrations: {
+        Row: {
+          id: number
+          is_applied: boolean
+          tstamp: string
+          version_id: number
+        }
+        Insert: {
+          id?: number
+          is_applied: boolean
+          tstamp?: string
+          version_id: number
+        }
+        Update: {
+          id?: number
+          is_applied?: boolean
+          tstamp?: string
+          version_id?: number
+        }
+        Relationships: []
+      }
       access_tokens: {
         Row: {
           access_token_hash: string
@@ -159,6 +155,47 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          first_commit_hash: string | null
+          id: string
+          last_commit_hash: string | null
+          name: string
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          first_commit_hash?: string | null
+          id?: string
+          last_commit_hash?: string | null
+          name: string
+          project_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          first_commit_hash?: string | null
+          id?: string
+          last_commit_hash?: string | null
+          name?: string
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deployments: {
         Row: {
           build_logs: string | null
@@ -248,7 +285,7 @@ export type Database = {
           vcpu: number
         }
         Insert: {
-          cluster_node_id?: string
+          cluster_node_id: string
           created_at?: string
           dockerfile?: string | null
           env_id: string
@@ -304,11 +341,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
-          is_system: boolean
           last_spawned_at: string | null
           public: boolean
           spawn_count: number
-          team_id: string | null
+          team_id: string
           updated_at: string
         }
         Insert: {
@@ -317,11 +353,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id: string
-          is_system?: boolean
           last_spawned_at?: string | null
           public?: boolean
           spawn_count?: number
-          team_id?: string | null
+          team_id: string
           updated_at: string
         }
         Update: {
@@ -330,11 +365,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          is_system?: boolean
           last_spawned_at?: string | null
           public?: boolean
           spawn_count?: number
-          team_id?: string | null
+          team_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -455,6 +489,7 @@ export type Database = {
       messages: {
         Row: {
           content: string
+          conversation_id: string
           created_at: string | null
           id: string
           metadata: Json | null
@@ -463,6 +498,7 @@ export type Database = {
         }
         Insert: {
           content: string
+          conversation_id: string
           created_at?: string | null
           id?: string
           metadata?: Json | null
@@ -471,6 +507,7 @@ export type Database = {
         }
         Update: {
           content?: string
+          conversation_id?: string
           created_at?: string | null
           id?: string
           metadata?: Json | null
@@ -479,7 +516,55 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_snapshots: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_count: number | null
+          id: string
+          metadata: Json | null
+          project_id: string
+          size_mb: number | null
+          snapshot_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_count?: number | null
+          id?: string
+          metadata?: Json | null
+          project_id: string
+          size_mb?: number | null
+          snapshot_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_count?: number | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string
+          size_mb?: number | null
+          snapshot_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_snapshots_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -491,7 +576,9 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          github_repo_url: string | null
           id: string
+          last_commit_hash: string | null
           last_opened_at: string | null
           name: string
           settings: Json | null
@@ -502,7 +589,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          github_repo_url?: string | null
           id?: string
+          last_commit_hash?: string | null
           last_opened_at?: string | null
           name: string
           settings?: Json | null
@@ -513,7 +602,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
+          github_repo_url?: string | null
           id?: string
+          last_commit_hash?: string | null
           last_opened_at?: string | null
           name?: string
           settings?: Json | null
@@ -602,7 +693,7 @@ export type Database = {
           env_secure?: boolean
           id?: string
           metadata?: Json | null
-          origin_node_id?: string
+          origin_node_id: string
           sandbox_id: string
           sandbox_started_at: string
           team_id: string
@@ -756,12 +847,12 @@ export type Database = {
       }
       team_api_keys: {
         Row: {
-          api_key_encrypted: string | null
-          api_key_hash: string | null
-          api_key_length: number | null
-          api_key_mask_prefix: string | null
-          api_key_mask_suffix: string | null
-          api_key_prefix: string | null
+          api_key_encrypted: string
+          api_key_hash: string
+          api_key_length: number
+          api_key_mask_prefix: string
+          api_key_mask_suffix: string
+          api_key_prefix: string
           created_at: string
           created_by: string | null
           id: string
@@ -771,12 +862,12 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          api_key_encrypted?: string | null
-          api_key_hash?: string | null
-          api_key_length?: number | null
-          api_key_mask_prefix?: string | null
-          api_key_mask_suffix?: string | null
-          api_key_prefix?: string | null
+          api_key_encrypted: string
+          api_key_hash: string
+          api_key_length: number
+          api_key_mask_prefix: string
+          api_key_mask_suffix: string
+          api_key_prefix: string
           created_at?: string
           created_by?: string | null
           id?: string
@@ -786,12 +877,12 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          api_key_encrypted?: string | null
-          api_key_hash?: string | null
-          api_key_length?: number | null
-          api_key_mask_prefix?: string | null
-          api_key_mask_suffix?: string | null
-          api_key_prefix?: string | null
+          api_key_encrypted?: string
+          api_key_hash?: string
+          api_key_length?: number
+          api_key_mask_prefix?: string
+          api_key_mask_suffix?: string
+          api_key_prefix?: string
           created_at?: string
           created_by?: string | null
           id?: string
@@ -820,8 +911,6 @@ export type Database = {
           is_banned: boolean
           is_blocked: boolean
           name: string
-          profile_picture_url: string | null
-          slug: string
           tier: string
         }
         Insert: {
@@ -833,8 +922,6 @@ export type Database = {
           is_banned?: boolean
           is_blocked?: boolean
           name: string
-          profile_picture_url?: string | null
-          slug: string
           tier: string
         }
         Update: {
@@ -846,8 +933,6 @@ export type Database = {
           is_banned?: boolean
           is_blocked?: boolean
           name?: string
-          profile_picture_url?: string | null
-          slug?: string
           tier?: string
         }
         Relationships: [
@@ -981,22 +1066,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      encrypt_e2b_api_key: { Args: { raw_key: string }; Returns: string }
       extra_for_post_user_signup: {
         Args: { team_id: string; user_id: string }
         Returns: undefined
       }
-      generate_access_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_team_api_key: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_team_slug: {
-        Args: { name: string }
-        Returns: string
-      }
+      generate_access_token: { Args: never; Returns: string }
+      generate_team_api_key: { Args: never; Returns: string }
       get_agents_by_execution: {
         Args: { p_execution_id: string }
         Returns: {
@@ -1013,6 +1089,12 @@ export type Database = {
           updated_at: string | null
           user_prompt_template: string | null
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "agents"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_pending_tasks_for_execution: {
         Args: { p_execution_id: string }
@@ -1037,22 +1119,17 @@ export type Database = {
           title: string
           type: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
-      get_team_api_key: {
-        Args: { team_uuid: string }
-        Returns: string
-      }
+      get_team_api_key: { Args: { team_uuid: string }; Returns: string }
       is_member_of_team: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
-      }
-      unaccent: {
-        Args: { "": string }
-        Returns: string
-      }
-      unaccent_init: {
-        Args: { "": unknown }
-        Returns: unknown
       }
     }
     Enums: {
@@ -1182,9 +1259,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

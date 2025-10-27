@@ -28,7 +28,11 @@ export async function sendChatMessage(
   conversationHistory: ChatMessage[],
   mode: ExecutionMode = 'simple',
   reviewMode: 'off' | 'limited' | 'loop' = 'off',
-  maxIterations?: number
+  maxIterations?: number,
+  conversationId?: string,
+  coderModel?: string,
+  reviewerModel?: string,
+  maxToolCalls?: number
 ) {
   const supabase = await createClient();
   const {
@@ -39,9 +43,14 @@ export async function sendChatMessage(
     throw new Error('Not authenticated');
   }
 
+  if (!conversationId) {
+    throw new Error('Conversation ID is required');
+  }
+
   // Save user message to database
   await createMessage({
     project_id: projectId,
+    conversation_id: conversationId,
     role: 'user',
     content: userMessage,
     metadata: { executionMode: mode },
@@ -56,8 +65,12 @@ export async function sendChatMessage(
         throw new Error(`Project ${projectId} not found`);
       }
 
-      // Get or create sandbox for this project
-      const { sandbox } = await E2BService.getOrCreateSandbox(projectId, supabase);
+      // Get existing sandbox (should already be created by workspace page)
+      const sandboxResult = await E2BService.getSandbox(projectId, supabase);
+      if (!sandboxResult) {
+        throw new Error('No active sandbox. Please refresh the workspace.');
+      }
+      const { sandbox } = sandboxResult;
 
       // Get working directory for this template
       const workDir = E2BService.getTemplateWorkDir(project.template);
@@ -65,24 +78,30 @@ export async function sendChatMessage(
       // Save conversation history to sandbox file BEFORE running agent
       // This includes all previous messages + the new user message
       try {
-        const allMessages = await listMessages(projectId);
+        const allMessages = await listMessages(projectId, conversationId);
         await saveConversationToFile(sandbox, workDir, allMessages);
       } catch (error) {
         console.error('[Chat] Failed to save conversation before agent run:', error);
       }
 
       // Run coding task using Inngest Agent-Kit
+      // User's slider = max review cycles (coder → reviewer → repeat)
+      // Agent should finish in 1-2 cycles ideally, but can go up to user's max
       const result = await runCodingTask(userMessage, {
         sandbox,
         projectId,
         workDir,
+        model: coderModel, // User-selected model for coder (e.g., 'claude-haiku-4-5', 'claude-sonnet-4-5', 'gpt-5-mini', 'gpt-5')
+        reviewerModel: reviewerModel, // User-selected model for reviewer
         reviewMode, // User-selected review mode
-        maxReviewIterations: maxIterations,
+        maxReviewIterations: maxIterations || 3, // USER CONTROLS: Max review cycles
+        maxIterations: maxToolCalls || 30, // USER CONTROLS: Max tool calls per round
       });
 
       // Save assistant response
       await createMessage({
         project_id: projectId,
+        conversation_id: conversationId,
         role: 'assistant',
         content: result.output,
         metadata: {
@@ -94,7 +113,7 @@ export async function sendChatMessage(
 
       // Save full conversation history to sandbox file
       try {
-        const allMessages = await listMessages(projectId);
+        const allMessages = await listMessages(projectId, conversationId);
         await saveConversationToFile(sandbox, workDir, allMessages);
       } catch (error) {
         console.error('[Chat] Failed to save conversation to file:', error);
@@ -112,6 +131,7 @@ export async function sendChatMessage(
       // Save error message
       await createMessage({
         project_id: projectId,
+        conversation_id: conversationId,
         role: 'assistant',
         content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         metadata: {
@@ -125,25 +145,84 @@ export async function sendChatMessage(
     }
   }
 
-  // AGENTS MODE: Use workflow orchestration with dynamic agents
+  // AGENTS MODE: Use orchestrator with dynamic agent creation
   try {
-    const { runWorkflowAgents } = await import('./workspace');
-
-    // Trigger workflow orchestration
-    const result = await runWorkflowAgents(projectId, userMessage);
-
-    if (!result.success) {
-      throw new Error('Failed to start workflow orchestration');
+    // Get project to find template and working directory
+    const project = await getProject(projectId);
+    if (!project) {
+      throw new Error(`Project ${projectId} not found`);
     }
 
-    // Return success response with execution ID
+    // Get existing sandbox (should already be created by workspace page)
+    const sandboxResult = await E2BService.getSandbox(projectId, supabase);
+    if (!sandboxResult) {
+      throw new Error('No active sandbox. Please refresh the workspace.');
+    }
+    const { sandbox } = sandboxResult;
+
+    // Get working directory for this template
+    const workDir = E2BService.getTemplateWorkDir(project.template);
+
+    // Save conversation history to sandbox file BEFORE running orchestrator
+    try {
+      const allMessages = await listMessages(projectId, conversationId);
+      await saveConversationToFile(sandbox, workDir, allMessages);
+    } catch (error) {
+      console.error('[Chat] Failed to save conversation before orchestrator:', error);
+    }
+
+    // Run orchestrator task with dynamic agent creation
+    const { runOrchestratorTask } = await import('@/lib/services/orchestrator-agent');
+
+    const result = await runOrchestratorTask(userMessage, {
+      projectId,
+      sandbox,
+      workDir,
+      model: coderModel || 'claude-sonnet-4-5', // Orchestrator uses more powerful model
+      maxIterations: maxToolCalls || 30,
+    });
+
+    // Save assistant response
+    await createMessage({
+      project_id: projectId,
+      conversation_id: conversationId,
+      role: 'assistant',
+      content: result.output,
+      metadata: {
+        executionMode: mode,
+        success: result.success,
+        error: result.error,
+      },
+    });
+
+    // Save full conversation history to sandbox file
+    try {
+      const allMessages = await listMessages(projectId, conversationId);
+      await saveConversationToFile(sandbox, workDir, allMessages);
+    } catch (error) {
+      console.error('[Chat] Failed to save conversation to file:', error);
+    }
+
     return {
-      success: true,
-      content: '🤖 Starting workflow orchestration with specialized agents...',
-      executionId: result.executionId,
+      success: result.success,
+      content: result.output,
     };
   } catch (error) {
-    console.error('[Chat] Workflow orchestration error:', error);
+    console.error('[Chat] Orchestrator error:', error);
+
+    // Save error message
+    await createMessage({
+      project_id: projectId,
+      conversation_id: conversationId,
+      role: 'assistant',
+      content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      metadata: {
+        executionMode: mode,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+    });
+
     throw error;
   }
 }

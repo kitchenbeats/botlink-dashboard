@@ -38,16 +38,21 @@ export async function runSimpleAgent(
     conversationHistory = [],
   } = config
 
+  // Get the sandbox URL for Next.js MCP endpoint
+  const sandboxUrl = sandbox.getHost(3000)
+  const nextjsMcpUrl = `https://${sandboxUrl}/_next/mcp`
+
   // Create conversational agent with Inngest tools
   const agent = createAgent({
     name: 'Chat Assistant',
     description: 'A helpful AI assistant for building web applications',
     system: `You are a helpful AI coding assistant helping the user build their web application.
 
-You have access to an E2B sandbox environment where you can:
-- Read, write, and manage files in the project
-- Execute terminal commands and install packages
-- List and move files
+You have access to:
+- E2B sandbox environment for file operations and terminal commands
+- Next.js MCP server for runtime diagnostics (get_errors, get_logs, get_page_metadata)
+- Vercel MCP server for deployment operations
+- Supabase MCP server for database operations
 
 When the user asks you to make changes:
 1. Explain what you're going to do first
@@ -56,8 +61,9 @@ When the user asks you to make changes:
 
 IMPORTANT:
 - For simple questions or greetings, respond naturally without using tools
-- Only use tools when you need to read/write files or run commands
+- Only use tools when you need to read/write files, run commands, or check app state
 - Be conversational and helpful
+- Use Next.js MCP tools to check for errors or inspect the running application
 
 When you're done with a task, wrap your final response in: <response>[Your response]</response>`,
     model:
@@ -252,6 +258,29 @@ When you're done with a task, wrap your final response in: <response>[Your respo
           }
         },
       }),
+    ],
+    mcpServers: [
+      {
+        name: 'nextjs',
+        transport: {
+          type: 'sse',
+          url: nextjsMcpUrl,
+        },
+      },
+      {
+        name: 'vercel',
+        transport: {
+          type: 'streamable-http',
+          url: 'https://mcp.vercel.com/',
+        },
+      },
+      {
+        name: 'supabase',
+        transport: {
+          type: 'streamable-http',
+          url: 'https://mcp.supabase.com/mcp',
+        },
+      },
     ],
     // Note: We don't use onResponse lifecycle hook here because it would publish
     // every intermediate response during agent execution, causing duplicate messages.

@@ -52,9 +52,13 @@ export async function GET(
     return new Response('Project not found', { status: 404 });
   }
 
-  // Get or restore sandbox (handles snapshot restoration)
+  // Get existing sandbox (should already be created by workspace page)
   const { E2BService } = await import('@/lib/services/e2b-service');
-  const { sandbox } = await E2BService.getOrCreateSandboxWithSnapshot(projectId, supabase);
+  const result = await E2BService.getSandbox(projectId, supabase);
+  if (!result) {
+    return new Response('No active sandbox. Please refresh the workspace.', { status: 404 });
+  }
+  const { sandbox } = result;
 
   // Get working directory
   const workDir = E2BService.getTemplateWorkDir(project.template);

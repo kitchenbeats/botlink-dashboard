@@ -29,11 +29,10 @@ RUN npm install -g \
 # Set NODE_PATH to allow require() to find globally installed packages
 ENV NODE_PATH=/usr/local/lib/node_modules
 
-# Clone and install ReactWrite SaaS starter in one layer
+# Copy and install ReactWrite SaaS starter template
 WORKDIR /templates/nextjs-saas
-RUN git clone --depth 1 https://github.com/i-dream-of-ai/nextjs-saas-template.git . \
-    && rm -rf .git \
-    && pnpm install \
+COPY template-source/ .
+RUN pnpm install \
     && pnpm store prune
 
 # Create a default .env.local with local PostgreSQL connection
@@ -49,26 +48,10 @@ COPY configs/.mcp.json /templates/nextjs-saas/.mcp.json
 COPY configs/init-saas-db.sh /usr/local/bin/init-saas-db.sh
 RUN chmod +x /usr/local/bin/init-saas-db.sh
 
-# Update next.config to add allowedDevOrigins (saas-starter uses next.config.ts)
-RUN if [ -f next.config.ts ]; then \
-      sed -i 's/const nextConfig: NextConfig = {/const nextConfig: NextConfig = {\
-  experimental: {\
-    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\
-  },/' next.config.ts; \
-    elif [ -f next.config.js ]; then \
-      sed -i 's/const nextConfig = {/const nextConfig = {\
-  experimental: {\
-    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\
-  },/' next.config.js; \
-    elif [ -f next.config.mjs ]; then \
-      sed -i 's/const nextConfig = {/const nextConfig = {\
-  experimental: {\
-    allowedDevOrigins: ['"'"'*.ledgai.com'"'"'],\
-  },/' next.config.mjs; \
-    fi
+# No config changes needed - Next.js 16 Fast Refresh works in iframes by default
+# Just need: iframe with allow-same-origin + dev server on 0.0.0.0 (both already configured)
 
 # Initialize git repository with initial commit
-# We removed .git during clone, so always init fresh
 RUN git config --global user.email "bot@reactwrite.com" && \
     git config --global user.name "ReactWrite Bot" && \
     git init && \

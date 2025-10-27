@@ -24,8 +24,12 @@ export async function GET(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Get or create sandbox
-    const { sandbox } = await E2BService.getOrCreateSandbox(projectId, supabase);
+    // Get existing sandbox (should already be created by workspace page)
+    const result = await E2BService.getSandbox(projectId, supabase);
+    if (!result) {
+      return NextResponse.json({ error: 'No active sandbox. Please refresh the workspace.' }, { status: 404 });
+    }
+    const { sandbox } = result;
 
     // All templates now use port 3000
     const port = 3000;

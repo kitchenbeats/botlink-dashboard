@@ -6,7 +6,7 @@ import Link from 'next/link'
 const tabs = [
   {
     title: 'Documentation',
-    description: 'The E2B documentation',
+    description: 'ReactWrite documentation',
     url: '/docs',
     icon: FileIcon,
   },

@@ -16,8 +16,8 @@ echo "📦 Building reactwrite-simple-html..."
 cd /Users/jeremyhanlon/Documents/2025_Projects/botlink-dashboard/e2b-templates/simple-html
 e2b template build-v2 reactwrite-simple-html \
   --dockerfile e2b.Dockerfile \
-  --cpu-count 2 \
-  --memory-mb 2048 \
+  --cpu-count 1 \
+  --memory-mb 512 \
   --no-cache \
   -c "cd /templates/simple-html && npx http-server . -p 3000 -c-1" \
   --ready-cmd "timeout 30 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 1; done'"
@@ -30,8 +30,8 @@ echo "📦 Building reactwrite-nextjs-basic..."
 cd /Users/jeremyhanlon/Documents/2025_Projects/botlink-dashboard/e2b-templates/nextjs-basic
 e2b template build-v2 reactwrite-nextjs-basic \
   --dockerfile e2b.Dockerfile \
-  --cpu-count 2 \
-  --memory-mb 2048 \
+  --cpu-count 1 \
+  --memory-mb 512 \
   --no-cache \
   -c "cd /templates/nextjs-basic && npm run dev -- --hostname 0.0.0.0 --port 3000" \
   --ready-cmd "timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 1; done'"
@@ -44,13 +44,26 @@ echo "📦 Building reactwrite-nextjs-saas..."
 cd /Users/jeremyhanlon/Documents/2025_Projects/botlink-dashboard/e2b-templates/nextjs-saas-starter
 e2b template build-v2 reactwrite-nextjs-saas \
   --dockerfile e2b.Dockerfile \
-  --cpu-count 2 \
-  --memory-mb 2048 \
+  --cpu-count 1 \
+  --memory-mb 512 \
   --no-cache \
   -c "(/usr/local/bin/init-saas-db.sh &) && cd /templates/nextjs-saas && pnpm dev --hostname 0.0.0.0 --port 3000" \
   --ready-cmd "timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 1; done'"
 
 echo "✅ reactwrite-nextjs-saas built"
+
+# WordPress template
+echo ""
+echo "📦 Building reactwrite-wordpress..."
+cd /Users/jeremyhanlon/Documents/2025_Projects/botlink-dashboard/e2b-templates/wordpress
+e2b template build-v2 reactwrite-wordpress \
+  --dockerfile e2b.Dockerfile \
+  --cpu-count 1 \
+  --memory-mb 512 \
+  --no-cache \
+  --ready-cmd "timeout 90 bash -c 'until curl -s http://localhost > /dev/null; do sleep 2; done'"
+
+echo "✅ reactwrite-wordpress built"
 
 echo ""
 echo "🎉 All templates built successfully!"
@@ -62,6 +75,7 @@ echo "📤 Publishing all templates..."
 e2b template publish reactwrite-simple-html --yes
 e2b template publish reactwrite-nextjs-basic --yes
 e2b template publish reactwrite-nextjs-saas --yes
+e2b template publish reactwrite-wordpress --yes
 
 echo ""
 echo "✅ All templates published!"

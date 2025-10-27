@@ -48,16 +48,7 @@ export function ProjectCreationForm({ teamId }: ProjectCreationFormProps) {
         throw new Error(result.error || 'Failed to create project');
       }
 
-      // Step 2: Initialize workspace and start dev environment
-      setCreationStep({ status: 'initializing_workspace', message: 'Starting development environment...' });
-      const { initializeProject } = await import('@/server/actions/projects');
-      const initResult = await initializeProject(result.projectId);
-
-      if (!initResult.success) {
-        throw new Error(initResult.error || 'Failed to start project');
-      }
-
-      // Step 3: Complete and navigate
+      // Step 2: Navigate to workspace (it will handle sandbox creation)
       setCreationStep({ status: 'complete', message: 'Ready!' });
       router.push(`/workspace/${result.projectId}`);
     } catch (error) {

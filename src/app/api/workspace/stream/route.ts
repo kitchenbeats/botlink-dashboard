@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
       // Subscribe to Redis channels with message handler
       subscriber = await subscribeToMessages(channel, topics, (message) => {
         try {
+          console.log('[SSE] Received Redis message:', { topic: message.topic, data: message.data });
           const data = JSON.stringify({
             type: 'message',
             topic: message.topic,
@@ -74,14 +75,25 @@ export async function GET(req: NextRequest) {
             timestamp: message.timestamp,
           });
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          console.log('[SSE] Forwarded to client');
         } catch (error) {
-          console.error('[SSE] Error encoding message:', error);
+          // Controller is closed or error encoding - cleanup will handle this
+          if (error instanceof Error && error.message.includes('Controller is already closed')) {
+            // Silently ignore - normal client disconnect
+          } else {
+            console.error('[SSE] Error encoding message:', error);
+          }
         }
       });
 
       // Start heartbeat interval
       heartbeatInterval = setInterval(() => {
-        controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        } catch (error) {
+          // Controller is closed, cleanup will handle this
+          clearInterval(heartbeatInterval);
+        }
       }, 30000);
     },
 

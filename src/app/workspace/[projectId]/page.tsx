@@ -1,6 +1,6 @@
 import { WorkspaceLayout } from '@/features/workspace/workspace-layout'
 import { createClient } from '@/lib/clients/supabase/server'
-import type { File, Project } from '@/lib/types/database'
+import type { Project } from '@/lib/types/database'
 import { getProject } from '@/lib/db/projects'
 import { ensureWorkspaceReady } from '@/server/actions/workspace'
 import { redirect } from 'next/navigation'
@@ -28,17 +28,15 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
     redirect('/dashboard')
   }
 
-  // Ensure workspace is ready (handles initialization with distributed lock)
-  // This prevents race conditions when multiple requests try to initialize
+  // Ensure workspace is ready (gets/resumes/creates sandbox and returns preview URL)
   const workspaceResult = await ensureWorkspaceReady(projectId)
 
   return (
     <WorkspaceLayout
       project={project as Project}
-      files={workspaceResult.files as File[]}
       error={workspaceResult.success ? undefined : workspaceResult.error}
       errorMessage={workspaceResult.success ? undefined : workspaceResult.errorMessage}
-      restoredFromSnapshot={workspaceResult.success ? workspaceResult.restoredFromSnapshot : false}
+      previewUrl={workspaceResult.success ? workspaceResult.previewUrl : undefined}
     />
   )
 }

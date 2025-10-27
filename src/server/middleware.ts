@@ -114,24 +114,25 @@ export async function resolveTeamForDashboard(
   }
 
   const defaultTeam = teamsData.find((t) => t.is_default) || teamsData[0]!
+  const teamData = (defaultTeam as any).team
 
   // Skip redirect if we're at /dashboard with a tab parameter
   if (hasTabParam && request.nextUrl.pathname === PROTECTED_URLS.DASHBOARD) {
     return {
       teamId: defaultTeam.team_id,
-      teamSlug: defaultTeam.team?.slug || undefined,
+      teamSlug: teamData?.slug || undefined,
       // No redirect here - we'll let the page handle the tab parameter
     }
   }
 
   return {
     teamId: defaultTeam.team_id,
-    teamSlug: defaultTeam.team?.slug || undefined,
+    teamSlug: teamData?.slug || undefined,
     redirect:
       teamIdOrSlug === 'account'
         ? undefined
         : PROTECTED_URLS.SANDBOXES(
-            defaultTeam.team?.slug || defaultTeam.team_id
+            teamData?.slug || defaultTeam.team_id
           ),
   }
 }

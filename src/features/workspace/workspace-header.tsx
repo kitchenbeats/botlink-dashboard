@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Project } from '@/lib/types/database';
 import { Button } from '@/ui/primitives/button';
-import { ChevronLeft, Loader2, ExternalLink, Trash2, Eye, EyeOff, GitBranch, Clock, Save, Sparkles, Zap, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Loader2, ExternalLink, Trash2, Eye, EyeOff, GitBranch, Clock, Save, Sparkles, Zap, ChevronDown, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -49,6 +49,7 @@ export function WorkspaceHeader({ project, isEditorOpen, onToggleEditor }: Works
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isSavingSnapshot, setIsSavingSnapshot] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const loadCommitHistory = useCallback(async () => {
     setIsLoadingCommits(true);
@@ -164,20 +165,49 @@ export function WorkspaceHeader({ project, isEditorOpen, onToggleEditor }: Works
   async function handleCloseWorkspace() {
     setIsClosing(true);
     try {
-      const { stopProject } = await import('@/server/actions/projects');
-      const result = await stopProject(project.id);
+      const { saveAndCloseSandbox } = await import('@/server/actions/snapshots');
+      const result = await saveAndCloseSandbox({ projectId: project.id });
 
-      if (result.success) {
-        toast.success('Project stopped. Snapshot saved in background.');
+      if (result?.data?.success) {
+        toast.success(result.data.message || 'Workspace closed');
         router.push(`/dashboard/${project.team_id}/projects`);
       } else {
-        toast.error('Failed to stop project');
+        toast.error('Failed to close workspace');
         setIsClosing(false);
       }
     } catch (error) {
-      console.error('Stop project error:', error);
-      toast.error('Failed to stop project');
+      console.error('Close workspace error:', error);
+      toast.error('Failed to close workspace');
       setIsClosing(false);
+    }
+  }
+
+  async function handleDownload() {
+    setIsDownloading(true);
+    try {
+      const response = await fetch(`/api/workspace/${project.id}/download`);
+
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      // Get the blob and create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project.name.replace(/[^a-zA-Z0-9]/g, '_')}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Project downloaded successfully');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download project');
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -362,7 +392,17 @@ export function WorkspaceHeader({ project, isEditorOpen, onToggleEditor }: Works
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>Project Settings</DropdownMenuItem>
-            <DropdownMenuItem>Export</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleDownload}
+              disabled={isDownloading}
+            >
+              {isDownloading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              {isDownloading ? 'Downloading...' : 'Download Project'}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive"
