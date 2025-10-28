@@ -1,18 +1,11 @@
 import { SUPABASE_AUTH_HEADERS } from '@/configs/api'
 import { infra } from '@/lib/clients/api'
-import { createClient } from '@/lib/clients/supabase/server'
+import { checkAuthenticated } from '@/lib/utils/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient()
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  // Use checkAuthenticated() which validates with getUser() and extracts access_token securely
+  const { session } = await checkAuthenticated()
 
   const { searchParams } = new URL(request.url)
   const sandboxId = searchParams.get('sandboxId')

@@ -2,15 +2,19 @@ import { CostCard } from '@/features/dashboard/usage/cost-card'
 import { RAMCard } from '@/features/dashboard/usage/ram-card'
 import { SandboxesCard } from '@/features/dashboard/usage/sandboxes-card'
 import { VCPUCard } from '@/features/dashboard/usage/vcpu-card'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
+import { resolveTeamIdInServerComponent, bailOutFromPPR } from '@/lib/utils/server'
 import { CatchErrorBoundary } from '@/ui/error'
+import { PageSkeleton } from '@/ui/loading-skeletons'
 import Frame from '@/ui/frame'
+import { Suspense } from 'react'
 
-export default async function UsagePage({
+async function UsagePageContent_Data({
   params,
 }: {
   params: Promise<{ teamIdOrSlug: string }>
 }) {
+  bailOutFromPPR()
+
   const { teamIdOrSlug } = await params
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
@@ -28,6 +32,18 @@ export default async function UsagePage({
       />
       <UsagePageContent teamId={teamId} />
     </Frame>
+  )
+}
+
+export default function UsagePage({
+  params,
+}: {
+  params: Promise<{ teamIdOrSlug: string }>
+}) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <UsagePageContent_Data params={params} />
+    </Suspense>
   )
 }
 

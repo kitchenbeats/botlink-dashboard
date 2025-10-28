@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/clients/supabase/server";
 import {
@@ -73,6 +73,9 @@ export async function createNewProject(
 		// NOTE: GitHub repo will be created automatically on first AI commit
 		// (lazy creation to avoid creating repos for projects that never get used)
 
+		// Invalidate project cache
+		revalidateTag('projects');
+		revalidateTag(`projects-${teamId}`);
 		revalidatePath("/dashboard");
 		return { success: true, projectId: project.id };
 	} catch (error) {
@@ -222,6 +225,11 @@ export async function deleteProjectAction(projectId: string) {
 			// Don't throw - project is already deleted from DB
 		});
 
+		// Invalidate project cache
+		revalidateTag('projects');
+		if (project) {
+			revalidateTag(`projects-${project.team_id}`);
+		}
 		revalidatePath("/dashboard");
 	} catch (error) {
 		console.error("[deleteProjectAction] Error:", error);

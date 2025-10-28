@@ -1,42 +1,38 @@
 'use client'
 
-import { ClientTeam } from '@/types/dashboard.types'
+import { Team } from '@/lib/db/teams'
 import { User } from '@supabase/supabase-js'
 import { createContext, ReactNode, useContext } from 'react'
 
 interface ServerContextValue {
-  selectedTeamId: string | null
-  selectedTeamSlug: string | null
-  teams: ClientTeam[]
-  selectedTeam: ClientTeam | null
-  user: User
+  currentTeam: Team | null
+  teams: Team[]
+  user: User | null
+  isAdmin: boolean
 }
 
 const ServerContext = createContext<ServerContextValue | undefined>(undefined)
 
 interface ServerContextProviderProps {
   children: ReactNode
-  teamId?: string | null
-  teamSlug?: string | null
-  teams: ClientTeam[]
-  selectedTeam: ClientTeam | null
-  user: User
+  currentTeam: Team | null
+  teams: Team[]
+  user: User | null
+  isAdmin: boolean
 }
 
 export function ServerContextProvider({
   children,
-  teamId = null,
-  teamSlug = null,
-  teams: initialTeams,
-  selectedTeam,
+  currentTeam,
+  teams,
   user,
+  isAdmin,
 }: ServerContextProviderProps) {
   const value = {
-    selectedTeamId: teamId,
-    selectedTeamSlug: teamSlug,
-    teams: initialTeams,
-    selectedTeam,
+    currentTeam,
+    teams,
     user,
+    isAdmin,
   }
 
   return (

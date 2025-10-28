@@ -9,7 +9,7 @@ import {
 import { infra } from '@/lib/clients/api'
 import { l } from '@/lib/clients/logger/logger'
 import { handleDefaultInfraError } from '@/lib/utils/action'
-import { getSessionInsecure } from '@/server/auth/get-session'
+import { checkAuthenticated } from '@/lib/utils/server'
 import { TeamMetricsRequestSchema, TeamMetricsResponse } from './types'
 
 export async function POST(request: Request, props: { params: Promise<{ teamId: string }> }) {
@@ -30,12 +30,8 @@ export async function POST(request: Request, props: { params: Promise<{ teamId: 
       return Response.json(mockData satisfies TeamMetricsResponse)
     }
 
-    // fine to use here, we only need a token for the infra api request. it will validate the token.
-    const session = await getSessionInsecure()
-
-    if (!session) {
-      return Response.json({ error: 'Unauthenticated' }, { status: 401 })
-    }
+    // Use checkAuthenticated() which validates with getUser() and extracts access_token securely
+    const { user, session } = await checkAuthenticated()
 
     const startS = Math.floor(startMs / 1000)
     const endS = Math.floor(endMs / 1000)

@@ -1,6 +1,6 @@
 import CreateApiKeyDialog from '@/features/dashboard/keys/create-api-key-dialog'
 import ApiKeysTable from '@/features/dashboard/keys/table'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
+import { resolveTeamIdInServerComponent, bailOutFromPPR } from '@/lib/utils/server'
 import Frame from '@/ui/frame'
 import { Button } from '@/ui/primitives/button'
 import {
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/primitives/card'
+import { PageSkeleton } from '@/ui/loading-skeletons'
 import { Plus } from 'lucide-react'
 import { Suspense } from 'react'
 
@@ -19,7 +20,9 @@ interface KeysPageClientProps {
   }>
 }
 
-export default async function KeysPage({ params }: KeysPageClientProps) {
+async function KeysPageContent({ params }: KeysPageClientProps) {
+  bailOutFromPPR()
+
   const { teamIdOrSlug } = await params
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
@@ -58,5 +61,13 @@ export default async function KeysPage({ params }: KeysPageClientProps) {
         </CardContent>
       </Card>
     </Frame>
+  )
+}
+
+export default function KeysPage({ params }: KeysPageClientProps) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <KeysPageContent params={params} />
+    </Suspense>
   )
 }

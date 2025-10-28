@@ -57,11 +57,17 @@ export class E2BService {
     console.log('[E2B] Creating new sandbox for project:', projectId);
 
     // Create new sandbox with 10-min auto-pause timeout
+    // Include team_id in metadata so sandboxes are associated with teams in E2B infrastructure
     const sandbox = await Sandbox.create(template, {
       apiKey: teamApiKey,
       ...(E2B_DOMAIN && { domain: E2B_DOMAIN }),
       timeoutMs: SANDBOX_TIMEOUT_MS,
       allowInternetAccess: true,
+      metadata: {
+        team_id: project.team_id,
+        project_id: projectId,
+        template: project.template,
+      },
     });
 
     // Save to database

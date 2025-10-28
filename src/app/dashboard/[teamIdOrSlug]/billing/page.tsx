@@ -2,8 +2,12 @@ import { TIERS } from '@/configs/tiers'
 import CustomerPortalLink from '@/features/dashboard/billing/customer-portal-link'
 import BillingInvoicesTable from '@/features/dashboard/billing/invoices-table'
 import BillingTierCard from '@/features/dashboard/billing/tier-card'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
+import {
+  bailOutFromPPR,
+  resolveTeamIdInServerComponent,
+} from '@/lib/utils/server'
 import Frame from '@/ui/frame'
+import { PageSkeleton } from '@/ui/loading-skeletons'
 import {
   Card,
   CardContent,
@@ -13,11 +17,13 @@ import {
 } from '@/ui/primitives/card'
 import { Suspense } from 'react'
 
-export default async function BillingPage({
+async function BillingPageContent({
   params,
 }: {
   params: Promise<{ teamIdOrSlug: string }>
 }) {
+  bailOutFromPPR()
+
   const { teamIdOrSlug } = await params
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
@@ -64,10 +70,20 @@ export default async function BillingPage({
 
         <CardContent>
           <div className="w-full overflow-x-auto">
-            <BillingInvoicesTable teamId={teamId} />
+            <Suspense fallback={<PageSkeleton />}>
+              <BillingInvoicesTable teamId={teamId} />
+            </Suspense>
           </div>
         </CardContent>
       </Card>
     </Frame>
   )
+}
+
+export default function BillingPage({
+  params,
+}: {
+  params: Promise<{ teamIdOrSlug: string }>
+}) {
+  return <BillingPageContent params={params} />
 }

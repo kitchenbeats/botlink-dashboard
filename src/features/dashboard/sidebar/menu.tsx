@@ -5,6 +5,7 @@ import { useSelectedTeam, useTeams } from '@/lib/hooks/use-teams'
 import { useUser } from '@/lib/hooks/use-user'
 import { cn } from '@/lib/utils'
 import { signOutAction } from '@/server/auth/auth-actions'
+import { switchUserTeam } from '@/server/actions/team'
 import { ClientTeam } from '@/types/dashboard.types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar'
 import {
@@ -23,7 +24,7 @@ import { Skeleton } from '@/ui/primitives/skeleton'
 import { ChevronsUpDown, LogOut, Plus, UserRoundCog } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useTransition } from 'react'
 import { CreateTeamDialog } from './create-team-dialog'
 
 interface DashboardSidebarMenuProps {
@@ -38,6 +39,7 @@ export default function DashboardSidebarMenu({
   const selectedTeam = useSelectedTeam()
   const router = useRouter()
   const [createTeamOpen, setCreateTeamOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const pathname = usePathname()
 
   const getNextUrl = useCallback(
@@ -59,13 +61,10 @@ export default function DashboardSidebarMenu({
 
       if (!team || !selectedTeam || team.id === selectedTeam.id) return
 
-      await fetch('/api/team/state', {
-        method: 'POST',
-        body: JSON.stringify({ teamId: team.id }),
+      startTransition(async () => {
+        await switchUserTeam(teamId)
+        router.push(getNextUrl(team))
       })
-
-      router.push(getNextUrl(team))
-      router.refresh()
     },
     [teams, selectedTeam, router, getNextUrl]
   )

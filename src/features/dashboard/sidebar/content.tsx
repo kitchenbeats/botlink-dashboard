@@ -9,7 +9,7 @@ import { useSelectedTeam } from '@/lib/hooks/use-teams'
 import { cn } from '@/lib/utils'
 import micromatch from 'micromatch'
 import Link from 'next/link'
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo } from 'react'
 
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import {
@@ -23,7 +23,7 @@ import {
   useSidebar,
 } from '@/ui/primitives/sidebar'
 import { usePathname } from 'next/navigation'
-import { checkIsAdmin } from '@/server/actions/admin'
+import { useServerContext } from '../server-context'
 
 type GroupedLinks = {
   [key: string]: DashboardNavLink[]
@@ -41,27 +41,11 @@ const createGroupedLinks = (links: DashboardNavLink[]): GroupedLinks => {
 }
 
 export default function DashboardSidebarContent() {
-  const selectedTeam = useSelectedTeam()
-  const selectedTeamIdentifier = selectedTeam?.id
+  const currentTeam = useSelectedTeam()
   const pathname = usePathname()
   const isMobile = useIsMobile()
   const { setOpenMobile } = useSidebar()
-  const [isAdmin, setIsAdmin] = useState(false)
-
-  useEffect(() => {
-    async function fetchAdminStatus() {
-      try {
-        const result = await checkIsAdmin()
-        if (result?.data?.isAdmin) {
-          setIsAdmin(true)
-        }
-      } catch (error) {
-        // Not an admin or error checking
-        setIsAdmin(false)
-      }
-    }
-    fetchAdminStatus()
-  }, [])
+  const { isAdmin } = useServerContext()
 
   const allLinks = useMemo(
     () => (isAdmin ? [...MAIN_DASHBOARD_LINKS, ...ADMIN_DASHBOARD_LINKS] : MAIN_DASHBOARD_LINKS),
@@ -89,7 +73,7 @@ export default function DashboardSidebarContent() {
           <SidebarMenu>
             {links.map((item) => {
               const href = item.href({
-                teamIdOrSlug: selectedTeamIdentifier ?? undefined,
+                teamIdOrSlug: currentTeam?.id ?? undefined,
               })
 
               return (

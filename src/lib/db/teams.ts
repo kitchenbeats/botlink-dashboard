@@ -109,3 +109,59 @@ export async function updateTeam(
     return data;
   }, 'updateTeam');
 }
+
+// Get user's current team
+export async function getCurrentTeam(userId: string): Promise<Team | null> {
+  return handleDbError(async () => {
+    const db = await getDb();
+    const { data, error } = await db
+      .from('users_teams')
+      .select('teams(*)')
+      .eq('user_id', userId)
+      .eq('is_current', true)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+
+    if (!data) return null;
+
+    const team = Array.isArray(data.teams) ? data.teams[0] : data.teams;
+    return team || null;
+  }, 'getCurrentTeam');
+}
+
+// Set user's current team
+export async function setCurrentTeam(userId: string, teamId: string): Promise<void> {
+  return handleDbError(async () => {
+    const db = await getDb();
+
+    // First verify user has access to this team
+    const { data: accessCheck, error: accessError } = await db
+      .from('users_teams')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('team_id', teamId)
+      .single();
+
+    if (accessError || !accessCheck) {
+      throw new Error('User does not have access to this team');
+    }
+
+    // Unset all current teams for this user
+    const { error: unsetError } = await db
+      .from('users_teams')
+      .update({ is_current: false })
+      .eq('user_id', userId);
+
+    if (unsetError) throw unsetError;
+
+    // Set the new current team
+    const { error: setError } = await db
+      .from('users_teams')
+      .update({ is_current: true })
+      .eq('user_id', userId)
+      .eq('team_id', teamId);
+
+    if (setError) throw setError;
+  }, 'setCurrentTeam');
+}

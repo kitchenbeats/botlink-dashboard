@@ -1,10 +1,12 @@
 import { COOKIE_KEYS } from '@/configs/keys'
+import { Suspense } from 'react'
 import { SandboxInspectProvider } from '@/features/dashboard/sandbox/inspect/context'
 import SandboxInspectFilesystem from '@/features/dashboard/sandbox/inspect/filesystem'
 import SandboxInspectViewer from '@/features/dashboard/sandbox/inspect/viewer'
 import { cn } from '@/lib/utils'
 import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
 import { getSandboxRoot } from '@/server/sandboxes/get-sandbox-root'
+import { SandboxInspectSkeleton } from '@/ui/loading-skeletons'
 import ClientOnly from '@/ui/client-only'
 import { cookies } from 'next/headers'
 
@@ -14,7 +16,7 @@ import { cookies } from 'next/headers'
 
 const DEFAULT_ROOT_PATH = '/home/user'
 
-export default async function SandboxInspectPage({
+async function SandboxInspectContent({
   params,
 }: {
   params: Promise<{ teamIdOrSlug: string; sandboxId: string }>
@@ -50,5 +52,17 @@ export default async function SandboxInspectPage({
         <SandboxInspectViewer />
       </ClientOnly>
     </SandboxInspectProvider>
+  )
+}
+
+export default function SandboxInspectPage({
+  params,
+}: {
+  params: Promise<{ teamIdOrSlug: string; sandboxId: string }>
+}) {
+  return (
+    <Suspense fallback={<SandboxInspectSkeleton />}>
+      <SandboxInspectContent params={params} />
+    </Suspense>
   )
 }

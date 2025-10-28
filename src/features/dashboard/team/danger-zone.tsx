@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/primitives/card'
+import { DeleteTeamButton } from './delete-team-button'
 
 interface DangerZoneProps {
   teamId: string
@@ -79,7 +80,7 @@ async function DangerZoneContent({ teamId }: { teamId: string }) {
             Permanently delete this team and all of its data
           </p>
         </div>
-        <Button variant="error">Delete Team</Button>
+        <DeleteTeamButton teamId={teamId} isDefault={team.is_default} />
       </div>
     </>
   )

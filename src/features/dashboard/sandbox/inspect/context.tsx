@@ -213,9 +213,19 @@ export function SandboxInspectProvider({
       sandboxManagerRef.current.stopWatching()
     }
 
-    const { data } = await supabase.auth.getSession()
+    // Validate user first (server-side JWT validation)
+    const { data: userData, error: userError } = await supabase.auth.getUser()
 
-    if (!data || !data.session) {
+    if (userError || !userData.user) {
+      router.replace(AUTH_URLS.SIGN_IN)
+      return
+    }
+
+    // Get session to extract access_token
+    // Note: This is client-side, after validation with getUser()
+    const { data: sessionData } = await supabase.auth.getSession()
+
+    if (!sessionData?.session) {
       router.replace(AUTH_URLS.SIGN_IN)
       return
     }
@@ -223,7 +233,7 @@ export function SandboxInspectProvider({
     const sandbox = await Sandbox.connect(sandboxInfo.sandboxID, {
       domain: process.env.NEXT_PUBLIC_E2B_DOMAIN,
       headers: {
-        ...SUPABASE_AUTH_HEADERS(data.session?.access_token, teamId),
+        ...SUPABASE_AUTH_HEADERS(sessionData.session.access_token, teamId),
       },
     })
 

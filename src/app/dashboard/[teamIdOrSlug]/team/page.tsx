@@ -2,7 +2,8 @@ import { InfoCard } from '@/features/dashboard/team/info-card'
 import { MemberCard } from '@/features/dashboard/team/member-card'
 import { NameCard } from '@/features/dashboard/team/name-card'
 import { ProfilePictureCard } from '@/features/dashboard/team/profile-picture-card'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
+import { resolveTeamIdInServerComponent, bailOutFromPPR } from '@/lib/utils/server'
+import { PageSkeleton } from '@/ui/loading-skeletons'
 import Frame from '@/ui/frame'
 import Scanline from '@/ui/scanline'
 import { Suspense } from 'react'
@@ -13,7 +14,9 @@ interface GeneralPageProps {
   }>
 }
 
-export default async function GeneralPage({ params }: GeneralPageProps) {
+async function TeamPageContent({ params }: GeneralPageProps) {
+  bailOutFromPPR()
+
   const { teamIdOrSlug } = await params
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
@@ -43,5 +46,13 @@ export default async function GeneralPage({ params }: GeneralPageProps) {
         </section>
       </div>
     </Frame>
+  )
+}
+
+export default function GeneralPage({ params }: GeneralPageProps) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <TeamPageContent params={params} />
+    </Suspense>
   )
 }

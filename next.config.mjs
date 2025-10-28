@@ -3,9 +3,8 @@ const config = {
   reactStrictMode: true,
   // Moved from experimental in Next.js 16
   reactCompiler: true,
-  // TODO: Enable Cache Components after adding proper Suspense boundaries
-  // Requires wrapping getUserTeams() and other data fetches in Suspense
-  // cacheComponents: true,
+  // Enable Cache Components with "use cache" directives
+  cacheComponents: true,
   // Turbopack is now default in v16, adding empty config to acknowledge webpack usage
   turbopack: {
     root: process.cwd(),

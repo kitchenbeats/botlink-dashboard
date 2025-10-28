@@ -72,7 +72,7 @@ export function PasswordSettings({
   }, [showPasswordChangeForm])
 
   const hasEmailProvider = useMemo(
-    () => getUserProviders(user)?.includes('email'),
+    () => user ? getUserProviders(user)?.includes('email') : false,
     [user]
   )
 

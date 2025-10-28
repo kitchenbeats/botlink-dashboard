@@ -62,7 +62,7 @@ export function EmailSettings({ className }: EmailSettingsProps) {
   })
 
   const hasEmailProvider = useMemo(
-    () => getUserProviders(user)?.includes('email'),
+    () => user ? getUserProviders(user)?.includes('email') : false,
     [user]
   )
 

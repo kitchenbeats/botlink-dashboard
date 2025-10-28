@@ -5,7 +5,6 @@ import { COOKIE_KEYS } from '@/configs/keys'
 import { PROTECTED_URLS } from '@/configs/urls'
 import { supabaseAdmin } from '@/lib/clients/supabase/admin'
 import { createClient } from '@/lib/clients/supabase/server'
-import { getSessionInsecure } from '@/server/auth/get-session'
 import { E2BError, UnauthenticatedError } from '@/types/errors'
 import { unstable_noStore } from 'next/cache'
 import { cookies } from 'next/headers'
@@ -21,27 +20,33 @@ import { returnServerError } from './action'
  *  This function checks if the user is authenticated and returns the user and the supabase client.
  *  If the user is not authenticated, it throws an error.
  *
- *  @params request - an optional NextRequest object to create a supabase client for route handlers
+ *  Security pattern:
+ *  1. ALWAYS validate with getUser() FIRST - performs server-side JWT validation
+ *  2. THEN use getSession() to extract access_token - safe because we validated first
+ *
+ *  IMPORTANT: getSession() should NEVER be used for authentication/authorization.
+ *  It only reads cookies without validation. We use it here ONLY to get the access_token
+ *  AFTER we've already validated the user with getUser().
  */
 export async function checkAuthenticated() {
   const supabase = await createClient()
 
-  // retrieve session from storage medium (cookies)
-  // if no stored session found, not authenticated
+  // Step 1: Validate authentication with getUser() (server-side JWT validation)
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
 
-  // it's fine to use the "insecure" cookie session here, since we only use it for quick denial and do a proper auth check (auth.getUser) afterwards.
-  const session = await getSessionInsecure(supabase)
-
-  if (!session) {
+  if (userError || !user) {
     throw UnauthenticatedError()
   }
 
-  // now retrieve user from supabase to use further
+  // Step 2: Get session for access_token (safe because we validated above)
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  if (!user) {
+  if (!session) {
     throw UnauthenticatedError()
   }
 

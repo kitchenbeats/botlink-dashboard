@@ -2,7 +2,7 @@ import { AUTH_URLS, PROTECTED_URLS } from '@/configs/urls'
 import { l } from '@/lib/clients/logger/logger'
 import { createClient } from '@/lib/clients/supabase/server'
 import { encodedRedirect } from '@/lib/utils/auth'
-import { bailOutFromPPR, generateE2BUserAccessToken } from '@/lib/utils/server'
+import { bailOutFromPPR, checkAuthenticated, generateE2BUserAccessToken } from '@/lib/utils/server'
 import { getDefaultTeamRelation } from '@/server/auth/get-default-team'
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert'
 import { CloudIcon, LaptopIcon, Link2Icon } from 'lucide-react'
@@ -128,12 +128,11 @@ export default async function CLIAuthPage(
   // Handle CLI callback if authenticated
   if (!error && next && user) {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      // Use checkAuthenticated() which validates and extracts access_token securely
+      const { session } = await checkAuthenticated()
 
       if (!session?.access_token) {
-        throw new Error('No provider access token found')
+        throw new Error('No access token found')
       }
 
       return await handleCLIAuth(

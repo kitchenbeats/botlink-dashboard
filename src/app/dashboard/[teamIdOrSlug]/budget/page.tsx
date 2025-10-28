@@ -1,13 +1,17 @@
 import CreditsCard from '@/features/dashboard/budget/credits-card'
 import UsageLimits from '@/features/dashboard/budget/usage-limits'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
+import { resolveTeamIdInServerComponent, bailOutFromPPR } from '@/lib/utils/server'
 import Frame from '@/ui/frame'
+import { PageSkeleton } from '@/ui/loading-skeletons'
+import { Suspense } from 'react'
 
 interface BudgetPageProps {
   params: Promise<{ teamIdOrSlug: string }>
 }
 
-export default async function BudgetPage({ params }: BudgetPageProps) {
+async function BudgetPageContent({ params }: BudgetPageProps) {
+  bailOutFromPPR()
+
   const { teamIdOrSlug } = await params
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
@@ -21,5 +25,13 @@ export default async function BudgetPage({ params }: BudgetPageProps) {
       <CreditsCard teamId={teamId} />
       <UsageLimits teamId={teamId} />
     </Frame>
+  )
+}
+
+export default function BudgetPage({ params }: BudgetPageProps) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <BudgetPageContent params={params} />
+    </Suspense>
   )
 }

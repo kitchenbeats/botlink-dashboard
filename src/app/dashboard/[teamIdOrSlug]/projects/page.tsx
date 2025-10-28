@@ -1,18 +1,27 @@
 import { Button } from '@/ui/primitives/button'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { getTeam } from '@/server/team/get-team'
+import { cacheTag, cacheLife } from 'next/cache'
+import { getTeam } from '@/lib/utils/cached-server-functions'
 import { listProjectsWithStatus } from '@/lib/db/projects'
 import { ProjectCard } from '@/features/projects/project-card'
+
+async function getCachedProjects(teamId: string) {
+  'use cache'
+  cacheTag('projects', `projects-${teamId}`)
+  cacheLife('minutes') // Built-in profile: updates frequently
+
+  return await listProjectsWithStatus(teamId)
+}
 
 export default async function ProjectsPage({
   params,
 }: {
   params: Promise<{ teamIdOrSlug: string }>
 }) {
-  const { teamIdOrSlug } = await params
+  const { teamIdOrSlug: teamId } = await params
 
-  const teamResult = await getTeam({ teamId: teamIdOrSlug })
+  const teamResult = await getTeam({ teamId })
 
   if (!teamResult?.data) {
     return (
@@ -26,7 +35,7 @@ export default async function ProjectsPage({
   }
 
   const team = teamResult.data
-  const projects = await listProjectsWithStatus(team.id)
+  const projects = await getCachedProjects(team.id)
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -38,7 +47,7 @@ export default async function ProjectsPage({
           </p>
         </div>
         <Button asChild>
-          <Link href={`/dashboard/${teamIdOrSlug}/projects/new`}>
+          <Link href={`/dashboard/${teamId}/projects/new`}>
             <Plus className="h-4 w-4 mr-2" />
             New Project
           </Link>
@@ -52,7 +61,7 @@ export default async function ProjectsPage({
             Get started by creating your first project
           </p>
           <Button asChild variant="outline">
-            <Link href={`/dashboard/${teamIdOrSlug}/projects/new`}>Create Project</Link>
+            <Link href={`/dashboard/${teamId}/projects/new`}>Create Project</Link>
           </Button>
         </div>
       ) : (

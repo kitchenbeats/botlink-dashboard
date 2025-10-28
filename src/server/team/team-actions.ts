@@ -17,6 +17,7 @@ import { serializeError } from 'serialize-error'
 import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 import { getTeam } from './get-team'
+import { setCurrentTeam } from '@/lib/db/teams'
 
 export const updateTeamNameAction = authActionClient
   .schema(UpdateTeamNameSchema)
@@ -170,6 +171,23 @@ export const removeTeamMemberAction = authActionClient
       return returnServerError('Cannot remove the last team member')
     }
 
+    // Check if the team being removed is the user's current team
+    if (teamMember.is_current) {
+      // Find another team for the user
+      const { data: otherTeam } = await supabaseAdmin
+        .from('users_teams')
+        .select('team_id')
+        .eq('user_id', userId)
+        .neq('team_id', teamId)
+        .limit(1)
+        .single()
+
+      // Switch to another team if one exists
+      if (otherTeam) {
+        await setCurrentTeam(userId, otherTeam.team_id)
+      }
+    }
+
     const { error: removeError } = await supabaseAdmin
       .from('users_teams')
       .delete()
@@ -201,7 +219,7 @@ export const createTeamAction = authActionClient
   .metadata({ actionName: 'createTeam' })
   .action(async ({ parsedInput, ctx }) => {
     const { name } = parsedInput
-    const { session } = ctx
+    const { session, user } = ctx
 
     const response = await fetch(`${process.env.BILLING_API_URL}/teams`, {
       method: 'POST',
@@ -223,11 +241,95 @@ export const createTeamAction = authActionClient
       return handleDefaultInfraError(status)
     }
 
-    revalidatePath('/dashboard', 'layout')
-
     const data = (await response.json()) as CreateTeamsResponse
 
+    // Mark the new team as current for the user
+    if (data.id) {
+      await setCurrentTeam(user.id, data.id)
+    }
+
+    revalidatePath('/dashboard', 'layout')
+
     return data
+  })
+
+const DeleteTeamSchema = z.object({
+  teamId: z.uuid(),
+})
+
+export const deleteTeamAction = authActionClient
+  .schema(DeleteTeamSchema)
+  .metadata({ actionName: 'deleteTeam' })
+  .action(async ({ parsedInput, ctx }) => {
+    const { teamId } = parsedInput
+    const { user, session } = ctx
+
+    const isAuthorized = await checkUserTeamAuthorization(user.id, teamId)
+
+    if (!isAuthorized) {
+      return returnServerError('User is not authorized to delete this team')
+    }
+
+    // Check if team is default team (can't delete default teams)
+    const { data: teamData } = await supabaseAdmin
+      .from('teams')
+      .select('is_default')
+      .eq('id', teamId)
+      .single()
+
+    if (teamData?.is_default) {
+      return returnServerError('Cannot delete default team')
+    }
+
+    // For all members of this team, if this is their current team, switch them to another team
+    const { data: teamMembers } = await supabaseAdmin
+      .from('users_teams')
+      .select('user_id, is_current')
+      .eq('team_id', teamId)
+
+    if (teamMembers) {
+      for (const member of teamMembers) {
+        if (member.is_current) {
+          // Find another team for this user
+          const { data: otherTeam } = await supabaseAdmin
+            .from('users_teams')
+            .select('team_id')
+            .eq('user_id', member.user_id)
+            .neq('team_id', teamId)
+            .limit(1)
+            .single()
+
+          // Switch to another team if one exists
+          if (otherTeam) {
+            await setCurrentTeam(member.user_id, otherTeam.team_id)
+          }
+        }
+      }
+    }
+
+    // Delete the team via billing API
+    const response = await fetch(`${process.env.BILLING_API_URL}/teams/${teamId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...SUPABASE_AUTH_HEADERS(session.access_token),
+      },
+    })
+
+    if (!response.ok) {
+      const status = response.status
+      const error = await response.json()
+
+      if (status === 400) {
+        return returnServerError(error?.message ?? 'Failed to delete team')
+      }
+
+      return handleDefaultInfraError(status)
+    }
+
+    revalidatePath('/dashboard', 'layout')
+
+    return { success: true }
   })
 
 const UploadTeamProfilePictureSchema = zfd.formData(

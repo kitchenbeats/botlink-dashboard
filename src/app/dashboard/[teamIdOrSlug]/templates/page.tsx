@@ -1,10 +1,12 @@
 import TemplatesTable from '@/features/dashboard/templates/table'
-import { resolveTeamIdInServerComponent } from '@/lib/utils/server'
+import { resolveTeamIdInServerComponent, bailOutFromPPR } from '@/lib/utils/server'
 import {
   getDefaultTemplates,
   getTeamTemplates,
 } from '@/server/templates/get-team-templates'
 import ErrorBoundary from '@/ui/error'
+import { PageSkeleton } from '@/ui/loading-skeletons'
+import { Suspense } from 'react'
 
 interface PageProps {
   params: Promise<{
@@ -12,17 +14,10 @@ interface PageProps {
   }>
 }
 
-export default async function Page({ params }: PageProps) {
+async function PageContent({ params }: PageProps) {
+  bailOutFromPPR()
+
   const { teamIdOrSlug } = await params
-
-  return <PageContent teamIdOrSlug={teamIdOrSlug} />
-}
-
-interface PageContentProps {
-  teamIdOrSlug: string
-}
-
-async function PageContent({ teamIdOrSlug }: PageContentProps) {
   const teamId = await resolveTeamIdInServerComponent(teamIdOrSlug)
 
   const res = await getTeamTemplates({
@@ -51,4 +46,12 @@ async function PageContent({ teamIdOrSlug }: PageContentProps) {
   ]
 
   return <TemplatesTable templates={templates} />
+}
+
+export default function Page({ params }: PageProps) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <PageContent params={params} />
+    </Suspense>
+  )
 }
