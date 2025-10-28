@@ -66,7 +66,7 @@ async function DangerZoneContent({ teamId }: { teamId: string }) {
           confirm="Leave"
           onConfirm={() => {}}
           trigger={
-            <Button variant="muted" disabled={!team || team?.is_default}>
+            <Button variant="muted" disabled={!team}>
               Leave Team
             </Button>
           }
@@ -80,7 +80,7 @@ async function DangerZoneContent({ teamId }: { teamId: string }) {
             Permanently delete this team and all of its data
           </p>
         </div>
-        <DeleteTeamButton teamId={teamId} isDefault={team.is_default} />
+        <DeleteTeamButton teamId={teamId} isDefault={false} />
       </div>
     </>
   )

@@ -114,10 +114,10 @@ export function TemplateCell({
   const template: Template | undefined = table
     .getState()
     .templates?.find((t: Template) => t.templateID === templateId)
-  const { selectedTeamSlug, selectedTeamId } = useServerContext()
+  const { currentTeam } = useServerContext()
   const router = useRouter()
 
-  if (!selectedTeamSlug || !selectedTeamId) return null
+  if (!currentTeam) return null
 
   return (
     <Button
@@ -129,7 +129,7 @@ export function TemplateCell({
 
         useTemplateTableStore.getState().setGlobalFilter(templateId)
         router.push(
-          PROTECTED_URLS.TEMPLATES(selectedTeamSlug ?? selectedTeamId)
+          PROTECTED_URLS.TEMPLATES(currentTeam.id)
         )
       }}
     >

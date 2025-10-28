@@ -1,5 +1,6 @@
 import { getDb, handleDbError } from './index';
 import type { Tables, TablesUpdate } from '@/types/database.types';
+import { revalidateTag } from 'next/cache';
 
 /**
  * Team Repository (E2B Architecture)
@@ -106,6 +107,11 @@ export async function updateTeam(
       .single();
 
     if (error) throw error;
+
+    // Invalidate cache
+    revalidateTag(`team-${id}`, {})
+    revalidateTag('teams', {})
+
     return data;
   }, 'updateTeam');
 }
@@ -125,7 +131,8 @@ export async function getCurrentTeam(userId: string): Promise<Team | null> {
 
     if (!data) return null;
 
-    const team = Array.isArray(data.teams) ? data.teams[0] : data.teams;
+    const typedData = data as { teams: Team | Team[] };
+    const team = Array.isArray(typedData.teams) ? typedData.teams[0] : typedData.teams;
     return team || null;
   }, 'getCurrentTeam');
 }
@@ -150,7 +157,7 @@ export async function setCurrentTeam(userId: string, teamId: string): Promise<vo
     // Unset all current teams for this user
     const { error: unsetError } = await db
       .from('users_teams')
-      .update({ is_current: false })
+      .update({ is_current: false } as never)
       .eq('user_id', userId);
 
     if (unsetError) throw unsetError;
@@ -158,10 +165,14 @@ export async function setCurrentTeam(userId: string, teamId: string): Promise<vo
     // Set the new current team
     const { error: setError } = await db
       .from('users_teams')
-      .update({ is_current: true })
+      .update({ is_current: true } as never)
       .eq('user_id', userId)
       .eq('team_id', teamId);
 
     if (setError) throw setError;
+
+    // Invalidate cache
+    revalidateTag(`user-teams-${userId}`, {})
+    revalidateTag('teams', {})
   }, 'setCurrentTeam');
 }

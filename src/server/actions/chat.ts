@@ -4,6 +4,7 @@ import { createClient } from '@/lib/clients/supabase/server';
 import { createMessage, listMessages } from '@/lib/db/messages';
 import { createTask, updateTask } from '@/lib/db/tasks';
 import { getSystemAgentByType } from '@/lib/db/agents';
+import type { Tables } from '@/types/database.types';
 import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { E2BService } from '@/lib/services/e2b-service';
@@ -11,6 +12,7 @@ import { publishWorkspaceMessage } from '@/lib/services/redis-realtime';
 import { getProject } from '@/lib/db/projects';
 import { runCodingTask } from '@/lib/services/coding-agent';
 import { saveConversationToFile, convertMessagesToHistory } from '@/lib/services/conversation-history';
+import type { ProjectTemplate } from '@/lib/types/database';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -60,10 +62,11 @@ export async function sendChatMessage(
   if (mode === 'simple') {
     try {
       // Get project to find template and working directory
-      const project = await getProject(projectId);
-      if (!project) {
+      const projectData = await getProject(projectId);
+      if (!projectData) {
         throw new Error(`Project ${projectId} not found`);
       }
+      const project = projectData as Tables<'projects'>
 
       // Get existing sandbox (should already be created by workspace page)
       const sandboxResult = await E2BService.getSandbox(projectId, supabase);
@@ -90,6 +93,7 @@ export async function sendChatMessage(
       const result = await runCodingTask(userMessage, {
         sandbox,
         projectId,
+        template: project.template as ProjectTemplate, // Template-specific prompt configuration
         workDir,
         model: coderModel, // User-selected model for coder (e.g., 'claude-haiku-4-5', 'claude-sonnet-4-5', 'gpt-5-mini', 'gpt-5')
         reviewerModel: reviewerModel, // User-selected model for reviewer

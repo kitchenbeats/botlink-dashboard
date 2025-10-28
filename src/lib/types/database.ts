@@ -3,9 +3,9 @@
 // ============================================================================
 
 // Enums
-export type ProjectTemplate = 'simple_site' | 'nextjs' | 'nextjs_saas';
+export type ProjectTemplate = 'simple_site' | 'nextjs' | 'nextjs_saas' | 'wordpress';
 
-export type BuilderType = 'simple_site' | 'nextjs' | 'nextjs_saas';
+export type BuilderType = 'simple_site' | 'nextjs' | 'nextjs_saas' | 'wordpress';
 export type ProjectType = ProjectTemplate; // Legacy alias
 export type MessageRole = 'user' | 'assistant' | 'system';
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed';

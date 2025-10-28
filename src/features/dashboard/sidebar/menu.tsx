@@ -103,7 +103,7 @@ export default function DashboardSidebarMenu({
                 </span>
                 {selectedTeam ? (
                   <span className="text-fg truncate prose-body-highlight normal-case">
-                    {selectedTeam.transformed_default_name || selectedTeam.name}
+                    {selectedTeam.name}
                   </span>
                 ) : (
                   <Skeleton className="h-4 w-full" />
@@ -137,7 +137,7 @@ export default function DashboardSidebarMenu({
                         </AvatarFallback>
                       </Avatar>
                       <span className="flex-1 truncate font-sans prose-label-highlight">
-                        {team.transformed_default_name || team.name}
+                        {team.name}
                       </span>
                     </Link>
                   </DropdownMenuRadioItem>

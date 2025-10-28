@@ -111,28 +111,7 @@ export function NameCard({ className }: NameCardProps) {
                     <FormControl>
                       <Input placeholder="Acme, Inc." {...field} />
                     </FormControl>
-                    <AnimatePresence initial={false}>
-                      {team.transformed_default_name && (
-                        <motion.span
-                          className="text-fg-tertiary ml-0.5 text-xs"
-                          animate={{
-                            opacity: 1,
-                            filter: 'blur(0px)',
-                            height: 'auto',
-                          }}
-                          exit={{ opacity: 0, filter: 'blur(4px)', height: 0 }}
-                          transition={{
-                            duration: 0.4,
-                            ease: exponentialSmoothing(3),
-                          }}
-                        >
-                          Seen as -{' '}
-                          <span className="text-accent-info-highlight">
-                            {team.transformed_default_name}
-                          </span>
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
+                    {/* transformed_default_name is not currently populated */}
                     <FormMessage className="mt-1" />
                   </FormItem>
                 )}

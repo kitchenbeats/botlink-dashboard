@@ -1,31 +1,35 @@
+import { getTeam } from '@/lib/utils/cached-server-functions'
 import { createClient } from '@/lib/clients/supabase/server'
-import { getWorkflows } from '@/lib/db'
-import { getUserTeams } from '@/lib/db/teams'
+import type { Tables } from '@/types/database.types'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default async function WorkflowsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+async function WorkflowsContent({ params }: { params: Promise<{ teamIdOrSlug: string }> }) {
+  const { teamIdOrSlug: teamId } = await params
+  const teamResult = await getTeam({ teamId })
 
-  if (!user) {
-    redirect('/sign-in')
+  if (!teamResult?.data) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Team not found</h2>
+          <p className="text-muted-foreground">
+            The team you're looking for doesn't exist or you don't have access.
+          </p>
+        </div>
+      </div>
+    )
   }
 
-  const teams = await getUserTeams(user.id)
-  if (teams.length === 0) {
-    redirect('/onboarding')
-  }
+  const db = await createClient()
+  const { data: workflows, error } = await db
+    .from('workflows')
+    .select('*')
+    .eq('team_id', teamResult.data.id)
+    .order('created_at', { ascending: false })
 
-  // For now, use the first org (later we'll add org switcher)
-  const currentTeam = teams[0]
-  if (!currentTeam) {
-    redirect('/onboarding')
-  }
-
-  const workflows = await getWorkflows(currentTeam.id)
+  if (error) throw error
+  const workflowList = (workflows || []) as Tables<'workflows'>[]
 
   return (
     <div>
@@ -37,21 +41,21 @@ export default async function WorkflowsPage() {
           </p>
         </div>
         <Link
-          href="/workflows/new"
+          href={`/dashboard/${teamId}/workflows/new`}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
         >
           Create Workflow
         </Link>
       </div>
 
-      {workflows.length === 0 ? (
+      {workflowList.length === 0 ? (
         <div className="border border-dashed rounded-lg p-12 text-center">
           <h3 className="text-lg font-semibold mb-2">No workflows yet</h3>
           <p className="text-muted-foreground mb-4">
             Create your first workflow to get started
           </p>
           <Link
-            href="/workflows/new"
+            href={`/dashboard/${teamId}/workflows/new`}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
           >
             Create Workflow
@@ -59,10 +63,10 @@ export default async function WorkflowsPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {workflows.map((workflow) => (
+          {workflowList.map((workflow) => (
             <Link
               key={workflow.id}
-              href={`/workflows/${workflow.id}`}
+              href={`/dashboard/${teamId}/workflows/${workflow.id}`}
               className="block p-6 border rounded-lg hover:border-primary transition"
             >
               <h3 className="font-semibold mb-2">{workflow.name}</h3>
@@ -82,5 +86,17 @@ export default async function WorkflowsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function WorkflowsPage({
+  params,
+}: {
+  params: Promise<{ teamIdOrSlug: string }>
+}) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><div>Loading...</div></div>}>
+      <WorkflowsContent params={params} />
+    </Suspense>
   )
 }

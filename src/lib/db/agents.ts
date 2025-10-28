@@ -1,5 +1,6 @@
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types'
 import { getDb, handleDbError } from './index'
+import { revalidateTag } from 'next/cache'
 
 // Get all system agents
 export async function getSystemAgents(): Promise<Tables<'agents'>[]> {
@@ -107,7 +108,17 @@ export async function createAgent(
       .single()
 
     if (error) throw error
-    return agent
+    const typedAgent = agent as Tables<'agents'>
+
+    // Invalidate cache
+    if (typedAgent.team_id) {
+      revalidateTag(`agents-${typedAgent.team_id}`, {})
+      revalidateTag('agents', {})
+    } else {
+      revalidateTag('system-agents', {})
+    }
+
+    return typedAgent
   }, 'createAgent')
 }
 

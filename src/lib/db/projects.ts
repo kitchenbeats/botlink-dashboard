@@ -1,5 +1,6 @@
 import { getDb, handleDbError } from './index';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
+import { revalidateTag } from 'next/cache';
 
 /**
  * Project Repository
@@ -28,7 +29,13 @@ export async function createProject(data: TablesInsert<'projects'>): Promise<Tab
       .single();
 
     if (error) throw error;
-    return project;
+    const typedProject = project as Tables<'projects'>
+
+    // Invalidate cache
+    revalidateTag(`projects-${typedProject.team_id}`, {})
+    revalidateTag('projects', {})
+
+    return typedProject;
   }, 'createProject');
 }
 
@@ -155,7 +162,13 @@ export async function updateProject(
       .single();
 
     if (error) throw error;
-    return data;
+    const typedProject = data as Tables<'projects'>
+
+    // Invalidate cache
+    revalidateTag(`projects-${typedProject.team_id}`, {})
+    revalidateTag('projects', {})
+
+    return typedProject;
   }, 'updateProject');
 }
 
@@ -176,12 +189,28 @@ export async function touchProject(id: string): Promise<void> {
 export async function deleteProject(id: string): Promise<void> {
   return handleDbError(async () => {
     const db = await getDb();
+
+    // Get project first to know which team to invalidate
+    const { data: project } = await db
+      .from('projects')
+      .select('team_id')
+      .eq('id', id)
+      .single();
+
+    const typedProject = project as Tables<'projects'> | null
+
     const { error } = await db
       .from('projects')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
+
+    // Invalidate cache
+    if (typedProject?.team_id) {
+      revalidateTag(`projects-${typedProject.team_id}`, {})
+    }
+    revalidateTag('projects', {})
   }, 'deleteProject');
 }
 

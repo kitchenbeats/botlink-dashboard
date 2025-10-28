@@ -3,7 +3,7 @@ const config = {
   reactStrictMode: true,
   // Moved from experimental in Next.js 16
   reactCompiler: true,
-  // Enable Cache Components with "use cache" directives
+  // Enable Cache Components for Next.js 16
   cacheComponents: true,
   // Turbopack is now default in v16, adding empty config to acknowledge webpack usage
   turbopack: {

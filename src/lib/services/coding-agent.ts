@@ -19,16 +19,21 @@ import { z } from 'zod'
 import { publishWorkspaceMessage } from './redis-realtime'
 import { kv } from '@/lib/clients/kv'
 import { createAgentEventEmitter } from './agent-events'
+import { codingAgentPrompt, codeReviewerPrompt } from '@/configs/prompts/coding-agent'
+import { generateSystemPrompt } from '@/configs/prompts'
+import type { ProjectTemplate } from '@/lib/types/database'
 
 export interface CodingAgentConfig {
   sandbox: Sandbox
   projectId: string
+  template?: ProjectTemplate // Project template type (simple_site, nextjs, nextjs_saas, wordpress)
   workDir?: string
   model?: string // e.g., 'claude-haiku-4-5', 'claude-sonnet-4-5', 'gpt-5-mini', 'gpt-5'
   reviewerModel?: string // e.g., 'claude-haiku-4-5', 'claude-sonnet-4-5', 'gpt-5-mini', 'gpt-5'
   maxIterations?: number
   reviewMode?: 'limited' | 'loop' | 'off'
   maxReviewIterations?: number
+  checkYourWork?: boolean // Enable rigorous documentation checking mode
   onProgress?: (message: string) => void
 }
 
@@ -204,91 +209,15 @@ export async function createCodingAgent(config: CodingAgentConfig) {
     errors: []
   }
 
+  // Get template-specific system prompt if template is provided
+  const systemPrompt = config.template
+    ? generateSystemPrompt(config.template, projectContext, conversationHistory ?? undefined, workDir, config.checkYourWork)
+    : codingAgentPrompt.systemPrompt(projectContext, conversationHistory ?? undefined, workDir);
+
   const agent = createAgent({
-    name: 'Coding Agent',
-    description:
-      'An expert coding agent for building and modifying web applications',
-    system: `You are a coding agent helping the user build web applications.
-
-You have access to an E2B sandbox where you can:
-- Read and write files
-- Run terminal commands
-- Execute code
-
-The project is located at: ${workDir}
-
-<project_context>
-${projectContext}
-</project_context>
-
-${conversationHistory ? `<conversation_history>
-Previous conversation:
-${conversationHistory}
-</conversation_history>
-
-Remember to reference previous context and maintain conversation continuity.
-` : ''}
-
-When running commands:
-- Always use 'cd ${workDir} &&' before your command if it's file-system related
-- Keep in mind that the terminal is non-interactive, use the '-y' flag when needed
-- File paths should be relative to ${workDir}
-
-DEV SERVER & PM2 MANAGEMENT:
-- TWO servers available via PM2:
-  1. **nextjs-dev** (port 3000): Development server - ALWAYS running, provides live preview
-  2. **nextjs-prod** (port 3001): Production build preview - Start/stop as needed for testing
-
-- Dev server (port 3000) provides live preview for user - NEVER kill it accidentally
-- PM2 auto-restarts dev server if it crashes, keeping preview always available
-
-SAFE COMMANDS:
-  * Check dev server: Use pm2DevServer(action: "status")
-  * Restart dev server: Use pm2DevServer(action: "restart")
-  * View dev logs: Use pm2DevServer(action: "logs")
-  * Install packages: "pnpm install [package]" (dev server auto-reloads)
-  * Clean build cache: "rm -rf .next || true" (|| true handles lock file errors)
-
-PRODUCTION BUILDS (Port 3001):
-  * Test production build: Use productionBuild(action: "build")
-    - Runs "pnpm build" safely
-    - Starts production server on port 3001 (dev server stays on 3000!)
-    - Returns both preview URLs
-  * Stop production server: Use productionBuild(action: "stop") when done testing
-  * NEVER run "pnpm build" directly via terminal - use the productionBuild tool!
-
-DANGEROUS - NEVER DO:
-  * NEVER use "pkill", "killall", or "kill -9" commands (they destroy PM2)
-  * NEVER manually start servers with "pnpm dev" or "pnpm start" (PM2 handles this)
-  * NEVER run "pm2 kill" or "pm2 delete" (breaks the live preview)
-  * NEVER run "pnpm build" via terminal (use productionBuild tool instead)
-
-- The system will auto-detect and restart dev server if you accidentally stop it
-
-IMPORTANT:
-- If the user just says hello or asks a simple question that doesn't require code changes, respond immediately without using tools.
-- Only use tools when you need to read files, write code, or run commands.
-- When you complete a task, wrap your final response in JSON format:
-
-<task_summary>
-{
-  "message": "Your friendly response to the user explaining what you did",
-  "summary": "Brief technical summary of changes",
-  "nextSteps": ["Optional suggestions for next steps"],
-  "notes": ["Any important notes or warnings"]
-}
-</task_summary>
-
-Example:
-<task_summary>
-{
-  "message": "I've created the login page with form validation! The page includes email and password fields with proper error handling.",
-  "summary": "Created src/pages/login.tsx with React Hook Form and Zod validation",
-  "nextSteps": ["Add authentication API integration", "Style the form with Tailwind"],
-  "notes": ["Remember to add the login route to your router"]
-}
-</task_summary>
-`,
+    name: codingAgentPrompt.name,
+    description: codingAgentPrompt.description,
+    system: systemPrompt,
     model: getModelConfig(model),
     tools: [
       // Terminal command execution
@@ -1052,23 +981,9 @@ async function createReviewAgent(config: CodingAgentConfig) {
   const { reviewerModel = 'claude', onProgress } = config;
 
   return createAgent({
-    name: 'Code Reviewer',
-    description: 'Expert code reviewer ensuring production quality',
-    system: `You are an expert senior developer conducting code reviews.
-
-Your role is to review code changes and ensure production quality.
-
-Review Criteria:
-1. **Code Quality**: Clean, readable, maintainable code with proper naming
-2. **Best Practices**: Framework best practices, error handling, security
-3. **Completeness**: All requirements implemented, no missing functionality
-4. **Testing**: Consider if code needs tests or validation
-
-Output Format:
-- If code is good: "APPROVED: Code looks good"
-- If issues found: "ISSUES FOUND: [list specific problems]"
-
-Be thorough but fair. Focus on critical issues that must be fixed.`,
+    name: codeReviewerPrompt.name,
+    description: codeReviewerPrompt.description,
+    system: codeReviewerPrompt.systemPrompt('', undefined, undefined),
     model: getModelConfig(reviewerModel),
     tools: [], // No tools needed for review, just analysis
   });

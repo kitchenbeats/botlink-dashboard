@@ -74,8 +74,8 @@ export async function createNewProject(
 		// (lazy creation to avoid creating repos for projects that never get used)
 
 		// Invalidate project cache
-		revalidateTag('projects');
-		revalidateTag(`projects-${teamId}`);
+		revalidateTag('projects', {});
+		revalidateTag(`projects-${teamId}`, {});
 		revalidatePath("/dashboard");
 		return { success: true, projectId: project.id };
 	} catch (error) {
@@ -226,9 +226,9 @@ export async function deleteProjectAction(projectId: string) {
 		});
 
 		// Invalidate project cache
-		revalidateTag('projects');
+		revalidateTag('projects', {});
 		if (project) {
-			revalidateTag(`projects-${project.team_id}`);
+			revalidateTag(`projects-${project.team_id}`, {});
 		}
 		revalidatePath("/dashboard");
 	} catch (error) {

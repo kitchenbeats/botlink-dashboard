@@ -336,38 +336,56 @@ export type Database = {
       }
       envs: {
         Row: {
+          allowed_tier_ids: string[] | null
           build_count: number
+          category: string | null
           cluster_id: string | null
           created_at: string
           created_by: string | null
+          description: string | null
+          icon_url: string | null
           id: string
           last_spawned_at: string | null
+          name: string | null
           public: boolean
           spawn_count: number
+          tags: string[] | null
           team_id: string
           updated_at: string
         }
         Insert: {
+          allowed_tier_ids?: string[] | null
           build_count?: number
+          category?: string | null
           cluster_id?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
+          icon_url?: string | null
           id: string
           last_spawned_at?: string | null
+          name?: string | null
           public?: boolean
           spawn_count?: number
+          tags?: string[] | null
           team_id: string
           updated_at: string
         }
         Update: {
+          allowed_tier_ids?: string[] | null
           build_count?: number
+          category?: string | null
           cluster_id?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
+          icon_url?: string | null
           id?: string
           last_spawned_at?: string | null
+          name?: string | null
           public?: boolean
           spawn_count?: number
+          tags?: string[] | null
           team_id?: string
           updated_at?: string
         }
@@ -990,6 +1008,7 @@ export type Database = {
           added_by: string | null
           created_at: string | null
           id: number
+          is_current: boolean | null
           is_default: boolean
           team_id: string
           user_id: string
@@ -998,6 +1017,7 @@ export type Database = {
           added_by?: string | null
           created_at?: string | null
           id?: number
+          is_current?: boolean | null
           is_default?: boolean
           team_id: string
           user_id: string
@@ -1006,6 +1026,7 @@ export type Database = {
           added_by?: string | null
           created_at?: string | null
           id?: number
+          is_current?: boolean | null
           is_default?: boolean
           team_id?: string
           user_id?: string

@@ -1,5 +1,6 @@
 import { getDb, handleDbError } from './index';
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
+import { revalidateTag } from 'next/cache';
 
 // Create workflow
 export async function createWorkflow(data: TablesInsert<'workflows'>): Promise<Tables<'workflows'>> {
@@ -12,7 +13,13 @@ export async function createWorkflow(data: TablesInsert<'workflows'>): Promise<T
       .single();
 
     if (error) throw error;
-    return workflow;
+    const typedWorkflow = workflow as Tables<'workflows'>
+
+    // Invalidate cache
+    revalidateTag(`workflows-${typedWorkflow.team_id}`, {})
+    revalidateTag('workflows', {})
+
+    return typedWorkflow;
   }, 'createWorkflow');
 }
 
@@ -72,7 +79,13 @@ export async function updateWorkflow(
       .single();
 
     if (error) throw error;
-    return data;
+    const typedWorkflow = data as Tables<'workflows'>
+
+    // Invalidate cache
+    revalidateTag(`workflows-${typedWorkflow.team_id}`, {})
+    revalidateTag('workflows', {})
+
+    return typedWorkflow;
   }, 'updateWorkflow');
 }
 
@@ -80,11 +93,27 @@ export async function updateWorkflow(
 export async function deleteWorkflow(id: string): Promise<void> {
   return handleDbError(async () => {
     const db = await getDb();
+
+    // Get workflow first to know which team to invalidate
+    const { data: workflow } = await db
+      .from('workflows')
+      .select('team_id')
+      .eq('id', id)
+      .single();
+
+    const typedWorkflow = workflow as Tables<'workflows'> | null
+
     const { error } = await db
       .from('workflows')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
+
+    // Invalidate cache
+    if (typedWorkflow?.team_id) {
+      revalidateTag(`workflows-${typedWorkflow.team_id}`, {})
+    }
+    revalidateTag('workflows', {})
   }, 'deleteWorkflow');
 }
